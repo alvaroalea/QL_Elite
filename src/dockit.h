@@ -10,6 +10,8 @@ extern u8 t_rat, t_rat2, t_cnt, t_cnt2;  /* RAT, RAT2, CNT, CNT2 de TACTICS */
 void dockit(void);                       /* DOCKIT sobre INWK (ztype negativo = nuestra nave) */
 void dcs1(void);                         /* DCS1 */
 void ta151(void);                        /* TA151 (y TA152..TA10) */
+void ta152(u8 a);                        /* TA152: CNT = a y TA15 */
+void ta15(void);                         /* TA15..TA10: cabeceo, alabeo y aceleracion hacia XX15 */
 void gopl(void);                         /* GOPL: girar hacia el planeta */
 void dokey_auto(struct controls *c);     /* DOKEY con auto != 0: teclas virtuales del ordenador de atraque */
 #endif

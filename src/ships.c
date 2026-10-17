@@ -10,6 +10,8 @@
 #include "sun.h"
 #include "combat.h"
 #include "damage.h"
+#include "tactics.h"
+#include "dash.h"
 
 static u8 heaps[NOSH][HEAP_BYTES];
 
@@ -18,6 +20,8 @@ static const u8 e_newb[33] = {
     0, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x61, 0xA0, 0xA0, 0xA0, 0xA1, 0xA1, 0xC2,
     0x0C, 0x8C, 0x8C, 0x8C, 0x0C, 0x8C, 0x05, 0x8C, 0x8C, 0x8C, 0x82, 0x0C, 0x0C, 0x04, 0x04, 0x00
 };
+
+u8 ship_e_newb(u8 type) { return (u8)(type <= 32 ? e_newb[type] : 0); }
 
 const u8 *ship_bp_for(u8 type)
 {
@@ -56,10 +60,32 @@ int ship_new(u8 type)
     return n;
 }
 
+/* KS2: los misiles que apuntaban a una ranura posterior a n pasan a la anterior; los que apuntaban a n se quedan sin blanco */
+void ks2(int n)
+{
+    int j;
+    u8 a, *p;
+    for (j = 0; j < NOSH && frin[j]; j++) {
+        if (frin[j] != SHIPT_MISSILE) continue;
+        p = state_slot(j);
+        a = p[32];
+        if (!(a & 0x80)) continue;
+        a = (u8)((a & 0x7F) >> 1);
+        if (a < n) continue;
+        if (a == n) { p[32] = 0; continue; }
+        p[32] = (u8)(((a - 1) << 1) | 0x80);
+    }
+}
+
 void ship_kill(int n)
 {
     u8 type = frin[n];
     int j, i;
+    if (mstg == n) {                                     /* el blanco de nuestro misil: TARGET LOST */
+        abort_missile(MS_GREEN);
+        mess(MESS_TARGET_LOST);
+    }
+    if (type == SHIPT_CONSTRICTOR) { tp = (u8)(tp | 0x02); tally[1]++; }   /* mision 1: Constrictor destruido */
     if (type < 128 && many[type]) many[type]--;
     if ((type == SHIPT_ROCK_HERMIT || (type >= SHIPT_ESCAPE_POD && type < SHIPT_SHUTTLE + 2)) && junk_count) junk_count--;
     for (j = n; j < NOSH - 1; j++) {
@@ -70,6 +96,7 @@ void ship_kill(int n)
     frin[NOSH - 1] = 0;
     for (i = 0; i < NI; i++) state_slot(NOSH - 1)[i] = 0;
     for (i = 0; i < HEAP_BYTES; i++) heaps[NOSH - 1][i] = 0;
+    ks2(n);
 }
 
 void ships_clear(void)
@@ -177,6 +204,8 @@ int ships_spawn(u8 type)
     sg = (u8)(em_dornd() & 0x80);
     inwk[29] = (u8)(sg | 40);
     inwk[30] = (u8)((sg ^ 0x80) | 20);
+    inwk[32] = (u8)(em_dornd() | 0x80);                  /* provisional: IA con agresividad al azar */
+    if (type != SHIPT_ASTEROID) inwk[36] = 0x04;         /* y hostil, para probar TACTICS hasta que haya encuentros */
     n = ship_new(type);
     return n;
 }
@@ -210,10 +239,10 @@ static void sfs2(u8 a, u8 x)
 /* SFS1: la hija sale del bloque K% de la madre (INF), no de INWK; INWK se guarda y se restituye (el original usa XX3).
    Si la madre es la estacion, sale por la ranura a velocidad 32. Los restos (PLT..SPL) giran al azar y su velocidad es
    aleatoria (0..15: el X que deja DORND); el contador de alabeo es $7F con el signo del bit 7 del numero aleatorio (ROR con el acarreo de ASL) */
-void sfs1(u8 ai, u8 type)
+int sfs1(u8 ai, u8 type)
 {
     u8 save[NI], a, c;
-    int i;
+    int i, n;
     for (i = 0; i < NI; i++) { save[i] = inwk[i]; inwk[i] = zinf[i]; }
     if (ztype == SHIPT_CORIOLIS) {
         inwk[27] = 32;
@@ -231,8 +260,10 @@ void sfs1(u8 ai, u8 type)
         inwk[27] = (u8)(em_rand_x & 15);                 /* TXA: X lo ha dejado DORND (aleatorio), no es el tipo */
         inwk[29] = (u8)((c << 7) | 0x7F);                /* LDA #$FF; ROR A */
     }
-    em_rand_c = (u8)(ship_new(type) >= 0);               /* NWSHP vuelve con C = 1 si hubo sitio (lo usa el DORND siguiente) */
+    n = ship_new(type);
+    em_rand_c = (u8)(n >= 0);                            /* NWSHP vuelve con C = 1 si hubo sitio (lo usa el DORND siguiente) */
     for (i = 0; i < NI; i++) inwk[i] = save[i];
+    return n;
 }
 
 void spin2(u8 cnt, u8 type)
@@ -510,6 +541,7 @@ void ships_hooks(void)
 {
     ship_doexp_hook = doexp;
     ship_planet_hook = planet;
+    move_tactics_hook = tactics;
 }
 
 /* FAROF: 1 si alguna coordenada alta pasa de 224 */
@@ -538,6 +570,7 @@ u8 ships_step(u8 view)
             }
         }
         mveit();
+        if (player_dead) return (u8)(ev | SHIPS_EV_DEATH);         /* TACTICS nos ha matado (OOPS: JMP DEATH) */
         put_slot(n);                                     /* MAL3 */
         if (!(type & 0x80)) {                            /* partes 9 y 10: choque, recogida o atraque */
             int col = combat_collide();

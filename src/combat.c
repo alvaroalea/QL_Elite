@@ -9,6 +9,8 @@
 #include "cmdr.h"
 #include "sound.h"
 #include "damage.h"
+#include "tactics.h"
+#include "move.h"
 
 u8 las, las2, lasct, lasx, lasy, dly;
 u8 combat_view_on = 1;
@@ -155,7 +157,7 @@ void angry(u8 type)
     p[I_AI] = (u8)(p[I_AI] | 0x80);
     p[28] = 2;                                       /* acelera */
     p[30] = 4;                                       /* cabecea */
-    if (type >= SHIPT_COBRA_MK_3) p[I_NEWB] = (u8)(p[I_NEWB] | 0x04);
+    if (ztype >= SHIPT_COBRA_MK_3) p[I_NEWB] = (u8)(p[I_NEWB] | 0x04);   /* LDA TYPE: la nave que se esta procesando */
 }
 
 /* EXNO2: TALLY(1 0) + fraccion; si sube el byte alto, "RIGHT ON COMMANDER!" */
@@ -176,6 +178,7 @@ void combat_hit(void)
     u8 type = ztype;
     int d;
     if (!hitch()) return;                            /* BCC MA8 */
+    missile_lock(move_xsav);                         /* LDA MSAR; BEQ MA47; JSR BEEP; LDX XSAV; LDY #RED; JSR ABORT2 */
     if (las == 0) return;                            /* MA47 */
     snd_exno();                                      /* EXNO: golpe */
     if (type == SHIPT_CORIOLIS) goto mad;            /* la estacion no sufre, pero se enfada */

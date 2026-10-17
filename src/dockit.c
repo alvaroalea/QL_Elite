@@ -11,10 +11,15 @@ u8 t_rat, t_rat2, t_cnt, t_cnt2;
 
 /* TA152 y la cola de TACTICS (TA15, TA11, TA6, PH10E, TA9): CNT = A (morro hacia el objetivo); cabeceo y alabeo hacia
    XX15 (con RAT si el angulo pasa de RAT2) y aceleracion segun CNT y CNT2 */
-static void ta152(u8 a)
+void ta152(u8 a)
 {
-    u8 x;
     t_cnt = a;
+    ta15();
+}
+
+void ta15(void)
+{
+    u8 a, x;
     a = sm_tas3(16);                             /* TA15: XX15 . techo */
     x = a;
     inwk[30] = (u8)((a ^ 0x80) & 0x80);

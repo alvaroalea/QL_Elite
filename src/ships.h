@@ -11,9 +11,11 @@
 #define SHIPS_EV_DEATH 4                         /* ships_step: choque mortal (DEATH) */
 
 const u8 *ship_bp_for(u8 type);                  /* plano de la nave (la estacion es un Dodo con nivel tecnologico >= 10) */
+u8   ship_e_newb(u8 type);                       /* E%: NEWB inicial del tipo (bit 7: lleva capsula de escape) */
 void ship_zinf(void);                            /* ZINF: INWK a cero con la orientacion por defecto */
 int  ship_new(u8 type);                          /* NWSHP: anade la nave de INWK a la primera ranura libre; -1 si no cabe */
 void ship_kill(int slot);                        /* KILLSHP: quita la nave y desplaza las demas */
+void ks2(int slot);                              /* KS2: reajusta los blancos de los misiles tras quitar la ranura */
 void ships_clear(void);                          /* ninguna nave */
 void ships_launch(void);                         /* planeta (ranura 0) y estacion (ranura 1) al despegar (SOLAR y NWSPS) */
 void ships_arrive(void);                         /* planeta y sol (SOLAR) tras el hiperespacio */
@@ -23,7 +25,7 @@ u8   ships_step(u8 view);                        /* un fotograma: mueve, dibuja,
 void ships_hooks(void);                          /* pone DOEXP y PLANET como ganchos de LL9 */
 void ships_forget_lines(void);                   /* tras borrar la pantalla entera: ninguna nave figura como dibujada */
 void ships_erase_all(void);                      /* borra de la pantalla las lineas de todas las naves (antes de repintar o cambiar de sistema) */
-void sfs1(u8 ai, u8 type);                      /* SFS1: nave hija de la de INF (zinf) con IA = ai (NWSHP) */
+int  sfs1(u8 ai, u8 type);                      /* SFS1: nave hija de la de INF (zinf) con IA = ai (NWSHP) */
 void spin(u8 type);                              /* SPIN: al 50 %, restos de ese tipo de la nave destruida */
 void spin2(u8 cnt, u8 type);                     /* SPIN2: cnt restos de ese tipo */
 int  ships_death_debris_one(void);              /* una vuelta de D1 (devuelve la ranura o -1) */

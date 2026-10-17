@@ -206,6 +206,9 @@ static void msbar(u8 x, u8 color)
     if (color != 0) { dial_col = color; msbars(x1, (u8)(x1 + 6), 184); }
 }
 
+/* MSBAR para quien lo llame (tactics.c) */
+void dash_msbar(u8 x, u8 color) { msbar(x, color); }
+
 /* msblob: los NOMSL primeros indicadores en verde y el resto apagados */
 void dash_msblob(void)
 {

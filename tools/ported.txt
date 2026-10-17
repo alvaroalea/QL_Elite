@@ -151,10 +151,10 @@ MVT1 mvt1 sin-verificar
 PIXEL gfx_dust sin-verificar ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II
 HLOIN gfx_hloin,hloin propia pares de puntos de X1 a X2-1; hloin() de sun.c redondea X1/X2 a pares y deja X2 como el original (verificado con make test_planet)
 SOLAR space_launch propia solo las formulas de la posicion del planeta; la estacion y su salida son valores propios
-ABORT - no-necesaria misiles aun no existen
-ABORT2 - no-necesaria misiles aun no existen
-ECMOF - no-necesaria el ECM aun no existe en vuelo
-ECBLB2 - no-necesaria el ECM aun no existe en vuelo
+ABORT abort_missile verificada dentro de las teclas de misil (make test_tactics)
+ABORT2 abort2 verificada MSAR = 0 (MSBAR vuelve con Y = 0); make test_tactics
+ECMOF ecm_off verificada dentro de MA16..MA66 (make test_tactics)
+ECBLB2 ecm_on verificada a traves de TACTICS (make test_tactics)
 # --- polvo estelar, radar, mira, tunel, misiles y bombillas (2026-10-17), sin verificar
 STARS stars_update sin-verificar vistas 0 (STARS1), 1 (STARS6), 2 y 3 (STARS2)
 STARS1 stars1 sin-verificar los acarreos del 6502 se siguen con una variable c (LSR/ROR/SBC/ADC)
@@ -183,7 +183,7 @@ msblob dash_msblob sin-verificar NOMSL indicadores en verde y el resto apagados
 MSBAR msbar sin-verificar borra el color anterior y dibuja el nuevo (XOR)
 msloc msloc sin-verificar x = 40, 32, 24, 16
 SPBLB dash_spblb sin-verificar bombilla S (estacion cerca)
-ECBLB dash_ecblb sin-verificar bombilla E (aun sin ECM en vuelo)
+ECBLB dash_ecblb sin-verificar bombilla E (XOR); la enciende y apaga el ECM
 BULB bulb sin-verificar 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E
 SPBT bulb_s sin-verificar
 ECBT bulb_e sin-verificar
@@ -497,7 +497,7 @@ KS1 ship_kill propia quita la nave y desplaza las demas
 KS4 ships_step propia la estacion se quita y vuelve el sol (regla propia)
 spasto ship_bp_for propia plano de la estacion (Coriolis o Dodo)
 KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
-Main ships_step,flight_run,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks parcial bucle principal: naves, laser (partes 3, 11, 12, 16, MLOOP: make test_laser), choques, recogida y atraque por la ranura (partes 9 y 10), ENERGY LOW, altitud, cabina y combustible del sol (parte 15: make test_damage); faltan misiles, bomba, ECM, generacion de encuentros y la aparicion de la estacion (parte 14)
+Main ships_step,flight_run,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock parcial bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (verificados con make test_laser, test_damage, test_equip, test_tactics); faltan la generacion de encuentros (parte 13, TT100), la aparicion de la estacion (parte 14) y los Thargoides fuera del hiperespacio
 DOENTRY flight_run,combat_collide parcial se atraca entrando por la ranura (ISDK), con el ordenador de atraque (C) o, sin el, con C (provisional); energia y escudos se reponen al despegar; falta el progreso de las misiones (paso de misiones)
 
 LL129 ll129 verificada dentro de ship3d.c (pendiente de la linea, verificada con el 6502)
@@ -532,8 +532,14 @@ DOCKIT dockit verificada make test_equip (con TA2, GOPL, TA151 y la cola de TACT
 DCS1 dcs1 verificada dentro de DOCKIT
 dockEd ui_nav propia mensaje DOCKED al pulsar H o G atracado
 ESCAPE flight_escape,ships_escape sin-verificar la Cobra se aleja 97 fotogramas (MVEIT + LL9), carga, FIST y capsula a cero, 70 de combustible, atraque
-SESCP sescp sin-verificar = SFS1 (verificada) con IA $FE y la capsula; la usara TACTICS
+SESCP sescp verificada a traves de TACTICS (la capsula de una nave casi sin energia; make test_tactics)
 MJP misjump sin-verificar salto fallido: tunel, MJ = $FF, tres Thargoides (GTHG), polvo de 2, QQ1 EOR 31; la distancia en el hiperespacio se mide desde (QQ0, QQ1)
 GTHG gthg verificada make test_equip
 FRS1 frs1 verificada make test_equip
+# --- 2026-10-17 duodecima ronda: TACTICS y misiles (make test_tactics contra el 6502)
+TACTICS tactics verificada las 7 partes (la 7 en dockit.c); 20.000 casos con nave hija, misiles, laser, ECM, capsula
+FRMIS frmis,missile_fire sin-verificar FRS1 (verificada) + ANGRY + ABORT; cae en ANGRY con la A que deja SOHISS (sonido desactivado: 0)
+FR1 fr1 propia MISSILE JAMMED (mensaje)
+SFRMIS sfrmis verificada a traves de TACTICS
+KS2 ks2 verificada make test_tactics
 

@@ -5,16 +5,16 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **366**, de ellas verificadas contra el 6502: 69 y pendientes de verificar: 297
-- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, motor de textos comprimidos, utilidades que da el compilador de C, etc.): **139**
-- **Sin portar** (pendientes de implementar, incluidas las parciales): **23**
+- **Portadas** (con la funcion C que las cubre): **375**, de ellas verificadas contra el 6502: 77 y pendientes de verificar: 298
+- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, motor de textos comprimidos, utilidades que da el compilador de C, etc.): **135**
+- **Sin portar** (pendientes de implementar, incluidas las parciales): **18**
 
-Comprobacion: total = portadas + no necesarias + sin portar (528 = 366 + 139 + 23).
+Comprobacion: total = portadas + no necesarias + sin portar (528 = 375 + 135 + 18).
 
 | Area | Total | Portadas | De ellas verificadas | No necesarias | Pendientes verificar | Pendientes implementar |
 |---|---:|---:|---:|---:|---:|---:|
 | Charts | 9 | 9 | 0 | 0 | 9 | 0 |
-| Dashboard | 29 | 25 | 0 | 4 | 25 | 0 |
+| Dashboard | 29 | 29 | 4 | 0 | 25 | 0 |
 | Drawing circles | 9 | 9 | 6 | 0 | 3 | 0 |
 | Drawing lines | 27 | 23 | 11 | 4 | 12 | 0 |
 | Drawing pixels | 6 | 6 | 0 | 0 | 6 | 0 |
@@ -23,7 +23,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 366 + 139 + 2
 | Drawing suns | 3 | 3 | 3 | 0 | 0 | 0 |
 | Drawing the screen | 18 | 8 | 0 | 10 | 8 | 0 |
 | Equipment | 6 | 6 | 0 | 0 | 6 | 0 |
-| Flight | 29 | 28 | 9 | 0 | 19 | 1 |
+| Flight | 29 | 28 | 10 | 0 | 18 | 1 |
 | Keyboard | 19 | 13 | 0 | 4 | 13 | 2 |
 | Loader | 5 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 0 | 0 | 0 | 0 | 1 |
@@ -37,13 +37,13 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 366 + 139 + 2
 | Stardust | 7 | 7 | 0 | 0 | 7 | 0 |
 | Start and end | 8 | 7 | 0 | 0 | 7 | 1 |
 | Status | 7 | 7 | 1 | 0 | 6 | 0 |
-| Tactics | 8 | 3 | 3 | 1 | 0 | 4 |
+| Tactics | 8 | 7 | 5 | 1 | 2 | 0 |
 | Text | 77 | 34 | 0 | 41 | 34 | 2 |
 | Tube | 1 | 0 | 0 | 1 | 0 | 0 |
-| Universe | 34 | 31 | 4 | 2 | 27 | 1 |
+| Universe | 34 | 32 | 5 | 2 | 27 | 0 |
 | Utility routines | 18 | 1 | 0 | 17 | 1 | 0 |
 | Workspaces | 7 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **366** | **69** | **139** | **297** | **23** |
+| **Total** | **528** | **375** | **77** | **135** | **298** | **18** |
 
 Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -54,9 +54,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 - **Main loop** (1): `Main` (parcial)
 - **Missions** (11): `BRIEF2`, `BRP`, `BRIEF3`, `DEBRIEF2`, `DEBRIEF`, `TBRIEF`, `BRIEF`, `BRIS`, `PAUSE`, `PAS1`, `THERE`
 - **Start and end** (1): `DEATH` (parcial)
-- **Tactics** (4): `TACTICS`, `FRMIS`, `FR1`, `SFRMIS`
 - **Text** (2): `MT27`, `MT28`
-- **Universe** (1): `KS2`
 
 ## Estados
 
@@ -76,7 +74,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | TT114 | Display either the Long-range or Short-range Chart | sin-verificar | `chart_draw` | dispatcher galactica/local; el redibujado tras un salto hecho desde una carta no hace falta aun: el salto solo se inicia desde la vista de vuelo |
 | hm | Select the closest system and redraw the chart crosshairs | sin-verificar | `chart_hm` | tecla D: sistema mas cercano a la cruz, nombre y distancia |
 
-## Dashboard (25 portadas de 29, 4 no necesarias)
+## Dashboard (29 portadas de 29)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -95,13 +93,13 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | SP1 | Draw the space station on the compass | sin-verificar | `compas` | estacion si SSPR |
 | SP2 | Draw a dot on the compass, given the planet/station vector | sin-verificar | `compas` |  |
 | DOT | Draw a dash on the compass | sin-verificar | `dot` |  |
-| ABORT | Unarm missiles and update the dashboard indicators | no-necesaria |  | misiles aun no existen |
-| ABORT2 | Set/unset the lock target for a missile and update the dashboard | no-necesaria |  | misiles aun no existen |
+| ABORT | Unarm missiles and update the dashboard indicators | verificada | `abort_missile` | dentro de las teclas de misil (make test_tactics) |
+| ABORT2 | Set/unset the lock target for a missile and update the dashboard | verificada | `abort2` | MSAR = 0 (MSBAR vuelve con Y = 0); make test_tactics |
 | msblob | Display the dashboard's missile indicators in green | sin-verificar | `dash_msblob` | NOMSL indicadores en verde y el resto apagados |
-| ECMOF | Switch off the E.C.M. and turn off the dashboard bulb | no-necesaria |  | el ECM aun no existe en vuelo |
+| ECMOF | Switch off the E.C.M. and turn off the dashboard bulb | verificada | `ecm_off` | dentro de MA16..MA66 (make test_tactics) |
 | MSBARS | Draw two horizontal lines as part of an indicator bar, from | sin-verificar | `msbars` | cuatro lineas bajo Y1 con gfx_hloin |
-| ECBLB2 | Start up the E.C.M. (light up the indicator, start the countdown | no-necesaria |  | el ECM aun no existe en vuelo |
-| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard | sin-verificar | `dash_ecblb` | bombilla E (aun sin ECM en vuelo) |
+| ECBLB2 | Start up the E.C.M. (light up the indicator, start the countdown | verificada | `ecm_on` | a traves de TACTICS (make test_tactics) |
+| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard | sin-verificar | `dash_ecblb` | bombilla E (XOR); la enciende y apaga el ECM |
 | SPBLB | Light up the space station indicator ("S") on the dashboard | sin-verificar | `dash_spblb` | bombilla S (estacion cerca) |
 | BULB | Draw an indicator bulb on the dashboard | sin-verificar | `bulb` | 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E |
 | ECBT | The character bitmap for the E.C.M. indicator bulb | sin-verificar | `bulb_e` |  |
@@ -239,7 +237,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | ESCAPE | Launch our escape pod | sin-verificar | `flight_escape`, `ships_escape` | la Cobra se aleja 97 fotogramas (MVEIT + LL9), carga, FIST y capsula a cero, 70 de combustible, atraque |
 | DOCKIT | Apply docking manoeuvres to the ship in INWK | verificada | `dockit` | make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c) |
 | DCS1 | Calculate the vector from the ideal docking position to the ship | verificada | `dcs1` | dentro de DOCKIT |
-| SESCP | Spawn an escape pod from the current (parent) ship | sin-verificar | `sescp` | = SFS1 (verificada) con IA $FE y la capsula; la usara TACTICS |
+| SESCP | Spawn an escape pod from the current (parent) ship | verificada | `sescp` | a traves de TACTICS (la capsula de una nave casi sin energia; make test_tactics) |
 | dockEd | Print a message to say there is no hyperspacing allowed inside the | propia | `ui_nav` | mensaje DOCKED al pulsar H o G atracado |
 | hyp | Start the hyperspace process | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
 | wW | Start a hyperspace countdown | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
@@ -303,7 +301,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| Main | Seed the random number generator | parcial | `ships_step`, `flight_run`, `laser_fire`, `combat_hit`, `combat_killed`, `laser_frame_end`, `energy_tick`, `laser_cool`, `combat_collide`, `damage_checks` | bucle principal: naves, laser (partes 3, 11, 12, 16, MLOOP: make test_laser), choques, recogida y atraque por la ranura (partes 9 y 10), ENERGY LOW, altitud, cabina y combustible del sol (parte 15: make test_damage); faltan misiles, bomba, ECM, generacion de encuentros y la aparicion de la estacion (parte 14) |
+| Main | Seed the random number generator | parcial | `ships_step`, `flight_run`, `laser_fire`, `combat_hit`, `combat_killed`, `laser_frame_end`, `energy_tick`, `laser_cool`, `combat_collide`, `damage_checks`, `ecm_frame`, `ecm_key`, `missile_unarm`, `missile_target`, `missile_fire`, `missile_lock` | bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (verificados con make test_laser, test_damage, test_equip, test_tactics); faltan la generacion de encuentros (parte 13, TT100), la aparicion de la estacion (parte 14) y los Thargoides fuera del hiperespacio |
 
 ## Market (19 portadas de 19)
 
@@ -565,18 +563,18 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | BAY | Go to the docking bay (i.e. show the Status Mode screen) | propia | `scr_status` | pantalla de estado al atracar |
 | EXNO2 | Process us making a kill | verificada | `exno2` | TALLY con KWL%/KWH% y mensaje 101; el sonido es snd_exno2 |
 
-## Tactics (3 portadas de 8, 1 no necesarias, 4 sin portar)
+## Tactics (7 portadas de 8, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| TACTICS | Apply tactics: Process missiles, both enemy missiles and our own |  |  |  |
+| TACTICS | Apply tactics: Process missiles, both enemy missiles and our own | verificada | `tactics` | las 7 partes (la 7 en dockit.c); 20.000 casos con nave hija, misiles, laser, ECM, capsula |
 | HITCH | Work out if the ship in INWK is in our crosshairs | verificada | `hitch` | incluido el borde del area de impacto |
 | FRS1 | Launch a ship straight ahead of us, below the laser sights | verificada | `frs1` | make test_equip |
-| FRMIS | Fire a missile from our ship |  |  |  |
+| FRMIS | Fire a missile from our ship | sin-verificar | `frmis`, `missile_fire` | FRS1 (verificada) + ANGRY + ABORT; cae en ANGRY con la A que deja SOHISS (sonido desactivado: 0) |
 | ANGRY | Make a ship or station hostile, and if this is a ship then enable | verificada | `angry` | escribe en el bloque K% (INF); la estacion es la ranura 1 |
-| FR1 | Display the "missile jammed" message |  |  |  |
+| FR1 | Display the "missile jammed" message | propia | `fr1` | MISSILE JAMMED (mensaje) |
 | yetanotherrts | Contains an RTS | no-necesaria |  | contiene solo un RTS |
-| SFRMIS | Add an enemy missile to our local bubble of universe |  |  |  |
+| SFRMIS | Add an enemy missile to our local bubble of universe | verificada | `sfrmis` | a traves de TACTICS |
 
 ## Text (34 portadas de 77, 41 no necesarias, 2 sin portar)
 
@@ -666,7 +664,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 |---|---|---|---|---|
 | newosrdch | The custom OSRDCH routine for reading characters | no-necesaria |  | rutina OSRDCH personalizada del BBC con procesador Tube; no aplica |
 
-## Universe (31 portadas de 34, 2 no necesarias, 1 sin portar)
+## Universe (32 portadas de 34, 2 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -699,7 +697,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | KS3 | Set the SLSP ship line heap pointer after shuffling ship slots | no-necesaria |  | puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura |
 | KS1 | Remove the current ship from our local bubble of universe | propia | `ship_kill` | quita la nave y desplaza las demas |
 | KS4 | Remove the space station and replace it with the sun | propia | `ships_step` | la estacion se quita y vuelve el sol (regla propia) |
-| KS2 | Check the local bubble for missiles with target lock |  |  |  |
+| KS2 | Check the local bubble for missiles with target lock | verificada | `ks2` | make test_tactics |
 | KILLSHP | Remove a ship from our local bubble of universe | sin-verificar | `ship_kill` | sin puntos de muerte ni mensajes (paso 3) |
 | ZINF | Reset the INWK workspace and orientation vectors | sin-verificar | `ship_zinf` |  |
 | Ze | Initialise the INWK workspace to a fairly aggressive ship | verificada | `ze` | dentro de D1 |

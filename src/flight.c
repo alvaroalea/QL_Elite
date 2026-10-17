@@ -18,6 +18,7 @@
 #include "damage.h"
 #include "equip.h"
 #include "dockit.h"
+#include "tactics.h"
 #include "cmdr.h"
 
 #define VIEW_H 136
@@ -113,6 +114,7 @@ static void redraw_all(void)
     panel_static();
     panel_update();
     view_extras();
+    if (ecma) dash_ecblb();                /* la bombilla E sigue encendida */
     stars_new();
 }
 
@@ -131,6 +133,9 @@ static void flight_mess(u8 token)
     else if (token == MESS_ENERGY_LOW) { t = "ENERGY LOW"; snd_beep(); }
     else if (token == MESS_DOCK_ON) t = "DOCKING COMPUTERS ON";
     else if (token == MESS_SCOOP_ON) { t = "FUEL SCOOPS ON"; snd_beep(); }
+    else if (token == MESS_INCOMING) t = "INCOMING MISSILE";
+    else if (token == MESS_TARGET_LOST) t = "TARGET LOST";
+    else if (token == MESS_JAMMED) t = "MISSILE JAMMED";
     else if (token >= 108 && token <= 115) t = eq[token - 108];
     else if (token >= MESS_GOOD && token < MESS_GOOD + UNI_NGOODS) {
         const char *n = uni_goods[token - MESS_GOOD].name;
@@ -187,6 +192,8 @@ static void misjump(void)
 {
     do_tunnel(4);                                           /* TT66 + LL164 */
     space_reset();                                          /* RES2 */
+    if (ecma) ecm_off();
+    mstg = 0xFF;
     ships_clear();
     sspr = 0;
     mj = 0xFF;                                              /* STY MJ */
@@ -224,6 +231,8 @@ static void arrive(void)
     }
     ok = hyper_gal ? jump_galactic() : jump_do(tgt_sys);
     hyper = 0;
+    if (ecma) ecm_off();                                    /* RES2 */
+    if (!(mstg & 0x80)) abort_missile(MS_GREEN);
     stars_nostm = NOST;                                     /* RES2 */
     if (!ok) { say("JUMP FAILED", 1); return; }
     space_arrive();                        /* sistema nuevo: planeta lejos y sin estacion */
@@ -309,7 +318,8 @@ int flight_run(void)
     key_ctx_flight();                                       /* menos filas de teclado por fotograma: ver keys.c */
     if (!dash_loaded()) dash_load();                        /* solo la primera vez; luego se queda en memoria */
     view = 0; hyper = 0;
-    player_dead = 0; mess_de = 0; dock_auto = 0; mj = 0; mstg = 0xFF;
+    player_dead = 0; mess_de = 0; dock_auto = 0; mj = 0; mstg = 0xFF; msar = 0;
+    ecma = 0; ecmp = 0;
     stars_nostm = NOST;
     combat_reset();                                         /* DOENTRY: energia, escudos y laser como al atracar */
     combat_mess_hook = flight_mess;
@@ -332,6 +342,10 @@ int flight_run(void)
                 else { say("NO STATION", 1); snd_boop(); }
                 ch = -1;
             }
+            if (ch == 'u') { missile_unarm(); ch = -1; }   /* KY15: MA4..MA20 */
+            if (ch == 't') { missile_target(); ch = -1; }  /* KY14: MA20..MA25 */
+            if (ch == 'm') { missile_fire(); ch = -1; }    /* KY16: MA25..MA24 */
+            if (ch == 'e') { ecm_key(); ch = -1; }         /* KY17 */
             if (ch == 'p') { dock_auto = 0; ch = -1; }     /* KY20: MA76..MA78 */
             if (ch == 'b') { bomb_key(); ch = -1; }        /* KY12: MA24..MA76 */
             if (ch == 'j') {                                /* KY18: WARP */
@@ -362,6 +376,7 @@ int flight_run(void)
         if (ev & SPACE_EV_DOCK) { snd_off(); key_ctx_menu(); return FL_DOCK; }       /* por la ranura: DOENTRY */
         if (ev & SPACE_EV_DEATH) { flight_death(); key_ctx_menu(); return FL_DEATH; }
         bomb_frame();                                       /* parte 16 (MA18): la bomba sigue explotando */
+        ecm_frame();                                        /* parte 16 (MA16..MA66): ECM */
         laser_frame_end();                                  /* parte 16: fin del pulso (LASLI2) */
         if (ev & SPACE_EV_STATION) dash_spblb();            /* se apaga la S */
         stars_set_speed(zDELTA);                            /* DELT4 */

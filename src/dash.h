@@ -22,6 +22,7 @@ int  dash_loads(void);                  /* veces que se ha leido el fichero del 
 void dash_show(void);                   /* dibuja el fondo (o el panel minimo) y reinicia los instrumentos */
 void dash_reset(void);                  /* borra la memoria de lo ultimo dibujado (tras repintar el fondo) */
 void dash_update(void);                 /* DIALS: actualiza los instrumentos y la brujula */
+void dash_msbar(u8 x, u8 color);         /* MSBAR: indicador X (1..4) con el color del original (0 = apagado) */
 void dash_msblob(void);                 /* msblob: indicadores de misil (NOMSL en verde, el resto apagados) */
 void dash_spblb(void);                  /* SPBLB: enciende o apaga (XOR) la bombilla S de estacion cerca */
 void dash_ecblb(void);                  /* ECBLB: enciende o apaga (XOR) la bombilla E del ECM */

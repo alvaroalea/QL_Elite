@@ -48,7 +48,7 @@ def table(name):                          # EQUB de elite-data.asm a partir de .
     while len(out) < 32:
         t = code(D[i]); i += 1
         m = re.match(r'^EQUB\s+(.+)$', t)
-        if m: out += [int(v.strip().replace('$', '0x'), 0) for v in m.group(1).split(',')]
+        if m: out += [int(v.strip().replace('$', '0x').replace('%', '0b'), 0) for v in m.group(1).split(',')]
     return out
 
 def build(lines, logs, presets=None):
