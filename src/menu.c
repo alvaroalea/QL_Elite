@@ -7,6 +7,7 @@
 #include "save.h"
 #include "sound.h"
 #include "shipview.h"
+#include "chart.h"
 #include "emath.h"
 
 #define ROW_MSG 28
@@ -420,37 +421,7 @@ int scr_data(void)
 
 /* ---------------------------------------------------------------- cartas */
 
-#define CH_Y0 8                         /* la carta ocupa y = 8..135 */
-
-static int chart_px(int local, int x) { return local ? 128 + (x - (int)qq0) * 4 : x; }
-static int chart_py(int local, int y) { return local ? 72 + (y - (int)qq1) * 2 : CH_Y0 + y / 2; }
-
-static void plot_circle(int cx, int cy, int r, u8 c)        /* circunferencia del punto medio, recortada a la carta */
-{
-    int x = r, y = 0, e = 1 - r;
-    while (x >= y) {
-        int px[8], py[8], k;
-        px[0] = cx + x; py[0] = cy + y; px[1] = cx - x; py[1] = cy + y;
-        px[2] = cx + x; py[2] = cy - y; px[3] = cx - x; py[3] = cy - y;
-        px[4] = cx + y; py[4] = cy + x; px[5] = cx - y; py[5] = cy + x;
-        px[6] = cx + y; py[6] = cy - x; px[7] = cx - y; py[7] = cy - x;
-        for (k = 0; k < 8; k++)
-            if (py[k] >= CH_Y0 && py[k] < 136) gfx_pixel(px[k], py[k], c);
-        y++;
-        if (e < 0) e += 2 * y + 1; else { x--; e += 2 * (y - x) + 1; }
-    }
-}
-
 static int clampi(int v, int lo, int hi) { return v < lo ? lo : (v > hi ? hi : v); }
-
-static void cross(int local, int x, int y)                  /* mira en XOR centrada en (x,y) de la galaxia */
-{
-    int px = chart_px(local, x), py = chart_py(local, y);
-    gfx_line(px - 6, py, px - 2, py, C_RED, 1);
-    gfx_line(px + 2, py, px + 6, py, C_RED, 1);
-    gfx_line(px, py - 6, px, py - 2, C_RED, 1);
-    gfx_line(px, py + 2, px, py + 6, C_RED, 1);
-}
 
 static void chart_info(int local)
 {
@@ -470,90 +441,50 @@ static void chart_info(int local)
     txt_color(C_WHITE, C_BLACK);
 }
 
-/* Disco relleno (planeta en la carta local). PROVISIONAL: el original dibuja los planetas con SUN/CIRCLE (aun sin portar) y
-   radio (QQ15+5 AND 1) + 2; aqui el radio en pixeles crece con el radio real del planeta (2..5). */
-static int planet_px(const uni_system *s) { return 2 + ((int)(s->radius >> 8) - 11) / 4; }
-
-static void disc(int cx, int cy, int r, u8 c)
-{
-    int dy, w, y, x0, x1, v;
-    for (dy = -r; dy <= r; dy++) {
-        y = cy + dy;
-        if (y < CH_Y0 || y > 135) continue;
-        v = r * r - dy * dy;
-        for (w = 0; (w + 1) * (w + 1) <= v; w++) ;
-        x0 = cx - w; x1 = cx + w;
-        if (x0 < 0) x0 = 0;
-        if (x1 > 255) x1 = 255;
-        if (x0 <= x1) gfx_hline(x0, x1, y, c);
-    }
-}
-
-static void draw_chart(int local)
-{
-    int i, px, py;
-    ui_clear();
-    ui_title(local ? "SHORT RANGE CHART" : "GALACTIC CHART");
-    if (local) plot_circle(128, 72, qq14, C_RED);
-    for (i = 0; i < UNI_NSYS; i++) {
-        const uni_system *s = &uni_galaxy[i];
-        px = chart_px(local, s->x); py = chart_py(local, s->y);
-        if (px < 0 || px > 255 || py < CH_Y0 || py > 135) continue;
-        if (local) {
-            int r = planet_px(s);
-            if (px < r + 1 || px > 254 - r || py < CH_Y0 + r || py > 135 - r) continue;
-            disc(px, py, r, i == cur_sys ? C_GREEN : C_WHITE);
-            txt_color(i == cur_sys ? C_GREEN : C_WHITE, TXT_TRANSPARENT);
-            txt_print_at((px + r + 3) / 8, py / 8, s->name);
-        } else {
-            gfx_pixel(px, py, i == cur_sys ? C_GREEN : C_WHITE);
-            if (i == cur_sys) { gfx_pixel(px + 1, py, C_GREEN); gfx_pixel(px, py + 1, C_GREEN); gfx_pixel(px + 1, py + 1, C_GREEN); }
-        }
-    }
-    txt_color(C_WHITE, C_BLACK);
-    ui_footer();
-}
-
+/* El dibujo de las cartas esta en chart.c (TT22/TT23/TT14/TT103/TT105 con SUN y CIRCLE). Aqui, el teclado:
+   la mira se mueve libre (cx, cy) y el objetivo es el sistema mas cercano (TT111); la cruz del objetivo se dibuja en XOR. */
 int scr_chart(int local)
 {
     int cx = qq9, cy = qq10, ch, dx, dy, sc, step = local ? 1 : 2, idx;
-    draw_chart(local);
+    ui_clear();
+    ui_title(local ? "SHORT RANGE CHART" : "GALACTIC CHART");
+    chart_draw(local);
+    ui_footer();
     chart_info(local);
-    cross(local, cx, cy);
     for (;;) {
         dx = dy = 0;
         ch = in_poll();
         if (ch == KC_QUIT) return SC_QUIT;
-        if (ch == KC_ESC) { cross(local, cx, cy); return SC_STATUS; }
+        if (ch == KC_ESC) return SC_STATUS;
         if (ch == KC_LEFT) dx = -step; else if (ch == KC_RIGHT) dx = step;
         else if (ch == KC_UP) dy = -step; else if (ch == KC_DOWN) dy = step;
         else if (ch < 0) {
             if (in_held(KC_LEFT)) dx = -step; else if (in_held(KC_RIGHT)) dx = step;
             if (in_held(KC_UP)) dy = -step; else if (in_held(KC_DOWN)) dy = step;
         } else if (in_up(ch) == 'o') {
-            cross(local, cx, cy);
+            chart_cursor(local);                                /* borra la cruz */
             cx = qq0; cy = qq1;
-            idx = uni_nearest((u8)cx, (u8)cy);
-            game_set_target(idx);
-            cross(local, cx, cy);
+            game_set_target(uni_nearest((u8)cx, (u8)cy));
+            chart_cursor(local);
             chart_info(local);
             continue;
         } else {
             sc = ui_nav(ch);
-            if (sc >= 0) { cross(local, cx, cy); return sc; }
+            if (sc >= 0) return sc;
         }
         if (dx || dy) {
-            cross(local, cx, cy);
-            cx += dx; cy += dy;
-            cx = clampi(cx, 0, 255); cy = clampi(cy, 0, 255);
-            if (local) {                                   /* la mira no sale de la carta local (+-30 unidades) */
-                cx = clampi(cx, clampi((int)qq0 - 30, 0, 255), clampi((int)qq0 + 30, 0, 255));
-                cy = clampi(cy, clampi((int)qq1 - 30, 0, 255), clampi((int)qq1 + 30, 0, 255));
+            cx = clampi(cx + dx, 0, 255); cy = clampi(cy + dy, 0, 255);
+            if (local) {                                        /* la mira no sale de la parte visible de la carta local */
+                cx = clampi(cx, clampi((int)qq0 - 27, 0, 255), clampi((int)qq0 + 27, 0, 255));
+                cy = clampi(cy, clampi((int)qq1 - 38, 0, 255), clampi((int)qq1 + 38, 0, 255));
             }
             idx = uni_nearest((u8)cx, (u8)cy);
-            game_set_target(idx);
-            cross(local, cx, cy);
-            chart_info(local);
+            if (idx != tgt_sys) {
+                chart_cursor(local);                            /* borra la cruz anterior */
+                game_set_target(idx);
+                chart_cursor(local);
+                chart_info(local);
+            }
         }
     }
 }

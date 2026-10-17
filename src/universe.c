@@ -89,6 +89,7 @@ void uni_make_system(uni_seed *s, uni_system *t)
 
     t->radius = (u16)(256 * (((s->w2 >> 8) & 15) + 11) + t->x);
 
+    t->seed0 = s->w0;
     t->goatsoupseed.a = (u8)(s->w1 & 0xFF);
     t->goatsoupseed.b = (u8)(s->w1 >> 8);
     t->goatsoupseed.c = (u8)(s->w2 & 0xFF);

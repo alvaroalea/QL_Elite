@@ -67,6 +67,13 @@ void gfx_line(int x0, int y0, int x1, int y1, u8 c, int xor_mode)
     }
 }
 
+void gfx_hline_xor(int x0, int x1, int y, u8 c)
+{
+    int x, t;
+    if (x0 > x1) { t = x0; x0 = x1; x1 = t; }
+    for (x = x0; x <= x1; x++) gfx_xor_pixel(x, y, c);
+}
+
 void gfx_hline(int x0, int x1, int y, u8 c)
 {
     int x, t;

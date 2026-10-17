@@ -18,6 +18,7 @@ typedef struct {
     u16 productivity;         /* 16 bits, con la aritmetica del original (modulo 65536) */
     u16 radius;
     uni_fastseed goatsoupseed;
+    u16 seed0;                /* w0 de la semilla al generar el sistema (con goatsoupseed = w1, w2 completa los 6 bytes de QQ15) */
     char name[12];
 } uni_system;
 

@@ -77,10 +77,25 @@ PRXS equip_price sin-verificar
 STATUS scr_status sin-verificar
 TT213 scr_inventory sin-verificar
 TT167 scr_market sin-verificar
-TT22 scr_chart sin-verificar
-TT23 scr_chart sin-verificar
 TT25 scr_data sin-verificar
 TT111 uni_nearest sin-verificar
 SVE scr_disk propia
 LOD load_commander propia
 TT102 ui_nav propia
+# --- cartas, SUN y CIRCLE (2026-10-16), sin verificar
+SUN sun_draw sin-verificar
+CHKON sun_chkon sin-verificar
+EDGES edges sin-verificar
+FLFLLS sun_flflls sin-verificar
+WPLS sun_wpls sin-verificar
+HLOIN2 hloin2 sin-verificar
+CIRCLE circle_draw sin-verificar
+CIRCLE2 circle2_draw sin-verificar
+BLINE bline sin-verificar
+WPLS2 circle_wpls2 sin-verificar
+TT14 tt14 sin-verificar
+TT15 tt15 sin-verificar
+TT22 chart_draw sin-verificar
+TT23 chart_draw sin-verificar
+TT103 chart_cursor sin-verificar
+TT105 chart_cursor sin-verificar

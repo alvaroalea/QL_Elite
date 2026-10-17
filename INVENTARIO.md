@@ -2,21 +2,21 @@
 
 Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.
 
-Rutinas: 528. Portadas: 76 (verificadas con el emulador: 12)
+Rutinas: 528. Portadas: 90 (verificadas con el emulador: 12)
 
 Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto no basado en la rutina; vacio = sin portar.
 
-## Charts (2/9)
+## Charts (4/9)
 
 | Rutina | Resumen | Estado | C |
 |---|---|---|---|
 | HME2 | Search the galaxy for a system |  |  |
-| TT22 | Show the Long-range Chart | sin-verificar | `scr_chart` |
+| TT22 | Show the Long-range Chart | sin-verificar | `chart_draw` |
 | TT16 | Move the crosshairs on a chart |  |  |
-| TT103 | Draw a small set of crosshairs on a chart |  |  |
+| TT103 | Draw a small set of crosshairs on a chart | sin-verificar | `chart_cursor` |
 | TT123 | Move galactic coordinates by a signed delta |  |  |
-| TT105 | Draw crosshairs on the Short-range Chart, with clipping |  |  |
-| TT23 | Show the Short-range Chart | sin-verificar | `scr_chart` |
+| TT105 | Draw crosshairs on the Short-range Chart, with clipping | sin-verificar | `chart_cursor` |
+| TT23 | Show the Short-range Chart | sin-verificar | `chart_draw` |
 | TT114 | Display either the Long-range or Short-range Chart |  |  |
 | hm | Select the closest system and redraw the chart crosshairs |  |  |
 
@@ -54,21 +54,21 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | msloc | The screen x-coordinates of the four missile indicators on the |  |  |
 | SCAN | Display the current ship on the scanner |  |  |
 
-## Drawing circles (0/9)
+## Drawing circles (5/9)
 
 | Rutina | Resumen | Estado | C |
 |---|---|---|---|
-| BLINE | Draw a circle segment and add it to the ball line heap |  |  |
+| BLINE | Draw a circle segment and add it to the ball line heap | sin-verificar | `bline` |
 | LL164 | Make the hyperspace sound and draw the hyperspace tunnel |  |  |
 | LAUN | Make the launch sound and draw the launch tunnel |  |  |
 | HFS2 | Draw the launch or hyperspace tunnel |  |  |
-| TT14 | Draw a circle with crosshairs on a chart |  |  |
+| TT14 | Draw a circle with crosshairs on a chart | sin-verificar | `tt14` |
 | TT128 | Draw a circle on a chart |  |  |
-| CIRCLE | Draw a circle for the planet |  |  |
-| CIRCLE2 | Draw a circle (for the planet or chart) |  |  |
-| CHKON | Check whether any part of a circle appears on the extended screen |  |  |
+| CIRCLE | Draw a circle for the planet | sin-verificar | `circle_draw` |
+| CIRCLE2 | Draw a circle (for the planet or chart) | sin-verificar | `circle2_draw` |
+| CHKON | Check whether any part of a circle appears on the extended screen | sin-verificar | `sun_chkon` |
 
-## Drawing lines (0/27)
+## Drawing lines (3/27)
 
 | Rutina | Resumen | Estado | C |
 |---|---|---|---|
@@ -83,11 +83,11 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | NLIN4 | Draw a horizontal line at pixel row 19 to box in a title |  |  |
 | NLIN | Draw a horizontal line at pixel row 23 to box in a title |  |  |
 | NLIN2 | Draw a screen-wide horizontal line at the pixel row in A |  |  |
-| HLOIN2 | Remove a line from the sun line heap and draw it on-screen |  |  |
+| HLOIN2 | Remove a line from the sun line heap and draw it on-screen | sin-verificar | `hloin2` |
 | LASLI | Draw the laser lines for when we fire our lasers |  |  |
 | DVLOIN | Draw a vertical line from (A, GCYT) to (A, GCYB) |  |  |
-| TT15 | Draw a set of crosshairs |  |  |
-| EDGES | Draw a horizontal line given a centre and a half-width |  |  |
+| TT15 | Draw a set of crosshairs | sin-verificar | `tt15` |
+| EDGES | Draw a horizontal line given a centre and a half-width | sin-verificar | `edges` |
 | LL118 | Move a point along a line until it is on-screen |  |  |
 | LL145 | Clip line: Work out which end-points are on-screen, if any |  |  |
 | LSPUT | Draw a ship line using flicker-free animation |  |  |
@@ -111,14 +111,14 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels |  |  |
 | CPIX | Draw a colour pixel |  |  |
 
-## Drawing planets (1/7)
+## Drawing planets (2/7)
 
 | Rutina | Resumen | Estado | C |
 |---|---|---|---|
 | PL2 | Remove the planet or sun from the screen |  |  |
 | PLANET | Draw the planet or sun |  |  |
 | PL9 | Draw the planet as a plain circle |  |  |
-| WPLS2 | Remove the planet from the screen |  |  |
+| WPLS2 | Remove the planet from the screen | sin-verificar | `circle_wpls2` |
 | WP1 | Reset the ball line heap |  |  |
 | PL21 | Return from a planet/sun-drawing routine with a failure flag |  |  |
 | PLS6 | Calculate (X K) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `sm_pls6` |
@@ -133,13 +133,13 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SHPPT | Draw a distant ship as a point rather than a full wireframe | verificada | `ship_shppt` |
 | LL9 | Draw ship: Check if ship is exploding, check if ship is in front | verificada | `ship_ll9` |
 
-## Drawing suns (0/3)
+## Drawing suns (3/3)
 
 | Rutina | Resumen | Estado | C |
 |---|---|---|---|
-| FLFLLS | Reset the sun line heap |  |  |
-| SUN | Draw the sun: Set up all the variables needed to draw the sun |  |  |
-| WPLS | Remove the sun from the screen |  |  |
+| FLFLLS | Reset the sun line heap | sin-verificar | `sun_flflls` |
+| SUN | Draw the sun: Set up all the variables needed to draw the sun | sin-verificar | `sun_draw` |
+| WPLS | Remove the sun from the screen | sin-verificar | `sun_wpls` |
 
 ## Drawing the screen (0/18)
 

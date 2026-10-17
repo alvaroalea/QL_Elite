@@ -2,9 +2,13 @@ import re, sys
 src = open(sys.argv[1]).read().split('\n')
 out = ['\t.text']
 glob = set()
+ext = set()
+for l in src:
+    m = re.match(r'^\s*\.extern\s+(\S+)', l)
+    if m: ext.add(m.group(1))
 for l in src:
     m = re.match(r'^(_[A-Za-z0-9_]*):', l)
-    if m: glob.add(m.group(1))
+    if m and m.group(1) in ext: glob.add(m.group(1))     # c68 solo declara .extern lo que no es static
 for g in sorted(glob): out.append('\t.globl\t' + g)
 for l in src:
     s = l.rstrip()
