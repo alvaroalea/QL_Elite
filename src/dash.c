@@ -17,6 +17,7 @@
 
 static u8 dash_bg[DASH_BYTES];
 static int bg_ok = 0;
+static int bg_loads = 0;               /* veces que se ha leido el fichero del disco (debe ser 1 por sesion) */
 
 /* tablas de DIALS: y de la barra, umbral entre "bajo" y "alto", color por debajo y por encima del umbral */
 static const u8 dialY[13]  = { 137, 144, 152, 185, 177, 169, 161, 137, 145, 153, 177, 161, 169 };
@@ -30,13 +31,17 @@ static u8 dy;                             /* registro Y: indicador en curso */
 static u8 dial_k, dial_k1, dial_k2;       /* K, K+1, K+2 */
 static u8 dial_col;                       /* COL */
 static u8 comx, comy, comc;               /* brujula: posicion y tamano del punto */
+static u8 mscol[4];                       /* color de cada indicador de misil (0 = apagado) */
+static const u8 msloc[4] = { 40, 32, 24, 16 };     /* x de los cuatro indicadores de misil */
 
 int dash_loaded(void) { return bg_ok; }
+int dash_loads(void) { return bg_loads; }
 
 void dash_reset(void)
 {
     int i;
     for (i = 0; i < 13; i++) { dials[i] = 0; dialc[i] = 0; }
+    for (i = 0; i < 4; i++) mscol[i] = 0;
     comc = 0;
 }
 
@@ -59,6 +64,7 @@ int dash_load(void)
     fclose(f);
     if (n != (long)DASH_BYTES) return DASH_E_FORMAT;
     bg_ok = 1;
+    bg_loads++;
     return DASH_OK;
 }
 
@@ -146,8 +152,7 @@ static void dis1(u8 a) { dis2((u8)(a >> 3)); }
 static void dis6(u8 x1)
 {
     u8 y1 = dialY[dy - 1];
-    gfx_line(x1, y1, x1, (u8)(y1 + 6), qlcol(dial_col), 1);
-    gfx_line((u8)(x1 + 1), y1, (u8)(x1 + 1), (u8)(y1 + 6), qlcol(dial_col), 1);      /* 2 puntos de ancho (granularidad del Apple II) */
+    gfx_vloin(x1, y1, (u8)(y1 + 6), qlcol(dial_col));      /* VLOIN: 7 puntos de alto y 2 de ancho */
 }
 
 static void dis5(u8 a, u8 neg)
@@ -188,6 +193,41 @@ static void compas(void)
     if (zx15[2] & 0x80) comc = (u8)(comc >> 1);    /* detras de nosotros: punto mas tenue */
     dot();
 }
+
+/* ---------------------------------------------------------------- misiles y bombillas */
+
+/* MSBAR/MSBAR2: indicador de misil X (1..4): borra el dibujo anterior (XOR con su color) y dibuja el nuevo; COLOR 0 = apagado */
+static void msbar(u8 x, u8 color)
+{
+    u8 x1;
+    if (x < 1 || x > 4) return;
+    x1 = msloc[x - 1];
+    if (mscol[x - 1] != 0) { dial_col = mscol[x - 1]; msbars(x1, (u8)(x1 + 6), 184); }       /* 4 lineas: 185..188 */
+    mscol[x - 1] = color;
+    if (color != 0) { dial_col = color; msbars(x1, (u8)(x1 + 6), 184); }
+}
+
+/* msblob: los NOMSL primeros indicadores en verde y el resto apagados */
+void dash_msblob(void)
+{
+    u8 x;
+    for (x = 4; x != 0; x--) msbar(x, (u8)(x <= nomsl ? D_GREEN : 0));
+}
+
+/* BULB: bombilla de 7 x 8 puntos en XOR (E = ECM, S = estacion cerca) en la fila de texto 22 */
+static const u8 bulb_e[8] = { 0x7F, 0x7F, 0x07, 0x7F, 0x7F, 0x07, 0x7F, 0x7F };
+static const u8 bulb_s[8] = { 0x7F, 0x7F, 0x07, 0x7F, 0x7F, 0x70, 0x7F, 0x7F };
+
+static void bulb(const u8 *rows, int x)
+{
+    int r, b;
+    for (r = 0; r < 8; r++)
+        for (b = 0; b < 7; b++)
+            if (rows[r] & (1 << b)) gfx_xor_pixel(x + b, 176 + r, C_WHITE);
+}
+
+void dash_spblb(void) { bulb(bulb_s, 24 * 8); }       /* SPBLB: enciende o apaga la "S" */
+void dash_ecblb(void) { bulb(bulb_e, 7 * 8); }        /* ECBLB: enciende o apaga la "E" */
 
 void dash_update(void)
 {

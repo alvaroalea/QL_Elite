@@ -6,6 +6,8 @@
 #include "game.h"
 #include "text.h"
 
+#include "cmdr.h"
+#define YHALF_VIEW 68                  /* Y del original: mitad de la altura de la vista */
 #define GCYT CHART_GCYT
 #define GCYB CHART_GCYB
 
@@ -40,6 +42,23 @@ static void tt15(int local)
     if (a >= GCYB && !local) a = GCYB;             /* CMP #GCYB; BCC; LDX QQ11; BMI; LDA #GCYB */
     y2 = a;
     vloin(q19[0], y1, y2);
+}
+
+/* SIGHT: mira del laser de la vista: dos cruces concentricas (tamanos 20 y 10) centradas en (128, Y-24) con el color segun el laser
+   (pulsos azul, haz rojo, militar blanco, otros blanco). Si no hay laser en esa vista no dibuja nada. Es TT15 de la vista espacial
+   (QQ11 = 0): el centro baja GCYT puntos y los brazos se recortan como en la galactica. */
+void chart_sight(u8 view)
+{
+    u8 l = laser[view & 3], col;
+    if (l == 0) return;
+    if (l == LASER_POW) col = C_BLUE;
+    else if (l == LASER_BEAM) col = C_RED;
+    else col = C_WHITE;
+    sun_col = col;
+    q19[0] = 128; q19[1] = (u8)(YHALF_VIEW - 24); q19[2] = 20;
+    tt15(0);
+    q19[2] = 10;
+    tt15(0);
 }
 
 /* TT14: cruz del sistema actual y circulo del alcance de combustible */

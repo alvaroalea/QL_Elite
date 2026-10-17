@@ -85,6 +85,21 @@ void gfx_hloin(int x1, int x2, int y, u8 c)
     gfx_hline_xor(x1, x2 - 1, y, c);
 }
 
+/* CPIX del original: un "pixel" de color de Elite = 2 puntos del Apple II de ancho (aqui x y x+1), en XOR */
+void gfx_cpix(int x, int y, u8 c)
+{
+    gfx_xor_pixel(x, y, c);
+    gfx_xor_pixel(x + 1, y, c);
+}
+
+/* VLOIN del original: linea vertical de pixeles CPIX de y1 a y2 (en cualquier orden), ambos extremos incluidos */
+void gfx_vloin(int x, int y1, int y2, u8 c)
+{
+    int t;
+    if (y1 > y2) { t = y1; y1 = y2; y2 = t; }
+    for (t = y1; t <= y2; t++) gfx_cpix(x, t, c);
+}
+
 /* PIXEL del original: un "punto" de polvo/compas en XOR. El ancho y las lineas dependen de la distancia ZZ:
    ZZ >= 128: 2 puntos en una linea; 80 <= ZZ < 128: 3 puntos; ZZ < 80: 3 puntos en esta linea y en la de encima. */
 void gfx_dust(int x, int y, u8 zz)

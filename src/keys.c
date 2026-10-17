@@ -48,11 +48,11 @@ void key_set_scan(u8 fast, u8 slow) { rowmask = fast; slowmask = (u8)(slow & ~fa
 /* Menus: fila 1 (cursores, ENTER, ESC, espacio) y fila 7 (SHIFT, CTRL) siempre; el resto (letras y cifras) rotando: 3 lecturas por scan */
 void key_ctx_menu(void) { key_set_scan(0x82, 0x7D); }
 
-/* Vuelo: fila 1 (cursores, espacio, ENTER, ESC), fila 4 (A, H, J, P, 1, 3) y fila 7 (/, SHIFT) siempre; filas 0, 2, 3 y 6 rotando
-   (4 y 5, C, B, M, G, E, T, U, 0, 2). La fila 5 (9, W, I, TAB, R, -, Y, O) no se lee. Con el joystick 2 la fila 0 (F1..F5) es rapida. */
+/* Vuelo: fila 1 (cursores, espacio, ENTER, ESC), fila 3 (F frenar, G) y fila 4 (A, D acelerar, H, J, P, 1, 3) siempre; filas 0, 2, 5, 6 y 7
+   rotando (4, 5, 7, C, B, M, 9, E, T, U, 2, 6, 8, SHIFT...): 4 lecturas por scan. Con el joystick 2 la fila 0 (F1..F5) es rapida (5). */
 void key_ctx_flight(void)
 {
-    u8 fast = 0x92, slow = 0x4D;
+    u8 fast = 0x1A, slow = 0xE5;
     if (ctl_joystick == 2) { fast |= 1; slow &= (u8)~1; }
     key_set_scan(fast, slow);
 }
@@ -138,15 +138,15 @@ int joy_read(int port)
 void ctl_read(struct controls *c)
 {
     int j = 0;
-    c->slow_down  = (u8)key_down(K_SLASH);
-    c->speed_up   = (u8)key_down(K_SPACE);
+    c->slow_down  = (u8)key_down(K_F);           /* D acelera y F frena (antes espacio y /) */
+    c->speed_up   = (u8)key_down(K_D);
     /* Los cursores giran la nave (y son el joystick del puerto 1): izquierda/derecha = alabeo; arriba = picar (palanca hacia
        delante), abajo = cabecear hacia arriba. Sustituyen a , . S X del original para leer menos filas del teclado. */
     c->roll_left  = (u8)key_down(K_LEFT);
     c->roll_right = (u8)key_down(K_RIGHT);
     c->pitch_down = (u8)key_down(K_UP);
     c->pitch_up   = (u8)key_down(K_DOWN);
-    c->fire       = (u8)key_down(K_A);
+    c->fire       = (u8)(key_down(K_A) | key_down(K_SPACE));   /* A o espacio (el boton del joystick CTL1) */
     c->bomb       = (u8)key_down(K_B);
     c->escape_pod = (u8)key_down(K_ESC);
     c->target     = (u8)key_down(K_T);
@@ -158,8 +158,6 @@ void ctl_read(struct controls *c)
     c->undock     = (u8)key_down(K_P);
     if (ctl_joystick) {
         j = joy_read(ctl_joystick);
-        /* CTL1 usa el espacio como disparo: para no acelerar al disparar, el "acelerar" pasa a ENTER */
-        if (ctl_joystick == 1) c->speed_up = (u8)key_down(K_ENTER);
         if (j & JOY_LEFT)  c->roll_left = 1;
         if (j & JOY_RIGHT) c->roll_right = 1;
         if (j & JOY_UP)    c->pitch_down = 1;       /* palanca hacia delante = picar */

@@ -20,7 +20,13 @@ extern u8 altit, cabtmp, gntmp;      /* altitud sobre el planeta (255 = lejos), 
 void space_reset(void);              /* RES2: valores iniciales de los giros y la velocidad */
 void space_launch(void);             /* planeta y estacion respecto a la nave al despegar (SOLAR simplificado) */
 void space_controls(const struct controls *c);   /* teclas -> JSTX/JSTY -> ALPHA/BETA y velocidad */
-void space_step(void);               /* un fotograma: MV40 del planeta y de la estacion, altitud */
+#define SPACE_EV_STATION 1           /* space_step: la estacion se ha perdido de vista */
+u8   space_step(void);               /* un fotograma: MV40 de cada nave, radar (SCAN), altitud; devuelve los SPACE_EV_* */
+void space_scan(u8 type);            /* SCAN: dibuja (XOR) la nave de INWK en el radar */
+void space_scanner_reset(void);      /* tras repintar el panel: ninguna nave figura como dibujada */
+void space_scanner_clear(void);      /* borra del radar todo lo dibujado (antes de cambiar de sistema) */
+void space_arrive(void);             /* llegada tras el hiperespacio: planeta lejos y sin estacion */
+int  space_spawn(u8 type);           /* contacto de prueba en una ranura libre; -1 si no hay sitio */
 u8   space_bump2(u8 x, u8 a);        /* BUMP2 */
 u8   space_redu2(u8 x, u8 a);        /* REDU2 */
 u8   space_cntr(u8 x);               /* cntr: un paso de amortiguacion hacia 128 */

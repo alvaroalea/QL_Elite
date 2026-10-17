@@ -16,6 +16,13 @@
 #define SC_DISK      9
 #define SC_LAUNCH    10
 #define SC_QUIT      11
+#define SC_FLIGHT    12                  /* en vuelo: volver a la vista espacial actual */
+#define SC_VIEW0     13                  /* en vuelo: vista frontal, trasera, izquierda, derecha (teclas 1 a 4) */
+#define SC_VIEW1     14
+#define SC_VIEW2     15
+#define SC_VIEW3     16
+#define SC_HYPER     17                  /* en vuelo: H, salto de hiperespacio */
+#define SC_GHYPER    18                  /* en vuelo: G, salto galactico */
 
 #define TITLE_NEW  1
 #define TITLE_LOAD 2

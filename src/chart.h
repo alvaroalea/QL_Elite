@@ -11,6 +11,7 @@
 #define CHART_TOP_FULLWIDTH 1         /* 1 = linea bajo el titulo de 0 a 255 como el original (NLIN5); 0 = solo cierra el marco (x 30..227) */
 
 void chart_draw(int local);           /* dibuja la carta completa (sobre pantalla ya borrada) */
+void chart_sight(u8 view);            /* SIGHT: mira del laser de la vista (0..3) en la vista espacial */
 void chart_cursor(int local);         /* TT103: cruz del sistema objetivo (XOR: dos llamadas la borran) */
 void chart_ping(int local);           /* ping + TT103: el cursor vuelve al sistema actual (tecla O) */
 void chart_hm(int local);             /* hm: sistema mas cercano al cursor + cruz (tecla D) */

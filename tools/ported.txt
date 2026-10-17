@@ -151,13 +151,42 @@ MVT1 mvt1 sin-verificar
 PIXEL gfx_dust sin-verificar ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II
 HLOIN gfx_hloin sin-verificar mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II
 SOLAR space_launch propia solo las formulas de la posicion del planeta; la estacion y su salida son valores propios
-DOKEY ctl_read propia cursores = alabeo y cabeceo; los valores de JSTX/JSTY los calcula space_controls
 ABORT - no-necesaria misiles aun no existen
 ABORT2 - no-necesaria misiles aun no existen
-msblob - no-necesaria misiles aun no existen
-MSBAR - no-necesaria barra de misiles: hasta que haya misiles
-msloc - no-necesaria barra de misiles: hasta que haya misiles
 ECMOF - no-necesaria el ECM aun no existe en vuelo
 ECBLB2 - no-necesaria el ECM aun no existe en vuelo
-ECBLB - no-necesaria bombilla E: hasta que haya ECM
-ECBT - no-necesaria bombilla E: hasta que haya ECM
+# --- polvo estelar, radar, mira, tunel, misiles y bombillas (2026-10-17), sin verificar
+STARS stars_update sin-verificar vistas 0 (STARS1), 1 (STARS6), 2 y 3 (STARS2)
+STARS1 stars1 sin-verificar los acarreos del 6502 se siguen con una variable c (LSR/ROR/SBC/ADC)
+STARS6 stars6 sin-verificar
+STARS2 stars2 sin-verificar con ST2 al entrar y al salir
+FLIP stars_flip sin-verificar
+NWSTARS stars_new sin-verificar el original no crea el polvo si QQ11 != 0; aqui solo se llama en la vista espacial
+nWq stars_new sin-verificar
+PIXEL2 pixel2 sin-verificar
+CPIX gfx_cpix sin-verificar 2 puntos de ancho (x, x+1) en XOR; sin las tablas de bytes del Apple II
+VLOIN gfx_vloin sin-verificar 2 puntos de ancho, extremos incluidos
+TWOS3 - propia tablas de bytes del Apple II: aqui gfx_xor_pixel
+TWOS - propia
+TWOS2 - propia
+SCAN space_scan sin-verificar el bit 4 de INWK+31 (dibujada), colores de scacol y recorte a 146..190 como el original
+scacol scacol sin-verificar cadena con el color de cada tipo
+WPSHPS space_scanner_reset propia solo la parte del radar: ninguna nave figura como dibujada
+MVEIT space_step propia MVEIT reducido: SCAN antes y despues, MV40 y las comprobaciones de alcance; sin TACTICS ni movimiento propio de las naves
+SIGHT chart_sight sin-verificar dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco)
+HFS2 tunnel_draw sin-verificar STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia
+LL164 arrive sin-verificar sonido (SOBLIP) y tunel al saltar; el salto en si es propio
+LAUN flight_run sin-verificar sonido (SOHISS) y tunel al despegar
+TT128 tt14 sin-verificar
+LOOK1 change_view propia cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto
+PLUT - no-necesaria invierte ejes para las 4 vistas: hara falta cuando haya naves dibujadas en vuelo
+msblob dash_msblob sin-verificar NOMSL indicadores en verde y el resto apagados
+MSBAR msbar sin-verificar borra el color anterior y dibuja el nuevo (XOR)
+msloc msloc sin-verificar x = 40, 32, 24, 16
+SPBLB dash_spblb sin-verificar bombilla S (estacion cerca)
+ECBLB dash_ecblb sin-verificar bombilla E (aun sin ECM en vuelo)
+BULB bulb sin-verificar 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E
+SPBT bulb_s sin-verificar
+ECBT bulb_e sin-verificar
+DOKEY ctl_read propia cursores = alabeo y cabeceo, D acelera, F frena, A o espacio disparan; JSTX/JSTY los calcula space_controls
+TT102 ui_nav propia en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos

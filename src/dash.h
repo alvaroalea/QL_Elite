@@ -18,7 +18,11 @@
 
 int  dash_load(void);                   /* lee <unidad>elite_dash; DASH_OK, DASH_E_OPEN o DASH_E_FORMAT */
 int  dash_loaded(void);                 /* 1 si el bitmap esta en memoria */
+int  dash_loads(void);                  /* veces que se ha leido el fichero del disco: una vez cargado se queda en memoria */
 void dash_show(void);                   /* dibuja el fondo (o el panel minimo) y reinicia los instrumentos */
 void dash_reset(void);                  /* borra la memoria de lo ultimo dibujado (tras repintar el fondo) */
 void dash_update(void);                 /* DIALS: actualiza los instrumentos y la brujula */
+void dash_msblob(void);                 /* msblob: indicadores de misil (NOMSL en verde, el resto apagados) */
+void dash_spblb(void);                  /* SPBLB: enciende o apaga (XOR) la bombilla S de estacion cerca */
+void dash_ecblb(void);                  /* ECBLB: enciende o apaga (XOR) la bombilla E del ECM */
 #endif

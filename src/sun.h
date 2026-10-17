@@ -21,4 +21,6 @@ void sun_wpls(void);                      /* WPLS: borra el sol anterior */
 u8   circle_draw(void);                   /* CIRCLE: devuelve el acarreo (1 = fuera de la vista) */
 u8   circle2_draw(void);                  /* CIRCLE2: como CIRCLE sin CHKON y con STP ya puesto; devuelve 0 */
 void circle_wpls2(void);                  /* WPLS2: borra el circulo anterior */
+extern void (*sun_hiss_hook)(int y);      /* sonido de cada anillo del tunel (SOHISS) */
+void tunnel_draw(u8 stp);                 /* HFS2/HFS1: tunel de hiperespacio (STP = 4) o de lanzamiento (STP = 8) con el color sun_col */
 #endif

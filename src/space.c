@@ -4,6 +4,7 @@
 #include "ship_math.h"
 #include "universe.h"
 #include "game.h"
+#include "shipdata.h"
 
 u8 jstx = 128, jsty = 128;
 u8 alpha, beta, alp1, bet1;
@@ -185,13 +186,63 @@ mv2:
     mvt1(0x80, 6);
 }
 
-static void move_slot(int n)
+/* ---------------------------------------------------------------- radar (SCAN) */
+
+/* scacol: color de cada tipo de nave en el radar (B azul, R rojo, C cian, M magenta, F "fuzzy", 0 no se dibuja) */
+static const char scacol[] = "0BBRRRRRRCCCMMMRCCCCCCCBCCMCCFCC0C";
+
+static u8 scan_ql(char k)
 {
-    u8 *p = state_slot(n);
-    int i;
-    for (i = 0; i < NI; i++) inwk[i] = p[i];
-    mv40();
-    for (i = 0; i < NI; i++) p[i] = inwk[i];
+    switch (k) {
+    case 'B': return C_BLUE;
+    case 'R': return C_RED;
+    case 'C': return C_CYAN;
+    case 'M': return C_MAGENTA;
+    case 'F': return C_WHITE;
+    }
+    return C_BLACK;
+}
+
+/* SCAN: dibuja (XOR) la nave de INWK en el radar si su bit 4 de INWK+31 esta puesto: un punto de 4 de ancho y un palo hasta el
+   plano del radar. Planetas y soles (tipo con bit 7) no salen; tampoco lo que esta a 16384 unidades o mas en algun eje. */
+void space_scan(u8 type)
+{
+    u8 a, x1, y2, col;
+    unsigned s;
+    if (!(inwk[31] & 0x10)) return;
+    if (type & 0x80) return;
+    if (type >= sizeof scacol - 1) return;
+    col = scan_ql(scacol[type]);
+    if (col == C_BLACK) return;
+    if ((inwk[1] | inwk[4] | inwk[7]) & 0xC0) return;
+    a = inwk[1];
+    if (inwk[2] & 0x80) a = (u8)((a ^ 0xFF) + 1);            /* x negativo: EOR #$FF; ADC #1; CLC */
+    s = (unsigned)a + 125;                                    /* SC2: ADC #125 */
+    x1 = (u8)((u8)s & 0xFE);
+    a = (u8)(inwk[7] >> 2);                                   /* z: LSR A; LSR A; CLC */
+    s = (unsigned)a;
+    if (inwk[8] & 0x80) s = (unsigned)(u8)(a ^ 0xFF) + 1;     /* z negativo (detras): EOR #$FF; SEC */
+    s = s + 91;                                               /* SC3: ADC #91 */
+    y2 = (u8)((u8)s ^ 0xFF);
+    a = (u8)(inwk[4] >> 1);                                   /* y: LSR A; CLC */
+    s = (unsigned)a;
+    if (!(inwk[5] & 0x80)) s = (unsigned)(u8)(a ^ 0xFF) + 1;  /* y positivo (encima): EOR #$FF; SEC */
+    s = s + y2;                                               /* SCD6: ADC Y2 */
+    a = (u8)s;
+    if (a < 146) a = 146;                                     /* CMP #146; BCS ...; LDA #146 */
+    if (a >= 191) a = 190;                                    /* CMP #191; BCC ...; LDA #190 */
+    gfx_cpix((int)x1 - 2, a, col);                            /* cabeza (CPIX con X = X1 - 2) */
+    gfx_vloin(x1, a, y2, col);                                /* palo (VLOIN) */
+}
+
+static void load_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) inwk[i] = p[i]; }
+static void store_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) p[i] = inwk[i]; }
+
+/* Tras repintar el panel el radar esta vacio: ninguna nave figura como dibujada */
+void space_scanner_reset(void)
+{
+    int n;
+    for (n = 0; n <= NOSH; n++) state_slot(n)[I_STATE] = (u8)(state_slot(n)[I_STATE] & 0xEF);
 }
 
 /* Planeta (ranura 0) y estacion (ranura 1) respecto a la nave. El planeta sigue las formulas de SOLAR: z, x e y con byte alto
@@ -202,32 +253,105 @@ void space_launch(void)
     u8 ztop;
     int i;
     for (i = 0; i < NI; i++) { p[i] = 0; st[i] = 0; }
+    for (i = 0; i <= NOSH; i++) frin[i] = 0;
     ztop = (u8)((((uni_galaxy[cur_sys].seed0 >> 8) & 3)) + 3);
     p[8] = ztop; p[2] = (u8)(ztop >> 1); p[5] = (u8)(ztop >> 1);
     st[4] = 1; st[5] = 0x80;                     /* y = -1 * 256: algo por debajo */
     st[7] = 6; st[8] = 0x80;                     /* z = -6 * 256: detras */
+    frin[0] = 128;                               /* planeta */
+    frin[1] = SHIPT_CORIOLIS;                    /* estacion */
     sspr = 1;
     space_reset();
 }
 
-void space_step(void)
+/* Llegada a un sistema tras el hiperespacio: planeta lejos delante y sin estacion cerca */
+void space_arrive(void)
 {
-    u8 a;
+    int i;
+    space_launch();
+    for (i = 0; i < NI; i++) state_slot(1)[i] = 0;
+    frin[1] = 0;
+    sspr = 0;
+}
+
+/* Borra del radar todo lo que figura como dibujado (antes de cambiar de sistema) */
+void space_scanner_clear(void)
+{
+    int n;
+    for (n = 0; n < NOSH; n++) {
+        if (frin[n] == 0) continue;
+        load_slot(n);
+        space_scan(frin[n]);
+        inwk[I_STATE] = (u8)(inwk[I_STATE] & 0xEF);
+        store_slot(n);
+    }
+}
+
+/* Un contacto nuevo en una ranura libre (2..NOSH-1), con tipo y posicion aleatorios dentro del alcance del radar. Provisional:
+   sirve para ver el radar mientras no existan los encuentros y las naves reales. Devuelve la ranura o -1 si no hay sitio. */
+int space_spawn(u8 type)
+{
+    int s, k;
+    u8 *p;
+    for (s = 2; s < NOSH; s++) if (frin[s] == 0) break;
+    if (s >= NOSH) return -1;
+    p = state_slot(s);
+    for (k = 0; k < NI; k++) p[k] = 0;
+    for (k = 0; k < 3; k++) {
+        p[3 * k] = em_dornd();
+        p[3 * k + 1] = (u8)((em_dornd() & 0x1F) + 8);
+        p[3 * k + 2] = (u8)(em_dornd() & 0x80);
+    }
+    frin[s] = type;
+    many[type]++;
+    return s;
+}
+
+/* Un fotograma del espacio local: cada nave (MVEIT reducido) borra su punto del radar, se mueve con MV40 (giro y velocidad de
+   nuestra nave) y lo vuelve a dibujar. Devuelve SPACE_EV_STATION si la estacion se ha perdido de vista este fotograma. */
+u8 space_step(void)
+{
+    int n;
+    u8 type, a, ev = 0;
     int d;
     mcnt++;
-    move_slot(0);
-    if (sspr) {
-        move_slot(1);
-        if ((state_slot(1)[7] > 0x30) || (state_slot(1)[8] & 0x7F)) sspr = 0;     /* lejos de la estacion: la brujula apunta al planeta */
+    for (n = 0; n < NOSH; n++) {
+        type = frin[n];
+        if (type == 0) continue;
+        load_slot(n);
+        space_scan(type);                                         /* MV30: borra el punto anterior */
+        mv40();
+        if (n == 1 && sspr) {
+            if (inwk[7] > 0x30 || (inwk[8] & 0x7F)) {             /* lejos de la estacion: la brujula apunta al planeta */
+                sspr = 0; frin[1] = 0; ev |= SPACE_EV_STATION;
+                inwk[I_STATE] = (u8)(inwk[I_STATE] & 0xEF);
+                store_slot(n);
+                continue;
+            }
+        } else if (n >= 2 && ((inwk[2] | inwk[5] | inwk[8]) & 0x7F)) {   /* contacto fuera del alcance: desaparece */
+            if (many[type]) many[type]--;
+            frin[n] = 0;
+            inwk[I_STATE] = (u8)(inwk[I_STATE] & 0xEF);
+            store_slot(n);
+            continue;
+        }
+        if ((inwk[I_STATE] & 0xA0) == 0) {                        /* MV5 */
+            inwk[I_STATE] = (u8)(inwk[I_STATE] | 0x10);
+            space_scan(type);
+        } else {
+            inwk[I_STATE] = (u8)(inwk[I_STATE] & 0xEF);
+        }
+        store_slot(n);
     }
     if ((mcnt & 31) == 10) {                     /* MA22: altitud cada 32 fotogramas */
         altit = 255;
-        if (sm_mas2m(0) != 0) return;            /* algun byte alto distinto de cero: lejos */
+        if (sm_mas2m(0) != 0) return ev;            /* algun byte alto distinto de cero: lejos */
         a = sm_mas3(0);
-        if (a == 0xFF) return;                   /* desbordo */
+        if (a == 0xFF) return ev;                /* desbordo */
         d = (int)a - 37;                         /* SBC #36 con C = 0 */
-        if (d < 0) { altit = 0; return; }        /* el original muere aqui (DEATH) */
+        if (d < 0) { altit = 0; return ev; }     /* el original muere aqui (DEATH) */
         zR = (u8)d; zQ = 0;
         altit = em_ll5();
     }
+    return ev;
 }

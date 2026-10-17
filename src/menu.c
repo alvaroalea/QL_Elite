@@ -39,8 +39,13 @@ void ui_title(const char *t)
 void ui_footer(void)
 {
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 30, "1BUY 2SELL 3EQUIP 4GAL 5LOCAL");
-    txt_print_at(0, 31, "6DATA 7MKT 8STAT 9INV IDISK 0GO");
+    if (qq12) {
+        txt_print_at(0, 30, "1BUY 2SELL 3EQUIP 4GAL 5LOCAL");
+        txt_print_at(0, 31, "6DATA 7MKT 8STAT 9INV IDISK 0GO");
+    } else {                                           /* en vuelo: 1-4 vistas, 5-9 pantallas (como en el original) */
+        txt_print_at(0, 30, "1-4 VIEW 5LOCAL 6DATA 7MKT");
+        txt_print_at(0, 31, "8STAT 9INV 0GAL H/G JUMP ESC");
+    }
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -84,6 +89,23 @@ static void val(int col, int row)
 int ui_nav(int ch)
 {
     ch = in_up(ch);
+    if (!qq12) {                                       /* en vuelo */
+        switch (ch) {
+        case '1': return SC_VIEW0;
+        case '2': return SC_VIEW1;
+        case '3': return SC_VIEW2;
+        case '4': return SC_VIEW3;
+        case '5': return SC_LOCCHART;
+        case '6': return SC_DATA;
+        case '7': return SC_MARKET;
+        case '8': return SC_STATUS;
+        case '9': return SC_INVENTORY;
+        case '0': return SC_GALCHART;
+        case 'h': return SC_HYPER;
+        case 'g': return SC_GHYPER;
+        }
+        return -1;
+    }
     switch (ch) {
     case '0': return SC_LAUNCH;
     case '1': return SC_BUY;
@@ -100,6 +122,9 @@ int ui_nav(int ch)
     return -1;
 }
 
+/* ESC: atracado vuelve al estado; en vuelo, a la vista espacial */
+static int back_sc(void) { return qq12 ? SC_STATUS : SC_FLIGHT; }
+
 static char unit_char(int good)
 {
     static const char u[3] = { 't', 'k', 'g' };
@@ -113,7 +138,7 @@ static int wait_nav(void)
     for (;;) {
         ch = in_wait();
         if (ch == KC_QUIT) return SC_QUIT;
-        if (ch == KC_ESC) return SC_STATUS;
+        if (ch == KC_ESC) return back_sc();
         sc = ui_nav(ch);
         if (sc >= 0) return sc;
     }
@@ -457,7 +482,7 @@ int scr_chart(int local)
         dx = dy = 0;
         ch = in_poll();
         if (ch == KC_QUIT) return SC_QUIT;
-        if (ch == KC_ESC) return SC_STATUS;
+        if (ch == KC_ESC) return back_sc();
         if (ch == KC_LEFT) dx = -step; else if (ch == KC_RIGHT) dx = step;
         else if (ch == KC_UP) dy = -step; else if (ch == KC_DOWN) dy = step;
         else if (ch < 0) {

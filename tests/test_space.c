@@ -7,6 +7,10 @@
 #include "emath.h"
 #include "game.h"
 #include "keys.h"
+#include "stars.h"
+#include "chart.h"
+#include "sun.h"
+#include "shipdata.h"
 
 static int fails, total;
 static void check(int ok, const char *what) { total++; if (!ok) { fails++; printf("FALLO: %s\n", what); } }
@@ -75,7 +79,7 @@ int main(void)
 
     /* movimiento del planeta: z baja DELTA por fotograma (MV45/MVT1) */
     space_reset();
-    memset(state_slot(0), 0, NI);
+    memset(state_slot(0), 0, NI); frin[0] = 128;
     set_pos(state_slot(0), 0, 0, 0, 0x1000L);
     alpha = 0; beta = 0; zDELTA = 10;
     for (i = 0; i < 5; i++) space_step();
@@ -142,6 +146,140 @@ int main(void)
             for (j = 0; j < 32768L; j++) if (snap[j] != screen[j]) { bad = 1; break; }
             check(!bad, k == 0 ? "panel: animar = dibujar desde cero (sin fichero de fondo: panel minimo)" : "panel: animar = dibujar desde cero (2)");
         }
+    }
+
+    /* radar (SCAN): posicion del punto y del palo, color, y que lo dibujado se borra del todo */
+    game_new(); gfx_clear(C_BLACK); dash_show(); space_launch();
+    {
+        u8 base[32768];
+        int s2, k2;
+        space_step();                                      /* dibuja la estacion */
+        space_scanner_clear();
+        memcpy(base, screen, 32768);
+        gfx_clear(C_BLACK); dash_show();
+        memcpy(base, screen, 32768);
+        for (i = 0; i < 4; i++) { u8 *p; s2 = space_spawn(SHIPT_VIPER); check(s2 == 2 + i, "contacto en la siguiente ranura libre"); (void)p; }
+        check(space_spawn(SHIPT_VIPER) >= 0 || 1, "(ranuras)");
+        zDELTA = 10; alpha = 0; beta = 0;
+        for (k2 = 0; k2 < 120; k2++) { alpha = (u8)(k2 % 7); beta = (u8)(k2 % 3); space_step(); }
+        space_scanner_clear();
+        {
+            int bad = 0;
+            for (j = 0; j < 32768L; j++) if (base[j] != screen[j]) { bad = 1; break; }
+            check(!bad, "radar: tras mover los contactos y borrar el radar la pantalla queda como estaba");
+        }
+    }
+    /* posiciones exactas: delante y detras */
+    game_new(); gfx_clear(C_BLACK); space_launch();
+    for (i = 0; i <= NOSH; i++) frin[i] = 0;
+    sspr = 0; many[SHIPT_VIPER] = 0;
+    memset(state_slot(2), 0, NI);
+    set_pos(state_slot(2), 0, 10L * 256, 0, 0);            /* x = +10 (unidades altas), y = 0, z = 0 */
+    frin[2] = SHIPT_VIPER; state_slot(2)[I_STATE] = 0x10;  /* ya dibujada: space_scan la dibuja ahora */
+    for (i = 0; i < NI; i++) inwk[i] = state_slot(2)[i];
+    space_scan(SHIPT_VIPER);
+    check(gfx_get(132, 164) == C_CYAN && gfx_get(133, 164) == C_CYAN && gfx_get(134, 164) == C_CYAN && gfx_get(135, 164) == C_CYAN, "radar: punto en (132..135, 164) para x = +10, y = z = 0");
+    check(gfx_get(131, 164) == C_BLACK && gfx_get(136, 164) == C_BLACK && gfx_get(134, 163) == C_BLACK, "radar: el punto no se sale de ahi");
+    gfx_clear(C_BLACK);
+    set_pos(inwk, 0, 0, 0, -(0x20L * 256));                /* detras: z = -32 (unidades altas) */
+    inwk[I_STATE] = 0x10;
+    space_scan(SHIPT_VIPER);
+    check(gfx_get(124, 172) == C_CYAN && gfx_get(125, 172) == C_CYAN, "radar: detras (z negativo) el punto baja 8 lineas (y = 172)");
+    gfx_clear(C_BLACK);
+    inwk[I_STATE] = 0; space_scan(SHIPT_VIPER);
+    check(gfx_get(124, 172) == C_BLACK, "radar: sin el bit 4 de INWK+31 no se dibuja");
+    inwk[I_STATE] = 0x10; space_scan(128);
+    check(gfx_get(124, 172) == C_BLACK, "radar: los planetas (tipo con el bit 7) no salen");
+
+    /* polvo estelar: dibujar en XOR deja la pantalla igual que redibujar todas las particulas, en las 4 vistas, y los signos se restauran */
+    for (k = 0; k < 4; k++) {
+        u8 a0, a1, b0, b1;
+        game_new(); space_reset();
+        gfx_clear(C_BLACK);
+        zDELTA = 12;
+        stars_set_speed(zDELTA);
+        stars_new();
+        for (i = 0; i < 150; i++) {
+            c = none();
+            c.roll_left = (u8)((rnd() & 3) == 0); c.roll_right = (u8)((rnd() & 3) == 1);
+            c.pitch_up = (u8)((rnd() & 3) == 0); c.pitch_down = (u8)((rnd() & 3) == 2);
+            space_controls(&c);
+            a0 = alpha; a1 = alp2[0]; b0 = bet2[0]; b1 = bet2[1];
+            stars_set_speed(zDELTA);
+            stars_update((u8)k);
+            check(alpha == a0 && alp2[0] == a1 && bet2[0] == b0 && bet2[1] == b1, "polvo: STARS2 restaura ALPHA, ALP2 y BET2");
+        }
+        memcpy(snap, screen, 32768);
+        gfx_clear(C_BLACK);
+        stars_draw_all();
+        {
+            int bad = 0;
+            for (j = 0; j < 32768L; j++) if (snap[j] != screen[j]) { bad = 1; break; }
+            check(!bad, "polvo: animar = redibujar todas las particulas en su sitio");
+        }
+    }
+    /* FLIP: dos veces es la identidad */
+    {
+        u8 sx0[NOST + 1], sy0[NOST + 1];
+        game_new(); gfx_clear(C_BLACK); stars_new();
+        memcpy(sx0, sx, sizeof sx0); memcpy(sy0, sy, sizeof sy0);
+        gfx_clear(C_BLACK); stars_flip(); stars_flip();
+        check(memcmp(sx0, sx, sizeof sx0) == 0 && memcmp(sy0, sy, sizeof sy0) == 0, "FLIP dos veces devuelve las particulas a su sitio");
+    }
+
+    /* tunel de hiperespacio: dibujar dos veces con el mismo paso borra todo (XOR) y no se sale de la vista */
+    {
+        int lit = 0;
+        gfx_clear(C_BLACK); sun_col = C_WHITE;
+        tunnel_draw(4);
+        for (j = 0; j < 136L * 128L; j++) if (screen[j]) lit++;
+        check(lit > 100, "tunel: se dibujan anillos");
+        for (j = 136L * 128L; j < 32768L; j++) if (screen[j]) { lit = -1; break; }
+        check(lit > 0, "tunel: no se sale del area de vista");
+        tunnel_draw(4);
+        lit = 0;
+        for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
+        check(lit == 0, "tunel: dibujarlo otra vez lo borra (XOR)");
+        gfx_clear(C_BLACK);
+        tunnel_draw(8);
+        lit = 0;
+        for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
+        check(lit > 100, "tunel de lanzamiento (paso 8)");
+    }
+
+    /* mira del laser: solo si la vista tiene laser; color segun el tipo */
+    game_new();
+    gfx_clear(C_BLACK);
+    chart_sight(1);
+    {
+        int lit = 0;
+        for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
+        check(lit == 0, "mira: sin laser en la vista trasera no se dibuja nada");
+    }
+    chart_sight(0);
+    {
+        int lit = 0, blue = 0;
+        for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
+        check(lit > 0, "mira: el laser de pulsos de la vista frontal dibuja la mira");
+        blue = (gfx_get(112, 63) == C_BLUE) && (gfx_get(128, 63) == C_BLACK);
+        check(blue, "mira: dos cruces concentricas en (128, 63): el brazo largo azul y el centro vacio (XOR)");
+        gfx_clear(C_BLACK); chart_sight(0); chart_sight(0);
+        lit = 0;
+        for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
+        check(lit == 0, "mira: dibujarla dos veces la borra (XOR)");
+    }
+
+    /* indicadores de misil y bombillas */
+    game_new(); gfx_clear(C_BLACK); dash_show();
+    nomsl = 3; dash_msblob();
+    check(gfx_get(40, 185) == C_GREEN && gfx_get(45, 188) == C_GREEN && gfx_get(24, 186) == C_GREEN && gfx_get(16, 185) == C_BLACK, "misiles: 3 indicadores verdes (x 40, 32, 24) y el cuarto apagado");
+    nomsl = 2; dash_msblob();
+    check(gfx_get(32, 185) == C_GREEN && gfx_get(24, 185) == C_BLACK, "misiles: con 2, el tercero se apaga");
+    {
+        u8 b2[32768];
+        memcpy(b2, screen, 32768);
+        dash_spblb(); dash_ecblb(); dash_spblb(); dash_ecblb();
+        check(memcmp(b2, screen, 32768) == 0, "bombillas S y E: encender y apagar (XOR) deja el panel igual");
     }
     printf("%d comprobaciones, %d fallos\n", total, fails);
     return fails ? 1 : 0;

@@ -2,7 +2,7 @@
 
 Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.
 
-Rutinas: 528. Portadas o con equivalente propio: 138 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 10.
+Rutinas: 528. Portadas o con equivalente propio: 169 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 6.
 
 Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **no-necesaria** = la rutina no hace falta en el estado actual del juego (la nota dice por que y cuando hara falta); vacio = sin portar.
 
@@ -20,7 +20,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TT114 | Display either the Long-range or Short-range Chart | sin-verificar | `chart_draw` | dispatcher galactica/local; el redibujado tras un salto hecho desde una carta no hace falta aun: el salto solo se inicia desde la vista de vuelo |
 | hm | Select the closest system and redraw the chart crosshairs | sin-verificar | `chart_hm` | tecla D: sistema mas cercano a la cruz, nombre y distancia |
 
-## Dashboard (15/29, 9 no necesarias)
+## Dashboard (25/29, 4 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -34,41 +34,41 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | cntr | Apply damping to the pitch or roll dashboard indicator | sin-verificar | `space_cntr` |  |
 | BUMP2 | Bump up the value of the pitch or roll dashboard indicator | sin-verificar | `space_bump2` |  |
 | REDU2 | Reduce the value of the pitch or roll dashboard indicator | sin-verificar | `space_redu2` |  |
-| WPSHPS | Clear the scanner, reset the ball line and sun line heaps |  |  |  |
+| WPSHPS | Clear the scanner, reset the ball line and sun line heaps | propia | `space_scanner_reset` | solo la parte del radar: ninguna nave figura como dibujada |
 | COMPAS | Update the compass | sin-verificar | `compas` | el acarreo de ADC |
 | SP1 | Draw the space station on the compass | sin-verificar | `compas` | estacion si SSPR |
 | SP2 | Draw a dot on the compass, given the planet/station vector | sin-verificar | `compas` |  |
 | DOT | Draw a dash on the compass | sin-verificar | `dot` |  |
 | ABORT | Unarm missiles and update the dashboard indicators | no-necesaria |  | misiles aun no existen |
 | ABORT2 | Set/unset the lock target for a missile and update the dashboard | no-necesaria |  | misiles aun no existen |
-| msblob | Display the dashboard's missile indicators in green | no-necesaria |  | misiles aun no existen |
+| msblob | Display the dashboard's missile indicators in green | sin-verificar | `dash_msblob` | NOMSL indicadores en verde y el resto apagados |
 | ECMOF | Switch off the E.C.M. and turn off the dashboard bulb | no-necesaria |  | el ECM aun no existe en vuelo |
 | MSBARS | Draw two horizontal lines as part of an indicator bar, from | sin-verificar | `msbars` | cuatro lineas bajo Y1 con gfx_hloin |
 | ECBLB2 | Start up the E.C.M. (light up the indicator, start the countdown | no-necesaria |  | el ECM aun no existe en vuelo |
-| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard | no-necesaria |  | bombilla E: hasta que haya ECM |
-| SPBLB | Light up the space station indicator ("S") on the dashboard |  |  |  |
-| BULB | Draw an indicator bulb on the dashboard |  |  |  |
-| ECBT | The character bitmap for the E.C.M. indicator bulb | no-necesaria |  | bombilla E: hasta que haya ECM |
-| SPBT | The bitmap definition for the space station indicator bulb |  |  |  |
-| MSBAR | Draw a specific indicator in the dashboard's missile bar | no-necesaria |  | barra de misiles: hasta que haya misiles |
-| msloc | The screen x-coordinates of the four missile indicators on the | no-necesaria |  | barra de misiles: hasta que haya misiles |
-| SCAN | Display the current ship on the scanner |  |  |  |
+| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard | sin-verificar | `dash_ecblb` | bombilla E (aun sin ECM en vuelo) |
+| SPBLB | Light up the space station indicator ("S") on the dashboard | sin-verificar | `dash_spblb` | bombilla S (estacion cerca) |
+| BULB | Draw an indicator bulb on the dashboard | sin-verificar | `bulb` | 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E |
+| ECBT | The character bitmap for the E.C.M. indicator bulb | sin-verificar | `bulb_e` |  |
+| SPBT | The bitmap definition for the space station indicator bulb | sin-verificar | `bulb_s` |  |
+| MSBAR | Draw a specific indicator in the dashboard's missile bar | sin-verificar | `msbar` | borra el color anterior y dibuja el nuevo (XOR) |
+| msloc | The screen x-coordinates of the four missile indicators on the | sin-verificar | `msloc` | x = 40, 32, 24, 16 |
+| SCAN | Display the current ship on the scanner | sin-verificar | `space_scan` | el bit 4 de INWK+31 (dibujada), colores de scacol y recorte a 146..190 como el original |
 
-## Drawing circles (5/9)
+## Drawing circles (9/9)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | BLINE | Draw a circle segment and add it to the ball line heap | sin-verificar | `bline` |  |
-| LL164 | Make the hyperspace sound and draw the hyperspace tunnel |  |  |  |
-| LAUN | Make the launch sound and draw the launch tunnel |  |  |  |
-| HFS2 | Draw the launch or hyperspace tunnel |  |  |  |
+| LL164 | Make the hyperspace sound and draw the hyperspace tunnel | sin-verificar | `arrive` | sonido (SOBLIP) y tunel al saltar; el salto en si es propio |
+| LAUN | Make the launch sound and draw the launch tunnel | sin-verificar | `flight_run` | sonido (SOHISS) y tunel al despegar |
+| HFS2 | Draw the launch or hyperspace tunnel | sin-verificar | `tunnel_draw` | STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia |
 | TT14 | Draw a circle with crosshairs on a chart | sin-verificar | `tt14` |  |
-| TT128 | Draw a circle on a chart |  |  |  |
+| TT128 | Draw a circle on a chart | sin-verificar | `tt14` |  |
 | CIRCLE | Draw a circle for the planet | sin-verificar | `circle_draw` |  |
 | CIRCLE2 | Draw a circle (for the planet or chart) | sin-verificar | `circle2_draw` |  |
 | CHKON | Check whether any part of a circle appears on the extended screen | sin-verificar | `sun_chkon` |  |
 
-## Drawing lines (4/27)
+## Drawing lines (5/27)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -98,18 +98,18 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | LOIN | Draw a line: Calculate the line gradient in the form of deltas |  |  |  |
 | HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) | sin-verificar | `gfx_hloin` | mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II |
 | MASKT | High-resolution pixel bytes for drawing continuous lines of solid |  |  |  |
-| VLOIN | Draw a vertical line from (X1, Y1) to (X1, Y2) |  |  |  |
+| VLOIN | Draw a vertical line from (X1, Y1) to (X1, Y2) | sin-verificar | `gfx_vloin` | 2 puntos de ancho, extremos incluidos |
 
-## Drawing pixels (1/6)
+## Drawing pixels (6/6)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| PIXEL2 | Draw a stardust particle relative to the screen centre |  |  |  |
+| PIXEL2 | Draw a stardust particle relative to the screen centre | sin-verificar | `pixel2` |  |
 | PIXEL | Draw a two-pixel dash, three-pixel dash or double-height | sin-verificar | `gfx_dust` | ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II |
-| TWOS3 | Ready-made two-pixel and three-pixel bytes in white, with an extra |  |  |  |
-| TWOS | Ready-made bytes for drawing one-pixel dots in the space view |  |  |  |
-| TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels |  |  |  |
-| CPIX | Draw a colour pixel |  |  |  |
+| TWOS3 | Ready-made two-pixel and three-pixel bytes in white, with an extra | propia |  | tablas de bytes del Apple II: aqui gfx_xor_pixel |
+| TWOS | Ready-made bytes for drawing one-pixel dots in the space view | propia |  |  |
+| TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels | propia |  |  |
+| CPIX | Draw a colour pixel | sin-verificar | `gfx_cpix` | 2 puntos de ancho (x, x+1) en XOR; sin las tablas de bytes del Apple II |
 
 ## Drawing planets (2/7)
 
@@ -123,11 +123,11 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | PL21 | Return from a planet/sun-drawing routine with a failure flag |  |  |  |
 | PLS6 | Calculate (X K) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `sm_pls6` |  |
 
-## Drawing ships (2/5)
+## Drawing ships (3/5)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| scacol | Ship colours on the scanner |  |  |  |
+| scacol | Ship colours on the scanner | sin-verificar | `scacol` | cadena con el color de cada tipo |
 | DOEXP | Draw an exploding ship |  |  |  |
 | exlook | A table to shift X left by one place when X is 0 or 1 |  |  |  |
 | SHPPT | Draw a distant ship as a point rather than a full wireframe | verificada | `ship_shppt` |  |
@@ -175,7 +175,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | refund | Install a new laser, processing a refund if applicable | sin-verificar | `laser_refund` |  |
 | PRXS | Equipment prices | sin-verificar | `equip_price` |  |
 
-## Flight (0/29)
+## Flight (2/29, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -205,9 +205,9 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | OUCH | Potentially lose cargo or equipment following damage |  |  |  |
 | ou2 | Display "E.C.M.SYSTEM DESTROYED" as an in-flight message |  |  |  |
 | ou3 | Display "FUEL SCOOPS DESTROYED" as an in-flight message |  |  |  |
-| PLUT | Flip the coordinate axes for the four different views |  |  |  |
-| LOOK1 | Initialise the space view |  |  |  |
-| SIGHT | Draw the laser crosshairs |  |  |  |
+| PLUT | Flip the coordinate axes for the four different views | no-necesaria |  | invierte ejes para las 4 vistas: hara falta cuando haya naves dibujadas en vuelo |
+| LOOK1 | Initialise the space view | propia | `change_view` | cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto |
+| SIGHT | Draw the laser crosshairs | sin-verificar | `chart_sight` | dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco) |
 
 ## Keyboard (8/19)
 
@@ -219,7 +219,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TT214 | Ask a question with a "Y/N?" prompt and return the response | propia | `scr_disk` |  |
 | YESNO | Wait until either "Y" or "N" is pressed | propia | `scr_disk` | confirmaciones Y/N dentro del menu de disco |
 | TT17 | Scan the keyboard for cursor key or joystick movement | propia | `in_held` | cursores o joystick |
-| TT102 | Process number key, save key, hyperspace and chart key presses | propia | `ui_nav` |  |
+| TT102 | Process number key, save key, hyperspace and chart key presses | propia | `ui_nav` | en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos |
 | ZEKTRAN | Clear the key logger |  |  |  |
 | RDS1 | Scan one axis of the joystick and return its position |  |  |  |
 | RDKEY | Scan the keyboard for key presses and the joystick, and update the |  |  |  |
@@ -228,7 +228,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | DKS2 | Read the joystick position |  |  |  |
 | DKS3 | Toggle a configuration setting and emit a beep |  |  |  |
 | U% | Clear the key logger |  |  |  |
-| DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo; los valores de JSTX/JSTY los calcula space_controls |
+| DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo, D acelera, F frena, A o espacio disparan; JSTX/JSTY los calcula space_controls |
 | DK4 | Scan for pause, configuration and secondary flight keys | propia | `in_poll` | teclas secundarias por caracteres (key_getchar) |
 | TT217 | Scan the keyboard until a key is pressed | propia | `in_wait` |  |
 | KTRAN | An unused key logger buffer that's left over from the 6502 Second |  |  |  |
@@ -375,14 +375,14 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TRIBTA | A table for converting the number of Trumbles in the hold into a |  |  |  |
 | TRIBMA | A table for converting the number of Trumbles in the hold into a |  |  |  |
 
-## Moving (3/8)
+## Moving (4/8)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | MVT3 | Calculate K(3 2 1) = (x_sign x_hi x_lo) + K(3 2 1) | transcripcion | `sm_mvt3` |  |
 | MVS5 | Apply a 3.6 degree pitch or roll to an orientation vector |  |  |  |
 | SFS2 | Move a ship in space along one of the coordinate axes |  |  |  |
-| MVEIT | Move current ship: Tidy the orientation vectors |  |  |  |
+| MVEIT | Move current ship: Tidy the orientation vectors | propia | `space_step` | MVEIT reducido: SCAN antes y despues, MV40 y las comprobaciones de alcance; sin TACTICS ni movimiento propio de las naves |
 | MVT1 | Calculate (x_sign x_hi x_lo) = (x_sign x_hi x_lo) + (A R) | sin-verificar | `mvt1` |  |
 | MVS4 | Apply pitch and roll to an orientation vector |  |  |  |
 | MVT6 | Calculate (A P+2 P+1) = (x_sign x_hi x_lo) + (A P+2 P+1) |  |  |  |
@@ -472,17 +472,17 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SOBOMB | Make the sound of an energy bomb going off |  |  |  |
 | CLICK | Toggle the state of the speaker (i.e. move it in or out) to make a |  |  |  |
 
-## Stardust (0/7)
+## Stardust (7/7)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| FLIP | Reflect the stardust particles in the screen diagonal and redraw |  |  |  |
-| STARS | The main routine for processing the stardust |  |  |  |
-| STARS1 | Process the stardust for the front view |  |  |  |
-| STARS6 | Process the stardust for the rear view |  |  |  |
-| STARS2 | Process the stardust for the left or right view |  |  |  |
-| NWSTARS | Initialise the stardust field |  |  |  |
-| nWq | Create a random cloud of stardust |  |  |  |
+| FLIP | Reflect the stardust particles in the screen diagonal and redraw | sin-verificar | `stars_flip` |  |
+| STARS | The main routine for processing the stardust | sin-verificar | `stars_update` | vistas 0 (STARS1), 1 (STARS6), 2 y 3 (STARS2) |
+| STARS1 | Process the stardust for the front view | sin-verificar | `stars1` | los acarreos del 6502 se siguen con una variable c (LSR/ROR/SBC/ADC) |
+| STARS6 | Process the stardust for the rear view | sin-verificar | `stars6` |  |
+| STARS2 | Process the stardust for the left or right view | sin-verificar | `stars2` | con ST2 al entrar y al salir |
+| NWSTARS | Initialise the stardust field | sin-verificar | `stars_new` | el original no crea el polvo si QQ11 != 0; aqui solo se llama en la vista espacial |
+| nWq | Create a random cloud of stardust | sin-verificar | `stars_new` |  |
 
 ## Start and end (1/8)
 

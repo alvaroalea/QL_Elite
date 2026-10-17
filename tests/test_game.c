@@ -12,6 +12,7 @@
 #include "text.h"
 #include "keys.h"
 #include "sound.h"
+#include "dash.h"
 
 static int fails, total;
 static void check(int ok, const char *what) { total++; if (!ok) { fails++; printf("FALLO: %s\n", what); } }
@@ -169,8 +170,14 @@ static const int script[] = {
     '6', SNAP(9),                               /* datos */
     '8', SNAP(10),                              /* estado */
     'i', '2', KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, 'b', 'o', 'b', KC_ENTER, SNAP(11), KC_ESC,   /* disco: guardar como BOB */
-    '0', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12), KD(K_LEFT), KD(K_DOWN), KD(K_SPACE), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_SPACE), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19), '1', -1, -1, -1, -1, SNAP(13), '2', -1, -1, -1, -1, SNAP(14), 'c',     /* despegar, unos fotogramas, atracar */
+    '0', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12),                  /* despegar (tunel de lanzamiento), unos fotogramas */
+    KD(K_LEFT), KD(K_DOWN), KD(K_D), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_D), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19),   /* alabeo, cabeceo y D acelera; luego se suelta */
+    '2', -1, -1, -1, -1, SNAP(13), '3', -1, -1, -1, -1, SNAP(14), '4', -1, -1, -1, -1, SNAP(20), '1', -1, -1, -1, -1,    /* vistas trasera, izquierda, derecha y frontal (teclas 1-4) */
+    'n', 'n', 'n', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(21),                            /* contactos en el radar */
+    '5', SNAP(22), KC_ESC, '8', SNAP(23), '9', SNAP(24), '1', -1, -1, -1,    /* pantallas 5-9 desde el vuelo y vuelta con ESC o con una vista */
+    'c',                                                             /* atracar */
     '8', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(15),       /* cargar BOB */
+    '0', -1, -1, -1, -1, -1, SNAP(25), 'c',                                 /* segundo despegue: el fondo del panel ya esta en memoria */
     'i', 'q', 'y'                                /* salir */
 };
 static unsigned sp = 0;
@@ -207,7 +214,8 @@ int main(void)
     in_script = feed;
     game_run();
     check(sp >= sizeof script / sizeof script[0] - 3, "la sesion guiada llego al final");
-    check(snapn == 20, "20 capturas");
+    check(snapn == 26, "26 capturas");
+    check(dash_loads() == 1, "elite_dash se lee del disco una sola vez y se queda en memoria entre despegues");
     check(strcmp(cmdr_name, "BOB") == 0, "se cargo el comandante BOB");
     printf("sesion: %u teclas, %d capturas; %d comprobaciones, %d fallos\n", sp, snapn, total, fails);
     return fails ? 1 : 0;

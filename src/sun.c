@@ -306,3 +306,30 @@ wp1:
     circ_lsp = 1;
     circ_lsx2[0] = 255;
 }
+
+/* ---------------------------------------------------------------- tunel de hiperespacio / lanzamiento (HFS2, HFS1, HFL1) */
+void (*sun_hiss_hook)(int y) = 0;                /* SOHISS(y): sonido de cada anillo (la pone el juego) */
+
+/* HFL1: una serie de circulos concentricos cuyo radio empieza en (XX4 AND 7) + 8 y se duplica mientras sea < 160 */
+static void hfl1(u8 xx4)
+{
+    zK[0] = (u8)((xx4 & 7) + 8);
+    for (;;) {                                   /* HFL2 */
+        if (sun_hiss_hook) sun_hiss_hook(10);    /* LDY #10; JSR SOHISS */
+        circ_lsp = 1;
+        circle2_draw();
+        if (zK[0] & 0x80) return;                /* ASL K; BCS HF8 */
+        zK[0] = (u8)(zK[0] << 1);
+        if (zK[0] >= 160) return;                /* CMP #160; BCC HFL2 */
+    }
+}
+
+/* HFS2 sin la limpieza de pantalla: STP = paso del circulo (4 hiperespacio, 8 lanzamiento); centro (X, Y) = (128, 68) */
+void tunnel_draw(u8 stp)
+{
+    u8 xx4;
+    circ_stp = stp;
+    zk3[0] = 128; zk3[1] = 0;                    /* HFS1: K3 = X, K4 = Y */
+    zk4[0] = 68;  zk4[1] = 0;
+    for (xx4 = 0; xx4 != 8; xx4++) hfl1(xx4);
+}

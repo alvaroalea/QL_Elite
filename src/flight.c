@@ -9,57 +9,28 @@
 #include "sound.h"
 #include "dash.h"
 #include "space.h"
+#include "stars.h"
+#include "sun.h"
+#include "chart.h"
+#include "shipdata.h"
 
-#define NSTARS 24
 #define VIEW_H 136
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
+#define TUNNEL_FRAMES 30                   /* cuanto se deja ver el tunel de lanzamiento o de hiperespacio */
 
-/* Polvo estelar PROVISIONAL (sustituye a STARS, aun sin portar): cada particula tiene coordenadas respecto a la nave en
-   punto fijo 8.8 (x derecha, y arriba, z hacia delante); la nave avanza (z baja) y gira con las MISMAS ecuaciones que MV40
-   usa para el planeta (alabeo ALPHA y cabeceo BETA). La vista elige hacia donde se mira:
-   delante (x, y, z), atras (-x, y, -z), izquierda (z, y, -x) y derecha (-z, y, x). */
-struct star { long x, y, z; int sx, sy, on; };
-static struct star stars[NSTARS];
 static int view = 0;
 static int hyper = 0;                      /* cuenta atras (15..1), 0 = ninguna */
 static int hyper_gal = 0;                  /* 1 = salto galactico */
 static int hyper_tick = 0;
 static const char *vnames[4] = { "FRONT", "REAR ", "LEFT ", "RIGHT" };
 
-static void respawn(struct star *s)
-{
-    s->x = ((long)em_dornd() * 2L - 255L) * 256L;
-    s->y = ((long)em_dornd() * 2L - 255L) * 256L;
-    s->z = ((long)em_dornd() * 2L - 255L) * 256L;
-    s->on = 0;
-}
+static void hiss(int y) { snd_sohiss(y); }
 
-static void star_erase(struct star *s)
-{
-    if (s->on) { gfx_xor_pixel(s->sx, s->sy, C_WHITE); s->on = 0; }
-}
-
-static void star_draw(struct star *s)
-{
-    int vx, vz, sx, sy, x = (int)(s->x >> 8), y = (int)(s->y >> 8), z = (int)(s->z >> 8);
-    switch (view) {
-    case 1:  vx = -x; vz = -z; break;
-    case 2:  vx = z;  vz = -x; break;
-    case 3:  vx = -z; vz = x;  break;
-    default: vx = x;  vz = z;  break;
-    }
-    if (vz < 8) return;                                   /* detras del observador */
-    sx = 128 + (int)(((long)vx * 64L) / vz);
-    sy = 68 + (int)(((long)y * 64L) / vz);
-    if (sx < 0 || sx > 255 || sy < 0 || sy >= VIEW_H) return;
-    s->sx = sx; s->sy = sy; s->on = 1;
-    gfx_xor_pixel(sx, sy, C_WHITE);
-}
-
-static void stars_reset(void)
+static void wait_frames(int n)             /* en el QL deja pasar tiempo real leyendo el teclado; con guion no consume teclas */
 {
     int i;
-    for (i = 0; i < NSTARS; i++) { stars[i].on = 0; respawn(&stars[i]); }
+    if (in_script) return;
+    for (i = 0; i < n; i++) in_poll();
 }
 
 /* Texto bajo el panel (lineas 192..255 = filas 24..31) */
@@ -70,10 +41,9 @@ static void panel_static(void)
     txt_print_at(0, 26, "VIEW");
     txt_print_at(0, 27, "HERE");
     txt_print_at(0, 28, "TARGET");
-    txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 29, "CURSORS TURN SPACE FAST / SLOW");
-    txt_print_at(0, 30, "0-3 VIEW H JUMP G GALAXY C DOCK");
-    txt_print_at(0, 31, "SHIFT+ESC QUIT");
+    txt_print_at(0, 29, "CURSORS TURN D FAST F SLOW");
+    txt_print_at(0, 30, "1-4 VIEW 5-9 INFO H/G JUMP");
+    txt_print_at(0, 31, "C DOCK N RADAR TEST SHIFT+ESC");
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -93,6 +63,34 @@ static void say(const char *s, int error)
     txt_color(error ? C_RED : C_GREEN, C_BLACK);
     txt_print_at(0, 24, s);
     txt_color(C_WHITE, C_BLACK);
+}
+
+/* TT66 de la vista espacial: borra el area de vista (el panel no se toca) */
+static void clear_view(void) { gfx_rect(0, 0, 256, VIEW_H, C_BLACK); }
+
+/* LOOK1 al cambiar de vista estando en el espacio: el polvo se refleja en la diagonal (FLIP) y se vuelve a poner la mira */
+static void change_view(int v)
+{
+    if (v == view) return;
+    view = v;
+    clear_view();
+    stars_flip();
+    chart_sight((u8)view);
+    panel_update();
+}
+
+/* Pantalla de vuelo completa (al despegar y al volver de una pantalla de texto): panel, texto, radar, mira y polvo nuevo (NWSTARS) */
+static void redraw_all(void)
+{
+    gfx_clear(C_BLACK);
+    dash_show();                           /* el fondo viene de memoria: el fichero se lee una sola vez */
+    space_scanner_reset();
+    dash_msblob();
+    if (sspr) dash_spblb();
+    panel_static();
+    panel_update();
+    chart_sight((u8)view);
+    stars_new();
 }
 
 static void say_hyper(void)
@@ -120,80 +118,103 @@ static void start_hyper(int galactic)
     say_hyper();
 }
 
+/* tunel (HFS2): se borra la vista, se dibujan los anillos con su sonido, se deja ver un momento y se borra */
+static void do_tunnel(u8 stp)
+{
+    sun_hiss_hook = hiss;
+    clear_view();
+    sun_col = C_WHITE;
+    tunnel_draw(stp);
+    wait_frames(TUNNEL_FRAMES);
+    clear_view();
+}
+
 static void arrive(void)
 {
     char b[32];
-    int i = 0;
+    int i = 0, ok;
     const char *p = "ARRIVED AT ";
-    int ok = hyper_gal ? jump_galactic() : jump_do(tgt_sys);
+    u8 x;
+    /* LL164: sonido de hiperespacio y tunel */
+    x = 255;
+    do { snd_soblip(x, 90); x = (u8)(x - 10); } while (x >= 170);
+    do_tunnel(4);
+    space_scanner_clear();                 /* quita del radar lo que hubiera */
+    if (sspr) dash_spblb();                /* se apaga la S */
+    ok = hyper_gal ? jump_galactic() : jump_do(tgt_sys);
     hyper = 0;
-    stars_reset();
     if (!ok) { say("JUMP FAILED", 1); return; }
+    space_arrive();                        /* sistema nuevo: planeta lejos y sin estacion */
+    stars_new();
+    chart_sight((u8)view);
     while (*p) b[i++] = *p++;
     for (p = uni_galaxy[cur_sys].name; *p && i < 31; p++) b[i++] = *p;
     b[i] = 0;
     say(b, 0);
     snd_beep();
-    space_launch();                                         /* nuevo sistema: planeta y estacion en su sitio */
     panel_update();
 }
 
-/* una particula de polvo: avance y giro (las ecuaciones de MV40 sobre la posicion: roll con ALPHA, pitch con BETA) */
-static void star_move(struct star *s, int step, long al, long be)
+/* Pantallas de texto desde el vuelo (teclas 5..9 y 0): como en el original; el tiempo no avanza mientras se ven. Devuelve 0 o FL_QUIT */
+static int flight_screens(int sc)
 {
-    long x = s->x, y = s->y, z = s->z;
-    z -= (long)step * 256L;                                 /* la nave avanza */
-    y = y - ((x * al) >> 8);
-    z = z + ((y * be) >> 8);
-    y = y - ((z * be) >> 8);
-    x = x + ((y * al) >> 8);
-    s->x = x; s->y = y; s->z = z;
+    int pending = 0;
+    key_ctx_menu();
+    for (;;) {
+        sc = scr_dispatch(sc);
+        if (sc == SC_QUIT || in_quit) { return FL_QUIT; }
+        if (sc >= SC_VIEW0 && sc <= SC_VIEW3) { view = sc - SC_VIEW0; break; }
+        if (sc == SC_FLIGHT) break;
+        if (sc == SC_HYPER) { pending = 1; break; }
+        if (sc == SC_GHYPER) { pending = 2; break; }
+    }
+    key_ctx_flight();
+    redraw_all();
+    if (pending == 1) start_hyper(0);
+    else if (pending == 2) start_hyper(1);
+    return 0;
 }
 
 int flight_run(void)
 {
-    int ch, i, step;
-    long al, be;
+    int ch, sc;
+    u8 ev;
     struct controls c;
+    static const u8 contact_types[6] = { SHIPT_VIPER, SHIPT_COBRA_MK_3, SHIPT_PYTHON, SHIPT_ASTEROID, SHIPT_SIDEWINDER, SHIPT_KRAIT };
 
     ui_clear();
     gfx_clear(C_BLACK);
     key_ctx_flight();                                       /* menos filas de teclado por fotograma: ver keys.c */
-    if (!dash_loaded()) dash_load();
-    dash_show();
-    panel_static();
-    stars_reset();
+    if (!dash_loaded()) dash_load();                        /* solo la primera vez; luego se queda en memoria */
     view = 0; hyper = 0;
     space_launch();
+    redraw_all();
+    snd_sohiss(0); snd_sohiss(0);                           /* LAUN */
+    do_tunnel(8);                                           /* tunel de lanzamiento (STP = 8) */
+    stars_new();                                            /* el tunel borro la vista: polvo y mira nuevos */
+    chart_sight((u8)view);
     say(dash_loaded() ? "LAUNCHED" : "LAUNCHED (NO ELITE_DASH FILE)", 0);
-    panel_update();
     for (;;) {
         ch = in_poll();
         if (ch == KC_QUIT) { key_ctx_menu(); return FL_QUIT; }
         if (ch >= 0) {
             ch = in_up(ch);
-            if (ch >= '0' && ch <= '3') { view = ch - '0'; panel_update(); }
-            else if (ch == 'h') start_hyper(0);
-            else if (ch == 'g') start_hyper(1);
-            else if (ch == 'c') { for (i = 0; i < NSTARS; i++) star_erase(&stars[i]); key_ctx_menu(); return FL_DOCK; }
+            if (ch == 'c') { key_ctx_menu(); return FL_DOCK; }
+            if (ch == 'n') { space_spawn(contact_types[em_dornd() % 6]); }
+            else {
+                sc = ui_nav(ch);
+                if (sc >= SC_VIEW0 && sc <= SC_VIEW3) change_view(sc - SC_VIEW0);
+                else if (sc == SC_HYPER) start_hyper(0);
+                else if (sc == SC_GHYPER) start_hyper(1);
+                else if (sc >= 0) { if (flight_screens(sc) == FL_QUIT) { key_ctx_menu(); return FL_QUIT; } }
+            }
         }
         ctl_read(&c);
         space_controls(&c);                                 /* ALPHA, BETA y velocidad */
-        space_step();                                       /* planeta y estacion */
-        step = 1 + zDELTA / 4;
-        al = (long)space_signed(alpha);
-        be = (long)space_signed(beta);
-        for (i = 0; i < NSTARS; i++) {
-            struct star *s = &stars[i];
-            star_erase(s);
-            star_move(s, step, al, be);
-            if (s->z < -255L * 256L || s->z > 255L * 256L || s->x < -255L * 256L || s->x > 255L * 256L ||
-                s->y < -255L * 256L || s->y > 255L * 256L) {
-                respawn(s);
-                s->z = 255L * 256L;                         /* reaparece lejos, por delante */
-            }
-            star_draw(s);
-        }
+        ev = space_step();                                  /* planeta, estacion y contactos; radar */
+        if (ev & SPACE_EV_STATION) dash_spblb();            /* se apaga la S */
+        stars_set_speed(zDELTA);                            /* DELT4 */
+        stars_update((u8)view);                             /* STARS */
         dash_update();
         if (hyper && ++hyper_tick >= HYPER_FRAMES) {
             hyper_tick = 0;
