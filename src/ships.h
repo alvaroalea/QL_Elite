@@ -28,6 +28,10 @@ void spin(u8 type);                              /* SPIN: al 50 %, restos de ese
 void spin2(u8 cnt, u8 type);                     /* SPIN2: cnt restos de ese tipo */
 int  ships_death_debris_one(void);              /* una vuelta de D1 (devuelve la ranura o -1) */
 void ships_death_debris(void);                   /* DEATH (D1): restos de nuestra nave hasta llenar la ranura 4 */
+int  frs1(u8 type);                              /* FRS1: nave nueva delante de nosotros (devuelve la ranura o -1) */
+void gthg(void);                                 /* GTHG: Thargoid y Thargon */
+void ships_escape(void);                         /* ESCAPE: nuestra Cobra se aleja (97 fotogramas) */
+void sescp(void);                                /* SESCP: la nave actual lanza una capsula */
 void doexp(void);                                /* DOEXP: nube de la nave que explota */
 void planet(void);                               /* PLANET: dibuja o borra el planeta o el sol de INWK */
 #endif

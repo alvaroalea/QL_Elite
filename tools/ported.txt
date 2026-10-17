@@ -12,7 +12,7 @@ MAD em_mad transcripcion
 ADD em_add transcripcion
 MULTS em_mults transcripcion
 FMLTU em_fmltu verificada
-FMLTU2 em_fmltu2 transcripcion
+FMLTU2 em_fmltu2 verificada a traves de CIRCLE2 en make test_planet
 MLTU2 em_mltu2 transcripcion
 MLU1 em_mlu1 transcripcion
 MLU2 em_mlu2 transcripcion
@@ -20,7 +20,7 @@ MULT3 em_mult3 transcripcion
 TIS1 em_tis1 transcripcion
 TIS2 em_tis2 transcripcion
 DVID96 em_dvid96 transcripcion
-LL5 em_ll5 transcripcion
+LL5 em_ll5 verificada transcripcion literal con el acarreo de salida (lo usa SUN); a traves de SUN en make test_planet
 LL28 em_ll28 verificada
 LL61 em_ll61 verificada
 LL38 em_ll38 transcripcion
@@ -83,16 +83,16 @@ SVE scr_disk propia
 LOD load_commander propia
 TT102 ui_nav propia
 # --- cartas, SUN y CIRCLE (2026-10-16), sin verificar
-SUN sun_draw sin-verificar
-CHKON sun_chkon sin-verificar
-EDGES edges sin-verificar
-FLFLLS sun_flflls sin-verificar
-WPLS sun_wpls sin-verificar
-HLOIN2 hloin2 sin-verificar
-CIRCLE circle_draw sin-verificar
-CIRCLE2 circle2_draw sin-verificar
-BLINE bline sin-verificar
-WPLS2 circle_wpls2 sin-verificar
+SUN sun_draw verificada make test_planet (secuencias de PLANET contra el 6502)
+CHKON sun_chkon verificada make test_planet (secuencias de PLANET contra el 6502)
+EDGES edges verificada make test_planet (secuencias de PLANET contra el 6502)
+FLFLLS sun_flflls verificada make test_planet (secuencias de PLANET contra el 6502)
+WPLS sun_wpls verificada make test_planet (secuencias de PLANET contra el 6502)
+HLOIN2 hloin2 verificada make test_planet (secuencias de PLANET contra el 6502)
+CIRCLE circle_draw verificada make test_planet (secuencias de PLANET contra el 6502)
+CIRCLE2 circle2_draw verificada make test_planet (secuencias de PLANET contra el 6502)
+BLINE bline verificada make test_planet (secuencias de PLANET contra el 6502)
+WPLS2 circle_wpls2 verificada make test_planet; depende de que LOIN deje SWAP como el original (loin() de sun.c)
 TT14 tt14 sin-verificar
 TT15 tt15 sin-verificar
 TT22 chart_draw sin-verificar
@@ -149,7 +149,7 @@ REDU2 space_redu2 sin-verificar
 MV40 mv40 sin-verificar gira la posicion y sigue por MV45 (orientacion, contadores y radar); K2 byte 0 queda a 0 (en el original es lo que hubiera en K2)
 MVT1 mvt1 sin-verificar
 PIXEL gfx_dust sin-verificar ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II
-HLOIN gfx_hloin sin-verificar mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II
+HLOIN gfx_hloin,hloin propia pares de puntos de X1 a X2-1; hloin() de sun.c redondea X1/X2 a pares y deja X2 como el original (verificado con make test_planet)
 SOLAR space_launch propia solo las formulas de la posicion del planeta; la estacion y su salida son valores propios
 ABORT - no-necesaria misiles aun no existen
 ABORT2 - no-necesaria misiles aun no existen
@@ -173,10 +173,10 @@ SCAN space_scan sin-verificar el bit 4 de INWK+31 (dibujada), colores de scacol 
 scacol scacol sin-verificar cadena con el color de cada tipo
 WPSHPS space_scanner_reset propia solo la parte del radar: ninguna nave figura como dibujada
 SIGHT chart_sight sin-verificar dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco)
-HFS2 tunnel_draw sin-verificar STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia
+HFS2 tunnel_draw verificada HFS1/HFL1 contra el 6502 (make test_planet); STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia
 LL164 arrive sin-verificar sonido (SOBLIP) y tunel al saltar; el salto en si es propio
 LAUN flight_run sin-verificar sonido (SOHISS) y tunel al despegar
-TT128 tt14 sin-verificar
+TT128 tt14 verificada make test_planet (circulo de las cartas con CIRCLE2)
 LOOK1 change_view propia cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto
 PLUT - no-necesaria invierte ejes para las 4 vistas: hara falta cuando haya naves dibujadas en vuelo
 msblob dash_msblob sin-verificar NOMSL indicadores en verde y el resto apagados
@@ -203,11 +203,11 @@ PTCLS ptcls sin-verificar semillas del generador desde el monton y restauracion 
 EX2 ex2 sin-verificar
 EXS1 exs1 sin-verificar el acarreo de FMLTU sale de em_carry
 TT48 - sin-verificar simple RTS
-PLANET planet sin-verificar planeta (circulo con CIRCLE) y sol (SUN); PL9, PL2 y WP1 van dentro
-PL9 planet sin-verificar
-PL2 planet sin-verificar
-PL21 planet sin-verificar SEC; RTS: en C el retorno de PROJ ya lo cubre
-WP1 circle_wpls2 sin-verificar reinicio del monton de la bola; LSY2[0] = $FF como centinela (el original no lo inicializa a la vista)
+PLANET planet verificada make test_planet (con PL9, PL2, WP1)
+PL9 planet verificada make test_planet
+PL2 planet verificada make test_planet
+PL21 planet verificada make test_planet (SEC; RTS)
+WP1 circle_wpls2 verificada make test_planet; RES2 pone LSX2 y LSY2 a $FF
 ZINF ship_zinf sin-verificar
 NWSHP ship_new sin-verificar sin heap compartido (SLSP): un monton de 256 bytes por ranura; NEWB inicial de E%
 NWSPS make_station sin-verificar la posicion de la estacion es propia
@@ -292,7 +292,7 @@ NLIN4 ui_title propia titulo con la linea que lo subraya (menu.c)
 NLIN ui_title propia titulo con la linea que lo subraya (menu.c)
 NLIN2 ui_title propia titulo con la linea que lo subraya (menu.c)
 DVLOIN dvloin propia linea vertical de las cartas (chart.c)
-LOIN gfx_line propia linea en XOR; el original usa pasos 6502 y mascaras de HGR
+LOIN gfx_line,loin propia linea en XOR; en sun.c, loin() reproduce los efectos en memoria del original (SWAP, orden de los extremos, P, Q, S), verificados con make test_planet
 LL145 ship_clip verificada recorte de linea (verificada con el 6502)
 LL118 ship_clip verificada dentro de ship3d.c (verificada con el 6502)
 LSPUT ship_lsput verificada linea de nave en el monton con animacion sin parpadeo (dentro de LL9, verificada)
@@ -498,7 +498,7 @@ KS4 ships_step propia la estacion se quita y vuelve el sol (regla propia)
 spasto ship_bp_for propia plano de la estacion (Coriolis o Dodo)
 KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
 Main ships_step,flight_run,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks parcial bucle principal: naves, laser (partes 3, 11, 12, 16, MLOOP: make test_laser), choques, recogida y atraque por la ranura (partes 9 y 10), ENERGY LOW, altitud, cabina y combustible del sol (parte 15: make test_damage); faltan misiles, bomba, ECM, generacion de encuentros y la aparicion de la estacion (parte 14)
-DOENTRY flight_run,combat_collide parcial se atraca entrando por la ranura (ISDK, verificado) o con C (provisional); energia y escudos se reponen al despegar; falta el progreso de misiones
+DOENTRY flight_run,combat_collide parcial se atraca entrando por la ranura (ISDK), con el ordenador de atraque (C) o, sin el, con C (provisional); energia y escudos se reponen al despegar; falta el progreso de las misiones (paso de misiones)
 
 LL129 ll129 verificada dentro de ship3d.c (pendiente de la linea, verificada con el 6502)
 # --- paso 3a: laser y danos (2026-10-17), verificadas contra el 6502 con make test_laser (tools/gen_laser.py)
@@ -520,3 +520,20 @@ DEATH flight_death,ships_death_debris parcial D1 verificado (Ze, fq1, restos); e
 DEATH2 game_run propia vuelve a la pantalla de titulo (nuevo comandante o cargar)
 DET1 - no-necesaria en el Apple II es un RTS
 Ze ze verificada dentro de D1
+# --- 2026-10-17 undecima ronda: rutinas que faltaban de Flight y Drawing lines (make test_equip contra el 6502)
+BOMBON bomb_on verificada make test_equip
+BOMBOFF bomb_off verificada make test_equip (lineas del rayo)
+BOMBPOS bombpos verificada tabla
+BOMBTBX bombtbx verificada
+BOMBTBY bombtby verificada
+BOMBEFF2 bomb_eff2,bomb_eff,bomb_frame sin-verificar cuatro BOMBEFF por fotograma y el tramo MA18 de la parte 16; tecla con la comprobacion de la version publicada (IB disk)
+WARP warp verificada make test_equip (el repintado de LOOK1 lo hace flight.c)
+DOCKIT dockit verificada make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c)
+DCS1 dcs1 verificada dentro de DOCKIT
+dockEd ui_nav propia mensaje DOCKED al pulsar H o G atracado
+ESCAPE flight_escape,ships_escape sin-verificar la Cobra se aleja 97 fotogramas (MVEIT + LL9), carga, FIST y capsula a cero, 70 de combustible, atraque
+SESCP sescp sin-verificar = SFS1 (verificada) con IA $FE y la capsula; la usara TACTICS
+MJP misjump sin-verificar salto fallido: tunel, MJ = $FF, tres Thargoides (GTHG), polvo de 2, QQ1 EOR 31; la distancia en el hiperespacio se mide desde (QQ0, QQ1)
+GTHG gthg verificada make test_equip
+FRS1 frs1 verificada make test_equip
+

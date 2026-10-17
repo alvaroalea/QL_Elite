@@ -26,10 +26,10 @@ buildc68() {          # salida fuentes...
 }
 GFX="$S/gfx.c $S/text.c"
 SHIP="$S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $GFX"
-DASHM="$S/dash.c $S/space.c $S/stars.c $S/ships.c $S/combat.c $S/damage.c $S/move.c $S/sun.c $S/chart.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $S/sound.c $S/sound_host.c $GFX"
+DASHM="$S/dash.c $S/space.c $S/stars.c $S/ships.c $S/combat.c $S/damage.c $S/equip.c $S/dockit.c $S/move.c $S/sun.c $S/chart.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $S/sound.c $S/sound_host.c $GFX"
 CHARTS="$S/chart.c $S/sun.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $GFX"
 GAME="$S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $GFX"
-FULL="$S/app.c $S/menu.c $S/chart.c $S/sun.c $S/dash.c $S/space.c $S/stars.c $S/ships.c $S/combat.c $S/damage.c $S/move.c $S/flight.c $S/input.c $S/keys.c $S/keys_host.c $S/sound.c $S/sound_host.c $S/game.c $S/cmdr.c $S/save.c $S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $S/gfx.c $S/text.c $S/universe.c"
+FULL="$S/app.c $S/menu.c $S/chart.c $S/sun.c $S/dash.c $S/space.c $S/stars.c $S/ships.c $S/combat.c $S/damage.c $S/equip.c $S/dockit.c $S/move.c $S/flight.c $S/input.c $S/keys.c $S/keys_host.c $S/sound.c $S/sound_host.c $S/game.c $S/cmdr.c $S/save.c $S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $S/gfx.c $S/text.c $S/universe.c"
 fail=0
 for p in gfxfast:"$GFX" emath:"$S/emath.c $S/state.c" keys:"$S/keys.c $S/keys_host.c $GFX" ships:"$SHIP" game:"$GAME" charts:"$CHARTS" dash:"$DASHM" flight:"$DASHM" session:"$FULL"; do
   name=${p%%:*}; mods=${p#*:}; src=$ROOT/tests/c68/probe_$name.c

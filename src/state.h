@@ -73,6 +73,7 @@ extern u8   junk_count;               /* JUNK */
 extern u8   dock_auto;                /* auto: ordenador de atraque */
 extern u8   ecmp;                     /* nuestro ECM activo */
 extern u8   mj;                       /* MJ: en el hiperespacio por mision/jump */
+extern u8   mstg;                     /* MSTG: ranura del blanco del misil ($FF = ninguno; RES2) */
 
 /* ---- Espacio de trabajo de la pagina cero ---- */
 extern u8   zP2;                      /* P+2 (P y P+1 estan en emath: zP, zP1) */

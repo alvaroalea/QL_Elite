@@ -48,6 +48,7 @@ int ship_new(u8 type)
         inwk[31] = (u8)(bp[19] & 7);
         inwk[36] = (u8)(inwk[36] | (e_newb[type] & 0x6F));
         many[type]++;
+        if (type == SHIPT_ROCK_HERMIT || (type >= SHIPT_ESCAPE_POD && type < SHIPT_SHUTTLE + 2)) junk_count++;   /* JL..JH-1 y HER */
     }
     frin[n] = type;
     put_slot(n);
@@ -60,6 +61,7 @@ void ship_kill(int n)
     u8 type = frin[n];
     int j, i;
     if (type < 128 && many[type]) many[type]--;
+    if ((type == SHIPT_ROCK_HERMIT || (type >= SHIPT_ESCAPE_POD && type < SHIPT_SHUTTLE + 2)) && junk_count) junk_count--;
     for (j = n; j < NOSH - 1; j++) {
         frin[j] = frin[j + 1];
         for (i = 0; i < NI; i++) state_slot(j)[i] = state_slot(j + 1)[i];
@@ -76,6 +78,7 @@ void ships_clear(void)
     for (n = 0; n <= NOSH; n++) { frin[n] = 0; for (i = 0; i < NI; i++) state_slot(n)[i] = 0; }
     for (n = 0; n < NOSH; n++) for (i = 0; i < HEAP_BYTES; i++) heaps[n][i] = 0;
     for (n = 0; n <= NTY; n++) many[n] = 0;
+    junk_count = 0;
 }
 
 /* Borra las lineas dibujadas de la nave de la ranura n (monton de lineas) */
@@ -270,6 +273,56 @@ static int fq1(u8 type, u8 c)
     inwk[27] = (u8)((zDELTA << 1) | (c & 1));           /* LDA DELTA; ROL A */
     return ship_new(type);
 }
+
+/* FRS1: una nave nueva justo delante de nosotros, por debajo de la mira (y = -28, z = 14), con IA = MSTG * 2 | $80 */
+int frs1(u8 type)
+{
+    u8 a, c;
+    ship_zinf();
+    inwk[3] = 28;
+    inwk[6] = 14;                                        /* LSR A */
+    inwk[5] = 0x80;
+    a = mstg;
+    c = (u8)(a >> 7);
+    inwk[32] = (u8)((a << 1) | 0x80);                    /* ASL A; ORA #$80: el acarreo pasa a fq1 */
+    return fq1(type, c);
+}
+
+/* GTHG: un Thargoid agresivo (Ze, IA = $FF) y un Thargon en el mismo sitio */
+void gthg(void)
+{
+    ze();
+    inwk[32] = 0xFF;
+    ship_new(SHIPT_THARGOID);
+    ship_new(SHIPT_THARGON);
+}
+
+/* ESCAPE (la parte que mueve la nave): nuestra Cobra sale delante (FRS1 con CYL o, si no cabe, CYL2) y se aleja durante
+   97 fotogramas (MVEIT + LL9 sobre INWK); luego se borra del radar. El resto (carga, FIST, cupula, combustible y GOIN) lo
+   hace flight.c */
+void ships_escape(void)
+{
+    int n;
+    u8 type = SHIPT_COBRA_MK_3;
+    ztype = type;                                        /* LDX #CYL; STX TYPE */
+    n = frs1(type);
+    if (n < 0) { type = SHIPT_COBRA_MK_3_P; n = frs1(type); }
+    if (n < 0) return;
+    inwk[27] = 8;
+    inwk[30] = 194;
+    inwk[32] = 194 >> 1;                                 /* LSR A: 97 vueltas */
+    zinf = state_slot(n); zxx19 = heaps[n]; zxx0 = ship_bp_for(ztype); move_xsav = (u8)n;
+    ships_hooks();
+    do {
+        mveit();
+        ship_ll9();
+        inwk[32]--;
+    } while (inwk[32] != 0);
+    space_scan(ztype);                                   /* JSR SCAN: lo quita del radar */
+}
+
+/* SESCP: la nave actual lanza una capsula de escape (SFS1 con IA %11111110) */
+void sescp(void) { sfs1(0xFE, SHIPT_ESCAPE_POD); }
 
 /* D1 de DEATH: restos (cargas o placas) que salen de donde estaba nuestra nave hasta llenar la ranura 4; algunos explotan */
 int ships_death_debris_one(void)
@@ -475,7 +528,15 @@ u8 ships_step(u8 view)
         get_slot(n);
         sl = state_slot(n);
         ztype = type; zinf = sl; zxx19 = heaps[n]; move_xsav = (u8)n;
-        if (!(type & 0x80)) zxx0 = ship_bp_for(type);
+        if (!(type & 0x80)) {
+            zxx0 = ship_bp_for(type);
+            /* parte 4: la bomba de energia destruye todo menos la estacion, los Thargoides, el Constrictor y el Dodo */
+            if ((bomb & 0x80) && type != SHIPT_CORIOLIS && type != SHIPT_THARGOID && type < SHIPT_CONSTRICTOR &&
+                !(inwk[31] & 0x20)) {
+                inwk[31] = (u8)(inwk[31] | 0x80);
+                exno2(type);
+            }
+        }
         mveit();
         put_slot(n);                                     /* MAL3 */
         if (!(type & 0x80)) {                            /* partes 9 y 10: choque, recogida o atraque */

@@ -190,18 +190,34 @@ u8 em_tis1(u8 x, u8 a)
 u8 zK[4];
 u8 zU, zDELTA;
 
+/* LL5: Q = SQRT(R Q), transcripcion literal: ademas deja S, T = 0, y el acarreo de salida en em_carry (el SUN lo pasa a DORND) */
 u8 em_ll5(void)
 {
-    unsigned long v = ((unsigned long)zR << 8) | zQ;
-    unsigned long bit = 0x4000UL, res = 0;
-    while (bit > v) bit >>= 2;
-    while (bit) {
-        if (v >= res + bit) { v -= res + bit; res = (res >> 1) + bit; }
-        else res >>= 1;
-        bit >>= 2;
-    }
-    zQ = (u8)res;
-    return zQ;
+    u8 y = zR, s = zQ, x = 0, q = 0, t = 8, c = 0, hi;
+    unsigned d;
+    do {
+        if (x < q) { c = 0; goto ll7; }                /* CPX Q; BCC LL7 */
+        if (x == q) {                                  /* BNE P%+6 */
+            if (y < 64) { c = 0; goto ll7; }           /* CPY #64; BCC LL7 */
+        }
+        c = (u8)(y >= 64);                             /* TYA; SBC #64 (C = 1 de la comparacion) */
+        y = (u8)(y - 64);
+        d = (unsigned)x - q - (1 - c);                 /* TXA; SBC Q */
+        c = (u8)(((int)x - (int)q - (int)(1 - c)) >= 0);
+        x = (u8)d;
+ll7:
+        hi = (u8)(q >> 7); q = (u8)((q << 1) | c); c = hi;          /* ROL Q */
+        c = (u8)(s >> 7); s = (u8)(s << 1);                         /* ASL S */
+        hi = (u8)(y >> 7); y = (u8)((y << 1) | c); c = hi;          /* TYA; ROL A; TAY */
+        hi = (u8)(x >> 7); x = (u8)((x << 1) | c); c = hi;          /* TXA; ROL A; TAX */
+        c = (u8)(s >> 7); s = (u8)(s << 1);                         /* ASL S */
+        hi = (u8)(y >> 7); y = (u8)((y << 1) | c); c = hi;
+        hi = (u8)(x >> 7); x = (u8)((x << 1) | c); c = hi;
+        t--;
+    } while (t != 0);
+    zQ = q; zS = s; zT = 0;
+    em_carry = c;
+    return q;
 }
 
 u8 em_ll28_nocheck(u8 a)

@@ -16,6 +16,8 @@
 #include "ships.h"
 #include "combat.h"
 #include "damage.h"
+#include "equip.h"
+#include "dockit.h"
 #include "cmdr.h"
 
 #define VIEW_H 136
@@ -47,7 +49,7 @@ static void panel_static(void)
     txt_print_at(0, 28, "TARGET");
     txt_print_at(0, 29, "CURSORS TURN F FAST D SLOW");
     txt_print_at(0, 30, "1-4 VIEW 5-9 INFO H/G JUMP");
-    txt_print_at(0, 31, "A FIRE C DOCK N SHIP K BLOW (T)");
+    txt_print_at(0, 31, "A FIRE B BOMB J JUMP C/P DOCK N K");
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -78,6 +80,13 @@ static void clear_view(void)
     laser_forget();                         /* TTX66: LAS2 = 0 */
 }
 
+/* Lo que LOOK1 y la llegada vuelven a poner tras borrar la vista: la mira y, si la bomba esta explotando, su rayo */
+static void view_extras(void)
+{
+    chart_sight((u8)view);
+    if (bomb & 0x80) bomb_off();
+}
+
 /* LOOK1 al cambiar de vista estando en el espacio: el polvo se refleja en la diagonal (FLIP) y se vuelve a poner la mira */
 static void change_view(int v)
 {
@@ -86,7 +95,7 @@ static void change_view(int v)
     space_view = (u8)view;                  /* las naves se redibujan en los ejes de la vista nueva (PLUT) */
     clear_view();
     stars_flip();
-    chart_sight((u8)view);
+    view_extras();
     panel_update();
 }
 
@@ -103,7 +112,7 @@ static void redraw_all(void)
     if (sspr) dash_spblb();
     panel_static();
     panel_update();
-    chart_sight((u8)view);
+    view_extras();
     stars_new();
 }
 
@@ -172,6 +181,26 @@ static void do_tunnel(u8 stp)
     clear_view();
 }
 
+/* MJP: salto fallido al espacio entre sistemas (witchspace): otro tunel, sin planeta ni sol ni estacion, tres Thargoides con
+   sus Thargons, MJ = $FF, polvo con 2 particulas y la coordenada y de la galaxia con los 5 bits bajos invertidos */
+static void misjump(void)
+{
+    do_tunnel(4);                                           /* TT66 + LL164 */
+    space_reset();                                          /* RES2 */
+    ships_clear();
+    sspr = 0;
+    mj = 0xFF;                                              /* STY MJ */
+    do gthg(); while (many[SHIPT_THARGOID] <= 2);           /* MJP1: hasta tener tres */
+    stars_nostm = 2;                                        /* STA NOSTM con A = 2 */
+    view = 0; space_view = 0;                               /* LDX #0; JSR LOOK1 */
+    clear_view();
+    stars_new();
+    view_extras();
+    qq1 = (u8)(qq1 ^ 0x1F);                                 /* QQ1 EOR #%00011111 */
+    say("WITCHSPACE", 1);
+    panel_update();
+}
+
 static void arrive(void)
 {
     char b[32];
@@ -184,12 +213,22 @@ static void arrive(void)
     do_tunnel(4);
     space_scanner_clear();                 /* quita del radar lo que hubiera */
     if (sspr) dash_spblb();                /* se apaga la S */
+    if (!hyper_gal && jump_possible(tgt_sys)) {             /* TT18: el combustible se gasta antes de saber si llegamos */
+        if (em_dornd() >= 253) {                            /* 0,78 %: MJP */
+            unsigned d = jump_distance(tgt_sys);
+            qq14 = (u8)(qq14 >= d ? qq14 - d : 0);
+            hyper = 0;
+            misjump();
+            return;
+        }
+    }
     ok = hyper_gal ? jump_galactic() : jump_do(tgt_sys);
     hyper = 0;
+    stars_nostm = NOST;                                     /* RES2 */
     if (!ok) { say("JUMP FAILED", 1); return; }
     space_arrive();                        /* sistema nuevo: planeta lejos y sin estacion */
     stars_new();
-    chart_sight((u8)view);
+    view_extras();
     while (*p) b[i++] = *p++;
     for (p = uni_galaxy[cur_sys].name; *p && i < 31; p++) b[i++] = *p;
     b[i] = 0;
@@ -216,6 +255,23 @@ static int flight_screens(int sc)
     if (pending == 1) start_hyper(0);
     else if (pending == 2) start_hyper(1);
     return 0;
+}
+
+/* ESCAPE: la capsula; vemos alejarse nuestra Cobra, perdemos la carga, la capsula y la condicion de fugitivo, el deposito
+   se llena y aparecemos en la estacion (GOIN) */
+static void flight_escape(void)
+{
+    int i;
+    space_reset();                                          /* RES2 */
+    ships_erase_all();
+    ships_clear();
+    clear_view();
+    stars_new();
+    ships_escape();
+    for (i = 0; i <= 16; i++) qq20[i] = 0;
+    fist = 0;
+    escp = 0;
+    qq14 = 70;
 }
 
 /* DEATH: explosion, GAME OVER y los restos de nuestra nave alejandose (D1/D2); luego DEATH2 vuelve al titulo */
@@ -253,7 +309,8 @@ int flight_run(void)
     key_ctx_flight();                                       /* menos filas de teclado por fotograma: ver keys.c */
     if (!dash_loaded()) dash_load();                        /* solo la primera vez; luego se queda en memoria */
     view = 0; hyper = 0;
-    player_dead = 0; mess_de = 0;
+    player_dead = 0; mess_de = 0; dock_auto = 0; mj = 0; mstg = 0xFF;
+    stars_nostm = NOST;
     combat_reset();                                         /* DOENTRY: energia, escudos y laser como al atracar */
     combat_mess_hook = flight_mess;
     combat_mess_off_hook = flight_mess_off;
@@ -269,8 +326,24 @@ int flight_run(void)
         if (ch == KC_QUIT) { key_ctx_menu(); return FL_QUIT; }
         if (ch >= 0) {
             ch = in_up(ch);
-            if (ch == 'c') { key_ctx_menu(); return FL_DOCK; }
-            if (ch == 'n') { space_spawn(contact_types[em_dornd() % 6]); }
+            if (ch == 'c') {                                /* KY19: ordenador de atraque si lo llevamos (MA64: STA auto) */
+                if (dkcmp) dock_auto = dkcmp;
+                else if (sspr) { key_ctx_menu(); return FL_DOCK; }    /* provisional: atraque inmediato sin ordenador */
+                else { say("NO STATION", 1); snd_boop(); }
+                ch = -1;
+            }
+            if (ch == 'p') { dock_auto = 0; ch = -1; }     /* KY20: MA76..MA78 */
+            if (ch == 'b') { bomb_key(); ch = -1; }        /* KY12: MA24..MA76 */
+            if (ch == 'j') {                                /* KY18: WARP */
+                if (warp()) { mcnt = 1; clear_view(); stars_new(); view_extras(); }
+                ch = -1;
+            }
+            if (ch == KC_ESC) {                             /* KY13: capsula de escape (no en el hiperespacio) */
+                if (escp && !mj) { flight_escape(); snd_off(); key_ctx_menu(); return FL_DOCK; }
+                ch = -1;
+            }
+            if (ch < 0) { }
+            else if (ch == 'n') { space_spawn(contact_types[em_dornd() % 6]); }
             else if (ch == 'k') { if (ships_explode_nearest() < 0) say("NOTHING TO BLOW UP", 1); else snd_exno2(); }
             else {
                 sc = ui_nav(ch);
@@ -282,11 +355,13 @@ int flight_run(void)
         }
         space_view = (u8)view;
         ctl_read(&c);
+        dokey_auto(&c);                                     /* DOKEY: el ordenador de atraque pulsa por nosotros */
         space_controls(&c);                                 /* ALPHA, BETA y velocidad */
         laser_fire((u8)view, c.fire);                       /* parte 3: disparo (LASLI) */
         ev = space_step();                                  /* naves (HITCH, danos, choques), radar, energia, parte 15 */
         if (ev & SPACE_EV_DOCK) { snd_off(); key_ctx_menu(); return FL_DOCK; }       /* por la ranura: DOENTRY */
         if (ev & SPACE_EV_DEATH) { flight_death(); key_ctx_menu(); return FL_DEATH; }
+        bomb_frame();                                       /* parte 16 (MA18): la bomba sigue explotando */
         laser_frame_end();                                  /* parte 16: fin del pulso (LASLI2) */
         if (ev & SPACE_EV_STATION) dash_spblb();            /* se apaga la S */
         stars_set_speed(zDELTA);                            /* DELT4 */

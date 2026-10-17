@@ -22,6 +22,10 @@ u8   circle_draw(void);                   /* CIRCLE: devuelve el acarreo (1 = fu
 u8   circle2_draw(void);                  /* CIRCLE2: como CIRCLE sin CHKON y con STP ya puesto; devuelve 0 */
 void circle_wpls2(void);                  /* WPLS2: borra el circulo anterior */
 extern void (*sun_hiss_hook)(int y);      /* sonido de cada anillo del tunel (SOHISS) */
+void sun_get_sunx(u8 *v);                 /* pruebas: SUNX */
+void sun_set_sunx(u8 lo, u8 hi);
+extern void (*sun_loin_hook)(void);       /* pruebas: cada LOIN del circulo (X1..Y2 en zx15 ya ordenados, zswap) */
+extern void (*sun_hloin_hook)(u8 l, u8 r, u8 y);   /* pruebas: cada HLOIN del sol que dibuja */
 void sun_forget(void);                    /* tras borrar la vista: ni el sol ni el planeta figuran como dibujados */
 void tunnel_draw(u8 stp);                 /* HFS2/HFS1: tunel de hiperespacio (STP = 4) o de lanzamiento (STP = 8) con el color sun_col */
 #endif

@@ -40,7 +40,7 @@ def lab(name, start=0):
     for i in range(start, len(L)):
         if code(L[i]) == '.' + name: return i
     raise Exception('sin etiqueta ' + name)
-def rng(a, b): return [re.sub(r'\s+AND\s+(?=\d)', ' & ', l) for l in preprocess(L[a:b])]
+def rng(a, b): return [re.sub(r'\s+AND\s+(?=\d)', ' & ', l) for l in preprocess(L[a:b]) if code(l) != 'SKIP 0']
 def routine(name): return preprocess(L[nl(name) - 1:nx(nl(name)) - 1])
 
 def table(name):                          # EQUB de elite-data.asm a partir de .name

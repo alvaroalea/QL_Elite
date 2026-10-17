@@ -299,11 +299,18 @@ const char *laser_name(u8 v)
 
 /* ---------------- hiperespacio ---------------- */
 
-unsigned jump_distance(int idx) { return uni_distance(&uni_galaxy[cur_sys], &uni_galaxy[idx]); }
+unsigned jump_distance(int idx)
+{
+    uni_system here;
+    if (!mj) return uni_distance(&uni_galaxy[cur_sys], &uni_galaxy[idx]);
+    here = uni_galaxy[cur_sys];                     /* en el hiperespacio (MJP) la posicion es (QQ0, QQ1), no un sistema */
+    here.x = qq0; here.y = qq1;
+    return uni_distance(&here, &uni_galaxy[idx]);
+}
 
 int jump_possible(int idx)
 {
-    if (idx == cur_sys) return 0;
+    if (idx == cur_sys && !mj) return 0;
     return jump_distance(idx) <= qq14;
 }
 
@@ -314,6 +321,7 @@ int jump_do(int idx)
     d = jump_distance(idx);
     qq14 = (u8)(qq14 - d);
     game_enter_system(idx, 1);
+    mj = 0;                                        /* se sale del hiperespacio al llegar a un sistema */
     return 1;
 }
 
@@ -326,5 +334,6 @@ int jump_galactic(void)
     gcnt = (u8)(g - 1);
     uni_galaxy_seed(g, qq21);
     ghyp = 0;
+    mj = 0;
     return 1;
 }

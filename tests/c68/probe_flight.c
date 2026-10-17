@@ -14,13 +14,16 @@
 #include "ships.h"
 #include "combat.h"
 #include "damage.h"
+#include "equip.h"
+#include "dockit.h"
 #include "cmdr.h"
 typedef unsigned short u16s;
 static u16s hv[60];
 static u16s rs = 9876;
 static unsigned rnd(void) { rs = (u16s)(rs * 25173u + 13849u); return (unsigned)(rs >> 4); }
 static int n = 0;
-static u8 dm[16];                                   /* resultados de los danos */
+static u8 dm[16];
+static u8 de[16];                                   /* equipo: ordenador de atraque, bomba, WARP */                                   /* resultados de los danos */
 static void hash(void)
 {
     long j;
@@ -107,11 +110,32 @@ int main(void)
         dm[10] = frin[0]; dm[11] = frin[4]; dm[12] = state_slot(4)[31]; dm[13] = em_rand[0]; dm[14] = em_rand[1]; dm[15] = mcnt;
         (void)k;
     }
+    {
+        struct controls cc; int k;
+        ships_clear(); sspr = 1; dock_auto = 0xFF; zDELTA = 30; jstx = 128; jsty = 128;
+        for (k = 0; k < NI; k++) state_slot(1)[k] = (u8)(k * 37 + 11);
+        state_slot(1)[1] = 3; state_slot(1)[2] = 0x80; state_slot(1)[4] = 1; state_slot(1)[5] = 0; state_slot(1)[7] = 4; state_slot(1)[8] = 0;
+        state_slot(0)[1] = 50; state_slot(0)[7] = 90; state_slot(0)[8] = 1;
+        for (f = 0; f < 4; f++) {
+            for (k = 0; k < (int)sizeof cc; k++) ((u8 *)&cc)[k] = 0;
+            dokey_auto(&cc);
+            de[f * 2] = (u8)(jstx ^ (jsty << 1) ^ zDELTA);
+            de[f * 2 + 1] = (u8)(cc.slow_down | cc.speed_up << 1 | cc.roll_left << 2 | cc.roll_right << 3 | cc.pitch_up << 4 | cc.pitch_down << 5);
+            state_slot(1)[1]++;
+        }
+        dock_auto = 0; sspr = 0;
+        bomb_on(0);
+        for (k = 0; k < 10; k++) { de[8] = (u8)(de[8] + bombtbx[k]); de[9] = (u8)(de[9] ^ bombtby[k]); }
+        ships_clear(); state_slot(0)[8] = 3; state_slot(1)[8] = 0x83;
+        de[10] = (u8)warp(); de[11] = state_slot(0)[8]; de[12] = state_slot(1)[8];
+        de[13] = em_rand[0]; de[14] = em_rand[2]; de[15] = zK[0];
+    }
     gfx_clear(C_BLACK);
     for (i = 0; i < n; i++) { screen[2 * i] = (u8)hv[i]; screen[2 * i + 1] = (u8)(hv[i] >> 8); }
     screen[200] = (u8)n;
     screen[201] = tally[0]; screen[202] = tally[1]; screen[203] = tallyl; screen[204] = gntmp; screen[205] = energy;
     for (i = 0; i < 16; i++) screen[220 + i] = dm[i];
+    for (i = 0; i < 16; i++) screen[240 + i] = de[i];
     screen[206] = cash[3]; screen[207] = cash[2]; screen[208] = fist;
     plat_present();
     return 0;

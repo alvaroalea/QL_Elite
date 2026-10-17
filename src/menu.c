@@ -119,6 +119,7 @@ int ui_nav(int ch)
     case '8': return SC_STATUS;
     case '9': return SC_INVENTORY;
     case 'i': return SC_DISK;
+    case 'h': case 'g': ui_msg("DOCKED", 1); return -1;    /* dockEd: no se puede saltar atracado */
     }
     return -1;
 }

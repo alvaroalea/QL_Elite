@@ -5,30 +5,30 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **351**, de ellas verificadas contra el 6502: 40 y pendientes de verificar: 311
+- **Portadas** (con la funcion C que las cubre): **366**, de ellas verificadas contra el 6502: 69 y pendientes de verificar: 297
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, motor de textos comprimidos, utilidades que da el compilador de C, etc.): **139**
-- **Sin portar** (pendientes de implementar, incluidas las parciales): **38**
+- **Sin portar** (pendientes de implementar, incluidas las parciales): **23**
 
-Comprobacion: total = portadas + no necesarias + sin portar (528 = 351 + 139 + 38).
+Comprobacion: total = portadas + no necesarias + sin portar (528 = 366 + 139 + 23).
 
 | Area | Total | Portadas | De ellas verificadas | No necesarias | Pendientes verificar | Pendientes implementar |
 |---|---:|---:|---:|---:|---:|---:|
 | Charts | 9 | 9 | 0 | 0 | 9 | 0 |
 | Dashboard | 29 | 25 | 0 | 4 | 25 | 0 |
-| Drawing circles | 9 | 9 | 0 | 0 | 9 | 0 |
-| Drawing lines | 27 | 17 | 4 | 4 | 13 | 6 |
+| Drawing circles | 9 | 9 | 6 | 0 | 3 | 0 |
+| Drawing lines | 27 | 23 | 11 | 4 | 12 | 0 |
 | Drawing pixels | 6 | 6 | 0 | 0 | 6 | 0 |
-| Drawing planets | 7 | 7 | 1 | 0 | 6 | 0 |
+| Drawing planets | 7 | 7 | 7 | 0 | 0 | 0 |
 | Drawing ships | 5 | 4 | 2 | 1 | 2 | 0 |
-| Drawing suns | 3 | 3 | 0 | 0 | 3 | 0 |
+| Drawing suns | 3 | 3 | 3 | 0 | 0 | 0 |
 | Drawing the screen | 18 | 8 | 0 | 10 | 8 | 0 |
 | Equipment | 6 | 6 | 0 | 0 | 6 | 0 |
-| Flight | 29 | 21 | 6 | 0 | 15 | 8 |
+| Flight | 29 | 28 | 9 | 0 | 19 | 1 |
 | Keyboard | 19 | 13 | 0 | 4 | 13 | 2 |
 | Loader | 5 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 0 | 0 | 0 | 0 | 1 |
 | Market | 19 | 19 | 4 | 0 | 15 | 0 |
-| Maths (Arithmetic) | 52 | 51 | 11 | 1 | 40 | 0 |
+| Maths (Arithmetic) | 52 | 51 | 13 | 1 | 38 | 0 |
 | Maths (Geometry) | 19 | 19 | 2 | 0 | 17 | 0 |
 | Missions | 16 | 0 | 0 | 5 | 0 | 11 |
 | Moving | 8 | 8 | 1 | 0 | 7 | 0 |
@@ -37,27 +37,26 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 351 + 139 + 3
 | Stardust | 7 | 7 | 0 | 0 | 7 | 0 |
 | Start and end | 8 | 7 | 0 | 0 | 7 | 1 |
 | Status | 7 | 7 | 1 | 0 | 6 | 0 |
-| Tactics | 8 | 2 | 2 | 1 | 0 | 5 |
+| Tactics | 8 | 3 | 3 | 1 | 0 | 4 |
 | Text | 77 | 34 | 0 | 41 | 34 | 2 |
 | Tube | 1 | 0 | 0 | 1 | 0 | 0 |
-| Universe | 34 | 30 | 3 | 2 | 27 | 2 |
+| Universe | 34 | 31 | 4 | 2 | 27 | 1 |
 | Utility routines | 18 | 1 | 0 | 17 | 1 | 0 |
 | Workspaces | 7 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **351** | **40** | **139** | **311** | **38** |
+| **Total** | **528** | **366** | **69** | **139** | **297** | **23** |
 
 Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
 ## Rutinas sin portar, por area
 
-- **Drawing lines** (6): `BOMBOFF`, `BOMBEFF2`, `BOMBON`, `BOMBPOS`, `BOMBTBX`, `BOMBTBY`
-- **Flight** (8): `DOENTRY` (parcial), `ESCAPE`, `DOCKIT`, `DCS1`, `SESCP`, `dockEd`, `MJP`, `WARP`
+- **Flight** (1): `DOENTRY` (parcial)
 - **Keyboard** (2): `TGINT`, `DKS3`
 - **Main loop** (1): `Main` (parcial)
 - **Missions** (11): `BRIEF2`, `BRP`, `BRIEF3`, `DEBRIEF2`, `DEBRIEF`, `TBRIEF`, `BRIEF`, `BRIS`, `PAUSE`, `PAS1`, `THERE`
 - **Start and end** (1): `DEATH` (parcial)
-- **Tactics** (5): `TACTICS`, `FRS1`, `FRMIS`, `FR1`, `SFRMIS`
+- **Tactics** (4): `TACTICS`, `FRMIS`, `FR1`, `SFRMIS`
 - **Text** (2): `MT27`, `MT28`
-- **Universe** (2): `GTHG`, `KS2`
+- **Universe** (1): `KS2`
 
 ## Estados
 
@@ -115,36 +114,36 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| BLINE | Draw a circle segment and add it to the ball line heap | sin-verificar | `bline` |  |
+| BLINE | Draw a circle segment and add it to the ball line heap | verificada | `bline` | make test_planet (secuencias de PLANET contra el 6502) |
 | LL164 | Make the hyperspace sound and draw the hyperspace tunnel | sin-verificar | `arrive` | sonido (SOBLIP) y tunel al saltar; el salto en si es propio |
 | LAUN | Make the launch sound and draw the launch tunnel | sin-verificar | `flight_run` | sonido (SOHISS) y tunel al despegar |
-| HFS2 | Draw the launch or hyperspace tunnel | sin-verificar | `tunnel_draw` | STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia |
+| HFS2 | Draw the launch or hyperspace tunnel | verificada | `tunnel_draw` | HFS1/HFL1 contra el 6502 (make test_planet); STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia |
 | TT14 | Draw a circle with crosshairs on a chart | sin-verificar | `tt14` |  |
-| TT128 | Draw a circle on a chart | sin-verificar | `tt14` |  |
-| CIRCLE | Draw a circle for the planet | sin-verificar | `circle_draw` |  |
-| CIRCLE2 | Draw a circle (for the planet or chart) | sin-verificar | `circle2_draw` |  |
-| CHKON | Check whether any part of a circle appears on the extended screen | sin-verificar | `sun_chkon` |  |
+| TT128 | Draw a circle on a chart | verificada | `tt14` | make test_planet (circulo de las cartas con CIRCLE2) |
+| CIRCLE | Draw a circle for the planet | verificada | `circle_draw` | make test_planet (secuencias de PLANET contra el 6502) |
+| CIRCLE2 | Draw a circle (for the planet or chart) | verificada | `circle2_draw` | make test_planet (secuencias de PLANET contra el 6502) |
+| CHKON | Check whether any part of a circle appears on the extended screen | verificada | `sun_chkon` | make test_planet (secuencias de PLANET contra el 6502) |
 
-## Drawing lines (17 portadas de 27, 4 no necesarias, 6 sin portar)
+## Drawing lines (23 portadas de 27, 4 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| BOMBOFF | Draw the zig-zag lightning bolt for the energy bomb |  |  |  |
-| BOMBEFF2 | Erase the energy bomb zig-zag lightning bolt, make the sound of |  |  |  |
-| BOMBON | Randomise and draw the energy bomb's zig-zag lightning bolt lines |  |  |  |
-| BOMBPOS | A set of x-coordinates that are used as the basis for the energy |  |  |  |
-| BOMBTBX | This is where we store the x-coordinates for the energy bomb's |  |  |  |
-| BOMBTBY | This is where we store the y-coordinates for the energy bomb's |  |  |  |
+| BOMBOFF | Draw the zig-zag lightning bolt for the energy bomb | verificada | `bomb_off` | make test_equip (lineas del rayo) |
+| BOMBEFF2 | Erase the energy bomb zig-zag lightning bolt, make the sound of | sin-verificar | `bomb_eff2`, `bomb_eff`, `bomb_frame` | cuatro BOMBEFF por fotograma y el tramo MA18 de la parte 16; tecla con la comprobacion de la version publicada (IB disk) |
+| BOMBON | Randomise and draw the energy bomb's zig-zag lightning bolt lines | verificada | `bomb_on` | make test_equip |
+| BOMBPOS | A set of x-coordinates that are used as the basis for the energy | verificada | `bombpos` | tabla |
+| BOMBTBX | This is where we store the x-coordinates for the energy bomb's | verificada | `bombtbx` |  |
+| BOMBTBY | This is where we store the y-coordinates for the energy bomb's | verificada | `bombtby` |  |
 | NLI4 | Draw a line of dashes underneath a title on the text screen | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
 | NLIN3 | Print a title and draw a horizontal line at row 19 to box it in | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
 | NLIN4 | Draw a horizontal line at pixel row 19 to box in a title | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
 | NLIN | Draw a horizontal line at pixel row 23 to box in a title | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
 | NLIN2 | Draw a screen-wide horizontal line at the pixel row in A | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
-| HLOIN2 | Remove a line from the sun line heap and draw it on-screen | sin-verificar | `hloin2` |  |
+| HLOIN2 | Remove a line from the sun line heap and draw it on-screen | verificada | `hloin2` | make test_planet (secuencias de PLANET contra el 6502) |
 | LASLI | Draw the laser lines for when we fire our lasers | verificada | `lasli`, `lasli2` | vertice, calor, DENGY y las cuatro lineas (LL30); LASLI2 borra en XOR |
 | DVLOIN | Draw a vertical line from (A, GCYT) to (A, GCYB) | propia | `dvloin` | linea vertical de las cartas (chart.c) |
 | TT15 | Draw a set of crosshairs | sin-verificar | `tt15` |  |
-| EDGES | Draw a horizontal line given a centre and a half-width | sin-verificar | `edges` |  |
+| EDGES | Draw a horizontal line given a centre and a half-width | verificada | `edges` | make test_planet (secuencias de PLANET contra el 6502) |
 | LL118 | Move a point along a line until it is on-screen | verificada | `ship_clip` | dentro de ship3d.c (verificada con el 6502) |
 | LL145 | Clip line: Work out which end-points are on-screen, if any | verificada | `ship_clip` | recorte de linea (verificada con el 6502) |
 | LSPUT | Draw a ship line using flicker-free animation | verificada | `ship_lsput` | linea de nave en el monton con animacion sin parpadeo (dentro de LL9, verificada) |
@@ -152,8 +151,8 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | beamcol | An unused table of laser colours | no-necesaria |  | tabla sin uso en el original |
 | TWFL | Ready-made pixel bytes for the left end of a horizontal line | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | TWFR | Ready-made character rows for the right end of a horizontal line | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
-| LOIN | Draw a line: Calculate the line gradient in the form of deltas | propia | `gfx_line` | linea en XOR; el original usa pasos 6502 y mascaras de HGR |
-| HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) | sin-verificar | `gfx_hloin` | mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II |
+| LOIN | Draw a line: Calculate the line gradient in the form of deltas | propia | `gfx_line`, `loin` | linea en XOR; en sun.c, loin() reproduce los efectos en memoria del original (SWAP, orden de los extremos, P, Q, S), verificados con make test_planet |
+| HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) | propia | `gfx_hloin`, `hloin` | pares de puntos de X1 a X2-1; hloin() de sun.c redondea X1/X2 a pares y deja X2 como el original (verificado con make test_planet) |
 | MASKT | High-resolution pixel bytes for drawing continuous lines of solid | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | VLOIN | Draw a vertical line from (X1, Y1) to (X1, Y2) | sin-verificar | `gfx_vloin` | 2 puntos de ancho, extremos incluidos |
 
@@ -172,12 +171,12 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| PL2 | Remove the planet or sun from the screen | sin-verificar | `planet` |  |
-| PLANET | Draw the planet or sun | sin-verificar | `planet` | planeta (circulo con CIRCLE) y sol (SUN); PL9, PL2 y WP1 van dentro |
-| PL9 | Draw the planet as a plain circle | sin-verificar | `planet` |  |
-| WPLS2 | Remove the planet from the screen | sin-verificar | `circle_wpls2` |  |
-| WP1 | Reset the ball line heap | sin-verificar | `circle_wpls2` | reinicio del monton de la bola; LSY2[0] = $FF como centinela (el original no lo inicializa a la vista) |
-| PL21 | Return from a planet/sun-drawing routine with a failure flag | sin-verificar | `planet` | SEC; RTS: en C el retorno de PROJ ya lo cubre |
+| PL2 | Remove the planet or sun from the screen | verificada | `planet` | make test_planet |
+| PLANET | Draw the planet or sun | verificada | `planet` | make test_planet (con PL9, PL2, WP1) |
+| PL9 | Draw the planet as a plain circle | verificada | `planet` | make test_planet |
+| WPLS2 | Remove the planet from the screen | verificada | `circle_wpls2` | make test_planet; depende de que LOIN deje SWAP como el original (loin() de sun.c) |
+| WP1 | Reset the ball line heap | verificada | `circle_wpls2` | make test_planet; RES2 pone LSX2 y LSY2 a $FF |
+| PL21 | Return from a planet/sun-drawing routine with a failure flag | verificada | `planet` | make test_planet (SEC; RTS) |
 | PLS6 | Calculate (X K) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `sm_pls6` |  |
 
 ## Drawing ships (4 portadas de 5, 1 no necesarias)
@@ -194,9 +193,9 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| FLFLLS | Reset the sun line heap | sin-verificar | `sun_flflls` |  |
-| SUN | Draw the sun: Set up all the variables needed to draw the sun | sin-verificar | `sun_draw` |  |
-| WPLS | Remove the sun from the screen | sin-verificar | `sun_wpls` |  |
+| FLFLLS | Reset the sun line heap | verificada | `sun_flflls` | make test_planet (secuencias de PLANET contra el 6502) |
+| SUN | Draw the sun: Set up all the variables needed to draw the sun | verificada | `sun_draw` | make test_planet (secuencias de PLANET contra el 6502) |
+| WPLS | Remove the sun from the screen | verificada | `sun_wpls` | make test_planet (secuencias de PLANET contra el 6502) |
 
 ## Drawing the screen (8 portadas de 18, 10 no necesarias)
 
@@ -232,30 +231,30 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | refund | Install a new laser, processing a refund if applicable | sin-verificar | `laser_refund` |  |
 | PRXS | Equipment prices | sin-verificar | `equip_price` |  |
 
-## Flight (21 portadas de 29, 8 sin portar)
+## Flight (28 portadas de 29, 1 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| DOENTRY | Dock at the space station and work out any mission progression | parcial | `flight_run`, `combat_collide` | se atraca entrando por la ranura (ISDK, verificado) o con C (provisional); energia y escudos se reponen al despegar; falta el progreso de misiones |
-| ESCAPE | Launch our escape pod |  |  |  |
-| DOCKIT | Apply docking manoeuvres to the ship in INWK |  |  |  |
-| DCS1 | Calculate the vector from the ideal docking position to the ship |  |  |  |
-| SESCP | Spawn an escape pod from the current (parent) ship |  |  |  |
-| dockEd | Print a message to say there is no hyperspacing allowed inside the |  |  |  |
+| DOENTRY | Dock at the space station and work out any mission progression | parcial | `flight_run`, `combat_collide` | se atraca entrando por la ranura (ISDK), con el ordenador de atraque (C) o, sin el, con C (provisional); energia y escudos se reponen al despegar; falta el progreso de las misiones (paso de misiones) |
+| ESCAPE | Launch our escape pod | sin-verificar | `flight_escape`, `ships_escape` | la Cobra se aleja 97 fotogramas (MVEIT + LL9), carga, FIST y capsula a cero, 70 de combustible, atraque |
+| DOCKIT | Apply docking manoeuvres to the ship in INWK | verificada | `dockit` | make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c) |
+| DCS1 | Calculate the vector from the ideal docking position to the ship | verificada | `dcs1` | dentro de DOCKIT |
+| SESCP | Spawn an escape pod from the current (parent) ship | sin-verificar | `sescp` | = SFS1 (verificada) con IA $FE y la capsula; la usara TACTICS |
+| dockEd | Print a message to say there is no hyperspacing allowed inside the | propia | `ui_nav` | mensaje DOCKED al pulsar H o G atracado |
 | hyp | Start the hyperspace process | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
 | wW | Start a hyperspace countdown | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
 | TTX110 | Set the current system to the nearest system and return to hyp | propia | `find_system` | sistema mas cercano a la mira |
 | Ghy | Perform a galactic hyperspace jump | propia | `jump_galactic` | salto galactico |
 | ee3 | Print the hyperspace countdown in the top-left of the screen | propia | `say_hyper` | cuenta atras del hiperespacio en pantalla |
 | TT147 | Print an error when a system is out of hyperspace range | propia | `start_hyper` | mensaje de fuera de alcance |
-| MJP | Process a mis-jump into witchspace |  |  |  |
+| MJP | Process a mis-jump into witchspace | sin-verificar | `misjump` | salto fallido: tunel, MJ = $FF, tres Thargoides (GTHG), polvo de 2, QQ1 EOR 31; la distancia en el hiperespacio se mide desde (QQ0, QQ1) |
 | TT18 | Try to initiate a jump into hyperspace | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
 | TT110 | Launch from a station or show the front space view | propia | `space_launch`, `flight_run` | despegue y vista frontal |
 | SHD | Charge a shield and drain some energy from the energy banks | verificada | `shd` | cae en DENGY: cargar un escudo gasta 1 de energia |
 | DENGY | Drain some energy from the energy banks | verificada | `dengy` |  |
 | OOPS | Take some damage | verificada | `oops` | escudo segun el signo de z de la nave (K%); el SBC usa el acarreo de quien llama |
 | me2 | Remove an in-flight message from the space view | propia | `dly_tick`, `flight_mess_off` | el mensaje se borra a los 20 fotogramas (DLY) |
-| WARP | Perform an in-system jump |  |  |  |
+| WARP | Perform an in-system jump | verificada | `warp` | make test_equip (el repintado de LOOK1 lo hace flight.c) |
 | me1 | Erase an old in-flight message and display a new one | propia | `say` | mensaje en vuelo: borra el anterior y muestra el nuevo |
 | MESS | Display an in-flight message | propia | `mess`, `say` | mensaje en vuelo en la fila 24 (no en la vista) durante DLY = 20 fotogramas; los avisos propios del port usan say |
 | mes9 | Print a text token, possibly followed by " DESTROYED" | propia | `flight_mess`, `mess_de` | " DESTROYED" con la bandera de (vale para un mensaje) |
@@ -354,7 +353,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | MLU2 | Calculate (A P) = |A| * Q | transcripcion | `em_mlu2` |  |
 | MULTU | Calculate (A P) = P * Q | transcripcion | `em_multu` |  |
 | MU11 | Calculate (A P) = P * X | transcripcion | `em_mu11` |  |
-| FMLTU2 | Calculate A = K * sin(A) | transcripcion | `em_fmltu2` |  |
+| FMLTU2 | Calculate A = K * sin(A) | verificada | `em_fmltu2` | a traves de CIRCLE2 en make test_planet |
 | FMLTU | Calculate A = A * Q / 256 | verificada | `em_fmltu` |  |
 | MLTU2 | Calculate (A P+1 P) = (A ~P) * Q | transcripcion | `em_mltu2` |  |
 | MUT3 | An unused routine that does the same as MUT2 | no-necesaria |  | sin uso en el original |
@@ -378,7 +377,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | TIS2 | Calculate A = A / Q | transcripcion | `em_tis2` |  |
 | TIS3 | Calculate -(nosev_1 * roofv_1 + nosev_2 * roofv_2) / nosev_3 | transcripcion | `sm_tis3` |  |
 | DVIDT | Calculate (P+1 A) = (A P) / Q | transcripcion | `em_dvidt` |  |
-| LL5 | Calculate Q = SQRT(R Q) | transcripcion | `em_ll5` |  |
+| LL5 | Calculate Q = SQRT(R Q) | verificada | `em_ll5` | transcripcion literal con el acarreo de salida (lo usa SUN); a traves de SUN en make test_planet |
 | LL28 | Calculate R = 256 * A / Q | verificada | `em_ll28` |  |
 | LL38 | Calculate (S A) = (S R) + (A Q) | transcripcion | `em_ll38` |  |
 | LL61 | Calculate (U R) = 256 * A / Q | verificada | `em_ll61` |  |
@@ -566,13 +565,13 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | BAY | Go to the docking bay (i.e. show the Status Mode screen) | propia | `scr_status` | pantalla de estado al atracar |
 | EXNO2 | Process us making a kill | verificada | `exno2` | TALLY con KWL%/KWH% y mensaje 101; el sonido es snd_exno2 |
 
-## Tactics (2 portadas de 8, 1 no necesarias, 5 sin portar)
+## Tactics (3 portadas de 8, 1 no necesarias, 4 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | TACTICS | Apply tactics: Process missiles, both enemy missiles and our own |  |  |  |
 | HITCH | Work out if the ship in INWK is in our crosshairs | verificada | `hitch` | incluido el borde del area de impacto |
-| FRS1 | Launch a ship straight ahead of us, below the laser sights |  |  |  |
+| FRS1 | Launch a ship straight ahead of us, below the laser sights | verificada | `frs1` | make test_equip |
 | FRMIS | Fire a missile from our ship |  |  |  |
 | ANGRY | Make a ship or station hostile, and if this is a ship then enable | verificada | `angry` | escribe en el bloque K% (INF); la estacion es la ranura 1 |
 | FR1 | Display the "missile jammed" message |  |  |  |
@@ -667,7 +666,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 |---|---|---|---|---|
 | newosrdch | The custom OSRDCH routine for reading characters | no-necesaria |  | rutina OSRDCH personalizada del BBC con procesador Tube; no aplica |
 
-## Universe (30 portadas de 34, 2 no necesarias, 2 sin portar)
+## Universe (31 portadas de 34, 2 no necesarias, 1 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -688,7 +687,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | jmp | Set the current system to the selected system | propia | `game_enter_system`, `jump_do` | entrada en el sistema y salto al mas cercano |
 | hyp1 | Process a jump to the system closest to (QQ9, QQ10) | propia | `game_enter_system`, `jump_do` | entrada en el sistema y salto al mas cercano |
 | GVL | Calculate the availability of market items | propia | `uni_gen_market` | disponibilidad del mercado |
-| GTHG | Spawn a Thargoid ship and a Thargon companion |  |  |  |
+| GTHG | Spawn a Thargoid ship and a Thargon companion | verificada | `gthg` | make test_equip |
 | cpl | Print the selected system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
 | ypl | Print the current system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
 | tal | Print the current galaxy number | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |

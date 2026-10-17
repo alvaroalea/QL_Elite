@@ -22,8 +22,43 @@ static u8 yy[2];                         /* YY */
 static u8 chk_p1, chk_p2;                /* P+1, P+2 (los pone CHKON) */
 static u8 k5[4], k6[4];                  /* K5, K6 */
 
-static void hloin(void) { gfx_hline_xor(X1, X2, Y1, sun_col); }
-static void loin(void)  { gfx_line(X1, Y1, X2, Y2, sun_col, 1); }
+void (*sun_loin_hook)(void) = 0;                /* pruebas: cada LOIN, con X1..Y2 ya ordenados y SWAP (zswap) */
+void (*sun_hloin_hook)(u8 l, u8 r, u8 y) = 0;   /* pruebas: cada HLOIN que dibuja (izquierda, derecha, fila) */
+
+/* HLOIN del original con sus efectos en memoria: X1 y X2 se redondean a pares; si X2 < X1, X2 = X1 (STX X2); si coinciden no
+   dibuja (HL6). Dibuja los pares de puntos de l a r - 1 (gfx_hloin) */
+static void hloin(void)
+{
+    u8 l = (u8)(X1 & 0xFE), r = (u8)(X2 & 0xFE), t;
+    X1 = l; X2 = r;
+    if (l == r) return;
+    if (r < l) { X2 = l; t = l; l = r; r = t; }
+    if (sun_hloin_hook) sun_hloin_hook(l, r, Y1);
+    gfx_hloin(l, r, Y1, sun_col);
+}
+
+/* LOIN del original con sus efectos en memoria (partes 1 y comienzo de STPX/STPY): S = 128, P = |dx|, Q = |dy|, SWAP = 0;
+   si la linea es mas horizontal (Q < P) se ordena de izquierda a derecha y si no, de abajo arriba (Y1 >= Y2); cuando
+   intercambia los extremos en X1..Y2 pone SWAP = $FF. WPLS2 depende de ello: con SWAP = 0 copia (X2, Y2) en (X1, Y1) y con
+   SWAP != 0 da por hecho que LOIN ya los dejo ahi. Sin esto, un SWAP que quedara de LL145 (al recortar en el borde)
+   hacia que WPLS2 trazara todas las lineas desde el mismo punto (fallo visto en el QL, 2026-10-17) */
+static void loin(void)
+{
+    u8 dx, dy, t, sw;
+    zS = 128;
+    zswap = 0;
+    dx = (u8)(X2 >= X1 ? X2 - X1 : X1 - X2);
+    dy = (u8)(Y2 >= Y1 ? Y2 - Y1 : Y1 - Y2);
+    zP = dx; zQ = dy;
+    sw = (u8)((dy < dx) ? (X1 >= X2) : (Y1 < Y2));      /* STPX: CPX X2; BCC LI3  /  STPY: CPY Y2; BCS LI15 */
+    if (sw) {
+        zswap = 0xFF;
+        t = X1; X1 = X2; X2 = t;
+        t = Y1; Y1 = Y2; Y2 = t;
+    }
+    if (sun_loin_hook) sun_loin_hook();
+    gfx_line(X1, Y1, X2, Y2, sun_col, 1);
+}
 
 /* FLFLLS */
 void sun_flflls(void)
@@ -152,6 +187,7 @@ plfl:
     Y1 = y;
     em_ll5();                                      /* JSR LL5: Q = SQRT(R Q) */
     y = Y1;
+    em_rand_c = em_carry;                          /* DORND recibe el acarreo con que vuelve LL5 */
     a = (u8)(em_dornd() & cnt);
     s = (unsigned)a + zQ;                          /* CLC; ADC Q */
     a = (u8)s;
@@ -335,6 +371,10 @@ void tunnel_draw(u8 stp)
     zk4[0] = 68;  zk4[1] = 0;
     for (xx4 = 0; xx4 != 8; xx4++) hfl1(xx4);
 }
+
+/* Pruebas: SUNX */
+void sun_get_sunx(u8 *v) { v[0] = sunx[0]; v[1] = sunx[1]; }
+void sun_set_sunx(u8 lo, u8 hi) { sunx[0] = lo; sunx[1] = hi; }
 
 /* Tras borrar el area de vista: ni el sol ni el circulo del planeta figuran como dibujados */
 void sun_forget(void)
