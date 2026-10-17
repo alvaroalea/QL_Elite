@@ -7,6 +7,7 @@ static u8 slowpos = 0;
 static int queue[8];
 static int qn;
 int ctl_joystick = 0;
+u8 jstgy = 0xFF, jste = 0;
 
 /* ASCII UK por posicion (fila*8+bit). 0 = sin caracter. Provisional: comprobar en el QL real. */
 static const char plain[64] = {
@@ -158,6 +159,10 @@ void ctl_read(struct controls *c)
     c->undock     = (u8)key_down(K_P);
     if (ctl_joystick) {
         j = joy_read(ctl_joystick);
+        if (jste & 0x80) j ^= JOY_UP | JOY_DOWN | JOY_LEFT | JOY_RIGHT;     /* EOR JSTE: los dos ejes al reves */
+        if (!(jstgy & 0x80)) j ^= JOY_UP | JOY_DOWN;                        /* EOR JSTGY: eje Y al reves */
+        if ((j & (JOY_UP | JOY_DOWN)) == (JOY_UP | JOY_DOWN)) j &= ~(JOY_UP | JOY_DOWN);
+        if ((j & (JOY_LEFT | JOY_RIGHT)) == (JOY_LEFT | JOY_RIGHT)) j &= ~(JOY_LEFT | JOY_RIGHT);
         if (j & JOY_LEFT)  c->roll_left = 1;
         if (j & JOY_RIGHT) c->roll_right = 1;
         if (j & JOY_UP)    c->pitch_down = 1;       /* palanca hacia delante = picar */

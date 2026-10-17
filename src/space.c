@@ -176,16 +176,21 @@ void space_scanner_reset(void)
 /* Planeta (ranura 0) y estacion (ranura 1) respecto a la nave al despegar (ships.c: SOLAR y NWSPS); reinicia los giros y la velocidad */
 void space_launch(void)
 {
-    ships_launch();
-    space_reset();
+    space_reset();                               /* RES2 */
+    ships_launch();                              /* SOS1 y NWSPS */
+    zDELTA = 12;                                 /* velocidad de lanzamiento */
+    fist = (u8)(fist | space_bad());             /* JSR BAD; ORA FIST */
 }
 
 /* Llegada a un sistema tras el hiperespacio: planeta lejos delante y el sol, sin estacion cerca */
 void space_arrive(void)
 {
-    ships_arrive();
-    space_reset();
+    space_reset();                               /* RES2 */
+    ships_arrive();                              /* SOLAR */
 }
+
+/* BAD: (esclavos + narcoticos) * 2 + armas (8 bits) */
+u8 space_bad(void) { return (u8)((u8)((u8)(qq20[3] + qq20[6]) << 1) + qq20[10] + (u8)((u8)(qq20[3] + qq20[6]) >> 7)); }
 
 /* Borra del radar todo lo que figura como dibujado (antes de cambiar de sistema) */
 void space_scanner_clear(void)
@@ -212,6 +217,7 @@ u8 space_step(void)
     if (e & SHIPS_EV_DOCK) return (u8)(ev | SPACE_EV_DOCK);      /* el original salta a DOENTRY sin acabar el fotograma */
     if (e & SHIPS_EV_DEATH) return (u8)(ev | SPACE_EV_DEATH);
     energy_tick(mcnt);                           /* MA77: escudos y energia cada 8 fotogramas */
+    if (ships_part14(mcnt)) ev |= SPACE_EV_STATION;   /* MA22: la estacion aparece (SPBLB) */
     if (damage_checks(mcnt)) ev |= SPACE_EV_DEATH;   /* MA22/MA93: ENERGY LOW, altitud, cabina y combustible */
     return ev;
 }

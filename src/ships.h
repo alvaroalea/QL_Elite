@@ -18,7 +18,8 @@ void ship_kill(int slot);                        /* KILLSHP: quita la nave y des
 void ks2(int slot);                              /* KS2: reajusta los blancos de los misiles tras quitar la ranura */
 void ships_clear(void);                          /* ninguna nave */
 void ships_launch(void);                         /* planeta (ranura 0) y estacion (ranura 1) al despegar (SOLAR y NWSPS) */
-void ships_arrive(void);                         /* planeta y sol (SOLAR) tras el hiperespacio */
+void ships_arrive(void);
+int  ships_part14(u8 mc);                       /* parte 14: aparece la estacion cerca del planeta (1 si aparece) */                         /* planeta y sol (SOLAR) tras el hiperespacio */
 int  ships_spawn(u8 type);                       /* contacto de prueba delante de la nave; devuelve la ranura o -1 */
 int  ships_explode_nearest(void);                /* prueba: hace explotar la nave mas cercana (no planeta ni estacion); devuelve la ranura o -1 */
 u8   ships_step(u8 view);                        /* un fotograma: mueve, dibuja, borra y quita naves; devuelve SHIPS_EV_* */

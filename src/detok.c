@@ -131,7 +131,7 @@ void dt_dasc(u8 a)
 
 static void tt26(u8 a) { dt_dasc(a); }
 
-static void ex(u8 a)                             /* ex: ficha A de QQ18 */
+void dt_ex(u8 a)                                 /* ex: ficha A de QQ18 */
 {
     unsigned i = 0;
     u8 x = a;
@@ -158,7 +158,7 @@ void dt_tt27(u8 a)
     u8 x;
     if (a == 0) return;                          /* csh: dinero (no se usa en las fichas de las misiones) */
     if (a & 0x80) {                              /* TT43 */
-        if (a >= 160) { ex((u8)(a - 160)); return; }    /* TT47 */
+        if (a >= 160) { dt_ex((u8)(a - 160)); return; }    /* TT47 */
         x = (u8)((a & 127) << 1);
         dt_tt27(tok_tkn2[26 + x]);
         if (tok_tkn2[26 + x + 1] == '?') return;
@@ -175,8 +175,8 @@ void dt_tt27(u8 a)
     case 8: qq17 = 0; return;
     case 9: dt_xc = 21; dt_tt27(':'); return;    /* crlf + TT73 */
     }
-    if (a >= 96) { ex(a); return; }
-    if (a >= 14 && a < 32) { ex((u8)(a + 114)); return; }   /* qw */
+    if (a >= 96) { dt_ex(a); return; }
+    if (a >= 14 && a < 32) { dt_ex((u8)(a + 114)); return; }   /* qw */
     x = qq17;
     if (x == 0) { tt26(a); return; }             /* TT74 */
     if (x & 0x80) {                              /* TT41 */

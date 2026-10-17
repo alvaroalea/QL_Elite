@@ -11,6 +11,7 @@
 #include "emath.h"
 #include "missions.h"
 #include "detok.h"
+#include "config.h"
 
 #define ROW_MSG 28
 
@@ -667,7 +668,7 @@ int scr_title(void)
     txt_print_at(4, 22, "2  LOAD COMMANDER");
     txt_print_at(4, 23, "Q  QUIT");
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 27, "BY BELL AND BRABEN, 1984-85");
+    if (patg) txt_print_at(0, 27, "BY D.BRABEN & I.BELL");      /* PATG: autores (ficha 13 del original) */
     txt_print_at(0, 28, "QL PORT FROM THE APPLE II CODE");
     shipview_draw(SHIPT_COBRA_MK_3, 0, 0, 5, ay, 10, title_heap, state_slot(0), 1);
     for (;;) {

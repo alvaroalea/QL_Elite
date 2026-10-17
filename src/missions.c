@@ -17,6 +17,7 @@
 #include "input.h"
 #include "sound.h"
 #include "menu.h"
+#include "config.h"
 
 #define CONHIEGHT 80                             /* conhieght: hueco que se deja al Constrictor que gira */
 
@@ -26,6 +27,7 @@ static u8 mis_ink = C_WHITE;
 
 static void letter(u8 ch, u8 xc, u8 yc)
 {
+    if ((uptog & 0x80) && ch >= '[') ch = (u8)(ch - 0x20);      /* RR5: UPTOG, solo mayusculas (pantallas de texto) */
     txt_color(mis_ink, C_BLACK);
     txt_at(xc, yc);
     txt_putc(ch);

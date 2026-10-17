@@ -124,7 +124,6 @@ eq cash_spend sin-verificar dentro de equip_buy (cobra antes de reembolsar el la
 prx equip_price sin-verificar
 qv scr_equip propia pide la vista (0 a 3) al comprar un laser
 # --- teclado
-DK4 in_poll propia teclas secundarias por caracteres (key_getchar)
 TT17 in_held propia cursores o joystick
 TT217 in_wait propia
 YESNO scr_disk propia confirmaciones Y/N dentro del menu de disco
@@ -150,7 +149,6 @@ MV40 mv40 sin-verificar gira la posicion y sigue por MV45 (orientacion, contador
 MVT1 mvt1 sin-verificar
 PIXEL gfx_dust sin-verificar ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II
 HLOIN gfx_hloin,hloin propia pares de puntos de X1 a X2-1; hloin() de sun.c redondea X1/X2 a pares y deja X2 como el original (verificado con make test_planet)
-SOLAR space_launch propia solo las formulas de la posicion del planeta; la estacion y su salida son valores propios
 ABORT abort_missile verificada dentro de las teclas de misil (make test_tactics)
 ABORT2 abort2 verificada MSAR = 0 (MSBAR vuelve con Y = 0); make test_tactics
 ECMOF ecm_off verificada dentro de MA16..MA66 (make test_tactics)
@@ -210,10 +208,6 @@ PL21 planet verificada make test_planet (SEC; RTS)
 WP1 circle_wpls2 verificada make test_planet; RES2 pone LSX2 y LSY2 a $FF
 ZINF ship_zinf sin-verificar
 NWSHP ship_new sin-verificar sin heap compartido (SLSP): un monton de 256 bytes por ranura; NEWB inicial de E%
-NWSPS make_station sin-verificar la posicion de la estacion es propia
-SOLAR ships_launch sin-verificar planeta con las formulas de SOLAR; al despegar el sol se sustituye por la estacion; ships_arrive pone planeta y sol
-SOS1 make_planet sin-verificar
-KILLSHP ship_kill sin-verificar sin puntos de muerte ni mensajes (paso 3)
 FAROF farof sin-verificar
 GINF - no-necesaria el puntero INF no existe en C: se indexa por ranura
 SFS2 sfs2 verificada dentro de SFS1 (make test_laser, nave madre = estacion)
@@ -284,7 +278,6 @@ BR1 scr_title,scr_disk propia el titulo ofrece cargar un comandante por el menu 
 cmn scr_status propia nombre del comandante en la pantalla de estado
 fwl scr_status,ui_num propia combustible y dinero
 csh scr_status,ui_num propia combustible y dinero
-BAD legal_name propia estado legal: calculo y nombre
 BAY scr_status propia pantalla de estado al atracar
 NLI4 ui_title propia titulo con la linea que lo subraya (menu.c)
 NLIN3 ui_title propia titulo con la linea que lo subraya (menu.c)
@@ -322,7 +315,6 @@ TTX110 find_system propia sistema mas cercano a la mira
 Ghy jump_galactic propia salto galactico
 ee3 say_hyper propia cuenta atras del hiperespacio en pantalla
 TT147 start_hyper propia mensaje de fuera de alcance
-TT110 space_launch,flight_run propia despegue y vista frontal
 me1 say propia mensaje en vuelo: borra el anterior y muestra el nuevo
 me2 dly_tick,flight_mess_off propia el mensaje se borra a los 20 fotogramas (DLY)
 MESS mess,say propia mensaje en vuelo en la fila 24 (no en la vista) durante DLY = 20 fotogramas; los avisos propios del port usan say
@@ -343,7 +335,6 @@ GC2 tt22,tt23 propia la multiplicacion por 4 va en linea en las cartas
 LL62 ship_ll9 verificada etiqueta ll62 de LL9 (verificada)
 LL120 ll120_123 verificada recorte de linea (ship3d.c, verificadas)
 LL123 ll120_123 verificada recorte de linea (ship3d.c, verificadas)
-FAROF2 farof propia FAROF con A = 224
 yetanotherrts - no-necesaria contiene solo un RTS
 TRIBDIR - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
 TRIBDIRH - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
@@ -450,7 +441,6 @@ TT146 chart_info propia distancia en anos luz
 TT70 uni_describe propia MAINLY en la descripcion del sistema
 NwS1 make_station propia los tres NwS1 que invierten el morro de la estacion
 KS1 ship_kill propia quita la nave y desplaza las demas
-KS4 ships_step propia la estacion se quita y vuelve el sol (regla propia)
 spasto ship_bp_for propia plano de la estacion (Coriolis o Dodo)
 KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
 
@@ -470,7 +460,6 @@ OUCH ouch verificada QQ20+X con X = 0..21 (mercancias, ECM, BST, BOMB, ENGY, DKC
 ou2 ouch verificada
 ou3 ouch verificada
 mes9 flight_mess,mess_de propia " DESTROYED" con la bandera de (vale para un mensaje)
-DEATH flight_death,ships_death_debris parcial D1 verificado (Ze, fq1, restos); explosion, GAME OVER y 65 vueltas del bucle de vuelo propios en la forma
 DEATH2 game_run propia vuelve a la pantalla de titulo (nuevo comandante o cargar)
 DET1 - no-necesaria en el Apple II es un RTS
 Ze ze verificada dentro de D1
@@ -555,4 +544,17 @@ PAS1 pas1,mis_tt66 verificada TT66 con la vista 1, make test_missions
 THERE there verificada sistema del Constrictor, make test_missions
 TBRIEF - no-necesaria comentada en el original (Trumbles, que esta version no tiene)
 DOENTRY missions_doentry,missions_choose,flight_run,combat_collide verificada la decision de las sesiones informativas (EN1..EN5) verificada con make test_missions; se atraca por la ranura (ISDK), con el ordenador de atraque o, sin el, con C (provisional); energia y escudos se reponen al despegar
-Main ships_step,flight_run,encounters_tick,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock parcial bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (make test_laser, test_damage, test_equip, test_tactics) y aparicion de naves de las partes 1 a 4 con MCNT bajando como en el original (make test_missions); falta la aparicion de la estacion (parte 14)
+# --- configuracion, estacion (parte 14, KS4, TT110, SOLAR) y DEATH (2026-10-17)
+TGINT tgint verificada teclas de configuracion DAXFYJKUT (config.c); el orden de las opciones es el de DAMP..DISK
+DKS3 dks3 transcripcion invierte la opcion con EOR #$FF, dos pitidos al encenderla, DELAY 20 (config.c; make test_missions comprueba D, X, Q y -)
+DK4 in_poll,freeze transcripcion teclas secundarias por caracteres (key_getchar); "=" pausa (FREEZE): Q/S sonido, DAXFYJKUT, ESC = DEATH2, "-" sigue
+SOLAR ships_arrive verificada FIST a la mitad (su acarreo entra en el ADC #3), Trumbles, planeta y sol; make test_missions
+NWSPS nwsps verificada estacion en la ranura 1 (STX FRIN+1); Dodo con nivel tecnologico >= 10; make test_missions
+SOS1 sos1 verificada planeta 128/130 con giros 127; make test_missions
+KILLSHP ship_kill sin-verificar TARGET LOST, Constrictor (TP, TALLY+1), JUNK, MANY y KS4 para la estacion (verificado aparte)
+KS4 ks4 verificada la estacion lejana (FAROF) deja en su ranura el sol con y_sign = 6; make test_missions
+FAROF2 ships_part14,farof transcripcion FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves
+TT110 space_launch transcripcion RES2, planeta delante (z_sign = 1) y estacion detras (z = -256) con SOS1 y NWSPS, DELTA = 12, FIST |= BAD; make test_space
+BAD space_bad,bad,legal_name verificada carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name
+DEATH flight_death,ships_death_debris sin-verificar D1 verificado (Ze, fq1, restos); SOEXPL, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces con el teclado (DOKEY) y DEATH2
+Main ships_step,flight_run,encounters_tick,ships_part14,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock verificada bucle de vuelo (partes 1-16) y bucle principal (partes 1-6): naves, laser, choques, recogida, atraque, partes 14 (estacion) y 15, bomba, ECM, misiles y aparicion de naves; verificados por partes con make test_laser, test_damage, test_equip, test_tactics y test_missions (MCNT baja como en el original)

@@ -77,6 +77,8 @@ void ks2(int n)
     }
 }
 
+static void ks4(int n);
+
 void ship_kill(int n)
 {
     u8 type = frin[n];
@@ -85,6 +87,7 @@ void ship_kill(int n)
         abort_missile(MS_GREEN);
         mess(MESS_TARGET_LOST);
     }
+    if (type == SHIPT_CORIOLIS) { ks4(n); return; }      /* KS4 */
     if (type == SHIPT_CONSTRICTOR) { tp = (u8)(tp | 0x02); tally[1]++; }   /* mision 1: Constrictor destruido */
     if (type < 128 && many[type]) many[type]--;
     if ((type == SHIPT_ROCK_HERMIT || (type >= SHIPT_ESCAPE_POD && type < SHIPT_SHUTTLE + 2)) && junk_count) junk_count--;
@@ -134,57 +137,99 @@ void ships_erase_all(void)
 
 /* ---------------------------------------------------------------- SOLAR y NWSPS */
 
-/* SOS1: el planeta (tipo 128, o 130 si el nivel tecnologico lo pide) con los giros lentos */
-static void make_planet(void)
+/* SOS1: el planeta (tipo 128, o 130 si el bit 1 del nivel tecnologico esta puesto) con los giros sin amortiguar */
+static void sos1(void)
 {
-    u8 ztop;
-    ship_zinf();
-    ztop = (u8)((((uni_galaxy[cur_sys].seed0 >> 8) & 3)) + 3);
-    inwk[8] = ztop; inwk[2] = (u8)(ztop >> 1); inwk[5] = (u8)(ztop >> 1);
     inwk[29] = 127; inwk[30] = 127;
     ship_new((u8)((qq5 & 2) | 0x80));
 }
 
-/* El sol (tipo 129): detras (z negativa), con INWK todavia con los datos del planeta como en SOLAR */
-static void make_sun(void)
+/* NWSPS: la estacion en la posicion de INWK (IA $81, alabeo $FF, morro invertido con los tres NwS1) en la ranura 1 */
+static void nwsps(void)
 {
-    const uni_system *s = &uni_galaxy[cur_sys];
-    inwk[8] = (u8)((s->goatsoupseed.b & 7) | 0x81);
-    inwk[2] = (u8)(s->goatsoupseed.d & 3); inwk[1] = inwk[2];
+    inwk[32] = 0x81;
+    inwk[30] = 0;
+    inwk[I_NEWB] = 0;
+    frin[1] = 0;                                         /* STX FRIN+1: la estacion sustituye al sol */
+    inwk[29] = 0xFF;
+    inwk[10] = (u8)(inwk[10] ^ 0x80); inwk[12] = (u8)(inwk[12] ^ 0x80); inwk[14] = (u8)(inwk[14] ^ 0x80);
+    ship_new(SHIPT_CORIOLIS);                            /* Dodo si el nivel tecnologico es 10 o mas (ship_bp_for) */
+}
+
+/* TT110: al despegar, planeta delante (z_sign = 1) y estacion justo detras (z = -256) */
+void ships_launch(void)
+{
+    ships_clear();
+    ship_zinf();                                         /* RES2 acaba en ZINF */
+    inwk[8]++;
+    sos1();
+    inwk[8] = 0x80;
+    inwk[7]++;
+    nwsps();
+}
+
+/* SOLAR: tras el hiperespacio; FIST a la mitad, Trumbles (si los hubiera), planeta delante y arriba a la derecha y sol detras */
+void ships_arrive(void)
+{
+    const uni_system *sy = &uni_galaxy[cur_sys];
+    u8 a, c, c2;
+    unsigned v;
+    ships_clear();
+    if (tribble[0]) {                                    /* LDA TRIBBLE; BEQ nobirths */
+        qq20[0] = 0; qq20[6] = 0;
+        a = (u8)(em_dornd() & 15);
+        v = (unsigned)a + tribble[0] + em_rand_c;        /* ADC TRIBBLE */
+        a = (u8)(v | 4);
+        c = (u8)(v >> 8);
+        c2 = (u8)(a >> 7);
+        tribble[0] = (u8)((a << 1) | c);                 /* ROL A */
+        c = (u8)(tribble[1] >> 7);
+        tribble[1] = (u8)((tribble[1] << 1) | c2);       /* ROL TRIBBLE+1 */
+        if (tribble[1] & 0x80) tribble[1] = (u8)((tribble[1] >> 1) | (c << 7));   /* ROR TRIBBLE+1 */
+    }
+    c = (u8)(fist & 1);
+    fist = (u8)(fist >> 1);                              /* LSR FIST */
+    ship_zinf();
+    a = (u8)((((sy->seed0 >> 8) & 3)) + 3 + c);          /* QQ15+1 AND 3; ADC #3 */
+    inwk[8] = a;
+    inwk[2] = (u8)(a >> 1); inwk[5] = (u8)(a >> 1);      /* ROR A (C = 0) */
+    sos1();
+    inwk[8] = (u8)((sy->goatsoupseed.b & 7) | 0x81);     /* QQ15+3 */
+    inwk[2] = (u8)(sy->goatsoupseed.d & 3); inwk[1] = inwk[2];   /* QQ15+5 */
     inwk[29] = 0; inwk[30] = 0;
     ship_new(129);
 }
 
-/* NWSPS: la estacion; INWK ya tiene la posicion. Los tres NwS1 invierten el morro (x, y, z) */
-static void make_station(void)
+/* KS4: la estacion se ha alejado (FAROF): en su ranura (la 1) aparece el sol, en y_sign = 6 */
+static void ks4(int n)
 {
-    inwk[32] = 0x81;
-    inwk[30] = 0;
-    inwk[36] = 0;
-    inwk[29] = 0xFF;
-    inwk[10] = (u8)(inwk[10] ^ 0x80); inwk[12] = (u8)(inwk[12] ^ 0x80); inwk[14] = (u8)(inwk[14] ^ 0x80);
-    ship_new(SHIPT_CORIOLIS);
+    erase_lines(n);
+    ship_zinf();
+    sun_flflls();
+    frin[1] = 0;
+    sspr = 0;
+    inwk[5] = 6;
+    ship_new(129);
 }
 
-void ships_launch(void)
+/* Parte 14 del bucle de vuelo (MA22..MA23S): cada 32 vueltas, fuera del hiperespacio y sin estacion: si estamos cerca del
+   planeta (signos 0) y su punto planeta + 2 * morro esta a menos de 192 en cada eje, se borra el sol y aparece la estacion.
+   Devuelve 1 si ha aparecido (SPBLB) */
+int ships_part14(u8 mc)
 {
     int i;
-    ships_clear();
-    make_planet();
-    ship_zinf();                                       /* estacion detras y algo por debajo (colocacion propia) */
-    inwk[4] = 1; inwk[5] = 0x80;
-    inwk[7] = 6; inwk[8] = 0x80;
-    make_station();
-    sspr = 1;
-    for (i = 0; i <= NTY; i++) (void)i;
-}
-
-void ships_arrive(void)
-{
-    ships_clear();
-    make_planet();
-    make_sun();
-    sspr = 0;
+    if (mj) return 0;
+    if (mc & 31) return 0;
+    if (sspr) return 0;
+    if (sm_mas2(0, 0)) return 0;
+    for (i = 0; i <= 28; i++) inwk[i] = ks[i];           /* MAL4: INWK = planeta (29 bytes) */
+    if (sm_mas1(9, 0)) return 0;                         /* x += nosev_x * 2 */
+    if (sm_mas1(11, 3)) return 0;
+    if (sm_mas1(13, 6)) return 0;
+    if (inwk[1] > 192 || inwk[4] > 192 || inwk[7] > 192) return 0;    /* FAROF2 con 192 */
+    sun_wpls();                                          /* WPLS: se borra el sol */
+    nwsps();
+    return 1;
 }
 
 /* ---------------------------------------------------------------- contactos de prueba */
@@ -586,18 +631,13 @@ u8 ships_step(u8 view)
         if (!(type & 0x80)) combat_hit();                /* HITCH y danos del laser (parte 11) */
         ship_ll9();
         sl[35] = inwk[35];
-        if (type == SHIPT_CORIOLIS && (sl[7] > 0x30 || (sl[8] & 0x7F))) {      /* lejos de la estacion (regla propia) */
-            erase_lines(n);
-            ship_kill(n);
-            sspr = 0;
-            get_slot(0);
-            make_sun();                                  /* vuelve el sol, como al alejarse en el original */
-            ev |= SHIPS_EV_STATION;
-            continue;
-        }
         if (!(type & 0x80) && combat_killed()) { ship_kill(n); continue; }       /* recogida o fin de la explosion: recompensa */
         if (!(type & 0x80) && !farof()) { /* cerca: sigue */ }
-        else if (!(type & 0x80)) { ship_kill(n); continue; }     /* MAC1: FAROF con C = 0 */
+        else if (!(type & 0x80)) {                       /* MAC1: FAROF con C = 0 (la estacion deja paso al sol: KS4) */
+            if (type == SHIPT_CORIOLIS) ev |= SHIPS_EV_STATION;
+            ship_kill(n);
+            continue;
+        }
         sl[31] = inwk[31];                               /* MA27 */
         n++;
     }

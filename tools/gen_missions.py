@@ -237,5 +237,68 @@ for _ in range(n * 4):
                hx(cpu.mem[S['RAND']:S['RAND'] + 4]), cpu.mem[S['EV']], cpu.mem[S['JUNK']], cpu.mem[S['MANY'] + S['COPS']],
                cpu.mem[S['MANY'] + S['CON']], cpu.c))
 
+
+# ---------------------------------------------------------------- S: estacion (parte 14 del bucle de vuelo, KS4) y SOLAR
+p14 = [k for k, l in enumerate(L) if re.match(r'^;\s+Name: Main flight loop \(Part 14 of 16\)', l)][0]
+p15 = [k for k, l in enumerate(L) if re.match(r'^;\s+Name: Main flight loop \(Part 15 of 16\)', l)][0]
+j14 = [k for k in range(p14, p15) if code(L[k]) == 'LDA MJ'][0]
+frag = ['.P14'] + rng(j14, p15) + ['.MA93', ' RTS'] + routine('MAS1') + rng(nl('MAS2') - 1, nx(nl('MAS2')) - 1) + routine('MVT3') + \
+       rng(nl('FAROF') - 1, nx(nl('FAROF2')) - 1) + routine('NWSPS') + ['.NWSHP', ' RTS'] + routine('NwS1')
+math_ = rng(nl('MULT1') - 1, nx(nl('ADD')) - 1)
+cpu, S = build(frag + math_, None, {'XX21': 0x2800, 'spasto': 0x2900, 'LSO': 0x2A00})
+got = []
+cpu.hooks[S['NWSHP']] = lambda c: got.append((c.a, bytes(c.mem[S['INWK']:S['INWK'] + 37])))
+NI_ = S['NI%']
+def sgn(r):
+    v = random.randrange(-r, r + 1); m = abs(v)
+    return [m & 255, (m >> 8) & 255, ((m >> 16) & 0x7F) | (0x80 if v < 0 else 0)]
+for _ in range(n * 2):
+    pl = sgn(pick(0x6000, 0x8000, 0xC000, 0xFFFF, 0x30000)) + sgn(pick(0x6000, 0x8000, 0xFFFF, 0x14000)) + sgn(pick(0x6000, 0x8000, 0xFFFF, 0x20000))
+    nose = []
+    for _k in range(9):
+        v = random.choice([random.randrange(-0x6000, 0x6001), 0x6000, -0x6000, 0]); m = abs(v)
+        nose += [m & 255, ((m >> 8) & 0x7F) | (0x80 if v < 0 else 0)]
+    pl += nose + [rb() for _k in range(NI_ - 27)]
+    iw = [rb() for _k in range(NI_)]
+    mj, mc, sspr, tek = pick(0, 0, 0, 0, 0xFF), pick(0, 0, 0, 0, 32, 64, 5, rb()), pick(0, 0, 0, 0, 1), rb() & 15
+    cpu.mem[S['K%']:S['K%'] + NI_] = bytes(pl); cpu.mem[S['INWK']:S['INWK'] + NI_] = bytes(iw)
+    cpu.mem[S['MJ']] = mj; cpu.mem[S['MCNT']] = mc; cpu.mem[S['MANY'] + S['SST']] = sspr; cpu.mem[S['tek']] = tek
+    cpu.mem[S['FRIN'] + 1] = 129
+    del got[:]; cpu.log = []
+    cpu.run(S['P14'])
+    w = any(x[0] == 'WPLS' for x in cpu.log)
+    out.append('S %s %s %d %d %d %d | %d %s' % (hx(pl), hx(iw), mj, mc, sspr, tek, int(w), ('%d:%s' % (got[0][0], hx(got[0][1]))) if got else '-'))
+
+# KS4: KILLSHP de la estacion
+cpu, S = build(routine('KS4') + routine('KILLSHP') + ['.NWSHP', ' RTS'] + routine('ZINF'), None)
+cpu.hooks[S['FLFLLS']] = lambda c: setattr(c, 'a', 0)       # FLFLLS vuelve con A = 0
+got = []
+cpu.hooks[S['NWSHP']] = lambda c: got.append((c.a, bytes(c.mem[S['INWK']:S['INWK'] + 37])))
+for _ in range(10):
+    iw = [rb() for _k in range(37)]
+    cpu.mem[S['INWK']:S['INWK'] + 37] = bytes(iw); cpu.mem[S['FRIN'] + 1] = S['SST']; cpu.mem[S['MANY'] + S['SST']] = 1
+    cpu.mem[S['MSTG']] = 0xFF; del got[:]; cpu.log = []
+    cpu.x = 1
+    cpu.run(S['KILLSHP'])
+    out.append('K %s | %d %d %d %d %s' % (hx(iw), cpu.mem[S['FRIN'] + 1], cpu.mem[S['MANY'] + S['SST']], int(any(x[0] == 'SPBLB' for x in cpu.log)),
+               got[0][0], hx(got[0][1])))
+
+# SOLAR (sin SOS1: msblob registra; NWSHP registra)
+cpu, S = build(routine('SOLAR') + routine('SOS1') + routine('ZINF') + dornd, None)
+got = []
+cpu.hooks[S['NWSHP']] = lambda c: got.append('%d:%s' % (c.a, hx(c.mem[S['INWK']:S['INWK'] + 37])))
+for _ in range(n):
+    q15 = [rb() for _k in range(6)]; fist, tek = pick(0, 1, 40, 81, rb()), rb() & 15
+    tr = [pick(0, 0, 0, rb()), pick(0, 0, rb() & 0x7F, rb())]; rnd = [rb() for _k in range(4)]; c0 = rb() & 1
+    cpu.mem[S['QQ15']:S['QQ15'] + 6] = bytes(q15); cpu.mem[S['FIST']] = fist; cpu.mem[S['tek']] = tek
+    cpu.mem[S['TRIBBLE']:S['TRIBBLE'] + 2] = bytes(tr); cpu.mem[S['RAND']:S['RAND'] + 4] = bytes(rnd)
+    cpu.mem[S['QQ20']] = 9; cpu.mem[S['QQ20'] + 6] = 9
+    cpu.mem[S['INWK']:S['INWK'] + 37] = bytes(37)
+    del got[:]
+    cpu.c = c0
+    cpu.run(S['SOLAR'])
+    out.append('O %s %d %d %s %s %d | %d %s %d %d %s %s' % (hx(q15), fist, tek, hx(tr), hx(rnd), c0, cpu.mem[S['FIST']],
+               hx(cpu.mem[S['TRIBBLE']:S['TRIBBLE'] + 2]), cpu.mem[S['QQ20']], cpu.mem[S['QQ20'] + 6], hx(cpu.mem[S['RAND']:S['RAND'] + 4]), ' '.join(got)))
+
 open('tests/vectors_missions.txt', 'w').write('\n'.join(out) + '\n')
 print(len(out), 'vectores')

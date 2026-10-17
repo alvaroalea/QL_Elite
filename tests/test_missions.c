@@ -19,6 +19,10 @@
 #include "game.h"
 #include "input.h"
 #include "move.h"
+#include "universe.h"
+#include "config.h"
+#include "space.h"
+#include "sound.h"
 
 static int total, fails;
 static char line[200000], got[200000], copy[400];
@@ -210,6 +214,83 @@ static void e_case(char **a, const char *l)
     if (fails && fails <= 3 && strcmp(exp, g)) printf("  6502: %.400s\n     C: %.400s\n", exp, g);
 }
 
+static int cmp_slot(int n, const char *hexs, int planet)
+{
+    u8 b[NI];
+    int i;
+    hexb(hexs, b, 37);
+    for (i = 0; i < 37; i++) {
+        if (i == 31 || i == 33 || i == 34 || i == 35) continue;
+        if (planet && i == 36) continue;
+        if (state_slot(n)[i] != b[i]) return 0;
+    }
+    return 1;
+}
+
+static void s_case(char **a, const char *l)
+{
+    /* S planeta inwk mj mc sspr tek | wpls nwshp */
+    int r;
+    char *p;
+    state_clear(); ships_clear();
+    hexb(a[1], state_slot(0), NI); hexb(a[2], inwk, NI);
+    mj = (u8)atoi(a[3]); sspr = (u8)atoi(a[5]); qq5 = (u8)atoi(a[6]);
+    frin[0] = 128; frin[1] = 129;
+    r = ships_part14((u8)atoi(a[4]));
+    check(r == atoi(a[8]), "parte 14: aparece la estacion", l);
+    if (r && strcmp(a[9], "-")) {
+        p = strchr(a[9], ':');
+        check(frin[1] == atoi(a[9]) && sspr == 1 && cmp_slot(1, p + 1, 0), "parte 14: NWSPS", l);
+    }
+}
+
+static void k_case(char **a, const char *l)
+{
+    /* K inwk | frin1 sspr spblb tipo inwk */
+    state_clear(); ships_clear();
+    frin[0] = 128; frin[1] = SHIPT_CORIOLIS; sspr = 1; mstg = 0xFF;
+    hexb(a[1], inwk, 37);
+    ship_kill(1);
+    check(atoi(a[3]) == 0 && sspr == atoi(a[4]) && frin[1] == atoi(a[6]) && cmp_slot(1, a[7], 1), "KS4", l);
+}
+
+static void o_case(char **a, const char *l)
+{
+    /* O qq15 fist tek tribble rnd c | fist tribble qq20 qq20+6 rnd nwshp1 nwshp2 */
+    u8 q[6];
+    char rs[16], tr[8];
+    char *p1, *p2;
+    state_clear(); ships_clear();
+    hexb(a[1], q, 6);
+    uni_galaxy[0].seed0 = (u16)((q[1] << 8) | q[0]); uni_galaxy[0].goatsoupseed.b = q[3]; uni_galaxy[0].goatsoupseed.d = q[5];
+    cur_sys = 0; fist = (u8)atoi(a[2]); qq5 = (u8)atoi(a[3]); hexb(a[4], tribble, 2); hexb(a[5], em_rand, 4); em_rand_c = (u8)atoi(a[6]);
+    qq20[0] = 9; qq20[6] = 9;
+    ships_arrive();
+    sprintf(rs, "%02x%02x%02x%02x", em_rand[0], em_rand[1], em_rand[2], em_rand[3]);
+    sprintf(tr, "%02x%02x", tribble[0], tribble[1]);
+    p1 = strchr(a[13], ':'); p2 = strchr(a[14], ':');
+    check(fist == atoi(a[8]) && !strcmp(tr, a[9]) && qq20[0] == atoi(a[10]) && qq20[6] == atoi(a[11]) && !strcmp(rs, a[12]) &&
+          frin[0] == atoi(a[13]) && cmp_slot(0, p1 + 1, 1) && frin[1] == atoi(a[14]) && cmp_slot(1, p2 + 1, 1), "SOLAR", l);
+}
+
+static const char *frz = "dxQ-";
+static int frz_i;
+static int frz_feed(void) { return frz[frz_i] ? frz[frz_i++] : -1; }
+
+static void config_checks(void)
+{
+    u8 d0 = damp, p0 = patg;
+    int r;
+    dks3('D', 0); check(damp == (u8)(d0 ^ 0xFF), "DKS3: D invierte DAMP", "dks3");
+    dks3('A', 0); check(damp == (u8)(d0 ^ 0xFF), "DKS3: otra tecla no toca DAMP", "dks3");
+    dks3('D', 0);
+    frz_i = 0; in_script = frz_feed;
+    r = freeze();
+    in_script = 0;
+    check(r == 0 && damp == (u8)(d0 ^ 0xFF) && patg == (u8)(p0 ^ 0xFF) && !snd_enabled(), "FREEZE: D, X, Q y - (fin de la pausa)", "freeze");
+    snd_enable(1); damp = d0; patg = p0;
+}
+
 int main(void)
 {
     FILE *f = fopen("tests/vectors_missions.txt", "r");
@@ -218,6 +299,7 @@ int main(void)
     memset(cnt, 0, sizeof cnt);
     if (!f) { printf("falta tests/vectors_missions.txt (make test_missions)\n"); return 1; }
     hooks();
+    config_checks();
     while (fgets(line, sizeof line, f)) {
         int na;
         memcpy(copy, line, sizeof copy - 1);
@@ -229,8 +311,12 @@ int main(void)
         else if (a[0][0] == 'M') m_case(a, copy);
         else if (a[0][0] == 'B') b_case(a, copy);
         else if (a[0][0] == 'E') e_case(a, copy);
+        else if (a[0][0] == 'S') s_case(a, copy);
+        else if (a[0][0] == 'K') k_case(a, copy);
+        else if (a[0][0] == 'O') o_case(a, copy);
     }
     fclose(f);
+    printf("S %d, K %d, O %d; ", cnt['S'], cnt['K'], cnt['O']);
     printf("T %d, P %d, M %d, B %d, E %d casos; %d comprobaciones, %d fallos\n", cnt['T'], cnt['P'], cnt['M'], cnt['B'], cnt['E'], total, fails);
     return fails != 0;
 }

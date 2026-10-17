@@ -25,6 +25,7 @@ extern void (*dt_name_hook)(u8 which);       /* nombres de sistema por TT27: 2 =
 void dt_reset(void);                         /* valores iniciales de DTW1..DTW8 (los del original al cargar) */
 void dt_chpr(u8 a);                          /* CHPR */
 void dt_dasc(u8 a);                          /* DASC / TT26 (con justificacion si DTW4 bit 7) */
+void dt_ex(u8 a);                            /* ex: ficha recursiva A de QQ18 */
 void dt_tt27(u8 a);                          /* TT27: ficha normal (o letra, o codigo de control) */
 void detok(u8 a);                            /* DETOK: ficha extendida A de TKN1 */
 void detok2(u8 a);                           /* DETOK2: un byte de una ficha extendida */

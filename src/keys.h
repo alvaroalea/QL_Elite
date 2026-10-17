@@ -57,6 +57,8 @@ struct controls {
     u8 slow_down, speed_up, roll_left, roll_right, pitch_up, pitch_down, fire;      /* primarios */
     u8 bomb, escape_pod, target, unarm, missile, ecm, jump, dock, undock;            /* secundarios */
 };
+extern u8 jstgy;                   /* JSTGY: $FF = eje Y del joystick normal (por defecto, como el disco IB); 0 = invertido */
+extern u8 jste;                    /* JSTE: $FF = los dos ejes del joystick invertidos */
 extern int ctl_joystick;           /* 0 = solo teclado, 1 o 2 = tambien joystick de ese puerto */
 void ctl_read(struct controls *c);
 #endif

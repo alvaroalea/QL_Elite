@@ -11,6 +11,7 @@
 #include "app.h"
 #include "text.h"
 #include "keys.h"
+#include "flight.h"
 #include "sound.h"
 #include "dash.h"
 
@@ -210,6 +211,7 @@ static int feed(void)
 int main(void)
 {
     plat_init(); txt_init(); in_init(); snd_init();
+    flight_testkeys = 1;                        /* N, K y C sin ordenador (teclas de prueba) */
     logic();
     printf("logica: %d comprobaciones, %d fallos\n", total, fails);
     save_set_device("tests/tmp/");

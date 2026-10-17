@@ -21,6 +21,10 @@
 #include "encounters.h"
 #include "tactics.h"
 #include "cmdr.h"
+#include "config.h"
+#include "detok.h"
+
+int flight_testkeys = 0;                   /* pruebas (make test_game): N, K y C sin ordenador de atraque */
 
 #define VIEW_H 136
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
@@ -222,8 +226,9 @@ static void arrive(void)
     space_scanner_clear();                 /* quita del radar lo que hubiera */
     if (sspr) dash_spblb();                /* se apaga la S */
     if (!hyper_gal && jump_possible(tgt_sys)) {             /* TT18: el combustible se gasta antes de saber si llegamos */
-        if (em_dornd() >= 253) {                            /* 0,78 %: MJP */
+        if (((patg & 0x80) && key_down(K_TAB)) || em_dornd() >= 253) {   /* ee5: TAB con PATG (ptg) o 0,78 %: MJP */
             unsigned d = jump_distance(tgt_sys);
+            if ((patg & 0x80) && key_down(K_TAB)) cok = (u8)(cok | 1);         /* ptg: COK bit 0 */
             qq14 = (u8)(qq14 >= d ? qq14 - d : 0);
             hyper = 0;
             misjump();
@@ -289,19 +294,24 @@ static void flight_escape(void)
 static void flight_death(void)
 {
     int f;
+    struct controls c;
     snd_death();                                            /* SOEXPL con Y = 210 */
     space_reset();                                          /* RES2 */
+    ships_clear();
     zDELTA = (u8)(zDELTA << 2);                             /* ASL DELTA dos veces */
-    ships_clear();                                          /* RES2 vacia las ranuras */
-    clear_view();                                           /* TT66 */
+    clear_view();                                           /* TT66 con la vista 0 */
+    qq17 = 0x80; dt_mt2(); dtw2 = 0x80;
     stars_new();                                            /* nWq */
-    txt_color(C_WHITE, C_BLACK);
-    txt_print_at(12, 12, "GAME OVER");
+    dt_xc = 12; dt_yc = 12;
+    dt_ex(146);                                             /* ex: ficha 146, "GAME OVER" */
     ships_death_debris();                                   /* D1 */
     zDELTA = 0;
     for (f = 0; f <= 64; f++) {                             /* JSR M% y D2: 64 vueltas mas (LASCT) */
         if (!in_script) in_poll();
+        ctl_read(&c);                                       /* M% lee el teclado (DOKEY): se puede girar */
+        space_controls(&c);
         ships_step((u8)view);                               /* el M% del original: MCNT queda en 255, sin comprobaciones */
+        stars_set_speed(zDELTA);
         stars_update((u8)view);
         dash_update();
     }
@@ -341,8 +351,14 @@ int flight_run(void)
             ch = in_up(ch);
             if (ch == 'c') {                                /* KY19: ordenador de atraque si lo llevamos (MA64: STA auto) */
                 if (dkcmp) dock_auto = dkcmp;
-                else if (sspr) { key_ctx_menu(); return FL_DOCK; }    /* provisional: atraque inmediato sin ordenador */
-                else { say("NO STATION", 1); snd_boop(); }
+                else if (flight_testkeys && sspr) { key_ctx_menu(); return FL_DOCK; }    /* pruebas: atraque inmediato */
+                ch = -1;
+            }
+            if (ch == '=') {                                /* DK4: pausa (FREEZE) y teclas de configuracion */
+                key_ctx_menu();
+                if (freeze()) { snd_off(); return FL_DEATH; }    /* ESC: DEATH2 */
+                if (in_quit) return FL_QUIT;
+                key_ctx_flight();
                 ch = -1;
             }
             if (ch == 'u') { missile_unarm(); ch = -1; }   /* KY15: MA4..MA20 */
@@ -360,8 +376,8 @@ int flight_run(void)
                 ch = -1;
             }
             if (ch < 0) { }
-            else if (ch == 'n') { space_spawn(contact_types[em_dornd() % 6]); }
-            else if (ch == 'k') { if (ships_explode_nearest() < 0) say("NOTHING TO BLOW UP", 1); else snd_exno2(); }
+            else if (ch == 'n' && flight_testkeys) { space_spawn(contact_types[em_dornd() % 6]); }
+            else if (ch == 'k' && flight_testkeys) { if (ships_explode_nearest() < 0) say("NOTHING TO BLOW UP", 1); else snd_exno2(); }
             else {
                 sc = ui_nav(ch);
                 if (sc >= SC_VIEW0 && sc <= SC_VIEW3) change_view(sc - SC_VIEW0);

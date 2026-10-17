@@ -103,7 +103,6 @@ int main(void)
         check((state_slot(0)[5] & 0x80) && y >= 638 && y <= 642, "alabeo: y baja x * 20 / 256 = 640");
     }
     /* altitud: cada 32 fotogramas (MCNT mod 32 = 10, el valor que ve M%; MCNT baja despues, en TT100), solo si el planeta esta cerca */
-    /* altitud: cada 32 fotogramas, solo si el planeta esta cerca */
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0, 0, 0x7800L);
     alpha = 0; beta = 0; zDELTA = 0; mcnt = 10; altit = 255;
@@ -119,12 +118,14 @@ int main(void)
     mcnt = 10; space_step();
     check(altit == 255, "altitud: lejos = 255");
 
-    /* despegue: planeta delante y estacion detras; la estacion se pierde al alejarse */
+    /* despegue (TT110): planeta delante (z_sign = 1) y estacion justo detras (z = -256); velocidad 12 */
     space_launch();
-    check(sspr == 1 && (state_slot(1)[8] & 0x80) && state_slot(0)[8] >= 3 && state_slot(0)[8] <= 6, "despegue: estacion detras, planeta delante");
-    zDELTA = 40; alpha = 0; beta = 0;
-    for (i = 0; i < 400; i++) space_step();
-    check(sspr == 0, "al alejarse la estacion deja de ser el objetivo de la brujula");
+    check(sspr == 1 && frin[1] == SHIPT_CORIOLIS && state_slot(1)[8] == 0x80 && state_slot(1)[7] == 1 && state_slot(1)[6] == 0 &&
+          state_slot(0)[8] == 1 && state_slot(0)[7] == 0 && zDELTA == 12, "despegue: estacion detras (z = -256), planeta delante (z = 65536), DELTA = 12");
+    /* hacia atras, lejos del planeta: la estacion se quita al pasar de 224 * 256 (FAROF) y en su ranura aparece el sol (KS4) */
+    zDELTA = 40; alpha = 0; beta = 0; state_slot(0)[8] = 0x81;            /* planeta detras: la parte 14 no la vuelve a poner */
+    for (i = 0; i < 2000 && sspr; i++) { space_step(); mcnt--; }
+    check(sspr == 0 && frin[1] == 129 && state_slot(1)[5] == 6, "al alejarse la estacion se quita y aparece el sol (y_sign = 6)");
 
     /* panel: dibujar en XOR deja la pantalla igual que dibujar desde cero con el ultimo estado */
     for (k = 0; k < 2; k++) {
@@ -436,14 +437,26 @@ int main(void)
         }
     }
 
-    /* la estacion se pierde de vista al alejarse y vuelve el sol */
+    /* la estacion se pierde de vista al alejarse y vuelve el sol; cerca del planeta, la parte 14 la vuelve a poner */
     game_new(); gfx_clear(C_BLACK); space_view = 0; space_launch();
-    zDELTA = 40; alpha = 0; beta = 0;
-    for (i = 0; i < 400; i++) { u8 ev = space_step(); if (ev & SPACE_EV_STATION) break; }
+    zDELTA = 40; alpha = 0; beta = 0; state_slot(0)[8] = 0x81;
+    for (i = 0; i < 2000; i++) { u8 ev = space_step(); mcnt--; if (ev & SPACE_EV_STATION) break; }
     {
         int sun = 0, stn = 0;
         for (i = 0; i < NOSH; i++) { if (frin[i] == 129) sun++; if (frin[i] == SHIPT_CORIOLIS) stn++; }
         check(sspr == 0 && sun == 1 && stn == 0, "estacion: al alejarse se quita y reaparece el sol");
+    }
+    /* parte 14: con el planeta delante y cerca, cada 32 vueltas aparece la estacion en planeta + 2 * morro y se borra el sol */
+    {
+        int k2;
+        memset(state_slot(0), 0, NI); set_pos(state_slot(0), 0, 0, 0, 0x8000L);
+        state_slot(0)[14] = 0x60 | 0x80; state_slot(0)[18] = 0x60; state_slot(0)[22] = 0x60;   /* morro hacia nosotros */
+        zDELTA = 0; mcnt = 1;
+        for (k2 = 0; k2 < 3 && !sspr; k2++) { space_step(); mcnt--; }
+        if (!(sspr == 1 && frin[1] == SHIPT_CORIOLIS && state_slot(1)[7] == 0x40 && state_slot(1)[8] == 0x80))
+            printf("  parte 14: sspr %d frin1 %d z %02x %02x %02x\n", sspr, frin[1], state_slot(1)[6], state_slot(1)[7], state_slot(1)[8]);
+        check(sspr == 1 && frin[1] == SHIPT_CORIOLIS && state_slot(1)[7] == 0x40 && state_slot(1)[8] == 0x80,
+              "parte 14: aparece la estacion en planeta + 2 * morro (z = 0x8000 - 0xC000 = -0x4000)");
     }
     printf("%d comprobaciones, %d fallos\n", total, fails);
     return fails ? 1 : 0;

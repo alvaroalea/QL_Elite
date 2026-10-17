@@ -5,11 +5,11 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **425**, de ellas verificadas contra el 6502: 134 y pendientes de verificar: 291
+- **Portadas** (con la funcion C que las cubre): **429**, de ellas verificadas contra el 6502: 141 y pendientes de verificar: 288
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **99**
-- **Sin portar** (pendientes de implementar, incluidas las parciales): **4**
+- **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
-Comprobacion: total = portadas + no necesarias + sin portar (528 = 425 + 99 + 4).
+Comprobacion: total = portadas + no necesarias + sin portar (528 = 429 + 99 + 0).
 
 | Area | Total | Portadas | De ellas verificadas | No necesarias | Pendientes verificar | Pendientes implementar |
 |---|---:|---:|---:|---:|---:|---:|
@@ -24,9 +24,9 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 425 + 99 + 4)
 | Drawing the screen | 18 | 8 | 0 | 10 | 8 | 0 |
 | Equipment | 6 | 6 | 0 | 0 | 6 | 0 |
 | Flight | 29 | 29 | 11 | 0 | 18 | 0 |
-| Keyboard | 19 | 13 | 0 | 4 | 13 | 2 |
+| Keyboard | 19 | 15 | 1 | 4 | 14 | 0 |
 | Loader | 5 | 0 | 0 | 5 | 0 | 0 |
-| Main loop | 1 | 0 | 0 | 0 | 0 | 1 |
+| Main loop | 1 | 1 | 1 | 0 | 0 | 0 |
 | Market | 19 | 19 | 4 | 0 | 15 | 0 |
 | Maths (Arithmetic) | 52 | 51 | 13 | 1 | 38 | 0 |
 | Maths (Geometry) | 19 | 19 | 2 | 0 | 17 | 0 |
@@ -35,23 +35,20 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 425 + 99 + 4)
 | Save and load | 61 | 27 | 3 | 34 | 24 | 0 |
 | Sound | 13 | 11 | 0 | 2 | 11 | 0 |
 | Stardust | 7 | 7 | 0 | 0 | 7 | 0 |
-| Start and end | 8 | 7 | 0 | 0 | 7 | 1 |
-| Status | 7 | 7 | 1 | 0 | 6 | 0 |
+| Start and end | 8 | 8 | 0 | 0 | 8 | 0 |
+| Status | 7 | 7 | 2 | 0 | 5 | 0 |
 | Tactics | 8 | 7 | 5 | 1 | 2 | 0 |
 | Text | 77 | 73 | 45 | 4 | 28 | 0 |
 | Tube | 1 | 0 | 0 | 1 | 0 | 0 |
-| Universe | 34 | 32 | 6 | 2 | 26 | 0 |
+| Universe | 34 | 32 | 10 | 2 | 22 | 0 |
 | Utility routines | 18 | 1 | 0 | 17 | 1 | 0 |
 | Workspaces | 7 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **425** | **134** | **99** | **291** | **4** |
+| **Total** | **528** | **429** | **141** | **99** | **288** | **0** |
 
 Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
 ## Rutinas sin portar, por area
 
-- **Keyboard** (2): `TGINT`, `DKS3`
-- **Main loop** (1): `Main` (parcial)
-- **Start and end** (1): `DEATH` (parcial)
 
 ## Estados
 
@@ -244,7 +241,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | TT147 | Print an error when a system is out of hyperspace range | propia | `start_hyper` | mensaje de fuera de alcance |
 | MJP | Process a mis-jump into witchspace | sin-verificar | `misjump` | salto fallido: tunel, MJ = $FF, tres Thargoides (GTHG), polvo de 2, QQ1 EOR 31; la distancia en el hiperespacio se mide desde (QQ0, QQ1) |
 | TT18 | Try to initiate a jump into hyperspace | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
-| TT110 | Launch from a station or show the front space view | propia | `space_launch`, `flight_run` | despegue y vista frontal |
+| TT110 | Launch from a station or show the front space view | transcripcion | `space_launch` | RES2, planeta delante (z_sign = 1) y estacion detras (z = -256) con SOS1 y NWSPS, DELTA = 12, FIST |= BAD; make test_space |
 | SHD | Charge a shield and drain some energy from the energy banks | verificada | `shd` | cae en DENGY: cargar un escudo gasta 1 de energia |
 | DENGY | Drain some energy from the energy banks | verificada | `dengy` |  |
 | OOPS | Take some damage | verificada | `oops` | escudo segun el signo de z de la nave (K%); el SBC usa el acarreo de quien llama |
@@ -260,11 +257,11 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | LOOK1 | Initialise the space view | propia | `change_view` | cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto |
 | SIGHT | Draw the laser crosshairs | sin-verificar | `chart_sight` | dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco) |
 
-## Keyboard (13 portadas de 19, 4 no necesarias, 2 sin portar)
+## Keyboard (15 portadas de 19, 4 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| TGINT | The keys used to toggle configuration settings when the game is |  |  |  |
+| TGINT | The keys used to toggle configuration settings when the game is | verificada | `tgint` | teclas de configuracion DAXFYJKUT (config.c); el orden de las opciones es el de DAMP..DISK |
 | FLKB | Flush the keyboard buffer | propia | `plat_flush_input` |  |
 | PAUSE2 | Wait until a key is pressed, ignoring any existing key press | propia | `plat_wait_key` | esperar una tecla ignorando la anterior |
 | TT214 | Ask a question with a "Y/N?" prompt and return the response | propia | `scr_disk` |  |
@@ -277,10 +274,10 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | KYTB | Lookup table for in-flight keyboard controls | propia | `keys.c` | tabla de teclas de vuelo: las teclas del QL se definen en keys.h |
 | DKSANYKEY | An unused routine that scans the keyboard to detect whether any | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
 | DKS2 | Read the joystick position | propia | `ctl_read` | palanca de mando CTL1 (keys.c) |
-| DKS3 | Toggle a configuration setting and emit a beep |  |  |  |
+| DKS3 | Toggle a configuration setting and emit a beep | transcripcion | `dks3` | invierte la opcion con EOR |
 | U% | Clear the key logger | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
 | DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo, F acelera, D frena, A o espacio disparan; JSTX/JSTY los calcula space_controls |
-| DK4 | Scan for pause, configuration and secondary flight keys | propia | `in_poll` | teclas secundarias por caracteres (key_getchar) |
+| DK4 | Scan for pause, configuration and secondary flight keys | transcripcion | `in_poll`, `freeze` | teclas secundarias por caracteres (key_getchar); "=" pausa (FREEZE): Q/S sonido, DAXFYJKUT, ESC = DEATH2, "-" sigue |
 | TT217 | Scan the keyboard until a key is pressed | propia | `in_wait` |  |
 | KTRAN | An unused key logger buffer that's left over from the 6502 Second | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
 
@@ -294,11 +291,11 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | COLD | Initialise the screen mode, clear memory and set up interrupt | no-necesaria |  | arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c |
 | NMIpissoff | Acknowledge NMI interrupts and ignore them | no-necesaria |  | arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c |
 
-## Main loop (0 portadas de 1, 1 sin portar)
+## Main loop (1 portadas de 1)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| Main | Seed the random number generator | parcial | `ships_step`, `flight_run`, `encounters_tick`, `laser_fire`, `combat_hit`, `combat_killed`, `laser_frame_end`, `energy_tick`, `laser_cool`, `combat_collide`, `damage_checks`, `ecm_frame`, `ecm_key`, `missile_unarm`, `missile_target`, `missile_fire`, `missile_lock` | bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (make test_laser, test_damage, test_equip, test_tactics) y aparicion de naves de las partes 1 a 4 con MCNT bajando como en el original (make test_missions); falta la aparicion de la estacion (parte 14) |
+| Main | Seed the random number generator | verificada | `ships_step`, `flight_run`, `encounters_tick`, `ships_part14`, `laser_fire`, `combat_hit`, `combat_killed`, `laser_frame_end`, `energy_tick`, `laser_cool`, `combat_collide`, `damage_checks`, `ecm_frame`, `ecm_key`, `missile_unarm`, `missile_target`, `missile_fire`, `missile_lock` | bucle de vuelo (partes 1-16) y bucle principal (partes 1-6): naves, laser, choques, recogida, atraque, partes 14 (estacion) y 15, bomba, ECM, misiles y aparicion de naves; verificados por partes con make test_laser, test_damage, test_equip, test_tactics y test_missions (MCNT baja como en el original) |
 
 ## Market (19 portadas de 19)
 
@@ -397,7 +394,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | SPS3 | Copy a space coordinate from the K% block into K3 | transcripcion | `sm_sps3` |  |
 | PROJ | Project the current ship or planet onto the screen | verificada | `sm_proj` |  |
 | FAROF | Compare x_hi, y_hi and z_hi with 224 | sin-verificar | `farof` |  |
-| FAROF2 | Compare x_hi, y_hi and z_hi with A | propia | `farof` | FAROF con A = 224 |
+| FAROF2 | Compare x_hi, y_hi and z_hi with A | transcripcion | `ships_part14`, `farof` | FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves |
 | MAS4 | Calculate a cap on the maximum distance to a ship | transcripcion | `sm_mas4` |  |
 | SPS1 | Calculate the vector to the planet and store it in XX15 | transcripcion | `sm_sps1` |  |
 | TAS2 | Normalise the three-coordinate vector in K3 | transcripcion | `sm_tas2` |  |
@@ -535,13 +532,13 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | NWSTARS | Initialise the stardust field | sin-verificar | `stars_new` | el original no crea el polvo si QQ11 != 0; aqui solo se llama en la vista espacial |
 | nWq | Create a random cloud of stardust | sin-verificar | `stars_new` |  |
 
-## Start and end (7 portadas de 8, 1 sin portar)
+## Start and end (8 portadas de 8)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | RESET | Reset most variables | propia | `game_new` | reinicia las variables de la partida |
 | RES2 | Reset a number of flight variables and workspaces | propia | `space_reset`, `ships_clear` | reinicia las variables de vuelo |
-| DEATH | Display the death screen | parcial | `flight_death`, `ships_death_debris` | D1 verificado (Ze, fq1, restos); explosion, GAME OVER y 65 vueltas del bucle de vuelo propios en la forma |
+| DEATH | Display the death screen | sin-verificar | `flight_death`, `ships_death_debris` | D1 verificado (Ze, fq1, restos); SOEXPL, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces con el teclado (DOKEY) y DEATH2 |
 | TT170 | Main entry point for the Elite game code | propia | `game_run` | punto de entrada del juego (app.c) |
 | DEATH2 | Reset most of the game and restart from the title screen | propia | `game_run` | vuelve a la pantalla de titulo (nuevo comandante o cargar) |
 | BR1 | Show the "Load New Commander (Y/N)?" screen and start the game | propia | `scr_title`, `scr_disk` | el titulo ofrece cargar un comandante por el menu de disco |
@@ -556,7 +553,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | cmn | Print the commander's name | propia | `scr_status` | nombre del comandante en la pantalla de estado |
 | fwl | Print fuel and cash levels | propia | `scr_status`, `ui_num` | combustible y dinero |
 | csh | Print the current amount of cash | propia | `scr_status`, `ui_num` | combustible y dinero |
-| BAD | Calculate how bad we have been | propia | `legal_name` | estado legal: calculo y nombre |
+| BAD | Calculate how bad we have been | verificada | `space_bad`, `bad`, `legal_name` | carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name |
 | BAY | Go to the docking bay (i.e. show the Status Mode screen) | propia | `scr_status` | pantalla de estado al atracar |
 | EXNO2 | Process us making a kill | verificada | `exno2` | TALLY con KWL%/KWH% y mensaje 101; el sonido es snd_exno2 |
 
@@ -686,16 +683,16 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | cpl | Print the selected system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
 | ypl | Print the current system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
 | tal | Print the current galaxy number | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
-| SOS1 | Update the missile indicators, set up the planet data block | sin-verificar | `make_planet` |  |
-| SOLAR | Set up various aspects of arriving in a new system | sin-verificar | `ships_launch` | planeta con las formulas de SOLAR; al despegar el sol se sustituye por la estacion; ships_arrive pone planeta y sol |
-| NWSPS | Add a new space station to our local bubble of universe | sin-verificar | `make_station` | la posicion de la estacion es propia |
+| SOS1 | Update the missile indicators, set up the planet data block | verificada | `sos1` | planeta 128/130 con giros 127; make test_missions |
+| SOLAR | Set up various aspects of arriving in a new system | verificada | `ships_arrive` | FIST a la mitad (su acarreo entra en el ADC |
+| NWSPS | Add a new space station to our local bubble of universe | verificada | `nwsps` | estacion en la ranura 1 (STX FRIN+1); Dodo con nivel tecnologico >= 10; make test_missions |
 | NWSHP | Add a new ship to our local bubble of universe | sin-verificar | `ship_new` | sin heap compartido (SLSP): un monton de 256 bytes por ranura; NEWB inicial de E% |
 | NwS1 | Flip the sign and double an INWK byte | propia | `make_station` | los tres NwS1 que invierten el morro de la estacion |
 | KS3 | Set the SLSP ship line heap pointer after shuffling ship slots | no-necesaria |  | puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura |
 | KS1 | Remove the current ship from our local bubble of universe | propia | `ship_kill` | quita la nave y desplaza las demas |
-| KS4 | Remove the space station and replace it with the sun | propia | `ships_step` | la estacion se quita y vuelve el sol (regla propia) |
+| KS4 | Remove the space station and replace it with the sun | verificada | `ks4` | la estacion lejana (FAROF) deja en su ranura el sol con y_sign = 6; make test_missions |
 | KS2 | Check the local bubble for missiles with target lock | verificada | `ks2` | make test_tactics |
-| KILLSHP | Remove a ship from our local bubble of universe | sin-verificar | `ship_kill` | sin puntos de muerte ni mensajes (paso 3) |
+| KILLSHP | Remove a ship from our local bubble of universe | sin-verificar | `ship_kill` | TARGET LOST, Constrictor (TP, TALLY+1), JUNK, MANY y KS4 para la estacion (verificado aparte) |
 | ZINF | Reset the INWK workspace and orientation vectors | sin-verificar | `ship_zinf` |  |
 | Ze | Initialise the INWK workspace to a fairly aggressive ship | verificada | `ze` | dentro de D1 |
 | spasto | Contains the address of the Coriolis space station's ship | propia | `ship_bp_for` | plano de la estacion (Coriolis o Dodo) |
