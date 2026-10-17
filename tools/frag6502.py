@@ -69,7 +69,7 @@ def build(lines, logs, presets=None):
             if m2 and not any(code(l) == '.' + m2.group(1) for l in lines):   # rama a algo de fuera: RTS local (sin registro)
                 if m2.group(1) in stubs: stubs.remove(m2.group(1))
                 lines = lines + ['.' + m2.group(1), 'RTS']; continue
-            m = re.match(r'SIN_RESOLVER (.*)', str(e))
+            m = re.match(r'SIN_RESOLVER (.*)', str(e)) or re.match(r"name '(\w+)' is not defined", str(e))   # EQUW a rutinas de fuera
             if not m: raise
             new = [x for x in m.group(1).split() if x not in stubs]
             if not new: raise

@@ -5,6 +5,7 @@
 #include "input.h"
 #include "state.h"
 #include "emath.h"
+#include "missions.h"
 
 /* Bucle principal. El atracado es una maquina de pantallas (cada pantalla devuelve la siguiente); el vuelo es flight_run. */
 int game_run(void)
@@ -18,6 +19,7 @@ title:
     f = in_frames();                                  /* semilla del generador: tiempo hasta la primera pulsacion */
     em_rand[0] = (u8)(f); em_rand[1] = (u8)(f >> 8); em_rand[2] = (u8)(f ^ 0x5A); em_rand[3] = (u8)(0xA7 + (f >> 4));
     if (t == TITLE_NEW) game_new();
+    missions_hooks();
     sc = SC_STATUS;
     for (;;) {
         if (in_quit || sc == SC_QUIT) break;
@@ -27,7 +29,7 @@ title:
             if (r == FL_QUIT) break;
             if (r == FL_DEATH) goto title;            /* DEATH2: vuelta al titulo (nuevo comandante o cargar) */
             qq12 = 0xFF;
-            sc = SC_STATUS;
+            sc = missions_doentry();                  /* DOENTRY: sesiones informativas de las misiones y BAY */
             continue;
         }
         sc = scr_dispatch(sc);

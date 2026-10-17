@@ -31,7 +31,9 @@ void spin2(u8 cnt, u8 type);                     /* SPIN2: cnt restos de ese tip
 int  ships_death_debris_one(void);              /* una vuelta de D1 (devuelve la ranura o -1) */
 void ships_death_debris(void);                   /* DEATH (D1): restos de nuestra nave hasta llenar la ranura 4 */
 int  frs1(u8 type);                              /* FRS1: nave nueva delante de nosotros (devuelve la ranura o -1) */
-void gthg(void);                                 /* GTHG: Thargoid y Thargon */
+u8   gthg(void);                                 /* GTHG: Thargoid y Thargon (devuelve el acarreo del ultimo NWSHP) */
+u8  *ships_heap(int n);                         /* monton de lineas de la ranura n */
+u8   ships_ze(void);                             /* Ze: INWK de una nave agresiva al azar; devuelve el A de DORND2 */
 void ships_escape(void);                         /* ESCAPE: nuestra Cobra se aleja (97 fotogramas) */
 void sescp(void);                                /* SESCP: la nave actual lanza una capsula */
 void doexp(void);                                /* DOEXP: nube de la nave que explota */

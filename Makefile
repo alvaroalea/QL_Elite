@@ -81,7 +81,7 @@ test_orig:
 	./tests/test_ll9
 
 # Juego completo (provisional: vuelo sin MVEIT/TACTICS). PC: make host_game (para pruebas); QL: make ql_game
-GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
+GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
 host_game:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
 ql_game:
@@ -91,7 +91,7 @@ ql_game:
 test_game:
 	mkdir -p tests/shots tests/tmp
 	cp data/elite_dash tests/tmp/elite_dash
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_game tests/test_game.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_game tests/test_game.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_game
 
 test_save:
@@ -101,7 +101,7 @@ test_save:
 	./tests/test_save
 
 clean:
-	rm -f tests/test_trade tests/test_laser tests/vectors_laser.txt tests/test_damage tests/vectors_damage.txt tests/test_planet tests/vectors_planet.txt tests/test_equip tests/vectors_equip.txt tests/test_tactics tests/vectors_tactics.txt tests/test_shipview tests/vectors_trade.txt elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
+	rm -f tests/test_trade tests/test_laser tests/vectors_laser.txt tests/test_damage tests/vectors_damage.txt tests/test_planet tests/vectors_planet.txt tests/test_equip tests/vectors_equip.txt tests/test_tactics tests/vectors_tactics.txt tests/test_missions tests/vectors_missions.txt tests/test_shipview tests/vectors_trade.txt elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
 
 test_shipview:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_shipview tests/test_shipview.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/plat_host.c
@@ -142,16 +142,33 @@ test_equip:
 	./tests/test_equip
 
 # TACTICS contra el 6502 original. Requiere ELITE_SRC
+test_missions:
+	python3 tools/gen_tokens.py
+	python3 tools/gen_missions.py 800 11
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_missions tests/test_missions.c $(filter-out src/main.c,$(GAME)) src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	./tests/test_missions
+
 test_tactics:
 	python3 tools/gen_tactics.py 20000 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_tactics tests/test_tactics.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_tactics
 
+# Cabina editable en el PC: exporta el panel a PNG (data/cabina.png, 1024 x 112) y lo vuelve a convertir en data/elite_dash
+dash_png:
+	python3 tools/png2dash.py --export data/elite_dash data/cabina.png
+dash_from_png:
+	python3 tools/png2dash.py data/cabina.png data/elite_dash
+test_dashpng:
+	mkdir -p tests/tmp
+	python3 tools/png2dash.py --export data/elite_dash tests/tmp/cabina.png
+	python3 tools/png2dash.py tests/tmp/cabina.png tests/tmp/elite_dash_png
+	cmp data/elite_dash tests/tmp/elite_dash_png && echo "png2dash: ida y vuelta identica"
+
 # Fichero de fondo del panel (data/elite_dash) a partir del volcado de pantalla del Apple II (necesita ELITE_SRC)
 dash_file:
 	python3 tools/gen_dashboard.py
 
-test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space
+test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng
 
 # Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
 c68_check:

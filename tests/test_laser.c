@@ -232,6 +232,7 @@ int main(void)
             laser_frame_end();
             laser_cool();
             dly_tick();
+            mcnt--;                                                           /* TT100: DEC MCNT (lo hace el bucle de vuelo) */
             alive = 0;
             for (n = 0; n < NOSH; n++) if (frin[n] == SHIPT_SIDEWINDER) alive = 1;
             frames++;

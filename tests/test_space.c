@@ -102,21 +102,21 @@ int main(void)
         long y = (long)state_slot(0)[3] | ((long)state_slot(0)[4] << 8);
         check((state_slot(0)[5] & 0x80) && y >= 638 && y <= 642, "alabeo: y baja x * 20 / 256 = 640");
     }
-
+    /* altitud: cada 32 fotogramas (MCNT mod 32 = 10, el valor que ve M%; MCNT baja despues, en TT100), solo si el planeta esta cerca */
     /* altitud: cada 32 fotogramas, solo si el planeta esta cerca */
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0, 0, 0x7800L);
-    alpha = 0; beta = 0; zDELTA = 0; mcnt = 9; altit = 255;
+    alpha = 0; beta = 0; zDELTA = 0; mcnt = 10; altit = 255;
     space_step();
     check(altit >= 69 && altit <= 71, "altitud: z_hi = 120 -> (hi(120^2) - 37) = 19 -> sqrt(19 * 256 + Q) = 69..71 (Q es el que hubiera)");
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0, 0, 0x5000L);
-    mcnt = 9;
+    mcnt = 10;
     check((space_step() & SPACE_EV_DEATH) && player_dead && altit == 255, "altitud: dentro del planeta, muerte (DEATH; ALTIT queda en 255)");
     player_dead = 0;
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0, 0, 0x30000L);
-    mcnt = 9; space_step();
+    mcnt = 10; space_step();
     check(altit == 255, "altitud: lejos = 255");
 
     /* despegue: planeta delante y estacion detras; la estacion se pierde al alejarse */

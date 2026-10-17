@@ -9,6 +9,8 @@
 #include "shipview.h"
 #include "chart.h"
 #include "emath.h"
+#include "missions.h"
+#include "detok.h"
 
 #define ROW_MSG 28
 
@@ -439,10 +441,15 @@ int scr_data(void)
     lbl(8, "Avg. Radius:"); val(17, 8); ui_num(p->radius, 0); txt_puts(" km");
     txt_color(C_CYAN, C_BLACK);
     txt_at(0, 10);
-    dlen = 0; desc[0] = 0;
-    uni_putc = cap;
-    uni_describe(p);
-    put_wrapped(desc);
+    dt_xc = 1; dt_yc = 10;
+    missions_set_ink(C_CYAN);
+    if (!pdesc((u8)tgt_sys)) {                         /* PDESC: descripciones especiales (misiones) */
+        dlen = 0; desc[0] = 0;
+        uni_putc = cap;
+        uni_describe(p);
+        put_wrapped(desc);
+    }
+    missions_set_ink(C_WHITE);
     txt_color(C_WHITE, C_BLACK);
     ui_footer();
     return wait_nav();

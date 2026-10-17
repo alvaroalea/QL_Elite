@@ -207,7 +207,6 @@ int space_spawn(u8 type) { return ships_spawn(type); }
 u8 space_step(void)
 {
     u8 ev = 0, e;
-    mcnt++;
     e = ships_step(space_view);
     if (e & SHIPS_EV_STATION) ev |= SPACE_EV_STATION;
     if (e & SHIPS_EV_DOCK) return (u8)(ev | SPACE_EV_DOCK);      /* el original salta a DOENTRY sin acabar el fotograma */

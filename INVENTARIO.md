@@ -5,11 +5,11 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **375**, de ellas verificadas contra el 6502: 77 y pendientes de verificar: 298
-- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, motor de textos comprimidos, utilidades que da el compilador de C, etc.): **135**
-- **Sin portar** (pendientes de implementar, incluidas las parciales): **18**
+- **Portadas** (con la funcion C que las cubre): **425**, de ellas verificadas contra el 6502: 134 y pendientes de verificar: 291
+- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **99**
+- **Sin portar** (pendientes de implementar, incluidas las parciales): **4**
 
-Comprobacion: total = portadas + no necesarias + sin portar (528 = 375 + 135 + 18).
+Comprobacion: total = portadas + no necesarias + sin portar (528 = 425 + 99 + 4).
 
 | Area | Total | Portadas | De ellas verificadas | No necesarias | Pendientes verificar | Pendientes implementar |
 |---|---:|---:|---:|---:|---:|---:|
@@ -23,14 +23,14 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 375 + 135 + 1
 | Drawing suns | 3 | 3 | 3 | 0 | 0 | 0 |
 | Drawing the screen | 18 | 8 | 0 | 10 | 8 | 0 |
 | Equipment | 6 | 6 | 0 | 0 | 6 | 0 |
-| Flight | 29 | 28 | 10 | 0 | 18 | 1 |
+| Flight | 29 | 29 | 11 | 0 | 18 | 0 |
 | Keyboard | 19 | 13 | 0 | 4 | 13 | 2 |
 | Loader | 5 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 0 | 0 | 0 | 0 | 1 |
 | Market | 19 | 19 | 4 | 0 | 15 | 0 |
 | Maths (Arithmetic) | 52 | 51 | 13 | 1 | 38 | 0 |
 | Maths (Geometry) | 19 | 19 | 2 | 0 | 17 | 0 |
-| Missions | 16 | 0 | 0 | 5 | 0 | 11 |
+| Missions | 16 | 10 | 10 | 6 | 0 | 0 |
 | Moving | 8 | 8 | 1 | 0 | 7 | 0 |
 | Save and load | 61 | 27 | 3 | 34 | 24 | 0 |
 | Sound | 13 | 11 | 0 | 2 | 11 | 0 |
@@ -38,23 +38,20 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 375 + 135 + 1
 | Start and end | 8 | 7 | 0 | 0 | 7 | 1 |
 | Status | 7 | 7 | 1 | 0 | 6 | 0 |
 | Tactics | 8 | 7 | 5 | 1 | 2 | 0 |
-| Text | 77 | 34 | 0 | 41 | 34 | 2 |
+| Text | 77 | 73 | 45 | 4 | 28 | 0 |
 | Tube | 1 | 0 | 0 | 1 | 0 | 0 |
-| Universe | 34 | 32 | 5 | 2 | 27 | 0 |
+| Universe | 34 | 32 | 6 | 2 | 26 | 0 |
 | Utility routines | 18 | 1 | 0 | 17 | 1 | 0 |
 | Workspaces | 7 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **375** | **77** | **135** | **298** | **18** |
+| **Total** | **528** | **425** | **134** | **99** | **291** | **4** |
 
 Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
 ## Rutinas sin portar, por area
 
-- **Flight** (1): `DOENTRY` (parcial)
 - **Keyboard** (2): `TGINT`, `DKS3`
 - **Main loop** (1): `Main` (parcial)
-- **Missions** (11): `BRIEF2`, `BRP`, `BRIEF3`, `DEBRIEF2`, `DEBRIEF`, `TBRIEF`, `BRIEF`, `BRIS`, `PAUSE`, `PAS1`, `THERE`
 - **Start and end** (1): `DEATH` (parcial)
-- **Text** (2): `MT27`, `MT28`
 
 ## Estados
 
@@ -229,11 +226,11 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | refund | Install a new laser, processing a refund if applicable | sin-verificar | `laser_refund` |  |
 | PRXS | Equipment prices | sin-verificar | `equip_price` |  |
 
-## Flight (28 portadas de 29, 1 sin portar)
+## Flight (29 portadas de 29)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| DOENTRY | Dock at the space station and work out any mission progression | parcial | `flight_run`, `combat_collide` | se atraca entrando por la ranura (ISDK), con el ordenador de atraque (C) o, sin el, con C (provisional); energia y escudos se reponen al despegar; falta el progreso de las misiones (paso de misiones) |
+| DOENTRY | Dock at the space station and work out any mission progression | verificada | `missions_doentry`, `missions_choose`, `flight_run`, `combat_collide` | la decision de las sesiones informativas (EN1..EN5) verificada con make test_missions; se atraca por la ranura (ISDK), con el ordenador de atraque o, sin el, con C (provisional); energia y escudos se reponen al despegar |
 | ESCAPE | Launch our escape pod | sin-verificar | `flight_escape`, `ships_escape` | la Cobra se aleja 97 fotogramas (MVEIT + LL9), carga, FIST y capsula a cero, 70 de combustible, atraque |
 | DOCKIT | Apply docking manoeuvres to the ship in INWK | verificada | `dockit` | make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c) |
 | DCS1 | Calculate the vector from the ideal docking position to the ship | verificada | `dcs1` | dentro de DOCKIT |
@@ -301,7 +298,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| Main | Seed the random number generator | parcial | `ships_step`, `flight_run`, `laser_fire`, `combat_hit`, `combat_killed`, `laser_frame_end`, `energy_tick`, `laser_cool`, `combat_collide`, `damage_checks`, `ecm_frame`, `ecm_key`, `missile_unarm`, `missile_target`, `missile_fire`, `missile_lock` | bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (verificados con make test_laser, test_damage, test_equip, test_tactics); faltan la generacion de encuentros (parte 13, TT100), la aparicion de la estacion (parte 14) y los Thargoides fuera del hiperespacio |
+| Main | Seed the random number generator | parcial | `ships_step`, `flight_run`, `encounters_tick`, `laser_fire`, `combat_hit`, `combat_killed`, `laser_frame_end`, `energy_tick`, `laser_cool`, `combat_collide`, `damage_checks`, `ecm_frame`, `ecm_key`, `missile_unarm`, `missile_target`, `missile_fire`, `missile_lock` | bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (make test_laser, test_damage, test_equip, test_tactics) y aparicion de naves de las partes 1 a 4 con MCNT bajando como en el original (make test_missions); falta la aparicion de la estacion (parte 14) |
 
 ## Market (19 portadas de 19)
 
@@ -408,24 +405,24 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | TIDY | Orthonormalise the orientation vectors for a ship | transcripcion | `sm_tidy` |  |
 | LL51 | Calculate the dot product of XX15 and XX16 | verificada | `ship_ll51` |  |
 
-## Missions (0 portadas de 16, 5 no necesarias, 11 sin portar)
+## Missions (10 portadas de 16, 6 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | TRIBDIR | The low byte of the four 16-bit directions in which Trumble | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
 | TRIBDIRH | The high byte of the four 16-bit directions in which Trumble | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
 | SPMASK | Masks for updating sprite bits in VIC+$10 for the top bit of the | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
-| BRIEF2 | Start mission 2 |  |  |  |
-| BRP | Print an extended token and show the Status Mode screen |  |  |  |
-| BRIEF3 | Receive the briefing and plans for mission 2 |  |  |  |
-| DEBRIEF2 | Finish mission 2 |  |  |  |
-| DEBRIEF | Finish mission 1 |  |  |  |
-| TBRIEF | Start mission 3 |  |  |  |
-| BRIEF | Start mission 1 and show the mission briefing |  |  |  |
-| BRIS | Clear the screen, display "INCOMING MESSAGE" and wait for 2 |  |  |  |
-| PAUSE | Wait until a key is pressed for the Constrictor mission briefing |  |  |  |
-| PAS1 | Change to the text view for the Constrictor mission briefing |  |  |  |
-| THERE | Check whether we are in the Constrictor's system in mission 1 |  |  |  |
+| BRIEF2 | Start mission 2 | verificada | `brief2` | mision 2: ir a Ceerdi, make test_missions |
+| BRP | Print an extended token and show the Status Mode screen | verificada | `brief2`, `brief3`, `debrief`, `debrief2` | ficha y BAY, make test_missions |
+| BRIEF3 | Receive the briefing and plans for mission 2 | verificada | `brief3` | los planos en Ceerdi, make test_missions |
+| DEBRIEF2 | Finish mission 2 | verificada | `debrief2` | planos entregados: ENGY = 2, TALLY+1, make test_missions |
+| DEBRIEF | Finish mission 1 | verificada | `debrief` | Constrictor destruido: 5.000 CR, make test_missions |
+| TBRIEF | Start mission 3 | no-necesaria |  | comentada en el original (Trumbles, que esta version no tiene) |
+| BRIEF | Start mission 1 and show the mission briefing | verificada | `brief` | mision 1: el Constrictor girando (LL9/MVEIT) y la ficha 10, make test_missions |
+| BRIS | Clear the screen, display "INCOMING MESSAGE" and wait for 2 | verificada | `bris` | INCOMING MESSAGE y DELAY 100 (ficha de salto 25), make test_missions |
+| PAUSE | Wait until a key is pressed for the Constrictor mission briefing | verificada | `mis_pause` | PAUSE2 y PAS1 (ficha de salto 22), make test_missions |
+| PAS1 | Change to the text view for the Constrictor mission briefing | verificada | `pas1`, `mis_tt66` | TT66 con la vista 1, make test_missions |
+| THERE | Check whether we are in the Constrictor's system in mission 1 | verificada | `there` | sistema del Constrictor, make test_missions |
 | TRIBTA | A table for converting the number of Trumbles in the hold into a | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
 | TRIBMA | A table for converting the number of Trumbles in the hold into a | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
 
@@ -576,50 +573,50 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | yetanotherrts | Contains an RTS | no-necesaria |  | contiene solo un RTS |
 | SFRMIS | Add an enemy missile to our local bubble of universe | verificada | `sfrmis` | a traves de TACTICS |
 
-## Text (34 portadas de 77, 41 no necesarias, 2 sin portar)
+## Text (73 portadas de 77, 4 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| MT27 | Print the captain's name during mission briefings |  |  |  |
-| MT28 | Print the location hint during the mission 1 briefing |  |  |  |
-| DETOK3 | Print an extended recursive token from the RUTOK token table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DETOK | Print an extended recursive token from the TKN1 token table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DETOK2 | Print an extended text token (1-255) | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT1 | Switch to ALL CAPS when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT2 | Switch to Sentence Case when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT8 | Tab to column 6 and start a new word when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT9 | Clear the screen and set the current view type to 1 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT13 | Switch to lower case when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT6 | Switch to standard tokens in Sentence Case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT5 | Switch to extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT14 | Switch to justified text when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT15 | Switch to left-aligned text when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT17 | Print the selected system's adjective, e.g. Lavian for Lave | propia | `goat_soup` | adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c) |
-| MT18 | Print a random 1-8 letter word in Sentence Case | propia | `goat_soup` | adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c) |
-| MT19 | Capitalise the next letter | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| VOWEL | Test whether a character is a vowel | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| WHITETEXT | Switch to white text | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| JMTB | The extended token table for jump tokens 1-32 (DETOK) | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| TKN2 | The extended two-letter token lookup table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| QQ16 | The two-letter token lookup table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT27 | Print the captain's name during mission briefings | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT28 | Print the location hint during the mission 1 briefing | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| DETOK3 | Print an extended recursive token from the RUTOK token table | verificada | `detok3` | motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas |
+| DETOK | Print an extended recursive token from the TKN1 token table | verificada | `detok` | motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas |
+| DETOK2 | Print an extended text token (1-255) | verificada | `detok2` | motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas |
+| MT1 | Switch to ALL CAPS when printing extended tokens | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT2 | Switch to Sentence Case when printing extended tokens | verificada | `dt_mt2` | ficha de salto (detok.c), make test_missions |
+| MT8 | Tab to column 6 and start a new word when printing extended tokens | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT9 | Clear the screen and set the current view type to 1 | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT13 | Switch to lower case when printing extended tokens | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT6 | Switch to standard tokens in Sentence Case | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT5 | Switch to extended tokens | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT14 | Switch to justified text when printing extended tokens | verificada | `dt_mt14` | ficha de salto (detok.c), make test_missions |
+| MT15 | Switch to left-aligned text when printing extended tokens | verificada | `dt_mt15` | ficha de salto (detok.c), make test_missions |
+| MT17 | Print the selected system's adjective, e.g. Lavian for Lave | verificada | `jump` | adjetivo del sistema; reproduce el fallo del original (LDA BUF-1,X en pagina cero: VOWEL mira la pagina cero), make test_missions |
+| MT18 | Print a random 1-8 letter word in Sentence Case | verificada | `jump` | 1 a 4 fichas de dos letras al azar con los acarreos de DORND del original, make test_missions |
+| MT19 | Capitalise the next letter | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| VOWEL | Test whether a character is a vowel | verificada | `vowel` | dentro de MT17 (detok.c) |
+| WHITETEXT | Switch to white text | no-necesaria |  | RTS compartido con VOWEL (VRTS); en C no hace falta |
+| JMTB | The extended token table for jump tokens 1-32 (DETOK) | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| TKN2 | The extended two-letter token lookup table | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| QQ16 | The two-letter token lookup table | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | plf2 | Print text followed by a newline and indent of 6 characters | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
 | TENS | A constant used when printing large numbers in BPRNT | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
 | pr2 | Print an 8-bit number, left-padded to 3 digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
 | TT11 | Print a 16-bit number, left-padded to n digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
 | BPRNT | Print a 32-bit number, left-padded to a specific number of digits, | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
-| DTW1 | A mask for applying the lower case part of Sentence Case to | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DTW2 | A flag that indicates whether we are currently printing a word | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DTW3 | A flag for switching between standard and extended text tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DTW4 | Flags that govern how justified extended text tokens are printed | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DTW5 | The size of the justified text buffer at BUF | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DTW6 | A flag to denote whether printing in lower case is enabled for | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| DTW8 | A mask for capitalising the next letter in an extended text token | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DTW1 | A mask for applying the lower case part of Sentence Case to | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| DTW2 | A flag that indicates whether we are currently printing a word | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| DTW3 | A flag for switching between standard and extended text tokens | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| DTW4 | Flags that govern how justified extended text tokens are printed | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| DTW5 | The size of the justified text buffer at BUF | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| DTW6 | A flag to denote whether printing in lower case is enabled for | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
+| DTW8 | A mask for capitalising the next letter in an extended text token | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | FEED | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| MT16 | Print the character in variable DTW7 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| TT26 | Print a character at the text cursor, with support for verified | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
-| MT23 | Move to row 9 and switch to lower case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MT29 | Move to row 5 and switch to lower case when printing extended | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| MTIN | Lookup table for random tokens in the extended token table (0-37) | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT16 | Print the character in variable DTW7 | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| TT26 | Print a character at the text cursor, with support for verified | verificada | `dt_dasc` | DASC con la justificacion de LL = 30 (detok.c); las pantallas propias siguen con txt_putc, make test_missions |
+| MT23 | Move to row 9 and switch to lower case | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MT29 | Move to row 5 and switch to lower case when printing extended | verificada | `jump` | ficha de salto (detok.c), make test_missions |
+| MTIN | Lookup table for random tokens in the extended token table (0-37) | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | DOXC | Move the text cursor to a specific column | propia | `txt_col` | columna del cursor |
 | DOYC | Move the text cursor to a specific row | propia | `txt_row` | fila del cursor |
 | INCYC | Move the text cursor to the next row | propia | `txt_row` | fila del cursor |
@@ -635,24 +632,24 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | dn2 | Make a low, long beep and delay for 0.5 seconds | propia | `snd_boop` | pitido largo y espera |
 | plf | Print a text token followed by a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
 | TT68 | Print a text token followed by a colon | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TT73 | Print a colon | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TT27 | Print a text token | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| TT42 | Print a letter in lower case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| TT41 | Print a letter according to Sentence Case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| qw | Print a recursive token in the range 128-145 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| crlf | Tab to column 21 and print a colon | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TT45 | Print a letter in lower case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| TT46 | Print a character and switch to capitals | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| TT74 | Print a character | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| TT43 | Print a two-letter token or recursive token 0-95 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
-| ex | Print a recursive token | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TT73 | Print a colon | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| TT27 | Print a text token | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| TT42 | Print a letter in lower case | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| TT41 | Print a letter according to Sentence Case | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| qw | Print a recursive token in the range 128-145 | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| crlf | Tab to column 21 and print a colon | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| TT45 | Print a letter in lower case | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| TT46 | Print a character and switch to capitals | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| TT74 | Print a character | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| TT43 | Print a two-letter token or recursive token 0-95 | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
+| ex | Print a recursive token | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
 | MT26 | Fetch a line of text from the keyboard | propia | `edit_text` | lectura de una linea del teclado |
 | RLINE | The OSWORD configuration block used to fetch a line of text from | propia | `edit_text` | lectura de una linea del teclado |
 | CHPR2 | Character print vector handler | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | R5 | Make a beep and jump back into the character-printing routine at | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | RR5 | Print a character in the text screen mode | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | TT67K | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| CHPR | Print a character at the text cursor by poking into screen memory | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
+| CHPR | Print a character at the text cursor by poking into screen memory | verificada | `dt_chpr` | salida del motor de fichas: XC/YC, saltos de linea, clss (detok.c); las pantallas propias siguen con txt_putc, make test_missions |
 | letter | Draw a character in the high-resolution screen mode using the game | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
 | letter2 | Draw a character or indicator bulb bitmap in the high-resolution | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
 | SETXC | Move the text cursor to a specific column | propia | `txt_col` | columna del cursor |
@@ -671,7 +668,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | SPIN | Randomly spawn cargo from a destroyed ship | verificada | `spin`, `spin2` | la cantidad es tipo AND byte 0 AND 15 (el TYA tapa el numero aleatorio) |
 | UNIV | Table of pointers to the local universe's ship data blocks | propia | `state_slot` | tabla de punteros a los bloques de las naves |
 | SFS1 | Spawn a child ship from the current (parent) ship | verificada | `sfs1` | nave hija desde K%; velocidad de los restos = X de DORND AND 15; acarreos modelados |
-| PDESC | Print the system's extended description or a mission 1 directive | propia | `uni_describe` | descripcion del sistema; falta la directiva de la mision 1 |
+| PDESC | Print the system's extended description or a mission 1 directive | verificada | `pdesc`, `uni_describe` | descripciones especiales (RUPLA/RUGAL/RUTOK) con NRU% = 26: el original pone 0 y recorre memoria; la normal sigue con Text Elite, make test_missions |
 | GINF | Fetch the address of a ship's data block into INF | no-necesaria |  | el puntero INF no existe en C: se indexa por ranura |
 | ping | Set the selected system to the current system | sin-verificar | `chart_ping` | tecla O: el cursor vuelve al sistema actual |
 | TT20 | Twist the selected system's seeds four times | propia | `twist`, `nextgalaxy` | giro de las semillas (universe.c, de Text Elite) |

@@ -403,48 +403,7 @@ ERTAB save_errstr propia mensajes de error de disco
 S1% save_dev propia unidad y directorio
 thislong - no-necesaria longitud de los nombres: en C se calcula con strlen
 oldlong - no-necesaria longitud de los nombres: en C se calcula con strlen
-DETOK3 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DETOK - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DETOK2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT1 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT5 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT6 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT8 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT9 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT13 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT14 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT15 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT16 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT19 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT23 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT29 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MTIN - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-JMTB - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TKN2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-QQ16 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DTW1 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DTW2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DTW3 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DTW4 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DTW5 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DTW6 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-DTW8 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-VOWEL - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-qw - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-ex - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TT43 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TT27 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TT41 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TT42 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TT45 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TT46 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-TT74 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-WHITETEXT - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
-MT17 goat_soup propia adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c)
-MT18 goat_soup propia adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c)
-TT26 txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
-CHPR txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
+WHITETEXT - no-necesaria RTS compartido con VOWEL (VRTS); en C no hace falta
 letter txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
 letter2 txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
 CHPR2 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
@@ -461,9 +420,7 @@ plf2 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos
 spc txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
 prq txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
 TT68 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
-TT73 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
 TT162 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
-crlf txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
 DOXC txt_col propia columna del cursor
 SETXC txt_col propia columna del cursor
 DOYC txt_row propia fila del cursor
@@ -491,14 +448,11 @@ ypl put_name,chart_info propia nombre del sistema, del actual y numero de galaxi
 tal put_name,chart_info propia nombre del sistema, del actual y numero de galaxia
 TT146 chart_info propia distancia en anos luz
 TT70 uni_describe propia MAINLY en la descripcion del sistema
-PDESC uni_describe propia descripcion del sistema; falta la directiva de la mision 1
 NwS1 make_station propia los tres NwS1 que invierten el morro de la estacion
 KS1 ship_kill propia quita la nave y desplaza las demas
 KS4 ships_step propia la estacion se quita y vuelve el sol (regla propia)
 spasto ship_bp_for propia plano de la estacion (Coriolis o Dodo)
 KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
-Main ships_step,flight_run,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock parcial bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (verificados con make test_laser, test_damage, test_equip, test_tactics); faltan la generacion de encuentros (parte 13, TT100), la aparicion de la estacion (parte 14) y los Thargoides fuera del hiperespacio
-DOENTRY flight_run,combat_collide parcial se atraca entrando por la ranura (ISDK), con el ordenador de atraque (C) o, sin el, con C (provisional); energia y escudos se reponen al despegar; falta el progreso de las misiones (paso de misiones)
 
 LL129 ll129 verificada dentro de ship3d.c (pendiente de la linea, verificada con el 6502)
 # --- paso 3a: laser y danos (2026-10-17), verificadas contra el 6502 con make test_laser (tools/gen_laser.py)
@@ -542,4 +496,63 @@ FRMIS frmis,missile_fire sin-verificar FRS1 (verificada) + ANGRY + ABORT; cae en
 FR1 fr1 propia MISSILE JAMMED (mensaje)
 SFRMIS sfrmis verificada a traves de TACTICS
 KS2 ks2 verificada make test_tactics
-
+# --- misiones y motor de fichas (2026-10-17)
+DETOK detok verificada motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas
+DETOK2 detok2 verificada motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas
+DETOK3 detok3 verificada motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas
+MT1 jump verificada ficha de salto (detok.c), make test_missions
+MT2 dt_mt2 verificada ficha de salto (detok.c), make test_missions
+MT5 jump verificada ficha de salto (detok.c), make test_missions
+MT6 jump verificada ficha de salto (detok.c), make test_missions
+MT8 jump verificada ficha de salto (detok.c), make test_missions
+MT9 jump verificada ficha de salto (detok.c), make test_missions
+MT13 jump verificada ficha de salto (detok.c), make test_missions
+MT14 dt_mt14 verificada ficha de salto (detok.c), make test_missions
+MT15 dt_mt15 verificada ficha de salto (detok.c), make test_missions
+MT16 jump verificada ficha de salto (detok.c), make test_missions
+MT19 jump verificada ficha de salto (detok.c), make test_missions
+MT23 jump verificada ficha de salto (detok.c), make test_missions
+MT29 jump verificada ficha de salto (detok.c), make test_missions
+MT27 jump verificada ficha de salto (detok.c), make test_missions
+MT28 jump verificada ficha de salto (detok.c), make test_missions
+MT17 jump verificada adjetivo del sistema; reproduce el fallo del original (LDA BUF-1,X en pagina cero: VOWEL mira la pagina cero), make test_missions
+MT18 jump verificada 1 a 4 fichas de dos letras al azar con los acarreos de DORND del original, make test_missions
+MTIN tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+JMTB tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+TKN2 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+QQ16 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+DTW1 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+DTW2 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+DTW3 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+DTW4 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+DTW5 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+DTW6 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+DTW8 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
+VOWEL vowel verificada dentro de MT17 (detok.c)
+qw dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+ex dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT43 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT27 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT41 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT42 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT45 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT46 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT74 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+crlf dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT73 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
+TT26 dt_dasc verificada DASC con la justificacion de LL = 30 (detok.c); las pantallas propias siguen con txt_putc, make test_missions
+CHPR dt_chpr verificada salida del motor de fichas: XC/YC, saltos de linea, clss (detok.c); las pantallas propias siguen con txt_putc, make test_missions
+PDESC pdesc,uni_describe verificada descripciones especiales (RUPLA/RUGAL/RUTOK) con NRU% = 26: el original pone 0 y recorre memoria; la normal sigue con Text Elite, make test_missions
+BRIEF brief verificada mision 1: el Constrictor girando (LL9/MVEIT) y la ficha 10, make test_missions
+BRIEF2 brief2 verificada mision 2: ir a Ceerdi, make test_missions
+BRIEF3 brief3 verificada los planos en Ceerdi, make test_missions
+DEBRIEF2 debrief2 verificada planos entregados: ENGY = 2, TALLY+1, make test_missions
+DEBRIEF debrief verificada Constrictor destruido: 5.000 CR, make test_missions
+BRP brief2,brief3,debrief,debrief2 verificada ficha y BAY, make test_missions
+BRIS bris verificada INCOMING MESSAGE y DELAY 100 (ficha de salto 25), make test_missions
+PAUSE mis_pause verificada PAUSE2 y PAS1 (ficha de salto 22), make test_missions
+PAS1 pas1,mis_tt66 verificada TT66 con la vista 1, make test_missions
+THERE there verificada sistema del Constrictor, make test_missions
+TBRIEF - no-necesaria comentada en el original (Trumbles, que esta version no tiene)
+DOENTRY missions_doentry,missions_choose,flight_run,combat_collide verificada la decision de las sesiones informativas (EN1..EN5) verificada con make test_missions; se atraca por la ranura (ISDK), con el ordenador de atraque o, sin el, con C (provisional); energia y escudos se reponen al despegar
+Main ships_step,flight_run,encounters_tick,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock parcial bucle principal: naves, laser, choques, recogida, atraque, parte 15, bomba, ECM y misiles (make test_laser, test_damage, test_equip, test_tactics) y aparicion de naves de las partes 1 a 4 con MCNT bajando como en el original (make test_missions); falta la aparicion de la estacion (parte 14)

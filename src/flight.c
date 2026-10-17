@@ -18,6 +18,7 @@
 #include "damage.h"
 #include "equip.h"
 #include "dockit.h"
+#include "encounters.h"
 #include "tactics.h"
 #include "cmdr.h"
 
@@ -236,6 +237,7 @@ static void arrive(void)
     stars_nostm = NOST;                                     /* RES2 */
     if (!ok) { say("JUMP FAILED", 1); return; }
     space_arrive();                        /* sistema nuevo: planeta lejos y sin estacion */
+    enc_ev = 0;                            /* EV = 0 */
     stars_new();
     view_extras();
     while (*p) b[i++] = *p++;
@@ -325,6 +327,7 @@ int flight_run(void)
     combat_mess_hook = flight_mess;
     combat_mess_off_hook = flight_mess_off;
     space_launch();
+    enc_ev = 0;
     redraw_all();
     snd_sohiss(0); snd_sohiss(0);                           /* LAUN */
     do_tunnel(8);                                           /* tunel de lanzamiento (STP = 8) */
@@ -349,7 +352,7 @@ int flight_run(void)
             if (ch == 'p') { dock_auto = 0; ch = -1; }     /* KY20: MA76..MA78 */
             if (ch == 'b') { bomb_key(); ch = -1; }        /* KY12: MA24..MA76 */
             if (ch == 'j') {                                /* KY18: WARP */
-                if (warp()) { mcnt = 1; clear_view(); stars_new(); view_extras(); }
+                if (warp()) { mcnt = 1; enc_ev = 0; clear_view(); stars_new(); view_extras(); }
                 ch = -1;
             }
             if (ch == KC_ESC) {                             /* KY13: capsula de escape (no en el hiperespacio) */
@@ -382,6 +385,8 @@ int flight_run(void)
         stars_set_speed(zDELTA);                            /* DELT4 */
         stars_update((u8)view);                             /* STARS */
         dly_tick();                                         /* TT100: el mensaje en vuelo caduca */
+        mcnt--;                                             /* me3: DEC MCNT; a 0, partes 2-4 (aparicion de naves) */
+        if (mcnt == 0) encounters_tick(em_rand_c);          /* acarreo: el del ultimo DORND (el del 6502 sale de M%) */
         laser_cool();                                       /* MLOOP: enfriamiento y cuenta del pulso */
         dash_update();
         if (hyper && ++hyper_tick >= HYPER_FRAMES) {

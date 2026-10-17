@@ -29,9 +29,10 @@ SHIP="$S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath
 DASHM="$S/dash.c $S/space.c $S/stars.c $S/ships.c $S/combat.c $S/damage.c $S/equip.c $S/dockit.c $S/tactics.c $S/move.c $S/sun.c $S/chart.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $S/sound.c $S/sound_host.c $GFX"
 CHARTS="$S/chart.c $S/sun.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $GFX"
 GAME="$S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $GFX"
-FULL="$S/app.c $S/menu.c $S/chart.c $S/sun.c $S/dash.c $S/space.c $S/stars.c $S/ships.c $S/combat.c $S/damage.c $S/equip.c $S/dockit.c $S/tactics.c $S/move.c $S/flight.c $S/input.c $S/keys.c $S/keys_host.c $S/sound.c $S/sound_host.c $S/game.c $S/cmdr.c $S/save.c $S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $S/gfx.c $S/text.c $S/universe.c"
+FULL="$S/app.c $S/menu.c $S/chart.c $S/sun.c $S/dash.c $S/space.c $S/stars.c $S/ships.c $S/combat.c $S/damage.c $S/equip.c $S/dockit.c $S/tactics.c $S/move.c $S/flight.c $S/encounters.c $S/missions.c $S/detok.c $S/input.c $S/keys.c $S/keys_host.c $S/sound.c $S/sound_host.c $S/game.c $S/cmdr.c $S/save.c $S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $S/gfx.c $S/text.c $S/universe.c"
 fail=0
-for p in gfxfast:"$GFX" emath:"$S/emath.c $S/state.c" keys:"$S/keys.c $S/keys_host.c $GFX" ships:"$SHIP" game:"$GAME" charts:"$CHARTS" dash:"$DASHM" flight:"$DASHM" session:"$FULL"; do
+MISS="$S/detok.c $S/missions.c $S/encounters.c $S/menu.c $S/shipview.c $S/input.c $S/keys.c $S/keys_host.c $DASHM"
+for p in gfxfast:"$GFX" emath:"$S/emath.c $S/state.c" keys:"$S/keys.c $S/keys_host.c $GFX" ships:"$SHIP" game:"$GAME" charts:"$CHARTS" dash:"$DASHM" flight:"$DASHM" session:"$FULL" missions:"$MISS"; do
   name=${p%%:*}; mods=${p#*:}; src=$ROOT/tests/c68/probe_$name.c
   if [ $# -gt 0 ]; then case " $* " in *" $name "*) ;; *) continue ;; esac; fi        # make c68_check: solo las sondas indicadas
   gcc -std=gnu89 -O1 -I$S -o host_$name $src $mods $S/plat_host.c -lm 2>/dev/null

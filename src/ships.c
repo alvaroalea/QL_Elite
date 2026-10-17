@@ -320,13 +320,17 @@ int frs1(u8 type)
 }
 
 /* GTHG: un Thargoid agresivo (Ze, IA = $FF) y un Thargon en el mismo sitio */
-void gthg(void)
+u8 gthg(void)
 {
     ze();
     inwk[32] = 0xFF;
     ship_new(SHIPT_THARGOID);
-    ship_new(SHIPT_THARGON);
+    return (u8)(ship_new(SHIPT_THARGON) >= 0);           /* JMP NWSHP: C = 1 si cabe */
 }
+
+u8 ships_ze(void) { return ze(); }
+
+u8 *ships_heap(int n) { return heaps[n]; }
 
 /* ESCAPE (la parte que mueve la nave): nuestra Cobra sale delante (FRS1 con CYL o, si no cabe, CYL2) y se aleja durante
    97 fotogramas (MVEIT + LL9 sobre INWK); luego se borra del radar. El resto (carga, FIST, cupula, combustible y GOIN) lo
