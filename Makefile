@@ -21,6 +21,13 @@ test:
 	gcc -O2 -Isrc -o tests/test_emath2 tests/test_emath2.c src/emath.c
 	./tests/test_emath
 	./tests/test_emath2
+	$(MAKE) test_state
+
+# Estado del juego y rutinas dependientes (ship_math.c) contra la transcripcion literal del 6502
+test_state:
+	python3 tools/gen_vectors3.py
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_state tests/test_state.c src/ship_math.c src/state.c src/emath.c
+	./tests/test_state
 
 # Prueba de teclado/joystick con matriz simulada
 test_keys:

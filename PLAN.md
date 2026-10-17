@@ -16,7 +16,13 @@ text.c: celdas 8x8 (32x32), tinta/papel/transparente, \n \r \b, ajuste de linea,
 
 ## Aritmetica (hecha salvo lo que depende del estado del juego; probada en PC)
 emath.c: DORND, MULTU/MU11, SQUA, MULT1/MULT12, MAD, ADD, MULTS, FMLTU/FMLTU2 (tablas log y senos), MLTU2, MLU1/MLU2, MULT3, TIS1/TIS2/DVID96, LL5 (raiz cuadrada), LL28/LL61 (division por logaritmos), LL38, DVID4/DV41/DV42, DVIDT, DVID3B. `make test` compara ~895.000 casos con una transcripcion literal del 6502.
-Pendiente (leen o escriben el estado del juego: INWK, K%, etc.): TIS3, TAS1-TAS6, MAS1-MAS4, VCSU1/VCSUB, SPS1-4, LCASH/MCASH/GCASH, PROJ, TIDY, NORM, SCALEX/Y. No hay ARCTAN en el codigo de esta version.
+Las que dependen del estado del juego estan en ship_math.c (ver la seccion siguiente).
+
+## Estado del juego y aritmetica dependiente (hecho en PC, probado)
+- `state.h/state.c`: bloque de nave INWK (37 bytes; desplazamientos `I_*`), tabla K% (`ks`, NOSH+1 ranuras de NI bytes: una de resguardo porque UNIV tiene NOSH+1 entradas), `univ[]` (UNIV), `frin[]` (FRIN, NOSH+1), `many[]` (MANY; `sspr` = many[SHIP_SST]), junk/auto/ecmp/mj, espacio de trabajo de la pagina cero (P+2, K3/K4 contiguos en `zk3[16]`, XX15, XX12, XX16) y las variables QQ* y del comandante con los tamanos del original (CASH en big-endian). `state_clear()` pone todo a cero e inicializa UNIV. K, P, P+1, Q, R, S, T, U siguen en emath (zK, zP, zP1...).
+- `ship_math.c`: MVT3, MAS1-MAS4, TAS1, VCSUB/VCSU1, TAS2, TAS3, TAS4, TAS6, NORM, TIS3, TIDY, SPS1-SPS4, PLS6 y PROJ (PLS6 y MVT3 no estaban en la lista pero son dependencias directas), LCASH/MCASH/GCASH, SCALEX/SCALEY/SCALEY2. Respeta las caidas entre rutinas del 6502 (TAS2 -> NORM, SPS1/SPS4 -> TAS2, TIS3 -> DVIDT, TAS3/TAS4 -> MAD, SCALEY -> SCALEY2, LCASH -> MCASH) y los acarreos de entrada/salida (p. ej. SQUA2 sale siempre con C = 0). TAS5 no existe en esta version.
+- Prueba: `make test_state` (parte de `make test`): tools/ref6502_state.py transcribe el 6502 literalmente, tools/gen_vectors3.py genera 81.000 casos (27 rutinas x 3.000, con entradas aleatorias y valores limite) y tests/test_state.c los compara. Verificado con mutaciones: la prueba detecta cambios de un bit en acarreos, signos y ramas.
+- Limites conocidos: V (puntero de VCSUB/TAS1) se pasa como puntero; los offsets Y de MAS2/MAS3 son 0 o NI (ranuras 0 y 1), como en el original; las transcripciones del 6502 son propias, no el binario (ver pruebas contra el original).
 
 ## Teclado y joystick (hecho en PC; backend QL sin probar)
 keys.c: matriz KEYROW por IPC (comando 9), teclas simultaneas, flancos, cola de caracteres (UK, provisional), joysticks CTL1 (cursores+espacio) y CTL2 (F1-F5), controles de vuelo de Elite. `make test_keys` (27 pruebas). Backend QL: keys_ql.c + ql_ipc.s (trap #1 MT.IPCOM). `make ql_keys` genera una demo interactiva para validar en el QL.
