@@ -9,7 +9,7 @@ host:
 
 # -Isrc necesario: qcc busca "platform.h" en el directorio actual. El programa del QL es la prueba de texto.
 ql:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o elite_ql src/test_text.c $(COMMON) src/plat_ql.c src/keys.c src/keys_ql.c src/ql_ipc.s -lm
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o elite_ql src/test_text.c $(COMMON) src/plat_ql.c src/keys.c src/keys_ql.c src/ql_ipc.asm -lm
 
 # Pruebas de aritmetica: regenera tablas y vectores (referencia literal del 6502) y compara con emath.c
 test:
@@ -31,7 +31,7 @@ test_keys:
 host_demo_keys:
 	gcc -std=c89 -pedantic -Wall -O2 -DHOST_DEMO -Isrc -o demo_keys_host src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/plat_host.c
 ql_keys:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o keys_ql src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/plat_ql.c src/ql_ipc.s
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o keys_ql src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/plat_ql.c src/ql_ipc.asm
 
 # Pruebas de sonido (bloques IPC y prioridades)
 test_sound:
@@ -40,4 +40,21 @@ test_sound:
 
 # Demo de sonido para el QL
 ql_sound:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o sound_ql src/demo_sound.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/sound.c src/sound_ql.c src/plat_ql.c src/ql_ipc.s
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o sound_ql src/demo_sound.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/sound.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm
+
+# Universo: construye el oraculo desde TXTELITE.C 1.5, vuelca ambos y compara
+test_universe:
+	python3 tools/gen_universe_text.py
+	python3 tools/make_oracle.py
+	gcc -w -funsigned-char -o tests/oracle/oracle tests/oracle/oracle.c -lm
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/dump_universe tests/dump_universe.c src/universe.c src/emath.c
+	./tests/oracle/oracle > tests/oracle/oracle.txt
+	./tests/dump_universe > tests/oracle/ours.txt
+	python3 tests/compare_universe.py tests/oracle/oracle.txt tests/oracle/ours.txt
+
+# Demo de ficha de sistema (datos, descripcion y mercado)
+host_demo_universe:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o demo_universe src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/plat_host.c
+	./demo_universe && python3 tools/ql2png.py screen.bin demo_universe.png
+ql_universe:
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o universe_ql src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/plat_ql.c

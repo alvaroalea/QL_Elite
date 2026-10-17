@@ -24,6 +24,9 @@ keys.c: matriz KEYROW por IPC (comando 9), teclas simultaneas, flancos, cola de 
 ## Sonido (hecho en PC; backend QL sin probar)
 sound.c: efectos del original (SOBEEP, SOBLIP, SOEXPL, SOHISS, SOBOMB, LASNOISE, BEEP, BOOP, BELL, EXNO*, DEATH) traducidos a BEEP del IPC (comando 10) con los tiempos del 6502; BEEP OFF (11); prioridades para que un efecto menor no pise uno mayor; snd_enable = DNOIZ. `make test_sound` (26 pruebas). `make ql_sound` genera una demo para ajustar de oido (SND_NOISE_FUZZ/RND). Ruido y barridos son aproximaciones: el pitch del QL no es lineal y no se ha podido oir.
 
+## Universo (hecho en PC, probado contra el oraculo)
+universe.c: galaxias, sistemas, mercado, distancia, hiperespacio galactico y descripciones, portados de TXTELITE.C 1.5 (Ian Bell). `make test_universe` compila el TXTELITE.C original como oraculo y compara 8 galaxias: sistemas, descripciones y mercados identicos (12.288 registros); la distancia sigue el algoritmo del 6502 (verificada contra una version independiente en 131.072 pares), no el calculo en coma flotante de Text Elite. Demo: `make host_demo_universe` / `make ql_universe`.
+
 ## Pendiente
 1.  (texto completado)   2. Teclado (IPC, rollover) y joystick.   3. Sonido (BEEP/IPC).
 4. Matematica y aleatorios (DORND, MULTU, divisiones).   5. Proyeccion 3D y dibujo de naves (LL9).
