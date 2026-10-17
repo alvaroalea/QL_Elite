@@ -9,7 +9,7 @@ static unsigned long frames = 0;
 void in_init(void)
 {
     key_init();
-    key_set_rows(0xFF);
+    key_ctx_menu();
     in_quit = 0;
     frames = 0;
 }

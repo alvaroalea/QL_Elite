@@ -33,6 +33,9 @@ int ql_read_row(int row);
 
 void key_init(void);
 void key_set_rows(u8 mask);        /* filas a leer en cada key_scan (bit n = fila n); cada fila cuesta una llamada al IPC */
+void key_set_scan(u8 fast, u8 slow);   /* fast: filas de cada scan; slow: filas que se leen de una en una, rotando */
+void key_ctx_menu(void);           /* menus: filas 1 y 7 siempre, el resto rotando (3 lecturas por scan) */
+void key_ctx_flight(void);         /* vuelo: filas 1, 4 y 7 siempre; 0, 2, 3 y 6 rotando; la 5 no se lee (4 lecturas por scan) */
 void key_scan(void);               /* lee las filas, calcula flancos y llena la cola de caracteres */
 int  key_down(u8 k);               /* tecla mantenida */
 int  key_pressed(u8 k);            /* paso a pulsada en este scan */
@@ -49,7 +52,7 @@ int  key_getchar(void);            /* siguiente caracter ASCII (disposicion UK),
 #define JOY_FIRE  16
 int joy_read(int port);            /* port 1 o 2; usa las filas ya leidas por key_scan */
 
-/* Controles de vuelo de Elite (teclas del original Apple II) y joystick opcional */
+/* Controles de vuelo de Elite: cursores = alabeo y cabeceo (y joystick CTL1), espacio acelerar, / frenar, A laser, resto como el original */
 struct controls {
     u8 slow_down, speed_up, roll_left, roll_right, pitch_up, pitch_down, fire;      /* primarios */
     u8 bomb, escape_pod, target, unarm, missile, ecm, jump, dock, undock;            /* secundarios */

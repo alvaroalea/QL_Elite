@@ -11,8 +11,20 @@
 
 static u8 q19[6];                                 /* QQ19..QQ19+5 */
 
-static void hloin(u8 x1, u8 x2, u8 y) { gfx_hline_xor(x1, x2, y, sun_col); }
+/* HLOIN del original: X1 y X2 se enmascaran a coordenadas pares (granularidad de 2 puntos del modo Apple II), se ordenan y la linea
+   cubre de X1 a X2-1 (el extremo derecho se calcula con X2-2); si quedan iguales no dibuja nada. Esto alinea el marco con sus
+   verticales y centra los brazos de las cruces. (SUN usa su propio hloin sin enmascarar: ver sun.c.) */
+static void hloin(u8 x1, u8 x2, u8 y)
+{
+    u8 t;
+    x1 = (u8)(x1 & 0xFE); x2 = (u8)(x2 & 0xFE);
+    if (x1 == x2) return;
+    if (x1 > x2) { t = x1; x1 = x2; x2 = t; }
+    gfx_hline_xor(x1, (u8)(x2 - 1), y, sun_col);
+}
 static void vloin(u8 x, u8 y1, u8 y2) { gfx_line(x, y1, x, y2, sun_col, 1); }
+/* DVLOIN: vertical del marco de la galactica, de GCYT a GCYB; dos puntos de ancho como la granularidad de HLOIN */
+static void dvloin(u8 x) { vloin(x, GCYT, GCYB); vloin((u8)(x + 1), GCYT, GCYB); }
 
 /* TT15: cruz de tamano QQ19+2 centrada en (QQ19, QQ19+1); local = QQ11 negativo */
 static void tt15(int local)
@@ -163,11 +175,15 @@ static void tt22(void)
 {
     int i;
     u8 x, y;
-    sun_col = C_WHITE;
-    hloin(0, 255, GCYT - 1);                       /* NLIN5: linea bajo el titulo */
+    sun_col = C_BLUE;                              /* NLIN2 pone COL = BLUE y el marco la hereda */
+#if CHART_TOP_FULLWIDTH
+    hloin(0, 255, GCYT - 1);                       /* NLIN5 -> NLIN2: X1 = 0, X2 = 255 (linea bajo el titulo) */
+#else
+    hloin(30, 228, GCYT - 1);                      /* variante: la linea superior solo cierra el marco */
+#endif
     hloin(31, 228, GCYB + 1);
-    vloin(30, GCYT, GCYB);                         /* DVLOIN */
-    vloin(226, GCYT, GCYB);
+    dvloin(30);                                    /* DVLOIN */
+    dvloin(226);
     tt14(0);
     for (i = 0; i < UNI_NSYS; i++) {
         x = sm_scalex(uni_galaxy[i].x);
@@ -175,6 +191,42 @@ static void tt22(void)
         gfx_pixel(x, y, C_WHITE);                  /* PIXEL con ZZ = 255 */
     }
     chart_cursor(0);
+}
+
+/* ping: el cursor vuelve al sistema actual (QQ9, QQ10 = QQ0, QQ1) */
+void chart_ping(int local)
+{
+    chart_cursor(local);                           /* TT103: borra */
+    qq9 = qq0; qq10 = qq1;
+    game_set_target(cur_sys);
+    chart_cursor(local);                           /* TT103: dibuja */
+}
+
+/* hm: selecciona el sistema mas cercano al cursor y redibuja la cruz (TT103, TT111, TT103) */
+void chart_hm(int local)
+{
+    chart_cursor(local);
+    game_set_target(uni_nearest(qq9, qq10));       /* TT111: tambien coloca la cruz sobre el sistema */
+    chart_cursor(local);
+}
+
+/* HME2 (parte de datos): busca un sistema por nombre, sin distinguir mayusculas; devuelve su indice o -1.
+   Compara el nombre completo, como el original (que compara con el texto que imprimiria cpl). */
+int chart_find_system(const char *name)
+{
+    int i, k;
+    char a, b;
+    for (i = 0; i < UNI_NSYS; i++) {
+        const char *p = uni_galaxy[i].name;
+        for (k = 0; ; k++) {
+            a = name[k]; b = p[k];
+            if (a >= 'A' && a <= 'Z') a = (char)(a + 32);
+            if (b >= 'A' && b <= 'Z') b = (char)(b + 32);
+            if (a != b) break;
+            if (a == 0) return i;
+        }
+    }
+    return -1;
 }
 
 void chart_draw(int local)

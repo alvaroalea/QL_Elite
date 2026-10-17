@@ -160,6 +160,9 @@ static const int script[] = {
     '9', SNAP(6),                               /* inventario */
     '4', KC_RIGHT, KC_RIGHT, KC_DOWN, SNAP(7),  /* carta galactica */
     '5', KC_LEFT, SNAP(8),                      /* carta local */
+    'f', 'd', 'i', 's', 'o', KC_ENTER, SNAP(16), 'o', 'd',    /* buscar DISO (F), cruz en DISO; O vuelve a Lave; D */
+    'f', 'x', 'y', 'z', KC_ENTER, SNAP(17), KC_ESC,           /* nombre inexistente */
+    '5', 'f', 'l', 'a', 'v', 'e', KC_ENTER,                    /* LAVE (sistema actual) */
     '6', SNAP(9),                               /* datos */
     '8', SNAP(10),                              /* estado */
     'i', '2', KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, 'b', 'o', 'b', KC_ENTER, SNAP(11), KC_ESC,   /* disco: guardar como BOB */
@@ -199,7 +202,7 @@ int main(void)
     in_script = feed;
     game_run();
     check(sp >= sizeof script / sizeof script[0] - 3, "la sesion guiada llego al final");
-    check(snapn == 16, "16 capturas");
+    check(snapn == 18, "18 capturas");
     check(strcmp(cmdr_name, "BOB") == 0, "se cargo el comandante BOB");
     printf("sesion: %u teclas, %d capturas; %d comprobaciones, %d fallos\n", sp, snapn, total, fails);
     return fails ? 1 : 0;

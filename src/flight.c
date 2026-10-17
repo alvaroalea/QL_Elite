@@ -76,8 +76,8 @@ static void panel_static(void)
     txt_color(C_YELLOW, C_BLACK);
     txt_print_at(0, 27, "FLIGHT MODEL NOT PORTED YET");
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 29, "0-3 VIEW H JUMP G GALAXY");
-    txt_print_at(0, 30, "SPACE FASTER / SLOWER C DOCK");
+    txt_print_at(0, 29, "CURSORS TURN SPACE FAST / SLOW");
+    txt_print_at(0, 30, "0-3 VIEW H JUMP G GALAXY C DOCK");
     txt_print_at(0, 31, "SHIFT+ESC QUIT");
     txt_color(C_WHITE, C_BLACK);
     last_speed = 255; last_fuel = 255;
@@ -167,6 +167,7 @@ int flight_run(void)
 
     ui_clear();
     gfx_clear(C_BLACK);
+    key_ctx_flight();                                       /* menos filas de teclado por fotograma: ver keys.c */
     panel_static();
     stars_reset();
     view = 0; hyper = 0;
@@ -175,13 +176,13 @@ int flight_run(void)
     panel_update(1);
     for (;;) {
         ch = in_poll();
-        if (ch == KC_QUIT) return FL_QUIT;
+        if (ch == KC_QUIT) { key_ctx_menu(); return FL_QUIT; }
         if (ch >= 0) {
             ch = in_up(ch);
             if (ch >= '0' && ch <= '3') { view = ch - '0'; panel_update(0); }
             else if (ch == 'h') start_hyper(0);
             else if (ch == 'g') start_hyper(1);
-            else if (ch == 'c') { for (i = 0; i < NSTARS; i++) star_erase(&stars[i]); return FL_DOCK; }
+            else if (ch == 'c') { for (i = 0; i < NSTARS; i++) star_erase(&stars[i]); key_ctx_menu(); return FL_DOCK; }
         }
         ctl_read(&c);
         if (c.speed_up && zDELTA < SPEED_MAX) zDELTA++;

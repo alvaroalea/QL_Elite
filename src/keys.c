@@ -1,7 +1,9 @@
 #include "keys.h"
 
 static u8 cur[8], prev[8];
-static u8 rowmask = 0xFE;           /* por defecto filas 1..7 (todas las de vuelo); la 0 solo con joystick 2 */
+static u8 rowmask = 0xFE;           /* filas que se leen en CADA key_scan (por defecto 1..7) */
+static u8 slowmask = 0;             /* filas que se leen de una en una, rotando (una por key_scan) */
+static u8 slowpos = 0;
 static int queue[8];
 static int qn;
 int ctl_joystick = 0;
@@ -33,11 +35,27 @@ void key_init(void)
     int i;
     for (i = 0; i < 8; i++) cur[i] = prev[i] = 0;
     qn = 0;
-    rowmask = 0xFE;
+    rowmask = 0xFE; slowmask = 0; slowpos = 0;
     ctl_joystick = 0;
 }
 
-void key_set_rows(u8 mask) { rowmask = mask; }
+void key_set_rows(u8 mask) { rowmask = mask; slowmask = 0; }
+
+/* Cada fila cuesta una llamada al IPC (lenta en el QL real): las filas "rapidas" se leen en cada scan y las "lentas" de una
+   en una, rotando, de modo que una tecla de una fila lenta se detecta en a lo sumo (numero de filas lentas) scans. */
+void key_set_scan(u8 fast, u8 slow) { rowmask = fast; slowmask = (u8)(slow & ~fast); slowpos = 0; }
+
+/* Menus: fila 1 (cursores, ENTER, ESC, espacio) y fila 7 (SHIFT, CTRL) siempre; el resto (letras y cifras) rotando: 3 lecturas por scan */
+void key_ctx_menu(void) { key_set_scan(0x82, 0x7D); }
+
+/* Vuelo: fila 1 (cursores, espacio, ENTER, ESC), fila 4 (A, H, J, P, 1, 3) y fila 7 (/, SHIFT) siempre; filas 0, 2, 3 y 6 rotando
+   (4 y 5, C, B, M, G, E, T, U, 0, 2). La fila 5 (9, W, I, TAB, R, -, Y, O) no se lee. Con el joystick 2 la fila 0 (F1..F5) es rapida. */
+void key_ctx_flight(void)
+{
+    u8 fast = 0x92, slow = 0x4D;
+    if (ctl_joystick == 2) { fast |= 1; slow &= (u8)~1; }
+    key_set_scan(fast, slow);
+}
 
 static void enqueue(int ch) { if (qn < 8) queue[qn++] = ch; }
 
@@ -49,6 +67,12 @@ void key_scan(void)
         prev[r] = cur[r];
         if (rowmask & (1 << r)) cur[r] = (u8)ql_read_row(r);
         /* filas no leidas conservan el ultimo valor */
+    }
+    if (slowmask) {                                           /* una fila lenta por scan, en rotacion */
+        for (b = 1; b <= 8; b++) {
+            r = (slowpos + b) & 7;
+            if (slowmask & (1 << r)) { cur[r] = (u8)ql_read_row(r); slowpos = (u8)r; break; }
+        }
     }
     /* caracteres: nuevas pulsaciones (con la matriz completa en rowmask) */
     for (r = 0; r < 8; r++) {
@@ -116,10 +140,12 @@ void ctl_read(struct controls *c)
     int j = 0;
     c->slow_down  = (u8)key_down(K_SLASH);
     c->speed_up   = (u8)key_down(K_SPACE);
-    c->roll_left  = (u8)key_down(K_COMMA);
-    c->roll_right = (u8)key_down(K_PERIOD);
-    c->pitch_up   = (u8)key_down(K_X);
-    c->pitch_down = (u8)key_down(K_S);
+    /* Los cursores giran la nave (y son el joystick del puerto 1): izquierda/derecha = alabeo; arriba = picar (palanca hacia
+       delante), abajo = cabecear hacia arriba. Sustituyen a , . S X del original para leer menos filas del teclado. */
+    c->roll_left  = (u8)key_down(K_LEFT);
+    c->roll_right = (u8)key_down(K_RIGHT);
+    c->pitch_down = (u8)key_down(K_UP);
+    c->pitch_up   = (u8)key_down(K_DOWN);
     c->fire       = (u8)key_down(K_A);
     c->bomb       = (u8)key_down(K_B);
     c->escape_pod = (u8)key_down(K_ESC);

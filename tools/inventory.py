@@ -11,7 +11,7 @@ for ln in open("tools/ported.txt"):
     ln = ln.split("#")[0].strip()
     if not ln: continue
     p = ln.split()
-    ported[p[0]] = (p[1] if len(p) > 1 else "", p[2] if len(p) > 2 else "sin-verificar")
+    ported[p[0]] = (p[1] if len(p) > 1 else "", p[2] if len(p) > 2 else "sin-verificar", " ".join(p[3:]))   # funcion C, estado, nota
 rows = []
 i = 0
 while i < len(text):
@@ -33,27 +33,29 @@ for name, extra, cat, summ in rows:
     seen[name] = 1
     out.append((name, cat, summ))
 tot = len(out)
-done = sum(1 for n, c, s in out if n in ported)
+skipped = sum(1 for n, c, s in out if n in ported and ported[n][1] == 'no-necesaria')
+done = sum(1 for n, c, s in out if n in ported and ported[n][1] != 'no-necesaria')
 ver = sum(1 for n, c, s in out if n in ported and ported[n][1] == "verificada")
 bycat = {}
 for n, c, s in out:
     bycat.setdefault(c or "(sin categoria)", []).append((n, s))
 md = ["# Inventario de rutinas (Elite Apple II -> Elite QL)", "",
       "Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.", "",
-      "Rutinas: %d. Portadas: %d (verificadas con el emulador: %d)" % (tot, done, ver), "",
-      "Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto no basado en la rutina; vacio = sin portar.", ""]
+      "Rutinas: %d. Portadas o con equivalente propio: %d (verificadas con el emulador: %d). Marcadas como no necesarias en el estado actual del juego: %d." % (tot, done, ver, skipped), "",
+      "Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **no-necesaria** = la rutina no hace falta en el estado actual del juego (la nota dice por que y cuando hara falta); vacio = sin portar.", ""]
 for cat in sorted(bycat, key=lambda k: k):
     items = bycat[cat]
-    d = sum(1 for n, s in items if n in ported)
-    md.append("## %s (%d/%d)" % (cat, d, len(items)))
+    d = sum(1 for n, s in items if n in ported and ported[n][1] != 'no-necesaria')
+    nn = sum(1 for n, s in items if n in ported and ported[n][1] == 'no-necesaria')
+    md.append("## %s (%d/%d%s)" % (cat, d, len(items), (", %d no necesarias" % nn) if nn else ""))
     md.append("")
-    md.append("| Rutina | Resumen | Estado | C |")
-    md.append("|---|---|---|---|")
+    md.append("| Rutina | Resumen | Estado | C | Nota |")
+    md.append("|---|---|---|---|---|")
     for n, s in items:
         if n in ported:
-            md.append("| %s | %s | %s | `%s` |" % (n, s, ported[n][1], ported[n][0]))
+            md.append("| %s | %s | %s | %s | %s |" % (n, s, ported[n][1], ("`%s`" % ported[n][0]) if ported[n][0] != "-" else "", ported[n][2]))
         else:
-            md.append("| %s | %s |  |  |" % (n, s))
+            md.append("| %s | %s |  |  |  |" % (n, s))
     md.append("")
 open("INVENTARIO.md", "w").write("\n".join(md))
 print("rutinas %d, portadas %d, verificadas %d" % (tot, done, ver))

@@ -71,12 +71,12 @@ tnpr trade_room verificada
 TT151 trade_price sin-verificar
 TT219 trade_buy verificada
 TT208 trade_sell verificada
-EQSHP equip_buy sin-verificar
+EQSHP equip_buy sin-verificar la pantalla es scr_equip (propia); equip_buy lleva las reglas, el cobro y el reembolso
 refund laser_refund sin-verificar
 PRXS equip_price sin-verificar
-STATUS scr_status sin-verificar
-TT213 scr_inventory sin-verificar
-TT167 scr_market sin-verificar
+STATUS scr_status sin-verificar maquetacion propia; rango y estado legal en rating_name / legal_name
+TT213 scr_inventory sin-verificar maquetacion propia
+TT167 scr_market sin-verificar maquetacion propia
 TT25 scr_data sin-verificar
 TT111 uni_nearest sin-verificar
 SVE scr_disk propia
@@ -99,3 +99,35 @@ TT22 chart_draw sin-verificar
 TT23 chart_draw sin-verificar
 TT103 chart_cursor sin-verificar
 TT105 chart_cursor sin-verificar
+# --- cartas: HME2, hm, ping, TT114 y movimiento (2026-10-16)
+HME2 chart_find_system sin-verificar busqueda por nombre completo sin mayusculas; solo atracado (tecla F); la entrada de texto es edit_text en menu.c
+TT114 chart_draw sin-verificar dispatcher galactica/local; el redibujado tras un salto hecho desde una carta no hace falta aun: el salto solo se inicia desde la vista de vuelo
+hm chart_hm sin-verificar tecla D: sistema mas cercano a la cruz, nombre y distancia
+ping chart_ping sin-verificar tecla O: el cursor vuelve al sistema actual
+TT16 scr_chart propia movimiento de la mira propio: libre, y el objetivo es el sistema mas cercano (TT111); el original mueve QQ9/QQ10 directamente
+TT123 scr_chart propia suma con saturacion (clampi) en lugar de la rutina
+# --- market y equipment
+tnpr1 - no-necesaria espacio para una tonelada: solo lo usa la recogida de cargas (cazar canisters, cápsulas) en vuelo, que aun no existe; se portara con MVEIT/TACTICS
+gnum trade_screen propia la cantidad se teclea en el propio listado (cursores, cifras, M = maximo)
+NWDAV4 ui_msg propia los errores salen como mensaje en la fila 28 con sonido
+TT210 trade_screen propia la lista de venta es el mismo listado con las existencias en bodega
+TT152 unit_char propia unidad (t, kg, g) en menu.c
+TT160 unit_char propia
+TT161 unit_char propia
+TT16a unit_char propia
+TT163 market_header propia cabecera del mercado en menu.c
+var uni_gen_market sin-verificar precio = base + (QQ26 AND mask) + gradiente * economia; viene de Text Elite (universe.c), comparar con el 6502
+dn trade_info propia el dinero restante se redibuja tras cada operacion
+ITEM uni_goods sin-verificar tabla de mercancias copiada de Text Elite
+QQ23 uni_goods sin-verificar comparar con la tabla del 6502
+eq cash_spend sin-verificar dentro de equip_buy (cobra antes de reembolsar el laser antiguo)
+prx equip_price sin-verificar
+qv scr_equip propia pide la vista (0 a 3) al comprar un laser
+# --- teclado
+DOKEY ctl_read propia cursores = alabeo y cabeceo (y joystick CTL1); ya no S, X, coma, punto
+DK4 in_poll propia teclas secundarias por caracteres (key_getchar)
+TT17 in_held propia cursores o joystick
+TT217 in_wait propia
+YESNO scr_disk propia confirmaciones Y/N dentro del menu de disco
+TT214 scr_disk propia
+FLKB plat_flush_input propia

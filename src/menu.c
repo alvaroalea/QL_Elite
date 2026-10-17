@@ -12,6 +12,8 @@
 
 #define ROW_MSG 28
 
+static int edit_text(int row, const char *prompt, char *buf, int maxlen);
+
 /* ---------------------------------------------------------------- utilidades */
 
 void ui_clear(void)
@@ -437,7 +439,7 @@ static void chart_info(int local)
     txt_color(C_CYAN, C_BLACK);
     txt_print_at(0, 20, "Fuel:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); ui_tenths(qq14); txt_puts(" LY");
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 22, local ? "CURSORS=MOVE O=HOME" : "CURSORS=MOVE O=HOME");
+    txt_print_at(0, 22, qq12 ? "CURSORS O=HOME D=DIST F=FIND" : "CURSORS=MOVE O=HOME D=DIST");
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -461,12 +463,37 @@ int scr_chart(int local)
         else if (ch < 0) {
             if (in_held(KC_LEFT)) dx = -step; else if (in_held(KC_RIGHT)) dx = step;
             if (in_held(KC_UP)) dy = -step; else if (in_held(KC_DOWN)) dy = step;
-        } else if (in_up(ch) == 'o') {
-            chart_cursor(local);                                /* borra la cruz */
-            cx = qq0; cy = qq1;
-            game_set_target(uni_nearest((u8)cx, (u8)cy));
-            chart_cursor(local);
+        } else if (in_up(ch) == 'o') {                          /* O: ping, el cursor vuelve al sistema actual */
+            chart_ping(local);
+            cx = qq9; cy = qq10;
             chart_info(local);
+            continue;
+        } else if (in_up(ch) == 'd') {                          /* D: hm, sistema mas cercano a la cruz, con nombre y distancia */
+            chart_hm(local);
+            cx = qq9; cy = qq10;
+            chart_info(local);
+            continue;
+        } else if (in_up(ch) == 'f' && qq12) {                  /* F: HME2, buscar un sistema por nombre (solo atracado) */
+            char name[9];
+            int k, found;
+            for (k = 0; k < 9; k++) name[k] = 0;
+            k = edit_text(24, "PLANET NAME?", name, 8);
+            txt_clear_rows(24, 2, C_BLACK);
+            if (k > 0) {
+                found = chart_find_system(name);
+                if (found >= 0) {
+                    chart_cursor(local);
+                    game_set_target(found);
+                    chart_cursor(local);
+                    cx = qq9; cy = qq10;
+                    chart_info(local);
+                    ui_msg("FOUND", 0);
+                } else {
+                    chart_info(local);
+                    ui_msg("UNKNOWN PLANET", 1);
+                }
+            } else if (in_quit) return SC_QUIT;
+            else chart_info(local);
             continue;
         } else {
             sc = ui_nav(ch);
@@ -491,8 +518,8 @@ int scr_chart(int local)
 
 /* ---------------------------------------------------------------- nombre y disco */
 
-/* Editor de linea: devuelve la longitud (0 = cancelado con ESC). buf >= CMDR_NAMELEN + 1 */
-static int edit_name(int row, const char *prompt, char *buf)
+/* Editor de linea: devuelve la longitud (0 = cancelado con ESC). buf >= maxlen + 1; admite letras, cifras, _ y - (en mayusculas) */
+static int edit_text(int row, const char *prompt, char *buf, int maxlen)
 {
     int n = 0, ch;
     txt_clear_rows(row, 2, C_BLACK);
@@ -508,7 +535,7 @@ static int edit_name(int row, const char *prompt, char *buf)
         if (ch == KC_ENTER) { txt_cursor(0); return n; }
         if (ch == KC_BS) {
             if (n > 0) { n--; buf[n] = 0; txt_putc('\b'); txt_putc(' '); txt_putc('\b'); }
-        } else if (n < CMDR_NAMELEN &&
+        } else if (n < maxlen &&
                    ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '_' || ch == '-')) {
             if (ch >= 'a' && ch <= 'z') ch = ch - 'a' + 'A';
             buf[n++] = (char)ch; buf[n] = 0;
@@ -516,6 +543,8 @@ static int edit_name(int row, const char *prompt, char *buf)
         }
     }
 }
+
+static int edit_name(int row, const char *prompt, char *buf) { return edit_text(row, prompt, buf, CMDR_NAMELEN); }
 
 static void disk_draw(void)
 {
