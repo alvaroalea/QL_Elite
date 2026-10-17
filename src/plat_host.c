@@ -5,6 +5,7 @@ static u8 buf[SCR_BYTES];
 u8 *screen = buf;
 void plat_init(void) {}
 void plat_shutdown(void) {}
+void plat_flush_input(void) {}
 void plat_present(void)
 {
     FILE *f = fopen("screen.bin", "wb");

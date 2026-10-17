@@ -31,3 +31,8 @@ universe.c: galaxias, sistemas, mercado, distancia, hiperespacio galactico y des
 1.  (texto completado)   2. Teclado (IPC, rollover) y joystick.   3. Sonido (BEEP/IPC).
 4. Matematica y aleatorios (DORND, MULTU, divisiones).   5. Proyeccion 3D y dibujo de naves (LL9).
 6. Datos: naves, textos, galaxias, mercado.   7. Bucle principal, tacticas, combate.   8. Menus y fichero.
+
+## Consola del runtime de c68 (QL)
+- `plat_ql.c`: `plat_init` redefine la ventana de consola a pantalla completa, borde negro y sin cursor (SD.WDEF/SD.CLEAR/SD.CURS) y registra `plat_shutdown` con `atexit`.
+- La cola de teclado de la consola se vacia con IO.FBYTE (timeout 0) al arrancar, en cada `plat_present()` y al salir, para que SuperBASIC no reciba las teclas. `ql_trap3` (en `ql_ipc.asm`) es el stub generico de trap #3.
+- Pendiente de validar en QL real/emulador (QPC2, uQLx, sQLux): que `fgetchid(stdin)` devuelva el canal correcto y que no queden pulsaciones al salir.

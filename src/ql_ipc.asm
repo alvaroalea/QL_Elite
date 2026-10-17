@@ -15,3 +15,20 @@ _ql_ipc:
 ipcfin:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
+
+; ql_trap3.asm (misma unidad) - llamada generica a un trap #3 de QDOS (E/S de canal), sintaxis as68.
+; long ql_trap3(long d0, long d1, long d2, long d3, long a0, long a1)
+; Carga los registros, ejecuta trap #3 y devuelve D0 (0 = ok, negativo = error QDOS, p. ej. -1 = ERR.NC).
+; Los argumentos estan tras 11 registros guardados (44 bytes) + direccion de retorno: primero en 48(sp).
+	.globl	_ql_trap3
+_ql_trap3:
+	movem.l	d2-d7/a2-a6,-(sp)
+	move.l	48(sp),d0
+	move.l	52(sp),d1
+	move.l	56(sp),d2
+	move.l	60(sp),d3
+	move.l	64(sp),a0
+	move.l	68(sp),a1
+	trap	#3
+	movem.l	(sp)+,d2-d7/a2-a6
+	rts

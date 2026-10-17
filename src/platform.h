@@ -23,8 +23,9 @@ typedef unsigned char u8;
 extern u8 *screen;                /* buffer de pantalla en formato QL */
 
 void plat_init(void);
-void plat_present(void);
-void plat_shutdown(void);
+void plat_present(void);          /* una vez por fotograma; en el QL tambien vacia la cola de teclado de la consola */
+void plat_shutdown(void);         /* idempotente; en el QL se registra con atexit */
+void plat_flush_input(void);      /* QL: descarta las teclas acumuladas en la consola (KEYROW no las consume) */
 
 /* gfx.c */
 void gfx_clear(u8 c);
