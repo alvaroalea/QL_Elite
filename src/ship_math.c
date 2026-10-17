@@ -56,11 +56,13 @@ u8 sm_mas3(u8 y)
     a = em_squa2(ks[y + 1]); zR = a;
     a = em_squa2(ks[y + 4]);
     s = (unsigned)a + zR;                                  /* SQUA2 sale con C = 0 */
+    em_carry = 1;                                          /* MA30: desborda con C = 1 */
     if (s > 255) return 0xFF;
     zR = (u8)s;
     a = em_squa2(ks[y + 7]);
     s = (unsigned)a + zR;
     if (s > 255) return 0xFF;
+    em_carry = 0;
     return (u8)s;
 }
 

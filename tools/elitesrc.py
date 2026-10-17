@@ -22,7 +22,7 @@ class Syms(dict):
         e = re.sub(r'\bLO\(', '_LO(', e); e = re.sub(r'\bHI\(', '_HI(', e)
         e = e.replace('P%', '_PC')
         e = re.sub(r"([A-Za-z_][A-Za-z_0-9]*)%", lambda m: m.group(1) + '_P', e)   # NI% -> NI_P
-        env = {'_LO': lambda v: v & 255, '_HI': lambda v: (v >> 8) & 255, '_PC': pc if pc is not None else 0}
+        env = {'INT': lambda v: int(v), '_LO': lambda v: v & 255, '_HI': lambda v: (v >> 8) & 255, '_PC': pc if pc is not None else 0}
         for k, v in self.items(): env[k.replace('%', '_P')] = v
         return int(eval(e, {'__builtins__': {}}, env))
 

@@ -7,6 +7,8 @@
 
 #define HEAP_BYTES 256                           /* monton de lineas por nave */
 #define SHIPS_EV_STATION 1                       /* ships_step: la estacion se ha perdido de vista (queda el sol) */
+#define SHIPS_EV_DOCK 2                          /* ships_step: hemos entrado por la ranura (DOENTRY) */
+#define SHIPS_EV_DEATH 4                         /* ships_step: choque mortal (DEATH) */
 
 const u8 *ship_bp_for(u8 type);                  /* plano de la nave (la estacion es un Dodo con nivel tecnologico >= 10) */
 void ship_zinf(void);                            /* ZINF: INWK a cero con la orientacion por defecto */
@@ -21,6 +23,11 @@ u8   ships_step(u8 view);                        /* un fotograma: mueve, dibuja,
 void ships_hooks(void);                          /* pone DOEXP y PLANET como ganchos de LL9 */
 void ships_forget_lines(void);                   /* tras borrar la pantalla entera: ninguna nave figura como dibujada */
 void ships_erase_all(void);                      /* borra de la pantalla las lineas de todas las naves (antes de repintar o cambiar de sistema) */
+void sfs1(u8 ai, u8 type);                      /* SFS1: nave hija de la de INF (zinf) con IA = ai (NWSHP) */
+void spin(u8 type);                              /* SPIN: al 50 %, restos de ese tipo de la nave destruida */
+void spin2(u8 cnt, u8 type);                     /* SPIN2: cnt restos de ese tipo */
+int  ships_death_debris_one(void);              /* una vuelta de D1 (devuelve la ranura o -1) */
+void ships_death_debris(void);                   /* DEATH (D1): restos de nuestra nave hasta llenar la ranura 4 */
 void doexp(void);                                /* DOEXP: nube de la nave que explota */
 void planet(void);                               /* PLANET: dibuja o borra el planeta o el sol de INWK */
 #endif

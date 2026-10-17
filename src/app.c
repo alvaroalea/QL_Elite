@@ -12,6 +12,7 @@ int game_run(void)
     int t, sc, r;
     unsigned long f;
 
+title:
     t = scr_title();
     if (t == TITLE_QUIT || in_quit) return 0;
     f = in_frames();                                  /* semilla del generador: tiempo hasta la primera pulsacion */
@@ -24,6 +25,7 @@ int game_run(void)
             qq12 = 0;
             r = flight_run();
             if (r == FL_QUIT) break;
+            if (r == FL_DEATH) goto title;            /* DEATH2: vuelta al titulo (nuevo comandante o cargar) */
             qq12 = 0xFF;
             sc = SC_STATUS;
             continue;

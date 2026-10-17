@@ -13,6 +13,7 @@
 #include "ship3d.h"
 #include "chart.h"
 #include "sun.h"
+#include "damage.h"
 #include "shipdata.h"
 
 static int fails, total;
@@ -107,11 +108,12 @@ int main(void)
     set_pos(state_slot(0), 0, 0, 0, 0x7800L);
     alpha = 0; beta = 0; zDELTA = 0; mcnt = 9; altit = 255;
     space_step();
-    check(altit >= 68 && altit <= 70, "altitud: z_hi = 120 -> (hi(120^2) - 37) = 19 -> sqrt(19 * 256) = 69");
+    check(altit >= 69 && altit <= 71, "altitud: z_hi = 120 -> (hi(120^2) - 37) = 19 -> sqrt(19 * 256 + Q) = 69..71 (Q es el que hubiera)");
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0, 0, 0x5000L);
-    mcnt = 9; space_step();
-    check(altit == 0, "altitud: dentro del planeta = 0 (el original muere)");
+    mcnt = 9;
+    check((space_step() & SPACE_EV_DEATH) && player_dead && altit == 255, "altitud: dentro del planeta, muerte (DEATH; ALTIT queda en 255)");
+    player_dead = 0;
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0, 0, 0x30000L);
     mcnt = 9; space_step();

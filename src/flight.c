@@ -14,6 +14,9 @@
 #include "chart.h"
 #include "shipdata.h"
 #include "ships.h"
+#include "combat.h"
+#include "damage.h"
+#include "cmdr.h"
 
 #define VIEW_H 136
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
@@ -44,7 +47,7 @@ static void panel_static(void)
     txt_print_at(0, 28, "TARGET");
     txt_print_at(0, 29, "CURSORS TURN F FAST D SLOW");
     txt_print_at(0, 30, "1-4 VIEW 5-9 INFO H/G JUMP");
-    txt_print_at(0, 31, "C DOCK N SHIP K BLOW UP (TEST)");
+    txt_print_at(0, 31, "A FIRE C DOCK N SHIP K BLOW (T)");
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -72,6 +75,7 @@ static void clear_view(void)
     gfx_fill_lines(0, VIEW_H, C_BLACK);     /* rapido: palabras largas, no pixel a pixel */
     ships_forget_lines();                   /* las lineas de las naves, el sol y el planeta ya no estan en pantalla */
     sun_forget();
+    laser_forget();                         /* TTX66: LAS2 = 0 */
 }
 
 /* LOOK1 al cambiar de vista estando en el espacio: el polvo se refleja en la diagonal (FLIP) y se vuelve a poner la mira */
@@ -92,6 +96,7 @@ static void redraw_all(void)
     gfx_clear(C_BLACK);
     ships_forget_lines();                  /* la pantalla se ha borrado: ninguna nave figura como dibujada */
     sun_forget();
+    laser_forget();
     dash_show();                           /* el fondo viene de memoria: el fichero se lee una sola vez */
     space_scanner_reset();
     dash_msblob();
@@ -101,6 +106,35 @@ static void redraw_all(void)
     chart_sight((u8)view);
     stars_new();
 }
+
+/* MESS: mensajes en vuelo (fila 24, como los demas avisos del port; el original los pone en la vista). Con mess_de se anade
+   " DESTROYED" (OUCH). Los textos son los de los tokens del original */
+static void flight_mess(u8 token)
+{
+    static const char *eq[8] = { "E.C.M.SYSTEM", 0, 0, "FUEL SCOOPS", 0, "ENERGY BOMB", "ENERGY UNIT", "DOCKING COMPUTERS" };
+    const char *t = 0;
+    char b[16];
+    int i;
+    txt_clear_rows(24, 1, C_BLACK);
+    txt_color(C_GREEN, C_BLACK);
+    txt_at(0, 24);
+    if (token == MESS_RIGHT_ON) t = "RIGHT ON COMMANDER!";
+    else if (token == MESS_ENERGY_LOW) { t = "ENERGY LOW"; snd_beep(); }
+    else if (token == MESS_DOCK_ON) t = "DOCKING COMPUTERS ON";
+    else if (token == MESS_SCOOP_ON) { t = "FUEL SCOOPS ON"; snd_beep(); }
+    else if (token >= 108 && token <= 115) t = eq[token - 108];
+    else if (token >= MESS_GOOD && token < MESS_GOOD + UNI_NGOODS) {
+        const char *n = uni_goods[token - MESS_GOOD].name;
+        for (i = 0; n[i] && i < 15; i++) b[i] = (char)((n[i] >= 'a' && n[i] <= 'z') ? n[i] - 32 : n[i]);
+        b[i] = 0; t = b;
+    }
+    if (t) txt_puts(t);
+    else { ui_tenths(cash_get()); txt_puts(" CR"); }
+    if (mess_de & 2) txt_puts(" DESTROYED");
+    txt_color(C_WHITE, C_BLACK);
+}
+
+static void flight_mess_off(void) { txt_clear_rows(24, 1, C_BLACK); }
 
 static void say_hyper(void)
 {
@@ -184,6 +218,29 @@ static int flight_screens(int sc)
     return 0;
 }
 
+/* DEATH: explosion, GAME OVER y los restos de nuestra nave alejandose (D1/D2); luego DEATH2 vuelve al titulo */
+static void flight_death(void)
+{
+    int f;
+    snd_death();                                            /* SOEXPL con Y = 210 */
+    space_reset();                                          /* RES2 */
+    zDELTA = (u8)(zDELTA << 2);                             /* ASL DELTA dos veces */
+    ships_clear();                                          /* RES2 vacia las ranuras */
+    clear_view();                                           /* TT66 */
+    stars_new();                                            /* nWq */
+    txt_color(C_WHITE, C_BLACK);
+    txt_print_at(12, 12, "GAME OVER");
+    ships_death_debris();                                   /* D1 */
+    zDELTA = 0;
+    for (f = 0; f <= 64; f++) {                             /* JSR M% y D2: 64 vueltas mas (LASCT) */
+        if (!in_script) in_poll();
+        ships_step((u8)view);                               /* el M% del original: MCNT queda en 255, sin comprobaciones */
+        stars_update((u8)view);
+        dash_update();
+    }
+    say("", 0);
+}
+
 int flight_run(void)
 {
     int ch, sc;
@@ -196,6 +253,10 @@ int flight_run(void)
     key_ctx_flight();                                       /* menos filas de teclado por fotograma: ver keys.c */
     if (!dash_loaded()) dash_load();                        /* solo la primera vez; luego se queda en memoria */
     view = 0; hyper = 0;
+    player_dead = 0; mess_de = 0;
+    combat_reset();                                         /* DOENTRY: energia, escudos y laser como al atracar */
+    combat_mess_hook = flight_mess;
+    combat_mess_off_hook = flight_mess_off;
     space_launch();
     redraw_all();
     snd_sohiss(0); snd_sohiss(0);                           /* LAUN */
@@ -222,10 +283,16 @@ int flight_run(void)
         space_view = (u8)view;
         ctl_read(&c);
         space_controls(&c);                                 /* ALPHA, BETA y velocidad */
-        ev = space_step();                                  /* planeta, estacion y contactos; radar */
+        laser_fire((u8)view, c.fire);                       /* parte 3: disparo (LASLI) */
+        ev = space_step();                                  /* naves (HITCH, danos, choques), radar, energia, parte 15 */
+        if (ev & SPACE_EV_DOCK) { snd_off(); key_ctx_menu(); return FL_DOCK; }       /* por la ranura: DOENTRY */
+        if (ev & SPACE_EV_DEATH) { flight_death(); key_ctx_menu(); return FL_DEATH; }
+        laser_frame_end();                                  /* parte 16: fin del pulso (LASLI2) */
         if (ev & SPACE_EV_STATION) dash_spblb();            /* se apaga la S */
         stars_set_speed(zDELTA);                            /* DELT4 */
         stars_update((u8)view);                             /* STARS */
+        dly_tick();                                         /* TT100: el mensaje en vuelo caduca */
+        laser_cool();                                       /* MLOOP: enfriamiento y cuenta del pulso */
         dash_update();
         if (hyper && ++hyper_tick >= HYPER_FRAMES) {
             hyper_tick = 0;

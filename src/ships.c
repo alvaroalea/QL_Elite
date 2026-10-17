@@ -8,6 +8,8 @@
 #include "universe.h"
 #include "game.h"
 #include "sun.h"
+#include "combat.h"
+#include "damage.h"
 
 static u8 heaps[NOSH][HEAP_BYTES];
 
@@ -193,6 +195,113 @@ int ships_explode_nearest(void)
     return best;
 }
 
+/* ---------------------------------------------------------------- SFS1, SFS2, SPIN, SPIN2 */
+
+/* SFS2: suma al eje X de la posicion (A * 2) con el signo de A (MVT1) */
+static void sfs2(u8 a, u8 x)
+{
+    zR = (u8)(a << 1);
+    mvt1((u8)(a & 0x80), x);
+}
+
+/* SFS1: la hija sale del bloque K% de la madre (INF), no de INWK; INWK se guarda y se restituye (el original usa XX3).
+   Si la madre es la estacion, sale por la ranura a velocidad 32. Los restos (PLT..SPL) giran al azar y su velocidad es
+   aleatoria (0..15: el X que deja DORND); el contador de alabeo es $7F con el signo del bit 7 del numero aleatorio (ROR con el acarreo de ASL) */
+void sfs1(u8 ai, u8 type)
+{
+    u8 save[NI], a, c;
+    int i;
+    for (i = 0; i < NI; i++) { save[i] = inwk[i]; inwk[i] = zinf[i]; }
+    if (ztype == SHIPT_CORIOLIS) {
+        inwk[27] = 32;
+        sfs2(inwk[10], 0);
+        sfs2(inwk[12], 3);
+        sfs2(inwk[14], 6);
+    }
+    inwk[32] = ai;
+    inwk[29] = (u8)(inwk[29] & 0xFE);                    /* LSR; ASL */
+    if (type >= SHIPT_PLATE && type <= SHIPT_SPLINTER) {
+        em_rand_c = 1;                                   /* CMP #PLT con A >= PLT deja C = 1 para DORND */
+        a = em_dornd();
+        c = (u8)(a >> 7);
+        inwk[30] = (u8)(a << 1);
+        inwk[27] = (u8)(em_rand_x & 15);                 /* TXA: X lo ha dejado DORND (aleatorio), no es el tipo */
+        inwk[29] = (u8)((c << 7) | 0x7F);                /* LDA #$FF; ROR A */
+    }
+    em_rand_c = (u8)(ship_new(type) >= 0);               /* NWSHP vuelve con C = 1 si hubo sitio (lo usa el DORND siguiente) */
+    for (i = 0; i < NI; i++) inwk[i] = save[i];
+}
+
+void spin2(u8 cnt, u8 type)
+{
+    while (cnt) { sfs1(0, type); cnt--; }
+}
+
+/* SPIN: la cantidad es (tipo AND byte 0 del plano AND 15): el TYA tapa el numero aleatorio (asi en el original) */
+void spin(u8 type)
+{
+    u8 a = em_dornd();
+    if (!(a & 0x80)) return;                             /* BPL oh */
+    spin2((u8)(type & zxx0[0] & 15), type);
+}
+
+/* ---------------------------------------------------------------- Ze, fq1 y los restos de nuestra nave (DEATH, D1) */
+
+/* Ze: INWK para una nave al azar a 25 unidades altas en cada eje, con IA y agresividad; cae en DORND2 y devuelve su A */
+static u8 ze(void)
+{
+    u8 a, x, c;
+    ship_zinf();
+    a = em_dornd();
+    inwk[2] = (u8)(a & 0x80);
+    x = em_rand_x;
+    inwk[5] = (u8)(x & 0x80);
+    inwk[1] = inwk[4] = inwk[7] = 25;
+    c = (u8)(x >= 245);                                  /* CMP #245; ROL A */
+    inwk[32] = (u8)((u8)((x << 1) | c) | 0xC0);
+    return em_dornd2();
+}
+
+/* fq1: morro hacia nosotros, velocidad DELTA * 2 + C, y NWSHP */
+static int fq1(u8 type, u8 c)
+{
+    inwk[14] = 0x60;
+    inwk[22] = (u8)(0x60 | 0x80);
+    inwk[27] = (u8)((zDELTA << 1) | (c & 1));           /* LDA DELTA; ROL A */
+    return ship_new(type);
+}
+
+/* D1 de DEATH: restos (cargas o placas) que salen de donde estaba nuestra nave hasta llenar la ranura 4; algunos explotan */
+int ships_death_debris_one(void)
+{
+    u8 a, x, c, t;
+    int n;
+    a = ze();
+    x = em_rand_x;
+    a = (u8)(a >> 2);
+    inwk[0] = a;                                         /* LSR A; LSR A; STA INWK */
+    inwk[1] = inwk[4] = inwk[7] = inwk[32] = 0;
+    mcnt = 255;
+    a = (u8)(a ^ 0x2A); inwk[3] = a;
+    a = (u8)(a | 0x50); inwk[6] = a;                     /* z con el bit 6: nunca chocan con nosotros */
+    a = (u8)(x & 0x8F); inwk[29] = a;
+    lasct = 64;
+    c = (u8)(a & 1); a = (u8)((a >> 1) | 0x80);          /* SEC; ROR A */
+    inwk[30] = (u8)(a & 0x87);
+    t = c ? SHIPT_PLATE : SHIPT_CANISTER;                /* BCC D3 (el plano de la placa existe) */
+    n = fq1(t, c);
+    em_rand_c = (u8)(n >= 0);                            /* NWSHP vuelve con C = 1 si hubo sitio */
+    a = em_dornd();
+    if (n >= 0) state_slot(n)[31] = (u8)(a & 0x80);      /* LDY #31; STA (INF),Y: unos explotan ya */
+    return n;
+}
+
+void ships_death_debris(void)
+{
+    int guard = 0;
+    do ships_death_debris_one(); while (frin[4] == 0 && ++guard < 64);
+}
+
 /* ---------------------------------------------------------------- PLANET */
 
 void planet(void)
@@ -369,7 +478,14 @@ u8 ships_step(u8 view)
         if (!(type & 0x80)) zxx0 = ship_bp_for(type);
         mveit();
         put_slot(n);                                     /* MAL3 */
+        if (!(type & 0x80)) {                            /* partes 9 y 10: choque, recogida o atraque */
+            int col = combat_collide();
+            if (col == COL_DOCK) return (u8)(ev | SHIPS_EV_DOCK);      /* JMP DOENTRY */
+            if (col == COL_DEATH) return (u8)(ev | SHIPS_EV_DEATH);    /* JMP DEATH */
+            if (inwk[I_NEWB] & 0x80) space_scan(type);   /* MA26: recogida: se borra del radar */
+        }
         plut(view);
+        if (!(type & 0x80)) combat_hit();                /* HITCH y danos del laser (parte 11) */
         ship_ll9();
         sl[35] = inwk[35];
         if (type == SHIPT_CORIOLIS && (sl[7] > 0x30 || (sl[8] & 0x7F))) {      /* lejos de la estacion (regla propia) */
@@ -381,7 +497,7 @@ u8 ships_step(u8 view)
             ev |= SHIPS_EV_STATION;
             continue;
         }
-        if ((inwk[31] & 0x80) && (inwk[31] & 0x20)) { ship_kill(n); continue; }     /* la explosion ha terminado */
+        if (!(type & 0x80) && combat_killed()) { ship_kill(n); continue; }       /* recogida o fin de la explosion: recompensa */
         if (!(type & 0x80) && !farof()) { /* cerca: sigue */ }
         else if (!(type & 0x80)) { ship_kill(n); continue; }     /* MAC1: FAROF con C = 0 */
         sl[31] = inwk[31];                               /* MA27 */

@@ -12,11 +12,15 @@
 #include "keys.h"
 #include "shipdata.h"
 #include "ships.h"
+#include "combat.h"
+#include "damage.h"
+#include "cmdr.h"
 typedef unsigned short u16s;
 static u16s hv[60];
 static u16s rs = 9876;
 static unsigned rnd(void) { rs = (u16s)(rs * 25173u + 13849u); return (unsigned)(rs >> 4); }
 static int n = 0;
+static u8 dm[16];                                   /* resultados de los danos */
 static void hash(void)
 {
     long j;
@@ -38,13 +42,24 @@ int main(void)
         chart_sight((u8)view);
         stars_new();
         for (i = 0; i < 3; i++) space_spawn((u8)(SHIPT_VIPER + i));
+        combat_reset();
+        space_view = (u8)view;                                 /* PLUT en los ejes de la vista */
+        ship_zinf();                                           /* blanco quieto en el eje de la vista */
+        if (view == 0) inwk[7] = 2; else if (view == 1) { inwk[7] = 2; inwk[8] = 0x80; }
+        else if (view == 2) { inwk[1] = 2; inwk[2] = 0x80; } else inwk[1] = 2;
+        i = ship_new(SHIPT_SIDEWINDER); if (i >= 0) state_slot(i)[32] = 0;
+        laser[0] = LASER_POW; laser[1] = LASER_BEAM; laser[2] = LASER_MIL; laser[3] = LASER_MINING;
         for (f = 0; f < 200; f++) {
             c.speed_up = (u8)((rnd() & 3) == 0); c.slow_down = (u8)((rnd() & 7) == 0);
-            c.roll_left = (u8)((rnd() & 3) == 0); c.roll_right = (u8)((rnd() & 3) == 1);
-            c.pitch_up = (u8)((rnd() & 3) == 0); c.pitch_down = (u8)((rnd() & 3) == 2);
+            c.roll_left = (u8)((rnd() & 3) == 0 && f > 60); c.roll_right = (u8)((rnd() & 3) == 1 && f > 60);
+            c.pitch_up = (u8)((rnd() & 3) == 0 && f > 60); c.pitch_down = (u8)((rnd() & 3) == 2 && f > 60);
             c.fire = c.bomb = c.escape_pod = c.target = c.unarm = c.missile = c.ecm = c.jump = c.dock = c.undock = 0;
+            c.fire = (u8)((rnd() & 3) != 0);
             space_controls(&c);
+            laser_fire((u8)view, c.fire);
             if (space_step() & SPACE_EV_STATION) dash_spblb();
+            laser_frame_end();
+            laser_cool();
             stars_set_speed(zDELTA);
             stars_update((u8)view);
             dash_update();
@@ -75,9 +90,29 @@ int main(void)
     }
     gfx_clear(C_BLACK); sun_col = C_WHITE; tunnel_draw(4); hash();
     gfx_clear(C_BLACK); tunnel_draw(8); hash();
+    /* danos: choque frontal, choque sin escudo, sol cercano y restos de DEATH */
+    {
+        int k;
+        game_new(); combat_reset(); player_dead = 0; ships_arrive();
+        ship_zinf(); inwk[6] = 40; i = ship_new(SHIPT_VIPER); if (i >= 0) state_slot(i)[32] = 0;
+        zDELTA = 0; alpha = beta = 0; space_view = 0;
+        for (f = 0; f < 40; f++) space_step();
+        dm[0] = fsh; dm[1] = ash; dm[2] = energy; dm[3] = player_dead;
+        fsh = 0; energy = 60; ship_zinf(); inwk[6] = 40; i = ship_new(SHIPT_ANACONDA); if (i >= 0) state_slot(i)[32] = 0;
+        dm[4] = space_step(); dm[5] = player_dead; dm[6] = energy;
+        ships_clear(); player_dead = 0; bst = 0xFF; qq14 = 10; zDELTA = 40;
+        state_slot(1)[1] = 100; state_slot(1)[4] = 60; state_slot(1)[7] = 30;
+        dm[7] = damage_checks(20); dm[8] = cabtmp; dm[9] = qq14;
+        ships_clear(); ships_death_debris();
+        dm[10] = frin[0]; dm[11] = frin[4]; dm[12] = state_slot(4)[31]; dm[13] = em_rand[0]; dm[14] = em_rand[1]; dm[15] = mcnt;
+        (void)k;
+    }
     gfx_clear(C_BLACK);
     for (i = 0; i < n; i++) { screen[2 * i] = (u8)hv[i]; screen[2 * i + 1] = (u8)(hv[i] >> 8); }
     screen[200] = (u8)n;
+    screen[201] = tally[0]; screen[202] = tally[1]; screen[203] = tallyl; screen[204] = gntmp; screen[205] = energy;
+    for (i = 0; i < 16; i++) screen[220 + i] = dm[i];
+    screen[206] = cash[3]; screen[207] = cash[2]; screen[208] = fist;
     plat_present();
     return 0;
 }

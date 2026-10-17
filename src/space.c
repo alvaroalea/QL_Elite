@@ -6,6 +6,8 @@
 #include "game.h"
 #include "shipdata.h"
 #include "ships.h"
+#include "combat.h"
+#include "damage.h"
 
 u8 jstx = 128, jsty = 128;
 u8 alpha, beta, alp1, bet1;
@@ -204,19 +206,13 @@ int space_spawn(u8 type) { return ships_spawn(type); }
 /* Un fotograma del espacio local: cada nave se mueve (MVEIT), se dibuja (LL9) y se quita si hace falta (ships.c). Devuelve los SPACE_EV_* */
 u8 space_step(void)
 {
-    u8 a, ev = 0;
-    int d;
+    u8 ev = 0, e;
     mcnt++;
-    if (ships_step(space_view) & SHIPS_EV_STATION) ev |= SPACE_EV_STATION;
-    if ((mcnt & 31) == 10) {                     /* MA22: altitud cada 32 fotogramas */
-        altit = 255;
-        if (sm_mas2m(0) != 0) return ev;            /* algun byte alto distinto de cero: lejos */
-        a = sm_mas3(0);
-        if (a == 0xFF) return ev;                /* desbordo */
-        d = (int)a - 37;                         /* SBC #36 con C = 0 */
-        if (d < 0) { altit = 0; return ev; }     /* el original muere aqui (DEATH) */
-        zR = (u8)d; zQ = 0;
-        altit = em_ll5();
-    }
+    e = ships_step(space_view);
+    if (e & SHIPS_EV_STATION) ev |= SPACE_EV_STATION;
+    if (e & SHIPS_EV_DOCK) return (u8)(ev | SPACE_EV_DOCK);      /* el original salta a DOENTRY sin acabar el fotograma */
+    if (e & SHIPS_EV_DEATH) return (u8)(ev | SPACE_EV_DEATH);
+    energy_tick(mcnt);                           /* MA77: escudos y energia cada 8 fotogramas */
+    if (damage_checks(mcnt)) ev |= SPACE_EV_DEATH;   /* MA22/MA93: ENERGY LOW, altitud, cabina y combustible */
     return ev;
 }

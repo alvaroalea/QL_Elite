@@ -107,7 +107,7 @@ ping chart_ping sin-verificar tecla O: el cursor vuelve al sistema actual
 TT16 scr_chart propia movimiento de la mira propio: libre, y el objetivo es el sistema mas cercano (TT111); el original mueve QQ9/QQ10 directamente
 TT123 scr_chart propia suma con saturacion (clampi) en lugar de la rutina
 # --- market y equipment
-tnpr1 - no-necesaria espacio para una tonelada: solo lo usa la recogida de cargas (cazar canisters, cápsulas) en vuelo, que aun no existe; se portara con MVEIT/TACTICS
+tnpr1 combat_collide,trade_fits verificada recogida de cargas (make test_damage)
 gnum trade_screen propia la cantidad se teclea en el propio listado (cursores, cifras, M = maximo)
 NWDAV4 ui_msg propia los errores salen como mensaje en la fila 28 con sonido
 TT210 trade_screen propia la lista de venta es el mismo listado con las existencias en bodega
@@ -216,7 +216,7 @@ SOS1 make_planet sin-verificar
 KILLSHP ship_kill sin-verificar sin puntos de muerte ni mensajes (paso 3)
 FAROF farof sin-verificar
 GINF - no-necesaria el puntero INF no existe en C: se indexa por ranura
-SFS2 - no-necesaria mover una nave a lo largo de un eje: solo para crear naves hijas (misiles, cargas, cápsulas)
+SFS2 sfs2 verificada dentro de SFS1 (make test_laser, nave madre = estacion)
 exlook - no-necesaria tabla de EXNO (sonido de explosion): el sonido ya esta en sound.c
 # --- clasificacion del inventario (2026-10-17)
 ENTRY - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
@@ -324,8 +324,8 @@ ee3 say_hyper propia cuenta atras del hiperespacio en pantalla
 TT147 start_hyper propia mensaje de fuera de alcance
 TT110 space_launch,flight_run propia despegue y vista frontal
 me1 say propia mensaje en vuelo: borra el anterior y muestra el nuevo
-me2 say propia mensaje en vuelo: borra el anterior y muestra el nuevo
-MESS say propia mensaje en vuelo: borra el anterior y muestra el nuevo
+me2 dly_tick,flight_mess_off propia el mensaje se borra a los 20 fotogramas (DLY)
+MESS mess,say propia mensaje en vuelo en la fila 24 (no en la vista) durante DLY = 20 fotogramas; los avisos propios del port usan say
 log em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
 logL em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
 alogh em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
@@ -497,7 +497,26 @@ KS1 ship_kill propia quita la nave y desplaza las demas
 KS4 ships_step propia la estacion se quita y vuelve el sol (regla propia)
 spasto ship_bp_for propia plano de la estacion (Coriolis o Dodo)
 KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
-Main ships_step,flight_run parcial bucle principal reducido: mueve y dibuja las naves y lee el teclado; faltan colisiones, lasers, misiles, escarbado, generacion de encuentros y el resto de partes
-DOENTRY flight_run parcial el atraque cambia a la estacion; falta el progreso de misiones
+Main ships_step,flight_run,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks parcial bucle principal: naves, laser (partes 3, 11, 12, 16, MLOOP: make test_laser), choques, recogida y atraque por la ranura (partes 9 y 10), ENERGY LOW, altitud, cabina y combustible del sol (parte 15: make test_damage); faltan misiles, bomba, ECM, generacion de encuentros y la aparicion de la estacion (parte 14)
+DOENTRY flight_run,combat_collide parcial se atraca entrando por la ranura (ISDK, verificado) o con C (provisional); energia y escudos se reponen al despegar; falta el progreso de misiones
 
 LL129 ll129 verificada dentro de ship3d.c (pendiente de la linea, verificada con el 6502)
+# --- paso 3a: laser y danos (2026-10-17), verificadas contra el 6502 con make test_laser (tools/gen_laser.py)
+LASLI lasli,lasli2 verificada vertice, calor, DENGY y las cuatro lineas (LL30); LASLI2 borra en XOR
+HITCH hitch verificada incluido el borde del area de impacto
+ANGRY angry verificada escribe en el bloque K% (INF); la estacion es la ranura 1
+EXNO2 exno2 verificada TALLY con KWL%/KWH% y mensaje 101; el sonido es snd_exno2
+SPIN spin,spin2 verificada la cantidad es tipo AND byte 0 AND 15 (el TYA tapa el numero aleatorio)
+SFS1 sfs1 verificada nave hija desde K%; velocidad de los restos = X de DORND AND 15; acarreos modelados
+SHD shd verificada cae en DENGY: cargar un escudo gasta 1 de energia
+DENGY dengy verificada
+# --- paso 3b: danos a nuestra nave (2026-10-17), verificadas contra el 6502 con make test_damage (tools/gen_damage.py)
+OOPS oops verificada escudo segun el signo de z de la nave (K%); el SBC usa el acarreo de quien llama
+OUCH ouch verificada QQ20+X con X = 0..21 (mercancias, ECM, BST, BOMB, ENGY, DKCMP)
+ou2 ouch verificada
+ou3 ouch verificada
+mes9 flight_mess,mess_de propia " DESTROYED" con la bandera de (vale para un mensaje)
+DEATH flight_death,ships_death_debris parcial D1 verificado (Ze, fq1, restos); explosion, GAME OVER y 65 vueltas del bucle de vuelo propios en la forma
+DEATH2 game_run propia vuelve a la pantalla de titulo (nuevo comandante o cargar)
+DET1 - no-necesaria en el Apple II es un RTS
+Ze ze verificada dentro de D1
