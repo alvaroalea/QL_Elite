@@ -1,0 +1,40 @@
+#!/bin/sh
+# Compara el codigo que genera c68 (con -int=16 -O, como qcc) con el del PC, ejecutandolo bajo qemu.
+# Para cada sonda de tests/c68/*.c: se compila con gcc (PC) y con c68 -> ensamblador -> GNU as -> qemu-m68k; ambas dejan
+# hashes en la "pantalla" y se comparan byte a byte. Encontro un fallo real de c68 -O (ver la nota en src/ship3d.c).
+# Requisitos: c68 compilado en el PC (git clone https://github.com/stronnag/xtc68; meson setup build; ninja -C build c68),
+#             gcc-m68k-linux-gnu (as, ld) y qemu-user. Variables: XTC68=<dir con c68> (por defecto /tmp/xtc68/build)
+set -e
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+XTC68=${XTC68:-/tmp/xtc68/build}
+W=${W:-/tmp/c68_work}
+mkdir -p $W; cd $W
+S=$ROOT/src
+cp $ROOT/tools/c68_check/conv.py $ROOT/tools/c68_check/rt.s .
+m68k-linux-gnu-as -m68020 --register-prefix-optional -o rt.o rt.s
+buildc68() {          # salida fuentes...
+  out=$1; shift; objs=""
+  for f in "$@"; do
+    b=$(basename $f .c)
+    gcc -E -P -nostdinc -I$ROOT/tools/c68_check/inc -I$S $f > $b.i 2>/dev/null
+    $XTC68/c68 -int=16 -O -warn=0 $b.i $b.s 2>&1 | grep -iv "^!" | head -3 || true
+    python3 conv.py $b.s ${b}_g.s
+    m68k-linux-gnu-as -m68020 --register-prefix-optional -o $b.o ${b}_g.s
+    objs="$objs $b.o"
+  done
+  m68k-linux-gnu-ld -o $out rt.o $objs
+}
+GFX="$S/gfx.c $S/text.c"
+SHIP="$S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $GFX"
+GAME="$S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $GFX"
+FULL="$S/app.c $S/menu.c $S/flight.c $S/input.c $S/keys.c $S/keys_host.c $S/sound.c $S/sound_host.c $S/game.c $S/cmdr.c $S/save.c $S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $S/gfx.c $S/text.c $S/universe.c"
+fail=0
+for p in emath:"$S/emath.c $S/state.c" ships:"$SHIP" game:"$GAME" session:"$FULL"; do
+  name=${p%%:*}; mods=${p#*:}; src=$ROOT/tests/c68/probe_$name.c
+  gcc -std=gnu89 -O1 -I$S -o host_$name $src $mods $S/plat_host.c -lm 2>/dev/null
+  rm -f screen.bin; ./host_$name; cp screen.bin host_$name.bin
+  buildc68 c68_$name $src $mods
+  rm -f screen.bin; timeout 600 qemu-m68k -cpu m68020 ./c68_$name; cp screen.bin c68_$name.bin
+  if cmp -s host_$name.bin c68_$name.bin; then echo "sonda $name: IGUAL (PC = c68)"; else echo "sonda $name: DIFERENTE"; fail=1; fi
+done
+exit $fail

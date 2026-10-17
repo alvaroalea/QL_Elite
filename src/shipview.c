@@ -3,10 +3,10 @@
 #include "shipview.h"
 
 #define ANG 64                                 /* pasos por vuelta */
-static const int sin64[ANG / 4 + 1] = { 0, 3212, 6393, 9512, 12540, 15447, 18205, 20788, 23170, 25330, 27246, 28899, 30274, 31357, 32138, 32610, 32768 };   /* sin(i*90/16 grados) * 32768 */ /* x 32768/... se usa en 1/32768 */
+static const long sin64[ANG / 4 + 1] = { 0, 3212, 6393, 9512, 12540, 15447, 18205, 20788, 23170, 25330, 27246, 28899, 30274, 31357, 32138, 32610, 32768 };   /* sin(i*90/16 grados) * 32768 */ /* x 32768/... se usa en 1/32768 */
 
-/* seno y coseno en punto fijo (1.0 = 32768) para el angulo a (0..63) */
-static int isin(int a)
+/* seno y coseno en punto fijo (1.0 = 32768) para el angulo a (0..63). long: 32768 no cabe en el int de 16 bits de c68 */
+static long isin(int a)
 {
     int q, r;
     a &= ANG - 1; q = a / (ANG / 4); r = a % (ANG / 4);
@@ -16,7 +16,7 @@ static int isin(int a)
     if (q == 2) return -sin64[r];
     return -sin64[ANG / 4 - r];
 }
-static int icos(int a) { return isin(a + ANG / 4); }
+static long icos(int a) { return isin(a + ANG / 4); }
 
 /* vector en formato Elite (lo, hi con signo-magnitud, 96 = 1.0) a partir de un valor en 1/32768 */
 static void put_vec(u8 *p, long v)

@@ -24,5 +24,6 @@ int main(void)
     plat_present();
     plat_wait_key();                              /* QL: sin esto el runtime borra la pantalla al salir */
     plat_shutdown();
+    plat_exit();                                  /* QL: sin "Press a key to exit" */
     return 0;
 }

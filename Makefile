@@ -113,3 +113,7 @@ test_trade:
 	./tests/test_trade
 
 test_all: test test_keys test_sound test_universe test_save test_game test_shipview
+
+# Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
+c68_check:
+	tools/c68_check/run.sh

@@ -69,5 +69,6 @@ int main(void)
     plat_present();
     plat_wait_key();                              /* QL: espera una tecla antes de volver a QDOS */
     plat_shutdown();
+    plat_exit();                                  /* QL: sin "Press a key to exit" */
     return 0;
 }

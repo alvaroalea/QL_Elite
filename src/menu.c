@@ -470,6 +470,25 @@ static void chart_info(int local)
     txt_color(C_WHITE, C_BLACK);
 }
 
+/* Disco relleno (planeta en la carta local). PROVISIONAL: el original dibuja los planetas con SUN/CIRCLE (aun sin portar) y
+   radio (QQ15+5 AND 1) + 2; aqui el radio en pixeles crece con el radio real del planeta (2..5). */
+static int planet_px(const uni_system *s) { return 2 + ((int)(s->radius >> 8) - 11) / 4; }
+
+static void disc(int cx, int cy, int r, u8 c)
+{
+    int dy, w, y, x0, x1, v;
+    for (dy = -r; dy <= r; dy++) {
+        y = cy + dy;
+        if (y < CH_Y0 || y > 135) continue;
+        v = r * r - dy * dy;
+        for (w = 0; (w + 1) * (w + 1) <= v; w++) ;
+        x0 = cx - w; x1 = cx + w;
+        if (x0 < 0) x0 = 0;
+        if (x1 > 255) x1 = 255;
+        if (x0 <= x1) gfx_hline(x0, x1, y, c);
+    }
+}
+
 static void draw_chart(int local)
 {
     int i, px, py;
@@ -480,12 +499,15 @@ static void draw_chart(int local)
         const uni_system *s = &uni_galaxy[i];
         px = chart_px(local, s->x); py = chart_py(local, s->y);
         if (px < 0 || px > 255 || py < CH_Y0 || py > 135) continue;
-        if (local && (px < 6 || px > 249 || py < CH_Y0 + 4 || py > 131)) continue;
-        gfx_pixel(px, py, i == cur_sys ? C_GREEN : C_WHITE);
-        if (i == cur_sys) { gfx_pixel(px + 1, py, C_GREEN); gfx_pixel(px, py + 1, C_GREEN); gfx_pixel(px + 1, py + 1, C_GREEN); }
         if (local) {
+            int r = planet_px(s);
+            if (px < r + 1 || px > 254 - r || py < CH_Y0 + r || py > 135 - r) continue;
+            disc(px, py, r, i == cur_sys ? C_GREEN : C_WHITE);
             txt_color(i == cur_sys ? C_GREEN : C_WHITE, TXT_TRANSPARENT);
-            txt_print_at((px + 4) / 8, py / 8, s->name);
+            txt_print_at((px + r + 3) / 8, py / 8, s->name);
+        } else {
+            gfx_pixel(px, py, i == cur_sys ? C_GREEN : C_WHITE);
+            if (i == cur_sys) { gfx_pixel(px + 1, py, C_GREEN); gfx_pixel(px, py + 1, C_GREEN); gfx_pixel(px + 1, py + 1, C_GREEN); }
         }
     }
     txt_color(C_WHITE, C_BLACK);
@@ -653,14 +675,14 @@ int scr_title(void)
     txt_color(C_CYAN, C_BLACK);
     txt_print_at(0, 27, "BY BELL AND BRABEN, 1984-85");
     txt_print_at(0, 28, "QL PORT FROM THE APPLE II CODE");
-    shipview_draw(SHIPT_COBRA_MK_3, 0, 0, 4, ay, 4, title_heap, state_slot(0), 1);
+    shipview_draw(SHIPT_COBRA_MK_3, 0, 0, 5, ay, 10, title_heap, state_slot(0), 1);
     for (;;) {
         ch = in_poll();
         if (ch == KC_QUIT) return TITLE_QUIT;
         if (ch < 0) {                                /* la nave gira mientras se espera */
             ay = (ay + 1) & (SHIPVIEW_ANG - 1);
             if (in_script == 0 || (in_frames() & 7) == 0)
-                shipview_draw(SHIPT_COBRA_MK_3, 0, 0, 4, ay, 4, title_heap, state_slot(0), 0);
+                shipview_draw(SHIPT_COBRA_MK_3, 0, 0, 5, ay, 10, title_heap, state_slot(0), 0);
             continue;
         }
         ch = in_up(ch);

@@ -122,8 +122,8 @@ ll130:
     a = zS;
     if (!c) { if (a < zQ) { c = 0; goto ll132; } }
     /* LL131 */
-    d = (int)a - zQ; zS = (u8)d; c = (u8)(d >= 0);
-    d = (int)zR - 0 - (1 - c); zR = (u8)d; c = (u8)(d >= 0);
+    d = (int)a - zQ; c = (u8)(d >= 0); zS = (u8)d;
+    d = (int)zR - 0 - (1 - c); c = (u8)(d >= 0); zR = (u8)d;
     c = 1;
 ll132:
     { u8 c2 = (u8)(x >> 7); x = (u8)((x << 1) | c); c = c2; }
@@ -163,10 +163,12 @@ static void ll118(void)
     {                                                  /* LL135 */
         int d = (int)zx15[2] - VIEW_CY * 2;
         int c = (d >= 0);
+        int neg;
         zR = (u8)d;
         d = (int)zx15[3] - 0 - (1 - c);
+        neg = (d < 0);                                 /* antes de guardar el byte: ver nota sobre c68 -O arriba */
         zS = (u8)d;
-        if (d < 0) return;                             /* BCC LL136 */
+        if (neg) return;                               /* BCC LL136 */
         ll120_123(1);
         s = (unsigned)xr + zx15[0]; zx15[0] = (u8)s;
         s = (unsigned)yr + zx15[1] + (s >> 8); zx15[1] = (u8)s;
@@ -218,18 +220,18 @@ ll83:
     if (!(a & 0x80)) goto ll109;
 ll115:
     /* TYA; PHA: Y no se usa en este puerto */
-    d = (int)zx15[4] - zx15[0]; zx12[2] = (u8)d; cc = (d >= 0);
+    d = (int)zx15[4] - zx15[0]; cc = (d >= 0); zx12[2] = (u8)d;
     d = (int)zx15[5] - zx15[1] - (1 - cc); zx12[3] = (u8)d;
-    d = (int)zx12[0] - zx15[2]; zx12[4] = (u8)d; cc = (d >= 0);
+    d = (int)zx12[0] - zx15[2]; cc = (d >= 0); zx12[4] = (u8)d;
     d = (int)zx12[1] - zx15[3] - (1 - cc); zx12[5] = (u8)d;
     zS = (u8)(zx12[5] ^ zx12[3]);
     if (zx12[5] & 0x80) {
-        d = 0 - (int)zx12[4]; zx12[4] = (u8)d; cc = (d >= 0);
+        d = 0 - (int)zx12[4]; cc = (d >= 0); zx12[4] = (u8)d;
         d = 0 - (int)zx12[5] - (1 - cc); zx12[5] = (u8)d;
     }
     a = zx12[3];
     if (a & 0x80) {
-        d = 0 - (int)zx12[2]; zx12[2] = (u8)d; cc = (d >= 0);
+        d = 0 - (int)zx12[2]; cc = (d >= 0); zx12[2] = (u8)d;
         d = 0 - (int)a - (1 - cc); a = (u8)d;
     }
 ll111:
@@ -299,6 +301,9 @@ void ship_shppt(void)
     ship_lsclr();
 }
 
+/* NOTA c68 -O (verificado ejecutando el codigo de c68 bajo qemu, ver tools/c68_check): en `zx15[0] = (u8)d; cc = (d >= 0);`
+   el optimizador usa los flags del move.b del byte para el sge, no los de la palabra d, y el resultado es erroneo cuando el
+   byte sale positivo con d negativo. Por eso en todo el codigo cc se calcula ANTES de guardar el byte. */
 /* ---------- LL9 ---------- */
 static void ee51(void)
 {
@@ -482,11 +487,11 @@ ll49:
     s = (unsigned)inwk[1] + (s >> 8); zx15[1] = (u8)s;
     goto ll53;
 ll52:
-    d = (int)inwk[0] - zx12[0]; zx15[0] = (u8)d; cc = (d >= 0);
-    d = (int)inwk[1] - 0 - (1 - cc); zx15[1] = (u8)d; cc = (d >= 0);
+    d = (int)inwk[0] - zx12[0]; cc = (d >= 0); zx15[0] = (u8)d;
+    d = (int)inwk[1] - 0 - (1 - cc); cc = (d >= 0); zx15[1] = (u8)d;
     if (cc) goto ll53;
     zx15[1] = (u8)(zx15[1] ^ 0xFF);
-    d = 1 - (int)zx15[0] - 1; zx15[0] = (u8)d; cc = (d >= 0);   /* LDA #1; SBC XX15 con C = 0 */
+    d = 1 - (int)zx15[0] - 1; cc = (d >= 0); zx15[0] = (u8)d;   /* LDA #1; SBC XX15 con C = 0 */
     if (cc) zx15[1]++;
     zx15[2] ^= 0x80;
 ll53:
@@ -496,8 +501,8 @@ ll53:
     s = (unsigned)inwk[4] + (s >> 8); zx15[4] = (u8)s;
     goto ll55;
 ll54:
-    d = (int)inwk[3] - zx12[2]; zx15[3] = (u8)d; cc = (d >= 0);
-    d = (int)inwk[4] - 0 - (1 - cc); zx15[4] = (u8)d; cc = (d >= 0);
+    d = (int)inwk[3] - zx12[2]; cc = (d >= 0); zx15[3] = (u8)d;
+    d = (int)inwk[4] - 0 - (1 - cc); cc = (d >= 0); zx15[4] = (u8)d;
     if (cc) goto ll55;
     zx15[4] = (u8)(zx15[4] ^ 0xFF);
     s = (unsigned)(u8)(zx15[3] ^ 0xFF) + 1; zx15[3] = (u8)s; cc = (int)(s >> 8);
@@ -509,8 +514,8 @@ ll55:
     zU = (u8)((unsigned)inwk[7] + (s >> 8));
     goto ll57;
 ll56:
-    d = (int)inwk[6] - zx12[4]; zT = (u8)d; cc = (d >= 0);
-    d = (int)inwk[7] - 0 - (1 - cc); zU = (u8)d; cc = (d >= 0);
+    d = (int)inwk[6] - zx12[4]; cc = (d >= 0); zT = (u8)d;
+    d = (int)inwk[7] - 0 - (1 - cc); cc = (d >= 0); zU = (u8)d;
     if (!cc) goto ll140;
     if (zU != 0) goto ll57;
     if (zT >= 4) goto ll57;
@@ -536,7 +541,7 @@ ll69b:
     xx3[x] = (u8)((unsigned)zU + (s >> 8));
     goto ll66;
 ll62:
-    d = 128 - (int)zR; xx3[x] = (u8)d; cc = (d >= 0); x++;
+    d = 128 - (int)zR; cc = (d >= 0); xx3[x] = (u8)d; x++;
     xx3[x] = (u8)(0 - (int)zU - (1 - cc));
 ll66:
     y = x;                                                 /* TXA; PHA */
@@ -549,7 +554,7 @@ ll67:
 ll68:
     x = y; x++;
     if (zx15[5] & 0x80) goto ll70;
-    d = VIEW_CY - (int)zR; xx3[x] = (u8)d; cc = (d >= 0); x++;
+    d = VIEW_CY - (int)zR; cc = (d >= 0); xx3[x] = (u8)d; x++;
     xx3[x] = (u8)(0 - (int)zU - (1 - cc));
     goto ll50;
 ll70:

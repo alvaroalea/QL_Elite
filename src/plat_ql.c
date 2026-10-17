@@ -14,6 +14,7 @@ u8 *screen = (u8 *)0x20000L;               /* pantalla 1 del QL estandar */
 
 /* ql_ipc.asm: trap #3 generico; devuelve D0 (0 = ok, negativo = error QDOS) */
 extern long ql_trap3(long d0, long d1, long d2, long d3, long a0, long a1);
+extern long ql_trap1(long d0, long d1, long d2, long d3);
 
 /* Operaciones de trap #3 usadas */
 #define IO_FBYTE 0x01L                      /* D3 = timeout; D1.B = byte; ERR.NC (-1) si no hay nada */
@@ -104,4 +105,13 @@ void plat_shutdown(void)
         ql_trap3(SD_CLEAR, 0L, 0L, -1L, con_out, 0L);
         ql_trap3(SD_CURE, 0L, 0L, -1L, con_out, 0L);                         /* devuelve el cursor */
     }
+}
+
+/* Salida sin el \"Press a key to exit\" del runtime de c68: se limpia la consola y el trabajo se elimina a si mismo
+   con MT.FRJOB (trap #1, D0=5, D1=-1 = este trabajo, D3 = codigo de error 0). No vuelve. Si por lo que sea falla,
+   plat_exit regresa y el programa termina por el camino normal. */
+void plat_exit(void)
+{
+    plat_shutdown();
+    ql_trap1(5L, -1L, 0L, 0L);
 }

@@ -32,3 +32,18 @@ _ql_trap3:
 	trap	#3
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
+
+; ql_trap1 (misma unidad) - llamada generica a un trap #1 de QDOS (gestor de trabajos), sintaxis as68.
+; long ql_trap1(long d0, long d1, long d2, long d3)
+; Carga D0..D3, ejecuta trap #1 y devuelve D0. Se usa con D0=5 (MT.FRJOB), D1=-1 (este trabajo), D3=0 para
+; terminar el programa sin pasar por la salida del runtime de c68 (que escribe "Press a key to exit" y espera una tecla).
+	.globl	_ql_trap1
+_ql_trap1:
+	movem.l	d2-d7/a2-a6,-(sp)
+	move.l	48(sp),d0
+	move.l	52(sp),d1
+	move.l	56(sp),d2
+	move.l	60(sp),d3
+	trap	#1
+	movem.l	(sp)+,d2-d7/a2-a6
+	rts

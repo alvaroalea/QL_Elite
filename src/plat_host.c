@@ -12,3 +12,4 @@ void plat_present(void)
     if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }
 }
 void plat_wait_key(void) {}
+void plat_exit(void) {}

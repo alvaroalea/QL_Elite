@@ -26,6 +26,7 @@ void plat_init(void);
 void plat_present(void);          /* una vez por fotograma; en el QL tambien vacia la cola de teclado de la consola */
 void plat_shutdown(void);         /* idempotente; en el QL se registra con atexit */
 void plat_flush_input(void);
+void plat_exit(void);             /* QL: termina el programa sin el mensaje "Press a key to exit" del runtime de c68 (MT.FRJOB); PC: no hace nada, main termina con return */
 void plat_wait_key(void);         /* QL: espera una pulsacion (suelta, pulsa, suelta) para poder ver la pantalla antes de volver a QDOS; PC: no hace nada */      /* QL: descarta las teclas acumuladas en la consola (KEYROW no las consume) */
 
 /* gfx.c */

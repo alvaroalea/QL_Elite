@@ -13,6 +13,9 @@
 #define SPEED_MAX 40
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
 
+/* Polvo estelar PROVISIONAL (sustituye a STARS, aun sin portar): cada particula tiene coordenadas respecto a la nave
+   (x derecha, y arriba, z hacia delante); la nave avanza (z baja). La vista elige hacia donde se mira:
+   delante (x, y, z), atras (-x, y, -z), izquierda (z, y, -x) y derecha (-z, y, x). */
 struct star { int x, y, z; int sx, sy, on; };
 static struct star stars[NSTARS];
 static int view = 0;
@@ -27,8 +30,7 @@ static void respawn(struct star *s)
 {
     s->x = (int)em_dornd() * 2 - 255;
     s->y = (int)em_dornd() * 2 - 255;
-    s->z = 40 + (int)em_dornd();
-    if (s->x == 0 && s->y == 0) s->x = 1;
+    s->z = (int)em_dornd() * 2 - 255;
     s->on = 0;
 }
 
@@ -39,9 +41,17 @@ static void star_erase(struct star *s)
 
 static void star_draw(struct star *s)
 {
-    int sx = 128 + (int)(((long)s->x * 64L) / s->z);
-    int sy = 68 + (int)(((long)s->y * 64L) / s->z);
-    if (sx < 0 || sx > 255 || sy < 0 || sy >= VIEW_H) { respawn(s); return; }
+    int vx, vz, sx, sy;
+    switch (view) {
+    case 1:  vx = -s->x; vz = -s->z; break;
+    case 2:  vx = s->z;  vz = -s->x; break;
+    case 3:  vx = -s->z; vz = s->x;  break;
+    default: vx = s->x;  vz = s->z;  break;
+    }
+    if (vz < 8) return;                                   /* detras del observador */
+    sx = 128 + (int)(((long)vx * 64L) / vz);
+    sy = 68 + (int)(((long)s->y * 64L) / vz);
+    if (sx < 0 || sx > 255 || sy < 0 || sy >= VIEW_H) return;
     s->sx = sx; s->sy = sy; s->on = 1;
     gfx_xor_pixel(sx, sy, C_WHITE);
 }
@@ -180,14 +190,18 @@ int flight_run(void)
         for (i = 0; i < NSTARS; i++) {
             struct star *s = &stars[i];
             star_erase(s);
-            s->z -= step;
+            s->z -= step;                                  /* la nave avanza */
             if (c.roll_left)  { s->x -= s->y >> 5; s->y += s->x >> 5; }
             if (c.roll_right) { s->x += s->y >> 5; s->y -= s->x >> 5; }
-            if (c.pitch_up)   s->y += 2;
-            if (c.pitch_down) s->y -= 2;
-            if (s->z < 8) respawn(s);
+            if (c.pitch_up)   { s->y += s->z >> 5; s->z -= s->y >> 5; }
+            if (c.pitch_down) { s->y -= s->z >> 5; s->z += s->y >> 5; }
+            if (s->z < -255 || s->z > 255 || s->x < -255 || s->x > 255 || s->y < -255 || s->y > 255) {
+                respawn(s);
+                s->z = 255;                                /* reaparece lejos, por delante */
+            }
             star_draw(s);
         }
+        if (zDELTA != last_speed) { bar(18, zDELTA, SPEED_MAX, C_GREEN); last_speed = zDELTA; }
         if (hyper && ++hyper_tick >= HYPER_FRAMES) {
             hyper_tick = 0;
             hyper--;

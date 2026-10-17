@@ -52,5 +52,6 @@ int main(void)
     }
     snd_off();
     plat_shutdown();
+    plat_exit();                                  /* QL: sin "Press a key to exit" */
     return 0;
 }

@@ -24,13 +24,16 @@ Resultado de las pruebas propias en el PC (`make test_game`, `make test_save`): 
 | 7 | `rating_name`, `legal_name` | `STATUS` (`st4`, `st3`, `st5`) | Rango segun `TALLY` (umbrales 8, 16, 32, 64, 128, 512, 2560, 6400) y estado legal segun `FIST` | B | sin-verificar |
 | 8 | `jump_do`, `jump_possible`, `jump_distance`, `jump_galactic`, `game_enter_system` | `TT18`, `TT111`, `hyp`, `TT114` | Combustible gastado, sistema de llegada, semilla de galaxia tras el salto galactico, `QQ26` y mercado nuevos | B | sin-verificar |
 | 9 | `uni_nearest` | `TT111` | Sistema mas cercano a un punto para todos los puntos (la comparacion con el oraculo de Text Elite no cubre esta funcion) | B | sin-verificar |
-| 10 | `scr_chart` (cartas galactica y local) | `TT22`, `TT23`, `TT103`, `TT105`, `TT114` | Escala y posicion de los puntos, radio del circulo de combustible, desplazamiento de la mira (ahora pasos de 1 y 2 unidades, no los del original) | C | sin-verificar |
+| 10 | `scr_chart` (cartas galactica y local) | `TT22`, `TT23`, `TT103`, `TT105`, `TT114`, `SUN`, `CIRCLE` | **Prioridad subida a A (peticion del usuario, 2026-10-16)**. Los planetas de la carta local ya no son un punto: discos de radio 2..5 segun el radio real (**sustituto**; el original usa `SUN`/`CIRCLE` con radio `(QQ15+5 AND 1)+2`). Falta: escala y posicion de los puntos, rango de la carta (`|dx| < 29`, `|dy| < 40`), radio del circulo de combustible, desplazamiento de la mira y portar `SUN`/`CIRCLE` | A | sin-verificar |
 | 11 | `scr_data` | `TT25`, `TT24` | Texto y formato de la ficha de sistema (poblacion en miles de millones, productividad, radio) | C | sin-verificar |
 | 12 | `scr_status`, `scr_inventory`, `scr_market` | `STATUS`, `TT213`, `TT167` | Contenido y orden de las lineas (la maquetacion es propia) | C | sin-verificar |
-| 13 | `flight_run` (polvo, panel, hiperespacio, atraque) | `STARS`, `DIALS`, `hyp`, `main loop` | **Sustituto provisional**: no es un port. Se sustituira al portar `STARS`, `MVEIT`, `DIALS`, `SCAN`, `TACTICS`... | A | propia |
+| 13 | `flight_run` (polvo, panel, hiperespacio, atraque) | `STARS`, `DIALS`, `hyp`, `main loop` | **Sustituto provisional**: no es un port. Polvo ya dependiente de la vista (delante/atras/izquierda/derecha) y barra de velocidad actualizada al momento (2026-10-16), pero no es `STARS`. Se sustituira al portar `STARS`, `MVEIT`, `DIALS`, `SCAN`, `TACTICS`... | A | propia |
 | 14 | `save_commander`, `load_commander`, `save_encode/decode` | `SVE`, `LOD`, `MUTILATE`, `UNMUTILATE` | **Formato propio** (94 bytes con cifrado XOR). Solo debe comprobarse que los tres checksums y el bloque de 77 bytes coinciden con los del original | C | propia |
 | 15 | `plat_wait_key` (QL) | - | **Confirmado en el QL real por el usuario (2026-10-16)** | A | verificada |
 | 16 | `shipview_draw` (titulo animado) | `LL9` + `LSPUT`/`LSCLR` | **Corregido (2026-10-16)**: el estado de la nave (`INWK+31`, bit 3: hay lineas en el monton) se ponia a 0 en cada fotograma y LL9 no borraba las viejas (caos de pixeles en el QL). Ahora el estado va por nave. `make test_shipview` (animar = dibujar desde cero, 6 naves; falla sin el arreglo). Falta confirmar en el QL | A | sin-verificar |
+| 17 | `plat_exit`, `ql_trap1` (QL) | - | Salida sin "Press a key to exit" con `MT.FRJOB`. Comprobar en el QL: que no aparezca el mensaje, que vuelva a SuperBASIC y que no queden pulsaciones | A | sin-verificar |
+| 18 | Aritmetica de `ship3d.c`/`ship_math.c` bajo c68 | - | **Corregido (2026-10-16)** el fallo de c68 `-O` (flags del `move.b` usados para `sge`); `make c68_check`: 32 naves x 6 poses y una sesion completa iguales que en el PC. Falta confirmar en el QL real (`ship_ql`: las 6 naves; titulo) | A | sin-verificar |
+
 
 ## Reglas para esta lista
 

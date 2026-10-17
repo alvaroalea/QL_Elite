@@ -18,14 +18,14 @@ u8 sm_mvt3(u8 x)
         return a;
     }
     zS = (u8)(zS & 0x7F);                                  /* MV13: signos distintos, restar */
-    d = (int)inwk[x] - zK[1];            zK[1] = (u8)d; c = (d >= 0);
-    d = (int)inwk[x + 1] - zK[2] - (1 - c); zK[2] = (u8)d; c = (d >= 0);
-    d = (int)(inwk[x + 2] & 0x7F) - zS - (1 - c); a = (u8)d; c = (d >= 0);
+    d = (int)inwk[x] - zK[1];            c = (d >= 0); zK[1] = (u8)d;
+    d = (int)inwk[x + 1] - zK[2] - (1 - c); c = (d >= 0); zK[2] = (u8)d;
+    d = (int)(inwk[x + 2] & 0x7F) - zS - (1 - c); c = (d >= 0); a = (u8)d;
     a = (u8)((a | 0x80) ^ t); zK[3] = a;
     if (c) { sm_c = 1; return a; }                         /* MV14 */
-    d = 1 - (int)zK[1] - (1 - c);        zK[1] = (u8)d; c = (d >= 0);   /* negar el resultado */
-    d = 0 - (int)zK[2] - (1 - c);        zK[2] = (u8)d; c = (d >= 0);
-    d = 0 - (int)zK[3] - (1 - c);        a = (u8)(((u8)d & 0x7F) | t); zK[3] = a; sm_c = (u8)(d >= 0);
+    d = 1 - (int)zK[1] - (1 - c);        c = (d >= 0); zK[1] = (u8)d;   /* negar el resultado */
+    d = 0 - (int)zK[2] - (1 - c);        c = (d >= 0); zK[2] = (u8)d;
+    d = 0 - (int)zK[3] - (1 - c);        sm_c = (u8)(d >= 0); a = (u8)(((u8)d & 0x7F) | t); zK[3] = a;
     return a;
 }
 
@@ -279,10 +279,10 @@ u8 sm_mcash(u8 x, u8 y)
 u8 sm_lcash(u8 x, u8 y)
 {
     int d, c;
-    d = (int)cash[3] - x;                 cash[3] = (u8)d; c = (d >= 0);
-    d = (int)cash[2] - y - (1 - c);       cash[2] = (u8)d; c = (d >= 0);
-    d = (int)cash[1] - (1 - c);           cash[1] = (u8)d; c = (d >= 0);
-    d = (int)cash[0] - (1 - c);           cash[0] = (u8)d; c = (d >= 0);
+    d = (int)cash[3] - x;                 c = (d >= 0); cash[3] = (u8)d;
+    d = (int)cash[2] - y - (1 - c);       c = (d >= 0); cash[2] = (u8)d;
+    d = (int)cash[1] - (1 - c);           c = (d >= 0); cash[1] = (u8)d;
+    d = (int)cash[0] - (1 - c);           c = (d >= 0); cash[0] = (u8)d;
     if (c) { sm_c = 1; return 1; }                         /* TT113 */
     return sm_mcash(x, y);                                 /* sin saldo: restituir */
 }
@@ -304,7 +304,7 @@ u8 sm_scaley2(u8 a)
     int d, c;
     unsigned s;
     a = (u8)(a >> 2);
-    d = (int)a - t3; x = (u8)d; c = (d >= 0);
+    d = (int)a - t3; c = (d >= 0); x = (u8)d;
     s = (unsigned)(u8)(x ^ 0xFF) + 1 + c;
     sm_c = (u8)(s >> 8);
     return (u8)s;

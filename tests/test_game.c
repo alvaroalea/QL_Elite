@@ -163,8 +163,8 @@ static const int script[] = {
     '6', SNAP(9),                               /* datos */
     '8', SNAP(10),                              /* estado */
     'i', '2', KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, 'b', 'o', 'b', KC_ENTER, SNAP(11), KC_ESC,   /* disco: guardar como BOB */
-    '0', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12), 'c',     /* despegar, unos fotogramas, atracar */
-    '8', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(13),       /* cargar BOB */
+    '0', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12), '1', -1, -1, -1, -1, SNAP(13), '2', -1, -1, -1, -1, SNAP(14), 'c',     /* despegar, unos fotogramas, atracar */
+    '8', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(15),       /* cargar BOB */
     'i', 'q', 'y'                                /* salir */
 };
 static unsigned sp = 0;
@@ -199,7 +199,7 @@ int main(void)
     in_script = feed;
     game_run();
     check(sp >= sizeof script / sizeof script[0] - 3, "la sesion guiada llego al final");
-    check(snapn == 14, "14 capturas");
+    check(snapn == 16, "16 capturas");
     check(strcmp(cmdr_name, "BOB") == 0, "se cargo el comandante BOB");
     printf("sesion: %u teclas, %d capturas; %d comprobaciones, %d fallos\n", sp, snapn, total, fails);
     return fails ? 1 : 0;
