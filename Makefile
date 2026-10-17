@@ -68,10 +68,10 @@ ql_universe:
 
 # Demo de proyeccion 3D: seis naves dibujadas con LL9 (XOR)
 host_demo_ship:
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o demo_ship src/demo_ship.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/plat_host.c
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o demo_ship src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/plat_host.c
 	./demo_ship && python3 tools/ql2png.py screen.bin demo_ship.png
 ql_ship:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o ship_ql src/demo_ship.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o ship_ql src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
 
 # Comparacion con el codigo ORIGINAL ejecutado en un emulador de 6502 (necesita la fuente de referencia clonada:
 # git clone https://github.com/markmoxon/elite-source-code-apple-ii /tmp/moxon  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
@@ -79,3 +79,27 @@ test_orig:
 	python3 tools/gen_ll9.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ll9 tests/test_ll9.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c
 	./tests/test_ll9
+
+# Juego completo (provisional: vuelo sin MVEIT/TACTICS). PC: make host_game (para pruebas); QL: make ql_game
+GAME = src/main.c src/app.c src/menu.c src/flight.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
+host_game:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
+ql_game:
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o elite $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm -lm
+
+# Logica de juego y sesion guiada por guion (PC): guarda capturas en tests/shots/
+test_game:
+	mkdir -p tests/shots tests/tmp
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_game tests/test_game.c src/app.c src/menu.c src/flight.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	./tests/test_game
+
+test_save:
+	python3 tools/gen_vectors_chk.py
+	mkdir -p tests/tmp
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_save tests/test_save.c src/cmdr.c src/save.c src/state.c
+	./tests/test_save
+
+clean:
+	rm -f elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
+
+test_all: test test_keys test_sound test_universe test_save test_game

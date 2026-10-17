@@ -1,0 +1,9 @@
+/* Vuelo (PROVISIONAL): vista espacial con polvo estelar, panel de instrumentos basico, controles de velocidad,
+   cambio de vista, hiperespacio y atraque. Todavia no hay MVEIT, TACTICS, STARS ni DIALS del original:
+   el polvo es un sustituto simple y el atraque no exige llegar a la estacion. */
+#ifndef FLIGHT_H
+#define FLIGHT_H
+#define FL_DOCK 1                    /* el piloto ha atracado */
+#define FL_QUIT 2                    /* salida de emergencia */
+int flight_run(void);
+#endif

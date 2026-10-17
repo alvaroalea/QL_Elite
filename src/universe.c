@@ -120,6 +120,17 @@ void uni_build_galaxy(int galaxynum)
     for (i = 0; i < UNI_NSYS; i++) uni_make_system(&seed, &uni_galaxy[i]);
 }
 
+void uni_galaxy_seed(int galaxynum, u8 *out)
+{
+    uni_seed seed;
+    int g;
+    seed.w0 = BASE0; seed.w1 = BASE1; seed.w2 = BASE2;
+    for (g = 1; g < galaxynum; g++) nextgalaxy(&seed);
+    out[0] = (u8)(seed.w0 & 255); out[1] = (u8)(seed.w0 >> 8);        /* EQUW del original: byte bajo primero */
+    out[2] = (u8)(seed.w1 & 255); out[3] = (u8)(seed.w1 >> 8);
+    out[4] = (u8)(seed.w2 & 255); out[5] = (u8)(seed.w2 >> 8);
+}
+
 /* ---- mercado ---- */
 
 void uni_gen_market(unsigned fluct, const uni_system *p, uni_market *m)

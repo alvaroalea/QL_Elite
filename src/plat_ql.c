@@ -56,6 +56,39 @@ void plat_init(void)
     if (!con_up) { con_up = 1; atexit(plat_shutdown); }
 }
 
+/* Espera de tecla para los demos: sin ella el runtime de c68 borra la pantalla al volver a QDOS.
+   Lee la matriz con el mismo comando IPC que keys_ql.c (KEYROW), pero sin depender de keys.c. */
+extern long ql_ipc(char *blk);
+static long wk_blk[2];                      /* long: direccion par */
+
+static int wk_row(int row)
+{
+    char *b = (char *)wk_blk;
+    long r;
+    b[0] = 9; b[1] = 1; b[2] = 0; b[3] = 0; b[4] = 0; b[5] = 0; b[6] = (char)row; b[7] = 2;
+    r = ql_ipc(b);
+    return (r < 0L) ? 0 : (int)(r & 0xFF);
+}
+
+static int wk_any(void)                      /* alguna tecla (salvo SHIFT/CTRL/ALT) */
+{
+    int r, v;
+    for (r = 0; r < 8; r++) {
+        v = wk_row(r);
+        if (r == 7) v &= 0xF8;
+        if (v) return 1;
+    }
+    return 0;
+}
+
+void plat_wait_key(void)
+{
+    while (wk_any()) plat_flush_input();    /* primero que suelte la tecla con la que lanzo el programa */
+    while (!wk_any()) plat_flush_input();
+    while (wk_any()) plat_flush_input();    /* y que la suelte: asi SuperBASIC no la recibe */
+    plat_flush_input();
+}
+
 /* Se llama una vez por fotograma desde el bucle: aprovecha para vaciar la cola de teclado. */
 void plat_present(void)
 {

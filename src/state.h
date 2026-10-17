@@ -107,7 +107,10 @@ extern u8   crgo;                     /* capacidad de bodega */
 extern u8   ecm_fitted, bst, bomb, engy, dkcmp, ghyp, escp;   /* equipo */
 extern u8   tribble[2], tallyl, nomsl, fist;
 extern u8   avl[17];                  /* cantidades disponibles en el mercado */
-extern u8   tally[2];                 /* muertes */
+extern u8   tally[2];                 /* muertes: tally[0] = byte bajo (TALLY), tally[1] = alto */
+extern u8   tp;                       /* TP: estado de las misiones */
+extern u8   cok;                      /* COK: banderas de competicion (bit 7 = datos alterados) */
+extern u8   svc;                      /* SVC: contador de guardados */
 
 void state_clear(void);               /* pone a cero todo el estado e inicializa UNIV */
 u8  *state_slot(int n);               /* direccion de la ranura n de K% (0..NOSH) */

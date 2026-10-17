@@ -11,3 +11,4 @@ void plat_present(void)
     FILE *f = fopen("screen.bin", "wb");
     if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }
 }
+void plat_wait_key(void) {}

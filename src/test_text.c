@@ -31,5 +31,7 @@ int main(void)
     txt_print_at(0, 22, "Comandante: JAMESON");
     txt_cursor(1);                                    /* cursor visible tras el texto */
     plat_present();
+    plat_wait_key();
+    plat_shutdown();
     return 0;
 }

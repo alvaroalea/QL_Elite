@@ -67,5 +67,7 @@ int main(void)
         txt_at(25, 15 + i); num(m.quantity[i], 3);
     }
     plat_present();
+    plat_wait_key();                              /* QL: espera una tecla antes de volver a QDOS */
+    plat_shutdown();
     return 0;
 }

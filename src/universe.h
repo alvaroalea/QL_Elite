@@ -43,6 +43,7 @@ extern const char *uni_econnames[8];
 extern void (*uni_putc)(int);                 /* salida de caracteres de uni_describe */
 
 void uni_build_galaxy(int galaxynum);         /* 1..8: rellena uni_galaxy */
+void uni_galaxy_seed(int galaxynum, u8 *out); /* semilla base de la galaxia (6 bytes, como QQ21): galaxia 1 = 4A 5A 48 02 53 B7 */
 void uni_make_system(uni_seed *s, uni_system *out);   /* modifica la semilla (4 giros) */
 void uni_gen_market(unsigned fluct, const uni_system *p, uni_market *m);
 unsigned uni_distance(const uni_system *a, const uni_system *b);   /* en decimas de anio luz (multiplo de 4) */

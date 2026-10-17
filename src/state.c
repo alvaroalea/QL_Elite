@@ -35,6 +35,7 @@ u8  ecm_fitted, bst, bomb, engy, dkcmp, ghyp, escp;
 u8  tribble[2], tallyl, nomsl, fist;
 u8  avl[17];
 u8  tally[2];
+u8  tp, cok, svc;
 
 static void zero(u8 *p, int n) { while (n-- > 0) *p++ = 0; }
 
@@ -54,6 +55,6 @@ void state_clear(void)
     qq24 = qq25 = qq28 = qq29 = qq26 = 0;
     zero(cash, 4); gcnt = 0; zero(laser, 4); crgo = 0;
     ecm_fitted = bst = bomb = engy = dkcmp = ghyp = escp = 0;
-    zero(tribble, 2); tallyl = nomsl = fist = 0; zero(avl, 17); zero(tally, 2);
+    zero(tribble, 2); tallyl = nomsl = fist = 0; zero(avl, 17); zero(tally, 2); tp = cok = svc = 0;
     for (i = 0; i <= NOSH; i++) univ[i] = state_slot(i);
 }
