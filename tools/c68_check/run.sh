@@ -6,7 +6,7 @@
 #             gcc-m68k-linux-gnu (as, ld) y qemu-user. Variables: XTC68=<dir con c68> (por defecto /tmp/xtc68/build)
 set -e
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-XTC68=${XTC68:-/tmp/xtc68/build}
+XTC68=${XTC68:-$( [ -x /tmp/qlsdk/bin/c68 ] && echo /tmp/qlsdk/bin || echo /tmp/xtc68/build )}
 W=${W:-/tmp/c68_work}
 mkdir -p $W; cd $W
 S=$ROOT/src

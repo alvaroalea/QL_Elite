@@ -218,3 +218,286 @@ FAROF farof sin-verificar
 GINF - no-necesaria el puntero INF no existe en C: se indexa por ranura
 SFS2 - no-necesaria mover una nave a lo largo de un eje: solo para crear naves hijas (misiles, cargas, cápsulas)
 exlook - no-necesaria tabla de EXNO (sonido de explosion): el sonido ya esta en sound.c
+# --- clasificacion del inventario (2026-10-17)
+ENTRY - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
+S% - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
+DEEOR - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
+DEEORS - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
+G% - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
+F% - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
+NMIpissoff - no-necesaria arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c
+COLD - no-necesaria arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c
+BEGIN - no-necesaria arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c
+MUTILATE - no-necesaria cifrado antimanipulacion del fichero de comandante del original; save.c usa su propio cifrado XOR (formato ELQD)
+UNMUTILATE - no-necesaria cifrado antimanipulacion del fichero de comandante del original; save.c usa su propio cifrado XOR (formato ELQD)
+SWAPPZERO - no-necesaria sin uso en el original (intercambio de la pagina cero)
+brkd - no-necesaria manejador de errores BRK del 6502; el runtime de C se ocupa de los errores
+BRBR - no-necesaria manejador de errores BRK del 6502; el runtime de C se ocupa de los errores
+BRKBK - no-necesaria manejador de errores BRK del 6502; el runtime de C se ocupa de los errores
+ZEBC - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
+ZES1 - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
+ZES2 - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
+ZES1k - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
+ZES2k - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
+ZESNEW - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
+mvblockK - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
+DELAY - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
+CLDELAY - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
+WSCAN - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
+backtonormal - no-necesaria desactiva el teclado del BBC y vuelve con A = 0; no aplica
+ZERO ships_clear propia reinicio de la burbuja local: ranuras, contadores y montones de lineas
+Disk - no-necesaria variables de las operaciones de disco y de la RWTS del DOS 3.3: el QL usa QDOS
+UP - no-necesaria variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3
+Option - no-necesaria variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3
+ZP - no-necesaria la pagina cero se reparte en variables globales de C (state.c, emath.c): lo da el compilador
+XX3 - no-necesaria tabla de coordenadas de pantalla de los vertices: matriz xx3 de ship3d.c
+K% - no-necesaria bloques de las naves: matriz de state.c (state_slot) y un monton de lineas por ranura en ships.c
+WP - no-necesaria montones de la bola, del sol y de las naves y datos del polvo estelar: matrices de C (sun.c, stars.c, ships.c)
+newosrdch - no-necesaria rutina OSRDCH personalizada del BBC con procesador Tube; no aplica
+RDKEY key_scan propia lectura de las filas del teclado por IPC (keys.c)
+KYTB keys.c propia tabla de teclas de vuelo: las teclas del QL se definen en keys.h
+RDS1 ctl_read propia palanca de mando CTL1 (keys.c)
+DKS2 ctl_read propia palanca de mando CTL1 (keys.c)
+PAUSE2 plat_wait_key propia esperar una tecla ignorando la anterior
+ZEKTRAN - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
+U% - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
+DKSANYKEY - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
+KTRAN - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
+BELL snd_bell propia 
+BEEP snd_beep propia 
+BOOP snd_boop propia 
+SOBEEP snd_sobeep propia 
+SOBLIP snd_soblip propia 
+SOHISS snd_sohiss propia 
+SOEXPL snd_soexpl propia 
+EXNO snd_exno propia 
+EXNO3 snd_exno3 propia 
+LASNOISE snd_lasnoise propia 
+SOBOMB snd_sobomb propia 
+CLICK - no-necesaria conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c)
+LASNOISE2 - no-necesaria sin uso en el original
+RESET game_new propia reinicia las variables de la partida
+RES2 space_reset,ships_clear propia reinicia las variables de vuelo
+TT170 game_run propia punto de entrada del juego (app.c)
+TITLE scr_title propia pantalla de titulo con la nave que gira
+BR1 scr_title,scr_disk propia el titulo ofrece cargar un comandante por el menu de disco
+cmn scr_status propia nombre del comandante en la pantalla de estado
+fwl scr_status,ui_num propia combustible y dinero
+csh scr_status,ui_num propia combustible y dinero
+BAD legal_name propia estado legal: calculo y nombre
+BAY scr_status propia pantalla de estado al atracar
+NLI4 ui_title propia titulo con la linea que lo subraya (menu.c)
+NLIN3 ui_title propia titulo con la linea que lo subraya (menu.c)
+NLIN4 ui_title propia titulo con la linea que lo subraya (menu.c)
+NLIN ui_title propia titulo con la linea que lo subraya (menu.c)
+NLIN2 ui_title propia titulo con la linea que lo subraya (menu.c)
+DVLOIN dvloin propia linea vertical de las cartas (chart.c)
+LOIN gfx_line propia linea en XOR; el original usa pasos 6502 y mascaras de HGR
+LL145 ship_clip verificada recorte de linea (verificada con el 6502)
+LL118 ship_clip verificada dentro de ship3d.c (verificada con el 6502)
+LSPUT ship_lsput verificada linea de nave en el monton con animacion sin parpadeo (dentro de LL9, verificada)
+beamcol - no-necesaria tabla sin uso en el original
+TWFL - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+TWFR - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+MASKT - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+SCTBX1 - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+SCTBX2 - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+cellocl - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+SCTBL - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+SCTBH - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+SCTBH2 - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
+HGR - no-necesaria cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8)
+TEXT - no-necesaria cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8)
+TRADEMODE ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
+TTX66 ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
+TTX66K ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
+clss ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
+cleargrap ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
+clearrow ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
+sightcol chart_sight propia colores de la mira segun el laser: dentro de chart_sight (sin verificar)
+hyp start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
+wW start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
+TT18 start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
+TTX110 find_system propia sistema mas cercano a la mira
+Ghy jump_galactic propia salto galactico
+ee3 say_hyper propia cuenta atras del hiperespacio en pantalla
+TT147 start_hyper propia mensaje de fuera de alcance
+TT110 space_launch,flight_run propia despegue y vista frontal
+me1 say propia mensaje en vuelo: borra el anterior y muestra el nuevo
+me2 say propia mensaje en vuelo: borra el anterior y muestra el nuevo
+MESS say propia mensaje en vuelo: borra el anterior y muestra el nuevo
+log em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
+logL em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
+alogh em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
+PIX1 pixel2 propia dibujo del polvo estelar (stars.c)
+MU5 emath.c propia entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion
+MU6 emath.c propia entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion
+MU1 emath.c propia entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion
+MLS1 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
+MLS2 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
+MUT1 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
+MUT2 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
+MUT3 - no-necesaria sin uso en el original
+DVID3B2 em_dvid3b propia la entrada con INWK se hace en ship_math.c y en planet()
+GC2 tt22,tt23 propia la multiplicacion por 4 va en linea en las cartas
+LL62 ship_ll9 verificada etiqueta ll62 de LL9 (verificada)
+LL120 ll120_123 verificada recorte de linea (ship3d.c, verificadas)
+LL123 ll120_123 verificada recorte de linea (ship3d.c, verificadas)
+FAROF2 farof propia FAROF con A = 224
+yetanotherrts - no-necesaria contiene solo un RTS
+TRIBDIR - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
+TRIBDIRH - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
+SPMASK - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
+TRIBTA - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
+TRIBMA - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
+wtable - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rtable - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+scttab - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+armtab - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+armtb2 - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+armwat - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+prenib - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+pstnib - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+wbyte - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rwts - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rsect - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+wsect - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rttrk - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rttrk3 - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+trytrk - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rdrght - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+read - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+write - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rdaddr - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+seek - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+drverr - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+prterr - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rvtoc - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+gettsl - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+getsct - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+isfull - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+findf - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+finde - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rentry - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
+rfile load_commander propia lectura del fichero de comandante
+wfile save_commander,write_file propia escritura del fichero de comandante
+NA% cmdr_default propia datos del comandante por defecto y del ultimo guardado
+NA2% cmdr_default propia datos del comandante por defecto y del ultimo guardado
+CHK cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
+CHK2 cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
+CHK3 cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
+COPYNAME cmdr_set_name,save_filename propia copia del nombre del comandante
+TRNME cmdr_set_name,save_filename propia copia del nombre del comandante
+TR1 cmdr_set_name,save_filename propia copia del nombre del comandante
+comnam cmdr_set_name,save_filename propia copia del nombre del comandante
+GTNMEW edit_name propia nombre del comandante
+FILEPR scr_disk propia unidad actual y errores de disco en el menu de disco
+OTHERFILEPR scr_disk propia unidad actual y errores de disco en el menu de disco
+diskerror scr_disk propia unidad actual y errores de disco en el menu de disco
+DERR1 save_errstr propia mensajes de error de disco
+DERR2 save_errstr propia mensajes de error de disco
+DERR3 save_errstr propia mensajes de error de disco
+DERR4 save_errstr propia mensajes de error de disco
+DERR5 save_errstr propia mensajes de error de disco
+ERTAB save_errstr propia mensajes de error de disco
+S1% save_dev propia unidad y directorio
+thislong - no-necesaria longitud de los nombres: en C se calcula con strlen
+oldlong - no-necesaria longitud de los nombres: en C se calcula con strlen
+DETOK3 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DETOK - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DETOK2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT1 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT5 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT6 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT8 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT9 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT13 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT14 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT15 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT16 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT19 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT23 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT29 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MTIN - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+JMTB - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TKN2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+QQ16 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DTW1 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DTW2 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DTW3 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DTW4 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DTW5 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DTW6 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+DTW8 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+VOWEL - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+qw - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+ex - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TT43 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TT27 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TT41 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TT42 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TT45 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TT46 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+TT74 - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+WHITETEXT - no-necesaria motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas
+MT17 goat_soup propia adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c)
+MT18 goat_soup propia adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c)
+TT26 txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
+CHPR txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
+letter txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
+letter2 txt_putc,draw_glyph propia impresion de caracteres sobre la pantalla grafica (text.c)
+CHPR2 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
+R5 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
+RR5 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
+TT67 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+TT67K txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+FEED txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+TT69 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+TTX69 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+TT60 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+plf txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+plf2 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+spc txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+prq txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+TT68 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+TT73 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+TT162 txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+crlf txt_print_at,txt_putc propia saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto
+DOXC txt_col propia columna del cursor
+SETXC txt_col propia columna del cursor
+DOYC txt_row propia fila del cursor
+SETYC txt_row propia fila del cursor
+INCYC txt_row propia fila del cursor
+pr2 ui_num,ui_tenths propia impresion de numeros (menu.c)
+TT11 ui_num,ui_tenths propia impresion de numeros (menu.c)
+BPRNT ui_num,ui_tenths propia impresion de numeros (menu.c)
+pr5 ui_num,ui_tenths propia impresion de numeros (menu.c)
+pr6 ui_num,ui_tenths propia impresion de numeros (menu.c)
+TENS ui_num,ui_tenths propia impresion de numeros (menu.c)
+MT26 edit_text propia lectura de una linea del teclado
+RLINE edit_text propia lectura de una linea del teclado
+dn2 snd_boop propia pitido largo y espera
+UNIV state_slot propia tabla de punteros a los bloques de las naves
+TT20 twist,nextgalaxy propia giro de las semillas (universe.c, de Text Elite)
+TT54 twist,nextgalaxy propia giro de las semillas (universe.c, de Text Elite)
+TT24 uni_make_system,uni_build_galaxy propia datos del sistema y semillas de la galaxia (universe.c: iguales al oraculo de Text Elite)
+TT81 uni_make_system,uni_build_galaxy propia datos del sistema y semillas de la galaxia (universe.c: iguales al oraculo de Text Elite)
+GVL uni_gen_market propia disponibilidad del mercado
+jmp game_enter_system,jump_do propia entrada en el sistema y salto al mas cercano
+hyp1 game_enter_system,jump_do propia entrada en el sistema y salto al mas cercano
+cpl put_name,chart_info propia nombre del sistema, del actual y numero de galaxia
+ypl put_name,chart_info propia nombre del sistema, del actual y numero de galaxia
+tal put_name,chart_info propia nombre del sistema, del actual y numero de galaxia
+TT146 chart_info propia distancia en anos luz
+TT70 uni_describe propia MAINLY en la descripcion del sistema
+PDESC uni_describe propia descripcion del sistema; falta la directiva de la mision 1
+NwS1 make_station propia los tres NwS1 que invierten el morro de la estacion
+KS1 ship_kill propia quita la nave y desplaza las demas
+KS4 ships_step propia la estacion se quita y vuelve el sol (regla propia)
+spasto ship_bp_for propia plano de la estacion (Coriolis o Dodo)
+KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
+Main ships_step,flight_run parcial bucle principal reducido: mueve y dibuja las naves y lee el teclado; faltan colisiones, lasers, misiles, escarbado, generacion de encuentros y el resto de partes
+DOENTRY flight_run parcial el atraque cambia a la estacion; falta el progreso de misiones
+
+LL129 ll129 verificada dentro de ship3d.c (pendiente de la linea, verificada con el 6502)

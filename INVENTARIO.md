@@ -1,12 +1,71 @@
 # Inventario de rutinas (Elite Apple II -> Elite QL)
 
-Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.
+Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxon, Elite Apple II) y de `tools/ported.txt`. No se edita a mano: se cambia `tools/ported.txt` y se ejecuta `python3 tools/inventory.py`.
 
-Rutinas: 528. Portadas o con equivalente propio: 187 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 8.
+## Resumen
 
-Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **no-necesaria** = la rutina no hace falta en el estado actual del juego (la nota dice por que y cuando hara falta); vacio = sin portar.
+- Rutinas de la fuente: **528**
+- **Portadas** (con la funcion C que las cubre): **334**, de ellas verificadas contra el 6502: 25 y pendientes de verificar: 309
+- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, motor de textos comprimidos, utilidades que da el compilador de C, etc.): **140**
+- **Sin portar** (pendientes de implementar, incluidas las parciales): **54**
 
-## Charts (9/9)
+Comprobacion: total = portadas + no necesarias + sin portar (528 = 334 + 140 + 54).
+
+| Area | Total | Portadas | De ellas verificadas | No necesarias | Pendientes verificar | Pendientes implementar |
+|---|---:|---:|---:|---:|---:|---:|
+| Charts | 9 | 9 | 0 | 0 | 9 | 0 |
+| Dashboard | 29 | 25 | 0 | 4 | 25 | 0 |
+| Drawing circles | 9 | 9 | 0 | 0 | 9 | 0 |
+| Drawing lines | 27 | 16 | 3 | 4 | 13 | 7 |
+| Drawing pixels | 6 | 6 | 0 | 0 | 6 | 0 |
+| Drawing planets | 7 | 7 | 1 | 0 | 6 | 0 |
+| Drawing ships | 5 | 4 | 2 | 1 | 2 | 0 |
+| Drawing suns | 3 | 3 | 0 | 0 | 3 | 0 |
+| Drawing the screen | 18 | 8 | 0 | 9 | 8 | 1 |
+| Equipment | 6 | 6 | 0 | 0 | 6 | 0 |
+| Flight | 29 | 14 | 0 | 0 | 14 | 15 |
+| Keyboard | 19 | 13 | 0 | 4 | 13 | 2 |
+| Loader | 5 | 0 | 0 | 5 | 0 | 0 |
+| Main loop | 1 | 0 | 0 | 0 | 0 | 1 |
+| Market | 19 | 18 | 3 | 1 | 15 | 0 |
+| Maths (Arithmetic) | 52 | 51 | 11 | 1 | 40 | 0 |
+| Maths (Geometry) | 19 | 19 | 2 | 0 | 17 | 0 |
+| Missions | 16 | 0 | 0 | 5 | 0 | 11 |
+| Moving | 8 | 7 | 0 | 1 | 7 | 0 |
+| Save and load | 61 | 27 | 3 | 34 | 24 | 0 |
+| Sound | 13 | 11 | 0 | 2 | 11 | 0 |
+| Stardust | 7 | 7 | 0 | 0 | 7 | 0 |
+| Start and end | 8 | 6 | 0 | 0 | 6 | 2 |
+| Status | 7 | 6 | 0 | 0 | 6 | 1 |
+| Tactics | 8 | 0 | 0 | 1 | 0 | 7 |
+| Text | 77 | 34 | 0 | 41 | 34 | 2 |
+| Tube | 1 | 0 | 0 | 1 | 0 | 0 |
+| Universe | 34 | 27 | 0 | 2 | 27 | 5 |
+| Utility routines | 18 | 1 | 0 | 17 | 1 | 0 |
+| Workspaces | 7 | 0 | 0 | 7 | 0 | 0 |
+| **Total** | **528** | **334** | **25** | **140** | **309** | **54** |
+
+Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
+
+## Rutinas sin portar, por area
+
+- **Drawing lines** (7): `BOMBOFF`, `BOMBEFF2`, `BOMBON`, `BOMBPOS`, `BOMBTBX`, `BOMBTBY`, `LASLI`
+- **Drawing the screen** (1): `DET1`
+- **Flight** (15): `DOENTRY` (parcial), `ESCAPE`, `DOCKIT`, `DCS1`, `SESCP`, `dockEd`, `MJP`, `SHD`, `DENGY`, `OOPS`, `WARP`, `mes9`, `OUCH`, `ou2`, `ou3`
+- **Keyboard** (2): `TGINT`, `DKS3`
+- **Main loop** (1): `Main` (parcial)
+- **Missions** (11): `BRIEF2`, `BRP`, `BRIEF3`, `DEBRIEF2`, `DEBRIEF`, `TBRIEF`, `BRIEF`, `BRIS`, `PAUSE`, `PAS1`, `THERE`
+- **Start and end** (2): `DEATH`, `DEATH2`
+- **Status** (1): `EXNO2`
+- **Tactics** (7): `TACTICS`, `HITCH`, `FRS1`, `FRMIS`, `ANGRY`, `FR1`, `SFRMIS`
+- **Text** (2): `MT27`, `MT28`
+- **Universe** (5): `SPIN`, `SFS1`, `GTHG`, `KS2`, `Ze`
+
+## Estados
+
+**verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, anotada en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **parcial** = existe una version reducida y falta parte (cuenta como pendiente de implementar); **no-necesaria** = no hace falta en la version QL (la nota dice por que); vacio = sin portar.
+
+## Charts (9 portadas de 9)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -20,7 +79,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TT114 | Display either the Long-range or Short-range Chart | sin-verificar | `chart_draw` | dispatcher galactica/local; el redibujado tras un salto hecho desde una carta no hace falta aun: el salto solo se inicia desde la vista de vuelo |
 | hm | Select the closest system and redraw the chart crosshairs | sin-verificar | `chart_hm` | tecla D: sistema mas cercano a la cruz, nombre y distancia |
 
-## Dashboard (25/29, 4 no necesarias)
+## Dashboard (25 portadas de 29, 4 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -54,7 +113,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | msloc | The screen x-coordinates of the four missile indicators on the | sin-verificar | `msloc` | x = 40, 32, 24, 16 |
 | SCAN | Display the current ship on the scanner | sin-verificar | `space_scan` | el bit 4 de INWK+31 (dibujada), colores de scacol y recorte a 146..190 como el original |
 
-## Drawing circles (9/9)
+## Drawing circles (9 portadas de 9)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -68,7 +127,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | CIRCLE2 | Draw a circle (for the planet or chart) | sin-verificar | `circle2_draw` |  |
 | CHKON | Check whether any part of a circle appears on the extended screen | sin-verificar | `sun_chkon` |  |
 
-## Drawing lines (5/27)
+## Drawing lines (16 portadas de 27, 4 no necesarias, 7 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -78,29 +137,29 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | BOMBPOS | A set of x-coordinates that are used as the basis for the energy |  |  |  |
 | BOMBTBX | This is where we store the x-coordinates for the energy bomb's |  |  |  |
 | BOMBTBY | This is where we store the y-coordinates for the energy bomb's |  |  |  |
-| NLI4 | Draw a line of dashes underneath a title on the text screen |  |  |  |
-| NLIN3 | Print a title and draw a horizontal line at row 19 to box it in |  |  |  |
-| NLIN4 | Draw a horizontal line at pixel row 19 to box in a title |  |  |  |
-| NLIN | Draw a horizontal line at pixel row 23 to box in a title |  |  |  |
-| NLIN2 | Draw a screen-wide horizontal line at the pixel row in A |  |  |  |
+| NLI4 | Draw a line of dashes underneath a title on the text screen | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
+| NLIN3 | Print a title and draw a horizontal line at row 19 to box it in | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
+| NLIN4 | Draw a horizontal line at pixel row 19 to box in a title | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
+| NLIN | Draw a horizontal line at pixel row 23 to box in a title | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
+| NLIN2 | Draw a screen-wide horizontal line at the pixel row in A | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
 | HLOIN2 | Remove a line from the sun line heap and draw it on-screen | sin-verificar | `hloin2` |  |
 | LASLI | Draw the laser lines for when we fire our lasers |  |  |  |
-| DVLOIN | Draw a vertical line from (A, GCYT) to (A, GCYB) |  |  |  |
+| DVLOIN | Draw a vertical line from (A, GCYT) to (A, GCYB) | propia | `dvloin` | linea vertical de las cartas (chart.c) |
 | TT15 | Draw a set of crosshairs | sin-verificar | `tt15` |  |
 | EDGES | Draw a horizontal line given a centre and a half-width | sin-verificar | `edges` |  |
-| LL118 | Move a point along a line until it is on-screen |  |  |  |
-| LL145 | Clip line: Work out which end-points are on-screen, if any |  |  |  |
-| LSPUT | Draw a ship line using flicker-free animation |  |  |  |
-| sightcol | Colours for the crosshair sights on the different laser types |  |  |  |
-| beamcol | An unused table of laser colours |  |  |  |
-| TWFL | Ready-made pixel bytes for the left end of a horizontal line |  |  |  |
-| TWFR | Ready-made character rows for the right end of a horizontal line |  |  |  |
-| LOIN | Draw a line: Calculate the line gradient in the form of deltas |  |  |  |
+| LL118 | Move a point along a line until it is on-screen | verificada | `ship_clip` | dentro de ship3d.c (verificada con el 6502) |
+| LL145 | Clip line: Work out which end-points are on-screen, if any | verificada | `ship_clip` | recorte de linea (verificada con el 6502) |
+| LSPUT | Draw a ship line using flicker-free animation | verificada | `ship_lsput` | linea de nave en el monton con animacion sin parpadeo (dentro de LL9, verificada) |
+| sightcol | Colours for the crosshair sights on the different laser types | propia | `chart_sight` | colores de la mira segun el laser: dentro de chart_sight (sin verificar) |
+| beamcol | An unused table of laser colours | no-necesaria |  | tabla sin uso en el original |
+| TWFL | Ready-made pixel bytes for the left end of a horizontal line | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| TWFR | Ready-made character rows for the right end of a horizontal line | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| LOIN | Draw a line: Calculate the line gradient in the form of deltas | propia | `gfx_line` | linea en XOR; el original usa pasos 6502 y mascaras de HGR |
 | HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) | sin-verificar | `gfx_hloin` | mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II |
-| MASKT | High-resolution pixel bytes for drawing continuous lines of solid |  |  |  |
+| MASKT | High-resolution pixel bytes for drawing continuous lines of solid | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | VLOIN | Draw a vertical line from (X1, Y1) to (X1, Y2) | sin-verificar | `gfx_vloin` | 2 puntos de ancho, extremos incluidos |
 
-## Drawing pixels (6/6)
+## Drawing pixels (6 portadas de 6)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -111,7 +170,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels | propia |  |  |
 | CPIX | Draw a colour pixel | sin-verificar | `gfx_cpix` | 2 puntos de ancho (x, x+1) en XOR; sin las tablas de bytes del Apple II |
 
-## Drawing planets (7/7)
+## Drawing planets (7 portadas de 7)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -123,7 +182,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | PL21 | Return from a planet/sun-drawing routine with a failure flag | sin-verificar | `planet` | SEC; RTS: en C el retorno de PROJ ya lo cubre |
 | PLS6 | Calculate (X K) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `sm_pls6` |  |
 
-## Drawing ships (4/5, 1 no necesarias)
+## Drawing ships (4 portadas de 5, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -133,7 +192,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SHPPT | Draw a distant ship as a point rather than a full wireframe | verificada | `ship_shppt` |  |
 | LL9 | Draw ship: Check if ship is exploding, check if ship is in front | verificada | `ship_ll9` |  |
 
-## Drawing suns (3/3)
+## Drawing suns (3 portadas de 3)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -141,30 +200,30 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SUN | Draw the sun: Set up all the variables needed to draw the sun | sin-verificar | `sun_draw` |  |
 | WPLS | Remove the sun from the screen | sin-verificar | `sun_wpls` |  |
 
-## Drawing the screen (2/18)
+## Drawing the screen (8 portadas de 18, 9 no necesarias, 1 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| SCTBX1 | Lookup table for converting a pixel x-coordinate to the bit number |  |  |  |
-| SCTBX2 | Lookup table for converting a pixel x-coordinate to the byte |  |  |  |
-| TRADEMODE | Clear the screen and set up a trading screen |  |  |  |
+| SCTBX1 | Lookup table for converting a pixel x-coordinate to the bit number | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| SCTBX2 | Lookup table for converting a pixel x-coordinate to the byte | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| TRADEMODE | Clear the screen and set up a trading screen | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
 | DET1 | Show or hide the dashboard (for when we die) |  |  |  |
 | TT66 | Clear the screen and set the current view type | propia | `gfx_fill_lines` | borrado rapido de la vista y de la pantalla |
-| TTX66 | Clear the top part of the screen, draw a border box if required |  |  |  |
-| cellocl | Lookup table for converting a text row number to the address of |  |  |  |
-| SCTBL | Lookup table for converting a character row number to the address |  |  |  |
-| SCTBH | Lookup table for converting a character row number to the address |  |  |  |
-| SCTBH2 | Lookup table for converting a character row number to the address |  |  |  |
-| WSCAN | Wait for 15 * 256 loop iterations |  |  |  |
-| clss | Clear the screen, move the text cursor to the top-left corner and |  |  |  |
-| TTX66K | Clear the whole screen or just the space view (as appropriate), |  |  |  |
-| cleargrap | Clear screen memory for the top part of the graphics screen mode |  |  |  |
+| TTX66 | Clear the top part of the screen, draw a border box if required | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
+| cellocl | Lookup table for converting a text row number to the address of | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| SCTBL | Lookup table for converting a character row number to the address | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| SCTBH | Lookup table for converting a character row number to the address | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| SCTBH2 | Lookup table for converting a character row number to the address | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
+| WSCAN | Wait for 15 * 256 loop iterations | no-necesaria |  | retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick) |
+| clss | Clear the screen, move the text cursor to the top-left corner and | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
+| TTX66K | Clear the whole screen or just the space view (as appropriate), | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
+| cleargrap | Clear screen memory for the top part of the graphics screen mode | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
 | CLYNS | Clear two character rows near the bottom of the screen | propia | `txt_clear_rows` | borrado de filas de texto con el relleno rapido |
-| clearrow | Clear a character row of screen memory, drawing blue borders along |  |  |  |
-| HGR | Switch to the high-resolution graphics screen mode |  |  |  |
-| TEXT | Switch to the text screen mode |  |  |  |
+| clearrow | Clear a character row of screen memory, drawing blue borders along | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
+| HGR | Switch to the high-resolution graphics screen mode | no-necesaria |  | cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8) |
+| TEXT | Switch to the text screen mode | no-necesaria |  | cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8) |
 
-## Equipment (6/6)
+## Equipment (6 portadas de 6)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -175,32 +234,32 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | refund | Install a new laser, processing a refund if applicable | sin-verificar | `laser_refund` |  |
 | PRXS | Equipment prices | sin-verificar | `equip_price` |  |
 
-## Flight (3/29)
+## Flight (14 portadas de 29, 15 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| DOENTRY | Dock at the space station and work out any mission progression |  |  |  |
+| DOENTRY | Dock at the space station and work out any mission progression | parcial | `flight_run` | el atraque cambia a la estacion; falta el progreso de misiones |
 | ESCAPE | Launch our escape pod |  |  |  |
 | DOCKIT | Apply docking manoeuvres to the ship in INWK |  |  |  |
 | DCS1 | Calculate the vector from the ideal docking position to the ship |  |  |  |
 | SESCP | Spawn an escape pod from the current (parent) ship |  |  |  |
 | dockEd | Print a message to say there is no hyperspacing allowed inside the |  |  |  |
-| hyp | Start the hyperspace process |  |  |  |
-| wW | Start a hyperspace countdown |  |  |  |
-| TTX110 | Set the current system to the nearest system and return to hyp |  |  |  |
-| Ghy | Perform a galactic hyperspace jump |  |  |  |
-| ee3 | Print the hyperspace countdown in the top-left of the screen |  |  |  |
-| TT147 | Print an error when a system is out of hyperspace range |  |  |  |
+| hyp | Start the hyperspace process | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
+| wW | Start a hyperspace countdown | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
+| TTX110 | Set the current system to the nearest system and return to hyp | propia | `find_system` | sistema mas cercano a la mira |
+| Ghy | Perform a galactic hyperspace jump | propia | `jump_galactic` | salto galactico |
+| ee3 | Print the hyperspace countdown in the top-left of the screen | propia | `say_hyper` | cuenta atras del hiperespacio en pantalla |
+| TT147 | Print an error when a system is out of hyperspace range | propia | `start_hyper` | mensaje de fuera de alcance |
 | MJP | Process a mis-jump into witchspace |  |  |  |
-| TT18 | Try to initiate a jump into hyperspace |  |  |  |
-| TT110 | Launch from a station or show the front space view |  |  |  |
+| TT18 | Try to initiate a jump into hyperspace | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
+| TT110 | Launch from a station or show the front space view | propia | `space_launch`, `flight_run` | despegue y vista frontal |
 | SHD | Charge a shield and drain some energy from the energy banks |  |  |  |
 | DENGY | Drain some energy from the energy banks |  |  |  |
 | OOPS | Take some damage |  |  |  |
-| me2 | Remove an in-flight message from the space view |  |  |  |
+| me2 | Remove an in-flight message from the space view | propia | `say` | mensaje en vuelo: borra el anterior y muestra el nuevo |
 | WARP | Perform an in-system jump |  |  |  |
-| me1 | Erase an old in-flight message and display a new one |  |  |  |
-| MESS | Display an in-flight message |  |  |  |
+| me1 | Erase an old in-flight message and display a new one | propia | `say` | mensaje en vuelo: borra el anterior y muestra el nuevo |
+| MESS | Display an in-flight message | propia | `say` | mensaje en vuelo: borra el anterior y muestra el nuevo |
 | mes9 | Print a text token, possibly followed by " DESTROYED" |  |  |  |
 | OUCH | Potentially lose cargo or equipment following damage |  |  |  |
 | ou2 | Display "E.C.M.SYSTEM DESTROYED" as an in-flight message |  |  |  |
@@ -209,47 +268,47 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | LOOK1 | Initialise the space view | propia | `change_view` | cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto |
 | SIGHT | Draw the laser crosshairs | sin-verificar | `chart_sight` | dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco) |
 
-## Keyboard (8/19)
+## Keyboard (13 portadas de 19, 4 no necesarias, 2 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | TGINT | The keys used to toggle configuration settings when the game is |  |  |  |
 | FLKB | Flush the keyboard buffer | propia | `plat_flush_input` |  |
-| PAUSE2 | Wait until a key is pressed, ignoring any existing key press |  |  |  |
+| PAUSE2 | Wait until a key is pressed, ignoring any existing key press | propia | `plat_wait_key` | esperar una tecla ignorando la anterior |
 | TT214 | Ask a question with a "Y/N?" prompt and return the response | propia | `scr_disk` |  |
 | YESNO | Wait until either "Y" or "N" is pressed | propia | `scr_disk` | confirmaciones Y/N dentro del menu de disco |
 | TT17 | Scan the keyboard for cursor key or joystick movement | propia | `in_held` | cursores o joystick |
 | TT102 | Process number key, save key, hyperspace and chart key presses | propia | `ui_nav` | en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos; atracado: U despega, 0 galactica, 5-9 como en vuelo |
-| ZEKTRAN | Clear the key logger |  |  |  |
-| RDS1 | Scan one axis of the joystick and return its position |  |  |  |
-| RDKEY | Scan the keyboard for key presses and the joystick, and update the |  |  |  |
-| KYTB | Lookup table for in-flight keyboard controls |  |  |  |
-| DKSANYKEY | An unused routine that scans the keyboard to detect whether any |  |  |  |
-| DKS2 | Read the joystick position |  |  |  |
+| ZEKTRAN | Clear the key logger | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
+| RDS1 | Scan one axis of the joystick and return its position | propia | `ctl_read` | palanca de mando CTL1 (keys.c) |
+| RDKEY | Scan the keyboard for key presses and the joystick, and update the | propia | `key_scan` | lectura de las filas del teclado por IPC (keys.c) |
+| KYTB | Lookup table for in-flight keyboard controls | propia | `keys.c` | tabla de teclas de vuelo: las teclas del QL se definen en keys.h |
+| DKSANYKEY | An unused routine that scans the keyboard to detect whether any | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
+| DKS2 | Read the joystick position | propia | `ctl_read` | palanca de mando CTL1 (keys.c) |
 | DKS3 | Toggle a configuration setting and emit a beep |  |  |  |
-| U% | Clear the key logger |  |  |  |
+| U% | Clear the key logger | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
 | DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo, F acelera, D frena, A o espacio disparan; JSTX/JSTY los calcula space_controls |
 | DK4 | Scan for pause, configuration and secondary flight keys | propia | `in_poll` | teclas secundarias por caracteres (key_getchar) |
 | TT217 | Scan the keyboard until a key is pressed | propia | `in_wait` |  |
-| KTRAN | An unused key logger buffer that's left over from the 6502 Second |  |  |  |
+| KTRAN | An unused key logger buffer that's left over from the 6502 Second | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
 
-## Loader (0/5)
-
-| Rutina | Resumen | Estado | C | Nota |
-|---|---|---|---|---|
-| ENTRY | An entry point at the start of the game binary |  |  |  |
-| S% | Checksum, decrypt and unscramble the main game code, and start the |  |  |  |
-| BEGIN | Initialise the configuration variables and start the game |  |  |  |
-| COLD | Initialise the screen mode, clear memory and set up interrupt |  |  |  |
-| NMIpissoff | Acknowledge NMI interrupts and ignore them |  |  |  |
-
-## Main loop (0/1)
+## Loader (0 portadas de 5, 5 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| Main | Seed the random number generator |  |  |  |
+| ENTRY | An entry point at the start of the game binary | no-necesaria |  | proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe |
+| S% | Checksum, decrypt and unscramble the main game code, and start the | no-necesaria |  | proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe |
+| BEGIN | Initialise the configuration variables and start the game | no-necesaria |  | arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c |
+| COLD | Initialise the screen mode, clear memory and set up interrupt | no-necesaria |  | arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c |
+| NMIpissoff | Acknowledge NMI interrupts and ignore them | no-necesaria |  | arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c |
 
-## Market (18/19, 1 no necesarias)
+## Main loop (0 portadas de 1, 1 sin portar)
+
+| Rutina | Resumen | Estado | C | Nota |
+|---|---|---|---|---|
+| Main | Seed the random number generator | parcial | `ships_step`, `flight_run` | bucle principal reducido: mueve y dibuja las naves y lee el teclado; faltan colisiones, lasers, misiles, escarbado, generacion de encuentros y el resto de partes |
+
+## Market (18 portadas de 19, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -273,26 +332,26 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | ITEM | Macro definition for the market prices table | sin-verificar | `uni_goods` | tabla de mercancias copiada de Text Elite |
 | QQ23 | Market prices table | sin-verificar | `uni_goods` | comparar con la tabla del 6502 |
 
-## Maths (Arithmetic) (34/52)
+## Maths (Arithmetic) (51 portadas de 52, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| log | Binary logarithm table (high byte) |  |  |  |
-| logL | Binary logarithm table (low byte) |  |  |  |
-| alogh | Binary antilogarithm table |  |  |  |
-| PIX1 | Calculate (YY+1 SYL+Y) = (A P) + (S R) and draw stardust particle |  |  |  |
+| log | Binary logarithm table (high byte) | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
+| logL | Binary logarithm table (low byte) | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
+| alogh | Binary antilogarithm table | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
+| PIX1 | Calculate (YY+1 SYL+Y) = (A P) + (S R) and draw stardust particle | propia | `pixel2` | dibujo del polvo estelar (stars.c) |
 | MAS3 | Calculate A = x_hi^2 + y_hi^2 + z_hi^2 in the K% block | transcripcion | `sm_mas3` |  |
 | VCSU1 | Calculate vector K3(8 0) = [x y z] - coordinates of the sun or | transcripcion | `sm_vcsu1` |  |
 | VCSUB | Calculate vector K3(8 0) = [x y z] - coordinates in (A V) | transcripcion | `sm_vcsub` |  |
 | TAS1 | Calculate K3 = (x_sign x_hi x_lo) - V(1 0) | transcripcion | `sm_tas1` |  |
-| MU5 | Set K(3 2 1 0) = (A A A A) and clear the C flag |  |  |  |
+| MU5 | Set K(3 2 1 0) = (A A A A) and clear the C flag | propia | `emath.c` | entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion |
 | MULT3 | Calculate K(3 2 1 0) = (A P+1 P) * Q | transcripcion | `em_mult3` |  |
-| MLS2 | Calculate (S R) = XX(1 0) and (A P) = A * ALP1 |  |  |  |
-| MLS1 | Calculate (A P) = ALP1 * A |  |  |  |
-| MU6 | Set P(1 0) = (A A) |  |  |  |
+| MLS2 | Calculate (S R) = XX(1 0) and (A P) = A * ALP1 | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
+| MLS1 | Calculate (A P) = ALP1 * A | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
+| MU6 | Set P(1 0) = (A A) | propia | `emath.c` | entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion |
 | SQUA | Clear bit 7 of A and calculate (A P) = A * A | transcripcion | `em_squa` |  |
 | SQUA2 | Calculate (A P) = A * A | transcripcion | `em_squa2` |  |
-| MU1 | Copy X into P and A, and clear the C flag |  |  |  |
+| MU1 | Copy X into P and A, and clear the C flag | propia | `emath.c` | entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion |
 | MLU1 | Calculate Y1 = y_hi and (A P) = |y_hi| * Q for Y-th stardust | transcripcion | `em_mlu1` |  |
 | MLU2 | Calculate (A P) = |A| * Q | transcripcion | `em_mlu2` |  |
 | MULTU | Calculate (A P) = P * Q | transcripcion | `em_multu` |  |
@@ -300,9 +359,9 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | FMLTU2 | Calculate A = K * sin(A) | transcripcion | `em_fmltu2` |  |
 | FMLTU | Calculate A = A * Q / 256 | verificada | `em_fmltu` |  |
 | MLTU2 | Calculate (A P+1 P) = (A ~P) * Q | transcripcion | `em_mltu2` |  |
-| MUT3 | An unused routine that does the same as MUT2 |  |  |  |
-| MUT2 | Calculate (S R) = XX(1 0) and (A P) = Q * A |  |  |  |
-| MUT1 | Calculate R = XX and (A P) = Q * A |  |  |  |
+| MUT3 | An unused routine that does the same as MUT2 | no-necesaria |  | sin uso en el original |
+| MUT2 | Calculate (S R) = XX(1 0) and (A P) = Q * A | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
+| MUT1 | Calculate R = XX and (A P) = Q * A | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
 | MULT1 | Calculate (A P) = Q * A | transcripcion | `em_mult1` |  |
 | MULT12 | Calculate (S R) = Q * A | transcripcion | `em_mult12` |  |
 | MAD | Calculate (A X) = Q * A + (S R) | transcripcion | `em_mad` |  |
@@ -311,11 +370,11 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | DV42 | Calculate (P R) = 256 * DELTA / z_hi | transcripcion | `em_dv42` |  |
 | DV41 | Calculate (P R) = 256 * DELTA / A | transcripcion | `em_dv41` |  |
 | DVID4 | Calculate (P R) = 256 * A / Q | transcripcion | `em_dvid4` |  |
-| DVID3B2 | Calculate K(3 2 1 0) = (A P+1 P) / (z_sign z_hi z_lo) |  |  |  |
+| DVID3B2 | Calculate K(3 2 1 0) = (A P+1 P) / (z_sign z_hi z_lo) | propia | `em_dvid3b` | la entrada con INWK se hace en ship_math.c y en planet() |
 | LCASH | Subtract an amount of cash from the cash pot | transcripcion | `sm_lcash` |  |
 | MCASH | Add an amount of cash to the cash pot | transcripcion | `sm_mcash` |  |
 | GCASH | Calculate (Y X) = P * Q * 4 | transcripcion | `sm_gcash` |  |
-| GC2 | Calculate (Y X) = (A P) * 4 |  |  |  |
+| GC2 | Calculate (Y X) = (A P) * 4 | propia | `tt22`, `tt23` | la multiplicacion por 4 va en linea en las cartas |
 | SPS2 | Calculate (Y X) = A / 10 | transcripcion | `sm_sps2` |  |
 | DORND | Generate random numbers | verificada | `em_dornd` |  |
 | TIS2 | Calculate A = A / Q | transcripcion | `em_tis2` |  |
@@ -325,12 +384,12 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | LL28 | Calculate R = 256 * A / Q | verificada | `em_ll28` |  |
 | LL38 | Calculate (S A) = (S R) + (A Q) | transcripcion | `em_ll38` |  |
 | LL61 | Calculate (U R) = 256 * A / Q | verificada | `em_ll61` |  |
-| LL62 | Calculate 128 - (U R) |  |  |  |
-| LL120 | Calculate (Y X) = (S x1_lo) * XX12+2 or (S x1_lo) / XX12+2 |  |  |  |
-| LL123 | Calculate (Y X) = (S R) / XX12+2 or (S R) * XX12+2 |  |  |  |
-| LL129 | Calculate Q = XX12+2, A = S EOR XX12+3 and (S R) = |S R| |  |  |  |
+| LL62 | Calculate 128 - (U R) | verificada | `ship_ll9` | etiqueta ll62 de LL9 (verificada) |
+| LL120 | Calculate (Y X) = (S x1_lo) * XX12+2 or (S x1_lo) / XX12+2 | verificada | `ll120_123` | recorte de linea (ship3d.c, verificadas) |
+| LL123 | Calculate (Y X) = (S R) / XX12+2 or (S R) * XX12+2 | verificada | `ll120_123` | recorte de linea (ship3d.c, verificadas) |
+| LL129 | Calculate Q = XX12+2, A = S EOR XX12+3 and (S R) = |S R| | verificada | `ll129` | dentro de ship3d.c (pendiente de la linea, verificada con el 6502) |
 
-## Maths (Geometry) (18/19)
+## Maths (Geometry) (19 portadas de 19)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -346,7 +405,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SPS3 | Copy a space coordinate from the K% block into K3 | transcripcion | `sm_sps3` |  |
 | PROJ | Project the current ship or planet onto the screen | verificada | `sm_proj` |  |
 | FAROF | Compare x_hi, y_hi and z_hi with 224 | sin-verificar | `farof` |  |
-| FAROF2 | Compare x_hi, y_hi and z_hi with A |  |  |  |
+| FAROF2 | Compare x_hi, y_hi and z_hi with A | propia | `farof` | FAROF con A = 224 |
 | MAS4 | Calculate a cap on the maximum distance to a ship | transcripcion | `sm_mas4` |  |
 | SPS1 | Calculate the vector to the planet and store it in XX15 | transcripcion | `sm_sps1` |  |
 | TAS2 | Normalise the three-coordinate vector in K3 | transcripcion | `sm_tas2` |  |
@@ -354,13 +413,13 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TIDY | Orthonormalise the orientation vectors for a ship | transcripcion | `sm_tidy` |  |
 | LL51 | Calculate the dot product of XX15 and XX16 | verificada | `ship_ll51` |  |
 
-## Missions (0/16)
+## Missions (0 portadas de 16, 5 no necesarias, 11 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| TRIBDIR | The low byte of the four 16-bit directions in which Trumble |  |  |  |
-| TRIBDIRH | The high byte of the four 16-bit directions in which Trumble |  |  |  |
-| SPMASK | Masks for updating sprite bits in VIC+$10 for the top bit of the |  |  |  |
+| TRIBDIR | The low byte of the four 16-bit directions in which Trumble | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
+| TRIBDIRH | The high byte of the four 16-bit directions in which Trumble | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
+| SPMASK | Masks for updating sprite bits in VIC+$10 for the top bit of the | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
 | BRIEF2 | Start mission 2 |  |  |  |
 | BRP | Print an extended token and show the Status Mode screen |  |  |  |
 | BRIEF3 | Receive the briefing and plans for mission 2 |  |  |  |
@@ -372,10 +431,10 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | PAUSE | Wait until a key is pressed for the Constrictor mission briefing |  |  |  |
 | PAS1 | Change to the text view for the Constrictor mission briefing |  |  |  |
 | THERE | Check whether we are in the Constrictor's system in mission 1 |  |  |  |
-| TRIBTA | A table for converting the number of Trumbles in the hold into a |  |  |  |
-| TRIBMA | A table for converting the number of Trumbles in the hold into a |  |  |  |
+| TRIBTA | A table for converting the number of Trumbles in the hold into a | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
+| TRIBMA | A table for converting the number of Trumbles in the hold into a | no-necesaria |  | tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones |
 
-## Moving (7/8, 1 no necesarias)
+## Moving (7 portadas de 8, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -388,91 +447,91 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | MVT6 | Calculate (A P+2 P+1) = (x_sign x_hi x_lo) + (A P+2 P+1) | sin-verificar | `mvt6` |  |
 | MV40 | Rotate the planet or sun's location in space by the amount of | sin-verificar | `mv40` | gira la posicion y sigue por MV45 (orientacion, contadores y radar); K2 byte 0 queda a 0 (en el original es lo que hubiera en K2) |
 
-## Save and load (5/61)
+## Save and load (27 portadas de 61, 34 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| wtable | 6-bit to 7-bit nibble conversion table |  |  |  |
-| BRKBK | Set the standard BRKV handler for the game |  |  |  |
-| NA% | The data block for the last saved commander |  |  |  |
-| CHK2 | Second checksum byte for the saved commander data file |  |  |  |
-| CHK3 | Third checksum byte for the saved commander data file |  |  |  |
-| CHK | First checksum byte for the saved commander data file |  |  |  |
-| S1% | The drive and directory number used when saving or loading a |  |  |  |
-| NA2% | The data block for the default commander |  |  |  |
+| wtable | 6-bit to 7-bit nibble conversion table | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| BRKBK | Set the standard BRKV handler for the game | no-necesaria |  | manejador de errores BRK del 6502; el runtime de C se ocupa de los errores |
+| NA% | The data block for the last saved commander | propia | `cmdr_default` | datos del comandante por defecto y del ultimo guardado |
+| CHK2 | Second checksum byte for the saved commander data file | verificada | `cmdr_check`, `cmdr_check2` | bytes de comprobacion (verificadas con el 6502) |
+| CHK3 | Third checksum byte for the saved commander data file | verificada | `cmdr_check`, `cmdr_check2` | bytes de comprobacion (verificadas con el 6502) |
+| CHK | First checksum byte for the saved commander data file | verificada | `cmdr_check`, `cmdr_check2` | bytes de comprobacion (verificadas con el 6502) |
+| S1% | The drive and directory number used when saving or loading a | propia | `save_dev` | unidad y directorio |
+| NA2% | The data block for the default commander | propia | `cmdr_default` | datos del comandante por defecto y del ultimo guardado |
 | CHECK | Calculate the checksum for the last saved commander data block | transcripcion | `cmdr_check` |  |
 | CHECK2 | Calculate the third checksum for the last saved commander data | transcripcion | `cmdr_check2` |  |
 | JAMESON | Restore the default JAMESON commander | sin-verificar | `cmdr_default` |  |
-| COPYNAME | Copy the last saved commander's name from INWK+5 to comnam and pad |  |  |  |
-| TRNME | Copy the last saved commander's name from INWK to NA% |  |  |  |
-| TR1 | Copy the last saved commander's name from NA% to INWK |  |  |  |
-| GTNMEW | Fetch the name of a commander file to save or load |  |  |  |
-| FILEPR | Display the currently selected media (disk or tape) |  |  |  |
-| OTHERFILEPR | Display the non-selected media (disk or tape) |  |  |  |
+| COPYNAME | Copy the last saved commander's name from INWK+5 to comnam and pad | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
+| TRNME | Copy the last saved commander's name from INWK to NA% | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
+| TR1 | Copy the last saved commander's name from NA% to INWK | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
+| GTNMEW | Fetch the name of a commander file to save or load | propia | `edit_name` | nombre del comandante |
+| FILEPR | Display the currently selected media (disk or tape) | propia | `scr_disk` | unidad actual y errores de disco en el menu de disco |
+| OTHERFILEPR | Display the non-selected media (disk or tape) | propia | `scr_disk` | unidad actual y errores de disco en el menu de disco |
 | SVE | Display the disk access menu and process saving of commander files | propia | `scr_disk` |  |
-| diskerror | Print a disk error, make a beep and wait for a key press |  |  |  |
-| thislong | Contains the length of the most recently entered commander name |  |  |  |
-| oldlong | Contains the length of the last saved commander name |  |  |  |
+| diskerror | Print a disk error, make a beep and wait for a key press | propia | `scr_disk` | unidad actual y errores de disco en el menu de disco |
+| thislong | Contains the length of the most recently entered commander name | no-necesaria |  | longitud de los nombres: en C se calcula con strlen |
+| oldlong | Contains the length of the last saved commander name | no-necesaria |  | longitud de los nombres: en C se calcula con strlen |
 | LOD | Load a commander file | propia | `load_commander` |  |
-| DERR1 | The error message for when a disk is write protected |  |  |  |
-| DERR2 | The error message for when a disk is full |  |  |  |
-| DERR3 | The error message for when a disk catalog is full |  |  |  |
-| DERR4 | The error message for when there is a disk I/O error |  |  |  |
-| DERR5 | The error message for when a file is not found |  |  |  |
-| ERTAB | A lookup table for the five disk error messages |  |  |  |
-| comnam | Storage for the commander filename, padded out with spaces to a |  |  |  |
-| rfile | Read a commander file from a DOS disk into the buffer |  |  |  |
-| wfile | Write a commander file from the buffer to a DOS disk |  |  |  |
-| findf | Search the disk catalog for an existing file |  |  |  |
-| finde | Search the disk catalog for an empty file entry |  |  |  |
-| rentry | Search the disk catalog for an existing file or an empty file |  |  |  |
-| getsct | Analyse the VTOC sector to allocate one free sector |  |  |  |
-| isfull | Check the disk to ensure there are least two free sectors, one for |  |  |  |
-| gettsl | Read a file's track/sector list |  |  |  |
-| rvtoc | Read the VTOC sector into the buffer |  |  |  |
-| rsect | Read a specific sector from disk into the buffer |  |  |  |
-| wsect | Write a specific sector from the buffer to disk |  |  |  |
-| rwts | Read or write a specific sector |  |  |  |
-| trytrk | Try finding a specific track on the disk |  |  |  |
-| rdrght | Check that this is the correct track |  |  |  |
-| prterr | Return from the RWTS code with a "Disk write protected" error |  |  |  |
-| rttrk | Read or write a sector on the current track |  |  |  |
-| drverr | Return from the RWTS code with a "Disk I/O error" |  |  |  |
-| rttrk3 | Successfully return from the RWTS code with no error reported |  |  |  |
-| read | Read a sector's worth of data into the buffr2 buffer |  |  |  |
-| write | Write a sector's worth of data from the buffr2 buffer to the |  |  |  |
-| rdaddr | Read a track address field |  |  |  |
-| seek | Fast seek routine |  |  |  |
-| armwat | Implement the arm move delay |  |  |  |
-| armtab | Phase-on time table in 100-usec intervals |  |  |  |
-| armtb2 | Phase-off time table in 100-usec intervals |  |  |  |
-| prenib | Convert 256 8-bit bytes in buffer into 342 6-bit nibbles in buffr2 |  |  |  |
-| pstnib | Convert 342 6-bit nibbles in buffr2 into 256 8-bit bytes in buffer |  |  |  |
-| wbyte | Write one byte to disk |  |  |  |
-| scttab | Lookup table to translate logical (requested) sector number to |  |  |  |
-| rtable | 64 disk nibbles of "6-and-2" Read Translate Table |  |  |  |
-| MUTILATE | Encrypt the commander file in the buffer at comfil |  |  |  |
-| UNMUTILATE | Decrypt the commander file in the buffer at comfil |  |  |  |
+| DERR1 | The error message for when a disk is write protected | propia | `save_errstr` | mensajes de error de disco |
+| DERR2 | The error message for when a disk is full | propia | `save_errstr` | mensajes de error de disco |
+| DERR3 | The error message for when a disk catalog is full | propia | `save_errstr` | mensajes de error de disco |
+| DERR4 | The error message for when there is a disk I/O error | propia | `save_errstr` | mensajes de error de disco |
+| DERR5 | The error message for when a file is not found | propia | `save_errstr` | mensajes de error de disco |
+| ERTAB | A lookup table for the five disk error messages | propia | `save_errstr` | mensajes de error de disco |
+| comnam | Storage for the commander filename, padded out with spaces to a | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
+| rfile | Read a commander file from a DOS disk into the buffer | propia | `load_commander` | lectura del fichero de comandante |
+| wfile | Write a commander file from the buffer to a DOS disk | propia | `save_commander`, `write_file` | escritura del fichero de comandante |
+| findf | Search the disk catalog for an existing file | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| finde | Search the disk catalog for an empty file entry | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rentry | Search the disk catalog for an existing file or an empty file | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| getsct | Analyse the VTOC sector to allocate one free sector | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| isfull | Check the disk to ensure there are least two free sectors, one for | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| gettsl | Read a file's track/sector list | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rvtoc | Read the VTOC sector into the buffer | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rsect | Read a specific sector from disk into the buffer | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| wsect | Write a specific sector from the buffer to disk | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rwts | Read or write a specific sector | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| trytrk | Try finding a specific track on the disk | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rdrght | Check that this is the correct track | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| prterr | Return from the RWTS code with a "Disk write protected" error | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rttrk | Read or write a sector on the current track | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| drverr | Return from the RWTS code with a "Disk I/O error" | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rttrk3 | Successfully return from the RWTS code with no error reported | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| read | Read a sector's worth of data into the buffr2 buffer | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| write | Write a sector's worth of data from the buffr2 buffer to the | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rdaddr | Read a track address field | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| seek | Fast seek routine | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| armwat | Implement the arm move delay | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| armtab | Phase-on time table in 100-usec intervals | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| armtb2 | Phase-off time table in 100-usec intervals | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| prenib | Convert 256 8-bit bytes in buffer into 342 6-bit nibbles in buffr2 | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| pstnib | Convert 342 6-bit nibbles in buffr2 into 256 8-bit bytes in buffer | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| wbyte | Write one byte to disk | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| scttab | Lookup table to translate logical (requested) sector number to | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| rtable | 64 disk nibbles of "6-and-2" Read Translate Table | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
+| MUTILATE | Encrypt the commander file in the buffer at comfil | no-necesaria |  | cifrado antimanipulacion del fichero de comandante del original; save.c usa su propio cifrado XOR (formato ELQD) |
+| UNMUTILATE | Decrypt the commander file in the buffer at comfil | no-necesaria |  | cifrado antimanipulacion del fichero de comandante del original; save.c usa su propio cifrado XOR (formato ELQD) |
 
-## Sound (0/13)
+## Sound (11 portadas de 13, 2 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| BELL | Make a standard system beep |  |  |  |
-| EXNO | Make the sound of a laser strike on another ship |  |  |  |
-| BOOP | Make a long, low beep |  |  |  |
-| SOHISS | Make the sound of a launch from the station, hyperspace or missile |  |  |  |
-| EXNO3 | Make the sound of a collision, or an exploding cargo canister or |  |  |  |
-| SOEXPL | Make an explosion sound |  |  |  |
-| BEEP | Make a short, high beep |  |  |  |
-| SOBEEP | Make a beep |  |  |  |
-| SOBLIP | Make the sound of the hyperspace drive being engaged, or the sound |  |  |  |
-| LASNOISE | Make the sound of our laser firing or the sound of us being hit by |  |  |  |
-| LASNOISE2 | An unused routine that makes a different laser sound |  |  |  |
-| SOBOMB | Make the sound of an energy bomb going off |  |  |  |
-| CLICK | Toggle the state of the speaker (i.e. move it in or out) to make a |  |  |  |
+| BELL | Make a standard system beep | propia | `snd_bell` |  |
+| EXNO | Make the sound of a laser strike on another ship | propia | `snd_exno` |  |
+| BOOP | Make a long, low beep | propia | `snd_boop` |  |
+| SOHISS | Make the sound of a launch from the station, hyperspace or missile | propia | `snd_sohiss` |  |
+| EXNO3 | Make the sound of a collision, or an exploding cargo canister or | propia | `snd_exno3` |  |
+| SOEXPL | Make an explosion sound | propia | `snd_soexpl` |  |
+| BEEP | Make a short, high beep | propia | `snd_beep` |  |
+| SOBEEP | Make a beep | propia | `snd_sobeep` |  |
+| SOBLIP | Make the sound of the hyperspace drive being engaged, or the sound | propia | `snd_soblip` |  |
+| LASNOISE | Make the sound of our laser firing or the sound of us being hit by | propia | `snd_lasnoise` |  |
+| LASNOISE2 | An unused routine that makes a different laser sound | no-necesaria |  | sin uso en el original |
+| SOBOMB | Make the sound of an energy bomb going off | propia | `snd_sobomb` |  |
+| CLICK | Toggle the state of the speaker (i.e. move it in or out) to make a | no-necesaria |  | conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c) |
 
-## Stardust (7/7)
+## Stardust (7 portadas de 7)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -484,32 +543,32 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | NWSTARS | Initialise the stardust field | sin-verificar | `stars_new` | el original no crea el polvo si QQ11 != 0; aqui solo se llama en la vista espacial |
 | nWq | Create a random cloud of stardust | sin-verificar | `stars_new` |  |
 
-## Start and end (1/8)
+## Start and end (6 portadas de 8, 2 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| RESET | Reset most variables |  |  |  |
-| RES2 | Reset a number of flight variables and workspaces |  |  |  |
+| RESET | Reset most variables | propia | `game_new` | reinicia las variables de la partida |
+| RES2 | Reset a number of flight variables and workspaces | propia | `space_reset`, `ships_clear` | reinicia las variables de vuelo |
 | DEATH | Display the death screen |  |  |  |
-| TT170 | Main entry point for the Elite game code |  |  |  |
+| TT170 | Main entry point for the Elite game code | propia | `game_run` | punto de entrada del juego (app.c) |
 | DEATH2 | Reset most of the game and restart from the title screen |  |  |  |
-| BR1 | Show the "Load New Commander (Y/N)?" screen and start the game |  |  |  |
+| BR1 | Show the "Load New Commander (Y/N)?" screen and start the game | propia | `scr_title`, `scr_disk` | el titulo ofrece cargar un comandante por el menu de disco |
 | DFAULT | Reset the current commander data block to the last saved commander | sin-verificar | `cmdr_unpack` |  |
-| TITLE | Display a title screen with a rotating ship and prompt |  |  |  |
+| TITLE | Display a title screen with a rotating ship and prompt | propia | `scr_title` | pantalla de titulo con la nave que gira |
 
-## Status (1/7)
+## Status (6 portadas de 7, 1 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | STATUS | Show the Status Mode screen | sin-verificar | `scr_status` | maquetacion propia; rango y estado legal en rating_name / legal_name |
-| cmn | Print the commander's name |  |  |  |
-| fwl | Print fuel and cash levels |  |  |  |
-| csh | Print the current amount of cash |  |  |  |
-| BAD | Calculate how bad we have been |  |  |  |
-| BAY | Go to the docking bay (i.e. show the Status Mode screen) |  |  |  |
+| cmn | Print the commander's name | propia | `scr_status` | nombre del comandante en la pantalla de estado |
+| fwl | Print fuel and cash levels | propia | `scr_status`, `ui_num` | combustible y dinero |
+| csh | Print the current amount of cash | propia | `scr_status`, `ui_num` | combustible y dinero |
+| BAD | Calculate how bad we have been | propia | `legal_name` | estado legal: calculo y nombre |
+| BAY | Go to the docking bay (i.e. show the Status Mode screen) | propia | `scr_status` | pantalla de estado al atracar |
 | EXNO2 | Process us making a kill |  |  |  |
 
-## Tactics (0/8)
+## Tactics (0 portadas de 8, 1 no necesarias, 7 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -519,167 +578,167 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | FRMIS | Fire a missile from our ship |  |  |  |
 | ANGRY | Make a ship or station hostile, and if this is a ship then enable |  |  |  |
 | FR1 | Display the "missile jammed" message |  |  |  |
-| yetanotherrts | Contains an RTS |  |  |  |
+| yetanotherrts | Contains an RTS | no-necesaria |  | contiene solo un RTS |
 | SFRMIS | Add an enemy missile to our local bubble of universe |  |  |  |
 
-## Text (0/77)
+## Text (34 portadas de 77, 41 no necesarias, 2 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | MT27 | Print the captain's name during mission briefings |  |  |  |
 | MT28 | Print the location hint during the mission 1 briefing |  |  |  |
-| DETOK3 | Print an extended recursive token from the RUTOK token table |  |  |  |
-| DETOK | Print an extended recursive token from the TKN1 token table |  |  |  |
-| DETOK2 | Print an extended text token (1-255) |  |  |  |
-| MT1 | Switch to ALL CAPS when printing extended tokens |  |  |  |
-| MT2 | Switch to Sentence Case when printing extended tokens |  |  |  |
-| MT8 | Tab to column 6 and start a new word when printing extended tokens |  |  |  |
-| MT9 | Clear the screen and set the current view type to 1 |  |  |  |
-| MT13 | Switch to lower case when printing extended tokens |  |  |  |
-| MT6 | Switch to standard tokens in Sentence Case |  |  |  |
-| MT5 | Switch to extended tokens |  |  |  |
-| MT14 | Switch to justified text when printing extended tokens |  |  |  |
-| MT15 | Switch to left-aligned text when printing extended tokens |  |  |  |
-| MT17 | Print the selected system's adjective, e.g. Lavian for Lave |  |  |  |
-| MT18 | Print a random 1-8 letter word in Sentence Case |  |  |  |
-| MT19 | Capitalise the next letter |  |  |  |
-| VOWEL | Test whether a character is a vowel |  |  |  |
-| WHITETEXT | Switch to white text |  |  |  |
-| JMTB | The extended token table for jump tokens 1-32 (DETOK) |  |  |  |
-| TKN2 | The extended two-letter token lookup table |  |  |  |
-| QQ16 | The two-letter token lookup table |  |  |  |
-| plf2 | Print text followed by a newline and indent of 6 characters |  |  |  |
-| TENS | A constant used when printing large numbers in BPRNT |  |  |  |
-| pr2 | Print an 8-bit number, left-padded to 3 digits, and optional point |  |  |  |
-| TT11 | Print a 16-bit number, left-padded to n digits, and optional point |  |  |  |
-| BPRNT | Print a 32-bit number, left-padded to a specific number of digits, |  |  |  |
-| DTW1 | A mask for applying the lower case part of Sentence Case to |  |  |  |
-| DTW2 | A flag that indicates whether we are currently printing a word |  |  |  |
-| DTW3 | A flag for switching between standard and extended text tokens |  |  |  |
-| DTW4 | Flags that govern how justified extended text tokens are printed |  |  |  |
-| DTW5 | The size of the justified text buffer at BUF |  |  |  |
-| DTW6 | A flag to denote whether printing in lower case is enabled for |  |  |  |
-| DTW8 | A mask for capitalising the next letter in an extended text token |  |  |  |
-| FEED | Print a newline |  |  |  |
-| MT16 | Print the character in variable DTW7 |  |  |  |
-| TT26 | Print a character at the text cursor, with support for verified |  |  |  |
-| MT23 | Move to row 9 and switch to lower case |  |  |  |
-| MT29 | Move to row 5 and switch to lower case when printing extended |  |  |  |
-| MTIN | Lookup table for random tokens in the extended token table (0-37) |  |  |  |
-| DOXC | Move the text cursor to a specific column |  |  |  |
-| DOYC | Move the text cursor to a specific row |  |  |  |
-| INCYC | Move the text cursor to the next row |  |  |  |
-| TT60 | Print a text token and a paragraph break |  |  |  |
-| TTX69 | Print a paragraph break |  |  |  |
-| TT69 | Set Sentence Case and print a newline |  |  |  |
-| TT67 | Print a newline |  |  |  |
-| spc | Print a text token followed by a space |  |  |  |
-| pr6 | Print 16-bit number, left-padded to 5 digits, no point |  |  |  |
-| pr5 | Print a 16-bit number, left-padded to 5 digits, and optional point |  |  |  |
-| prq | Print a text token followed by a question mark |  |  |  |
-| TT162 | Print a space |  |  |  |
-| dn2 | Make a low, long beep and delay for 0.5 seconds |  |  |  |
-| plf | Print a text token followed by a newline |  |  |  |
-| TT68 | Print a text token followed by a colon |  |  |  |
-| TT73 | Print a colon |  |  |  |
-| TT27 | Print a text token |  |  |  |
-| TT42 | Print a letter in lower case |  |  |  |
-| TT41 | Print a letter according to Sentence Case |  |  |  |
-| qw | Print a recursive token in the range 128-145 |  |  |  |
-| crlf | Tab to column 21 and print a colon |  |  |  |
-| TT45 | Print a letter in lower case |  |  |  |
-| TT46 | Print a character and switch to capitals |  |  |  |
-| TT74 | Print a character |  |  |  |
-| TT43 | Print a two-letter token or recursive token 0-95 |  |  |  |
-| ex | Print a recursive token |  |  |  |
-| MT26 | Fetch a line of text from the keyboard |  |  |  |
-| RLINE | The OSWORD configuration block used to fetch a line of text from |  |  |  |
-| CHPR2 | Character print vector handler |  |  |  |
-| R5 | Make a beep and jump back into the character-printing routine at |  |  |  |
-| RR5 | Print a character in the text screen mode |  |  |  |
-| TT67K | Print a newline |  |  |  |
-| CHPR | Print a character at the text cursor by poking into screen memory |  |  |  |
-| letter | Draw a character in the high-resolution screen mode using the game |  |  |  |
-| letter2 | Draw a character or indicator bulb bitmap in the high-resolution |  |  |  |
-| SETXC | Move the text cursor to a specific column |  |  |  |
-| SETYC | Move the text cursor to a specific row |  |  |  |
+| DETOK3 | Print an extended recursive token from the RUTOK token table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DETOK | Print an extended recursive token from the TKN1 token table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DETOK2 | Print an extended text token (1-255) | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT1 | Switch to ALL CAPS when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT2 | Switch to Sentence Case when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT8 | Tab to column 6 and start a new word when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT9 | Clear the screen and set the current view type to 1 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT13 | Switch to lower case when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT6 | Switch to standard tokens in Sentence Case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT5 | Switch to extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT14 | Switch to justified text when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT15 | Switch to left-aligned text when printing extended tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT17 | Print the selected system's adjective, e.g. Lavian for Lave | propia | `goat_soup` | adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c) |
+| MT18 | Print a random 1-8 letter word in Sentence Case | propia | `goat_soup` | adjetivo del sistema y palabra aleatoria dentro de la descripcion (universe.c) |
+| MT19 | Capitalise the next letter | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| VOWEL | Test whether a character is a vowel | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| WHITETEXT | Switch to white text | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| JMTB | The extended token table for jump tokens 1-32 (DETOK) | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TKN2 | The extended two-letter token lookup table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| QQ16 | The two-letter token lookup table | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| plf2 | Print text followed by a newline and indent of 6 characters | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TENS | A constant used when printing large numbers in BPRNT | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
+| pr2 | Print an 8-bit number, left-padded to 3 digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
+| TT11 | Print a 16-bit number, left-padded to n digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
+| BPRNT | Print a 32-bit number, left-padded to a specific number of digits, | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
+| DTW1 | A mask for applying the lower case part of Sentence Case to | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DTW2 | A flag that indicates whether we are currently printing a word | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DTW3 | A flag for switching between standard and extended text tokens | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DTW4 | Flags that govern how justified extended text tokens are printed | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DTW5 | The size of the justified text buffer at BUF | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DTW6 | A flag to denote whether printing in lower case is enabled for | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DTW8 | A mask for capitalising the next letter in an extended text token | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| FEED | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| MT16 | Print the character in variable DTW7 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TT26 | Print a character at the text cursor, with support for verified | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
+| MT23 | Move to row 9 and switch to lower case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT29 | Move to row 5 and switch to lower case when printing extended | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MTIN | Lookup table for random tokens in the extended token table (0-37) | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| DOXC | Move the text cursor to a specific column | propia | `txt_col` | columna del cursor |
+| DOYC | Move the text cursor to a specific row | propia | `txt_row` | fila del cursor |
+| INCYC | Move the text cursor to the next row | propia | `txt_row` | fila del cursor |
+| TT60 | Print a text token and a paragraph break | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TTX69 | Print a paragraph break | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT69 | Set Sentence Case and print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT67 | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| spc | Print a text token followed by a space | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| pr6 | Print 16-bit number, left-padded to 5 digits, no point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
+| pr5 | Print a 16-bit number, left-padded to 5 digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
+| prq | Print a text token followed by a question mark | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT162 | Print a space | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| dn2 | Make a low, long beep and delay for 0.5 seconds | propia | `snd_boop` | pitido largo y espera |
+| plf | Print a text token followed by a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT68 | Print a text token followed by a colon | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT73 | Print a colon | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT27 | Print a text token | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TT42 | Print a letter in lower case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TT41 | Print a letter according to Sentence Case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| qw | Print a recursive token in the range 128-145 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| crlf | Tab to column 21 and print a colon | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT45 | Print a letter in lower case | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TT46 | Print a character and switch to capitals | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TT74 | Print a character | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| TT43 | Print a two-letter token or recursive token 0-95 | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| ex | Print a recursive token | no-necesaria |  | motor de textos comprimidos del original: el port guarda los textos como cadenas de C (menu.c, universe.c) y no lo necesita; los textos de las misiones se escribiran como cadenas |
+| MT26 | Fetch a line of text from the keyboard | propia | `edit_text` | lectura de una linea del teclado |
+| RLINE | The OSWORD configuration block used to fetch a line of text from | propia | `edit_text` | lectura de una linea del teclado |
+| CHPR2 | Character print vector handler | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
+| R5 | Make a beep and jump back into the character-printing routine at | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
+| RR5 | Print a character in the text screen mode | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
+| TT67K | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| CHPR | Print a character at the text cursor by poking into screen memory | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
+| letter | Draw a character in the high-resolution screen mode using the game | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
+| letter2 | Draw a character or indicator bulb bitmap in the high-resolution | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
+| SETXC | Move the text cursor to a specific column | propia | `txt_col` | columna del cursor |
+| SETYC | Move the text cursor to a specific row | propia | `txt_row` | fila del cursor |
 
-## Tube (0/1)
+## Tube (0 portadas de 1, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| newosrdch | The custom OSRDCH routine for reading characters |  |  |  |
+| newosrdch | The custom OSRDCH routine for reading characters | no-necesaria |  | rutina OSRDCH personalizada del BBC con procesador Tube; no aplica |
 
-## Universe (9/34, 1 no necesarias)
+## Universe (27 portadas de 34, 2 no necesarias, 5 sin portar)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | SPIN | Randomly spawn cargo from a destroyed ship |  |  |  |
-| UNIV | Table of pointers to the local universe's ship data blocks |  |  |  |
+| UNIV | Table of pointers to the local universe's ship data blocks | propia | `state_slot` | tabla de punteros a los bloques de las naves |
 | SFS1 | Spawn a child ship from the current (parent) ship |  |  |  |
-| PDESC | Print the system's extended description or a mission 1 directive |  |  |  |
+| PDESC | Print the system's extended description or a mission 1 directive | propia | `uni_describe` | descripcion del sistema; falta la directiva de la mision 1 |
 | GINF | Fetch the address of a ship's data block into INF | no-necesaria |  | el puntero INF no existe en C: se indexa por ranura |
 | ping | Set the selected system to the current system | sin-verificar | `chart_ping` | tecla O: el cursor vuelve al sistema actual |
-| TT20 | Twist the selected system's seeds four times |  |  |  |
-| TT54 | Twist the selected system's seeds |  |  |  |
-| TT146 | Print the distance to the selected system in light years |  |  |  |
-| TT70 | Display "MAINLY " and jump to TT72 |  |  |  |
+| TT20 | Twist the selected system's seeds four times | propia | `twist`, `nextgalaxy` | giro de las semillas (universe.c, de Text Elite) |
+| TT54 | Twist the selected system's seeds | propia | `twist`, `nextgalaxy` | giro de las semillas (universe.c, de Text Elite) |
+| TT146 | Print the distance to the selected system in light years | propia | `chart_info` | distancia en anos luz |
+| TT70 | Display "MAINLY " and jump to TT72 | propia | `uni_describe` | MAINLY en la descripcion del sistema |
 | TT25 | Show the Data on System screen | sin-verificar | `scr_data` |  |
-| TT24 | Calculate system data from the system seeds |  |  |  |
-| TT81 | Set the selected system's seeds to those of system 0 |  |  |  |
+| TT24 | Calculate system data from the system seeds | propia | `uni_make_system`, `uni_build_galaxy` | datos del sistema y semillas de la galaxia (universe.c: iguales al oraculo de Text Elite) |
+| TT81 | Set the selected system's seeds to those of system 0 | propia | `uni_make_system`, `uni_build_galaxy` | datos del sistema y semillas de la galaxia (universe.c: iguales al oraculo de Text Elite) |
 | TT111 | Set the current system to the nearest system to a point | sin-verificar | `uni_nearest` |  |
-| jmp | Set the current system to the selected system |  |  |  |
-| hyp1 | Process a jump to the system closest to (QQ9, QQ10) |  |  |  |
-| GVL | Calculate the availability of market items |  |  |  |
+| jmp | Set the current system to the selected system | propia | `game_enter_system`, `jump_do` | entrada en el sistema y salto al mas cercano |
+| hyp1 | Process a jump to the system closest to (QQ9, QQ10) | propia | `game_enter_system`, `jump_do` | entrada en el sistema y salto al mas cercano |
+| GVL | Calculate the availability of market items | propia | `uni_gen_market` | disponibilidad del mercado |
 | GTHG | Spawn a Thargoid ship and a Thargon companion |  |  |  |
-| cpl | Print the selected system name |  |  |  |
-| ypl | Print the current system name |  |  |  |
-| tal | Print the current galaxy number |  |  |  |
+| cpl | Print the selected system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
+| ypl | Print the current system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
+| tal | Print the current galaxy number | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
 | SOS1 | Update the missile indicators, set up the planet data block | sin-verificar | `make_planet` |  |
 | SOLAR | Set up various aspects of arriving in a new system | sin-verificar | `ships_launch` | planeta con las formulas de SOLAR; al despegar el sol se sustituye por la estacion; ships_arrive pone planeta y sol |
 | NWSPS | Add a new space station to our local bubble of universe | sin-verificar | `make_station` | la posicion de la estacion es propia |
 | NWSHP | Add a new ship to our local bubble of universe | sin-verificar | `ship_new` | sin heap compartido (SLSP): un monton de 256 bytes por ranura; NEWB inicial de E% |
-| NwS1 | Flip the sign and double an INWK byte |  |  |  |
-| KS3 | Set the SLSP ship line heap pointer after shuffling ship slots |  |  |  |
-| KS1 | Remove the current ship from our local bubble of universe |  |  |  |
-| KS4 | Remove the space station and replace it with the sun |  |  |  |
+| NwS1 | Flip the sign and double an INWK byte | propia | `make_station` | los tres NwS1 que invierten el morro de la estacion |
+| KS3 | Set the SLSP ship line heap pointer after shuffling ship slots | no-necesaria |  | puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura |
+| KS1 | Remove the current ship from our local bubble of universe | propia | `ship_kill` | quita la nave y desplaza las demas |
+| KS4 | Remove the space station and replace it with the sun | propia | `ships_step` | la estacion se quita y vuelve el sol (regla propia) |
 | KS2 | Check the local bubble for missiles with target lock |  |  |  |
 | KILLSHP | Remove a ship from our local bubble of universe | sin-verificar | `ship_kill` | sin puntos de muerte ni mensajes (paso 3) |
 | ZINF | Reset the INWK workspace and orientation vectors | sin-verificar | `ship_zinf` |  |
 | Ze | Initialise the INWK workspace to a fairly aggressive ship |  |  |  |
-| spasto | Contains the address of the Coriolis space station's ship |  |  |  |
+| spasto | Contains the address of the Coriolis space station's ship | propia | `ship_bp_for` | plano de la estacion (Coriolis o Dodo) |
 
-## Utility routines (0/18)
-
-| Rutina | Resumen | Estado | C | Nota |
-|---|---|---|---|---|
-| DEEOR | Unscramble the main code |  |  |  |
-| DEEORS | Decrypt a multi-page block of memory |  |  |  |
-| G% | Denotes the start of the main game code, from ELITE A to ELITE K |  |  |  |
-| DELAY | Wait for a specified time, measured in loop iterations |  |  |  |
-| SWAPPZERO | An unused routine that swaps bytes in and out of zero page |  |  |  |
-| brkd | A flag that indicates whether a system error has occurred |  |  |  |
-| BRBR | The standard BRKV handler for the game |  |  |  |
-| ZERO | Reset the local bubble of universe and ship status |  |  |  |
-| ZEBC | Zero-fill pages $B and $C |  |  |  |
-| ZES1 | Zero-fill the page whose number is in X |  |  |  |
-| ZES2 | Zero-fill a specific page |  |  |  |
-| backtonormal | Disable the keyboard, set the SVN flag to 0, and return with A = 0 |  |  |  |
-| CLDELAY | Delay by iterating through 5 * 256 (1280) empty loops |  |  |  |
-| ZES1k | Zero-fill the page whose number is in X |  |  |  |
-| ZES2k | Zero-fill a specific page |  |  |  |
-| ZESNEW | Zero-fill memory from SC(1 0) to the end of the page |  |  |  |
-| mvblockK | Copy a specific number of pages in memory |  |  |  |
-| F% | Denotes the end of the main game code, from ELITE A to ELITE K |  |  |  |
-
-## Workspaces (0/7)
+## Utility routines (1 portadas de 18, 17 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| ZP | Lots of important variables are stored in the zero page workspace |  |  |  |
-| XX3 | Temporary storage space for complex calculations |  |  |  |
-| K% | Ship data blocks and ship line heaps |  |  |  |
-| Disk | Variables used by the disk operations and DOS 3.3 RWTS routines |  |  |  |
-| UP | Configuration variables |  |  |  |
-| WP | Variables |  |  |  |
-| Option | Variables that are predominantly used to store the game options |  |  |  |
+| DEEOR | Unscramble the main code | no-necesaria |  | proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe |
+| DEEORS | Decrypt a multi-page block of memory | no-necesaria |  | proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe |
+| G% | Denotes the start of the main game code, from ELITE A to ELITE K | no-necesaria |  | proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe |
+| DELAY | Wait for a specified time, measured in loop iterations | no-necesaria |  | retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick) |
+| SWAPPZERO | An unused routine that swaps bytes in and out of zero page | no-necesaria |  | sin uso en el original (intercambio de la pagina cero) |
+| brkd | A flag that indicates whether a system error has occurred | no-necesaria |  | manejador de errores BRK del 6502; el runtime de C se ocupa de los errores |
+| BRBR | The standard BRKV handler for the game | no-necesaria |  | manejador de errores BRK del 6502; el runtime de C se ocupa de los errores |
+| ZERO | Reset the local bubble of universe and ship status | propia | `ships_clear` | reinicio de la burbuja local: ranuras, contadores y montones de lineas |
+| ZEBC | Zero-fill pages $B and $C | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
+| ZES1 | Zero-fill the page whose number is in X | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
+| ZES2 | Zero-fill a specific page | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
+| backtonormal | Disable the keyboard, set the SVN flag to 0, and return with A = 0 | no-necesaria |  | desactiva el teclado del BBC y vuelve con A = 0; no aplica |
+| CLDELAY | Delay by iterating through 5 * 256 (1280) empty loops | no-necesaria |  | retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick) |
+| ZES1k | Zero-fill the page whose number is in X | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
+| ZES2k | Zero-fill a specific page | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
+| ZESNEW | Zero-fill memory from SC(1 0) to the end of the page | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
+| mvblockK | Copy a specific number of pages in memory | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
+| F% | Denotes the end of the main game code, from ELITE A to ELITE K | no-necesaria |  | proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe |
+
+## Workspaces (0 portadas de 7, 7 no necesarias)
+
+| Rutina | Resumen | Estado | C | Nota |
+|---|---|---|---|---|
+| ZP | Lots of important variables are stored in the zero page workspace | no-necesaria |  | la pagina cero se reparte en variables globales de C (state.c, emath.c): lo da el compilador |
+| XX3 | Temporary storage space for complex calculations | no-necesaria |  | tabla de coordenadas de pantalla de los vertices: matriz xx3 de ship3d.c |
+| K% | Ship data blocks and ship line heaps | no-necesaria |  | bloques de las naves: matriz de state.c (state_slot) y un monton de lineas por ranura en ships.c |
+| Disk | Variables used by the disk operations and DOS 3.3 RWTS routines | no-necesaria |  | variables de las operaciones de disco y de la RWTS del DOS 3.3: el QL usa QDOS |
+| UP | Configuration variables | no-necesaria |  | variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3 |
+| WP | Variables | no-necesaria |  | montones de la bola, del sol y de las naves y datos del polvo estelar: matrices de C (sun.c, stars.c, ships.c) |
+| Option | Variables that are predominantly used to store the game options | no-necesaria |  | variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3 |
