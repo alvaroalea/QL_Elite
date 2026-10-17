@@ -7,6 +7,7 @@
 #include "game.h"
 #include "app.h"
 #include "state.h"
+#include "save.h"
 typedef unsigned short u16s;
 static u16s hv[64];
 static int nh = 0;
@@ -25,7 +26,7 @@ static const int script[] = {
     '9', SNAP, '4', KC_RIGHT, KC_RIGHT, KC_DOWN, SNAP,
     '5', KC_LEFT, KC_UP, SNAP, '6', SNAP, '8', SNAP,
     '5', KC_RIGHT, KC_RIGHT, KC_RIGHT, KC_RIGHT, KC_DOWN, SNAP,
-    '0', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP, 'h', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    'u', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP, 'h', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     SNAP, '2', '3', -1, -1, SNAP, 'c', '8', SNAP, 'i', SNAP, KC_ESC, '7', SNAP, 'i', 'q', 'y'
@@ -45,6 +46,7 @@ int main(void)
 {
     int i;
     plat_init(); txt_init(); in_init(); snd_init();
+    save_set_device("flp1_");                      /* igual en el PC y en c68 (el valor por defecto de save.c depende del compilador) */
     in_script = feed;
     game_run();
     snap();

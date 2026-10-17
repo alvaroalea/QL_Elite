@@ -103,9 +103,8 @@ static void fallback_panel(void)
 
 void dash_show(void)
 {
-    long i;
     u8 *dst = screen + (long)DASH_Y0 * 128L;
-    if (bg_ok) for (i = 0; i < (long)DASH_BYTES; i++) dst[i] = dash_bg[i];
+    if (bg_ok) gfx_copy(dst, dash_bg, (long)DASH_BYTES);
     else fallback_panel();
     dash_reset();
 }

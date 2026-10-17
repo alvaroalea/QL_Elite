@@ -281,6 +281,47 @@ int main(void)
         dash_spblb(); dash_ecblb(); dash_spblb(); dash_ecblb();
         check(memcmp(b2, screen, 32768) == 0, "bombillas S y E: encender y apagar (XOR) deja el panel igual");
     }
+
+    /* relleno y copia rapidos: iguales que poner pixel a pixel, con recorte y para los 8 colores */
+    {
+        int col, y0, nn, x, y, bad = 0;
+        static u8 ref[32768];
+        for (col = 0; col < 8; col++) {
+            gfx_clear(C_BLACK);
+            for (y = 0; y < 256; y++) for (x = 0; x < 256; x++) gfx_pixel(x, y, (u8)col);
+            memcpy(ref, screen, 32768);
+            gfx_clear((u8)(col ^ 7)); gfx_clear((u8)col);
+            if (memcmp(ref, screen, 32768) != 0) bad = 1;
+        }
+        check(!bad, "gfx_clear: igual que poner los 256 x 256 pixeles uno a uno (8 colores)");
+        bad = 0;
+        for (i = 0; i < 40; i++) {
+            col = (int)(rnd() & 7); y0 = (int)(rnd() % 300) - 20; nn = (int)(rnd() % 120);
+            gfx_clear(C_BLACK); gfx_clear(C_YELLOW); memcpy(ref, screen, 32768);
+            for (y = y0; y < y0 + nn; y++) if (y >= 0 && y < 256) for (x = 0; x < 256; x++) gfx_pixel(x, y, (u8)col);
+            memcpy(snap, screen, 32768);
+            memcpy(screen, ref, 32768);
+            gfx_fill_lines(y0, nn, (u8)col);
+            if (memcmp(snap, screen, 32768) != 0) bad = 1;
+        }
+        check(!bad, "gfx_fill_lines: igual que pixel a pixel, con recorte por arriba y por abajo");
+        gfx_clear(C_BLACK);
+        gfx_rect(0, 10, 256, 7, C_RED);
+        for (y = 10; y < 17; y++) for (x = 0; x < 256; x++) if (gfx_get(x, y) != C_RED) bad = 1;
+        check(!bad && gfx_get(0, 9) == C_BLACK && gfx_get(255, 17) == C_BLACK, "gfx_rect de ancho completo usa el relleno rapido y no se sale");
+        {
+            static u8 src[7200], dst[7200];
+            int off;
+            for (i = 0; i < 7200; i++) src[i] = (u8)(i * 7 + 3);
+            bad = 0;
+            for (off = 0; off < 4; off++) {
+                memset(dst, 0, sizeof dst);
+                gfx_copy(dst + off, src + (3 - off), 7168L);
+                if (memcmp(dst + off, src + (3 - off), 7168) != 0 || dst[off - 1 + (off == 0)] == 99) bad = 1;
+            }
+            check(!bad, "gfx_copy: copia exacta con direcciones pares e impares");
+        }
+    }
     printf("%d comprobaciones, %d fallos\n", total, fails);
     return fails ? 1 : 0;
 }

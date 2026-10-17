@@ -2,7 +2,7 @@
 
 Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.
 
-Rutinas: 528. Portadas o con equivalente propio: 169 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 6.
+Rutinas: 528. Portadas o con equivalente propio: 171 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 6.
 
 Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **no-necesaria** = la rutina no hace falta en el estado actual del juego (la nota dice por que y cuando hara falta); vacio = sin portar.
 
@@ -141,7 +141,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SUN | Draw the sun: Set up all the variables needed to draw the sun | sin-verificar | `sun_draw` |  |
 | WPLS | Remove the sun from the screen | sin-verificar | `sun_wpls` |  |
 
-## Drawing the screen (0/18)
+## Drawing the screen (2/18)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -149,7 +149,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SCTBX2 | Lookup table for converting a pixel x-coordinate to the byte |  |  |  |
 | TRADEMODE | Clear the screen and set up a trading screen |  |  |  |
 | DET1 | Show or hide the dashboard (for when we die) |  |  |  |
-| TT66 | Clear the screen and set the current view type |  |  |  |
+| TT66 | Clear the screen and set the current view type | propia | `gfx_fill_lines` | borrado rapido de la vista y de la pantalla |
 | TTX66 | Clear the top part of the screen, draw a border box if required |  |  |  |
 | cellocl | Lookup table for converting a text row number to the address of |  |  |  |
 | SCTBL | Lookup table for converting a character row number to the address |  |  |  |
@@ -159,7 +159,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | clss | Clear the screen, move the text cursor to the top-left corner and |  |  |  |
 | TTX66K | Clear the whole screen or just the space view (as appropriate), |  |  |  |
 | cleargrap | Clear screen memory for the top part of the graphics screen mode |  |  |  |
-| CLYNS | Clear two character rows near the bottom of the screen |  |  |  |
+| CLYNS | Clear two character rows near the bottom of the screen | propia | `txt_clear_rows` | borrado de filas de texto con el relleno rapido |
 | clearrow | Clear a character row of screen memory, drawing blue borders along |  |  |  |
 | HGR | Switch to the high-resolution graphics screen mode |  |  |  |
 | TEXT | Switch to the text screen mode |  |  |  |
@@ -219,7 +219,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TT214 | Ask a question with a "Y/N?" prompt and return the response | propia | `scr_disk` |  |
 | YESNO | Wait until either "Y" or "N" is pressed | propia | `scr_disk` | confirmaciones Y/N dentro del menu de disco |
 | TT17 | Scan the keyboard for cursor key or joystick movement | propia | `in_held` | cursores o joystick |
-| TT102 | Process number key, save key, hyperspace and chart key presses | propia | `ui_nav` | en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos |
+| TT102 | Process number key, save key, hyperspace and chart key presses | propia | `ui_nav` | en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos; atracado: U despega, 0 galactica, 5-9 como en vuelo |
 | ZEKTRAN | Clear the key logger |  |  |  |
 | RDS1 | Scan one axis of the joystick and return its position |  |  |  |
 | RDKEY | Scan the keyboard for key presses and the joystick, and update the |  |  |  |
@@ -228,7 +228,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | DKS2 | Read the joystick position |  |  |  |
 | DKS3 | Toggle a configuration setting and emit a beep |  |  |  |
 | U% | Clear the key logger |  |  |  |
-| DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo, D acelera, F frena, A o espacio disparan; JSTX/JSTY los calcula space_controls |
+| DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo, F acelera, D frena, A o espacio disparan; JSTX/JSTY los calcula space_controls |
 | DK4 | Scan for pause, configuration and secondary flight keys | propia | `in_poll` | teclas secundarias por caracteres (key_getchar) |
 | TT217 | Scan the keyboard until a key is pressed | propia | `in_wait` |  |
 | KTRAN | An unused key logger buffer that's left over from the 6502 Second |  |  |  |

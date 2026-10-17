@@ -48,7 +48,7 @@ void key_set_scan(u8 fast, u8 slow) { rowmask = fast; slowmask = (u8)(slow & ~fa
 /* Menus: fila 1 (cursores, ENTER, ESC, espacio) y fila 7 (SHIFT, CTRL) siempre; el resto (letras y cifras) rotando: 3 lecturas por scan */
 void key_ctx_menu(void) { key_set_scan(0x82, 0x7D); }
 
-/* Vuelo: fila 1 (cursores, espacio, ENTER, ESC), fila 3 (F frenar, G) y fila 4 (A, D acelerar, H, J, P, 1, 3) siempre; filas 0, 2, 5, 6 y 7
+/* Vuelo: fila 1 (cursores, espacio, ENTER, ESC), fila 3 (F acelerar, G) y fila 4 (A, D frenar, H, J, P, 1, 3) siempre; filas 0, 2, 5, 6 y 7
    rotando (4, 5, 7, C, B, M, 9, E, T, U, 2, 6, 8, SHIFT...): 4 lecturas por scan. Con el joystick 2 la fila 0 (F1..F5) es rapida (5). */
 void key_ctx_flight(void)
 {
@@ -138,8 +138,8 @@ int joy_read(int port)
 void ctl_read(struct controls *c)
 {
     int j = 0;
-    c->slow_down  = (u8)key_down(K_F);           /* D acelera y F frena (antes espacio y /) */
-    c->speed_up   = (u8)key_down(K_D);
+    c->slow_down  = (u8)key_down(K_D);           /* F acelera y D frena (antes espacio y /) */
+    c->speed_up   = (u8)key_down(K_F);
     /* Los cursores giran la nave (y son el joystick del puerto 1): izquierda/derecha = alabeo; arriba = picar (palanca hacia
        delante), abajo = cabecear hacia arriba. Sustituyen a , . S X del original para leer menos filas del teclado. */
     c->roll_left  = (u8)key_down(K_LEFT);

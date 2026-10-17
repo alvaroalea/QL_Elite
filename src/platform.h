@@ -31,6 +31,8 @@ void plat_wait_key(void);         /* QL: espera una pulsacion (suelta, pulsa, su
 
 /* gfx.c */
 void gfx_clear(u8 c);
+void gfx_fill_lines(int y, int n, u8 c);   /* pone a un color n lineas completas desde la y: rapido (palabras largas en el QL) */
+void gfx_copy(u8 *dst, const u8 *src, long n);   /* copia rapida de n bytes (multiplo de 32 para ir por palabras largas) */
 void gfx_pixel(int x, int y, u8 c);
 void gfx_xor_pixel(int x, int y, u8 c);
 u8   gfx_get(int x, int y);

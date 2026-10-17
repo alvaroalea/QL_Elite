@@ -40,8 +40,8 @@ void ui_footer(void)
 {
     txt_color(C_CYAN, C_BLACK);
     if (qq12) {
-        txt_print_at(0, 30, "1BUY 2SELL 3EQUIP 4GAL 5LOCAL");
-        txt_print_at(0, 31, "6DATA 7MKT 8STAT 9INV IDISK 0GO");
+        txt_print_at(0, 30, "1BUY 2SELL 3EQUIP 5LOCAL 6DATA");
+        txt_print_at(0, 31, "7MKT 8STAT 9INV 0GAL IDISK UGO");
     } else {                                           /* en vuelo: 1-4 vistas, 5-9 pantallas (como en el original) */
         txt_print_at(0, 30, "1-4 VIEW 5LOCAL 6DATA 7MKT");
         txt_print_at(0, 31, "8STAT 9INV 0GAL H/G JUMP ESC");
@@ -107,7 +107,8 @@ int ui_nav(int ch)
         return -1;
     }
     switch (ch) {
-    case '0': return SC_LAUNCH;
+    case 'u': return SC_LAUNCH;                        /* U = undock; 0 es la carta galactica, como en vuelo */
+    case '0': return SC_GALCHART;
     case '1': return SC_BUY;
     case '2': return SC_SELL;
     case '3': return SC_EQUIP;

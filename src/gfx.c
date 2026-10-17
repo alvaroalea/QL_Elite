@@ -40,17 +40,57 @@ u8 gfx_get(int x, int y)
     return (u8)((((p[0] >> (s + 1)) & 1) << 2) | (((p[1] >> (s + 1)) & 1) << 1) | ((p[1] >> s) & 1));
 }
 
-void gfx_clear(u8 c)
+/* Relleno rapido de n lineas completas (128 bytes cada una) desde la linea y con el color c. En el QL se escribe de 4 en 4 bytes y
+   desenrollado de 8 en 8 palabras largas (68008: unas 20 veces mas rapido que poner pixel a pixel); el PC usa bytes para no depender
+   de reglas de alias. La pantalla y las lineas estan en direcciones pares. */
+void gfx_fill_lines(int y, int n, u8 c)
 {
-    long i;
     u8 g = (c & 4) ? 0xAA : 0;
-    u8 r = (c & 2) ? 0xAA : 0;
-    u8 b = (c & 1) ? 0x55 : 0;
-    for (i = 0; i < SCR_BYTES; i += 2) {
-        screen[i] = g;
-        screen[i + 1] = (u8)(r | b);
+    u8 rb = (u8)(((c & 2) ? 0xAA : 0) | ((c & 1) ? 0x55 : 0));
+    if (y < 0) { n += y; y = 0; }
+    if (y + n > SCR_H) n = SCR_H - y;
+    if (n <= 0) return;
+#ifdef __GNUC__
+    {
+        u8 *p = screen + (long)y * 128L;
+        long i, cnt = (long)n * 128L;
+        for (i = 0; i < cnt; i += 2) { p[i] = g; p[i + 1] = rb; }
+    }
+#else
+    {
+        unsigned long v = ((unsigned long)g << 24) | ((unsigned long)rb << 16) | ((unsigned long)g << 8) | rb;
+        unsigned long *p = (unsigned long *)(screen + (long)y * 128L);
+        long cnt = (long)n * 32L;                       /* palabras largas: 32 por linea */
+        while (cnt >= 8) {
+            p[0] = v; p[1] = v; p[2] = v; p[3] = v; p[4] = v; p[5] = v; p[6] = v; p[7] = v;
+            p += 8; cnt -= 8;
+        }
+    }
+#endif
+}
+
+/* Copia rapida de n bytes (multiplo de 4) a la pantalla o desde ella; por palabras largas si las dos direcciones son pares */
+void gfx_copy(u8 *dst, const u8 *src, long n)
+{
+#ifndef __GNUC__
+    if ((((unsigned long)dst | (unsigned long)src) & 1UL) == 0UL && (n & 31L) == 0L) {
+        unsigned long *d = (unsigned long *)dst;
+        const unsigned long *s = (const unsigned long *)src;
+        long cnt = n >> 2;
+        while (cnt > 0) {
+            d[0] = s[0]; d[1] = s[1]; d[2] = s[2]; d[3] = s[3]; d[4] = s[4]; d[5] = s[5]; d[6] = s[6]; d[7] = s[7];
+            d += 8; s += 8; cnt -= 8;
+        }
+        return;
+    }
+#endif
+    {
+        long i;
+        for (i = 0; i < n; i++) dst[i] = src[i];
     }
 }
+
+void gfx_clear(u8 c) { gfx_fill_lines(0, SCR_H, c); }
 
 void gfx_line(int x0, int y0, int x1, int y1, u8 c, int xor_mode)
 {
@@ -119,5 +159,6 @@ void gfx_hline(int x0, int x1, int y, u8 c)
 void gfx_rect(int x, int y, int w, int h, u8 c)
 {
     int j;
+    if (x <= 0 && x + w >= SCR_W) { gfx_fill_lines(y, h, c); return; }       /* ancho completo: relleno rapido */
     for (j = 0; j < h; j++) gfx_hline(x, x + w - 1, y + j, c);
 }

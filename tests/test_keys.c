@@ -41,12 +41,12 @@ int main(void)
     ctl_read(&c);
     check(c.roll_left && c.pitch_up && c.fire && !c.speed_up && !c.roll_right && !c.slow_down && !c.pitch_down, "cursores: izquierda = alabeo izq., abajo = cabeceo arriba (el espacio dispara)");
     memset(host_matrix, 0, 8);
-    press(K_F); press(K_RIGHT); press(K_UP); press(K_ESC); press(K_T); press(K_M); key_scan();
+    press(K_D); press(K_RIGHT); press(K_UP); press(K_ESC); press(K_T); press(K_M); key_scan();
     ctl_read(&c);
-    check(c.slow_down && c.roll_right && c.pitch_down && c.escape_pod && c.target && c.missile && !c.fire && !c.speed_up, "F frena, alabeo der., picar (arriba), pod, objetivo y misil");
+    check(c.slow_down && c.roll_right && c.pitch_down && c.escape_pod && c.target && c.missile && !c.fire && !c.speed_up, "D frena, alabeo der., picar (arriba), pod, objetivo y misil");
     memset(host_matrix, 0, 8);
-    press(K_D); key_scan(); ctl_read(&c);
-    check(c.speed_up && !c.slow_down, "D acelera");
+    press(K_F); key_scan(); ctl_read(&c);
+    check(c.speed_up && !c.slow_down, "F acelera");
     memset(host_matrix, 0, 8);
     press(K_SPACE); press(K_SLASH); key_scan(); ctl_read(&c);
     check(c.fire && !c.speed_up && !c.slow_down, "el espacio dispara; / ya no frena ni el espacio acelera");
@@ -61,8 +61,8 @@ int main(void)
     check(joy_read(1) == (JOY_LEFT | JOY_FIRE), "joystick 1: izquierda + disparo");
     ctl_joystick = 1; ctl_read(&c);
     check(c.roll_left && c.fire && !c.speed_up, "con el CTL1 el espacio dispara y no acelera");
-    press(K_D); key_scan(); ctl_read(&c);
-    check(c.speed_up && c.fire, "con el CTL1 D acelera y el espacio sigue disparando");
+    press(K_F); key_scan(); ctl_read(&c);
+    check(c.speed_up && c.fire, "con el CTL1 F acelera y el espacio sigue disparando");
 
     /* joystick 2 (F1..F5) en la fila 0 */
     memset(host_matrix, 0, 8);

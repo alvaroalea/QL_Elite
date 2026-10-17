@@ -170,14 +170,14 @@ static const int script[] = {
     '6', SNAP(9),                               /* datos */
     '8', SNAP(10),                              /* estado */
     'i', '2', KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, 'b', 'o', 'b', KC_ENTER, SNAP(11), KC_ESC,   /* disco: guardar como BOB */
-    '0', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12),                  /* despegar (tunel de lanzamiento), unos fotogramas */
-    KD(K_LEFT), KD(K_DOWN), KD(K_D), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_D), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19),   /* alabeo, cabeceo y D acelera; luego se suelta */
+    'u', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12),                  /* despegar (tunel de lanzamiento), unos fotogramas */
+    KD(K_LEFT), KD(K_DOWN), KD(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19),   /* alabeo, cabeceo y D acelera; luego se suelta */
     '2', -1, -1, -1, -1, SNAP(13), '3', -1, -1, -1, -1, SNAP(14), '4', -1, -1, -1, -1, SNAP(20), '1', -1, -1, -1, -1,    /* vistas trasera, izquierda, derecha y frontal (teclas 1-4) */
     'n', 'n', 'n', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(21),                            /* contactos en el radar */
     '5', SNAP(22), KC_ESC, '8', SNAP(23), '9', SNAP(24), '1', -1, -1, -1,    /* pantallas 5-9 desde el vuelo y vuelta con ESC o con una vista */
     'c',                                                             /* atracar */
     '8', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(15),       /* cargar BOB */
-    '0', -1, -1, -1, -1, -1, SNAP(25), 'c',                                 /* segundo despegue: el fondo del panel ya esta en memoria */
+    'u', -1, -1, -1, -1, -1, SNAP(25), 'c',                                 /* segundo despegue: el fondo del panel ya esta en memoria */
     'i', 'q', 'y'                                /* salir */
 };
 static unsigned sp = 0;

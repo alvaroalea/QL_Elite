@@ -52,7 +52,7 @@ int  key_getchar(void);            /* siguiente caracter ASCII (disposicion UK),
 #define JOY_FIRE  16
 int joy_read(int port);            /* port 1 o 2; usa las filas ya leidas por key_scan */
 
-/* Controles de vuelo de Elite: cursores = alabeo y cabeceo (y joystick CTL1), D acelerar, F frenar, A o espacio laser, resto como el original */
+/* Controles de vuelo de Elite: cursores = alabeo y cabeceo (y joystick CTL1), F acelerar, D frenar, A o espacio laser, resto como el original */
 struct controls {
     u8 slow_down, speed_up, roll_left, roll_right, pitch_up, pitch_down, fire;      /* primarios */
     u8 bomb, escape_pod, target, unarm, missile, ecm, jump, dock, undock;            /* secundarios */

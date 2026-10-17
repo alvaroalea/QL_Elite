@@ -41,7 +41,7 @@ static void panel_static(void)
     txt_print_at(0, 26, "VIEW");
     txt_print_at(0, 27, "HERE");
     txt_print_at(0, 28, "TARGET");
-    txt_print_at(0, 29, "CURSORS TURN D FAST F SLOW");
+    txt_print_at(0, 29, "CURSORS TURN F FAST D SLOW");
     txt_print_at(0, 30, "1-4 VIEW 5-9 INFO H/G JUMP");
     txt_print_at(0, 31, "C DOCK N RADAR TEST SHIFT+ESC");
     txt_color(C_WHITE, C_BLACK);
@@ -66,7 +66,7 @@ static void say(const char *s, int error)
 }
 
 /* TT66 de la vista espacial: borra el area de vista (el panel no se toca) */
-static void clear_view(void) { gfx_rect(0, 0, 256, VIEW_H, C_BLACK); }
+static void clear_view(void) { gfx_fill_lines(0, VIEW_H, C_BLACK); }   /* rapido: palabras largas, no pixel a pixel */
 
 /* LOOK1 al cambiar de vista estando en el espacio: el polvo se refleja en la diagonal (FLIP) y se vuelve a poner la mira */
 static void change_view(int v)

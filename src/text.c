@@ -107,17 +107,11 @@ void txt_print_at(int col, int row, const char *s) { txt_at(col, row); txt_puts(
 
 void txt_clear_rows(int row0, int nrows, u8 color)
 {
-    long i, n;
-    u8 g = (color & 4) ? 0xAA : 0;
-    u8 rb = (u8)(((color & 2) ? 0xAA : 0) | ((color & 1) ? 0x55 : 0));
-    u8 *p;
     cur_hide();
     if (row0 < 0) { nrows += row0; row0 = 0; }
     if (row0 + nrows > TXT_ROWS) nrows = TXT_ROWS - row0;
     if (nrows <= 0) { cur_show(); return; }
-    p = screen + (long)row0 * 8 * SCR_STRIDE;
-    n = (long)nrows * 8 * SCR_STRIDE;
-    for (i = 0; i < n; i += 2) { p[i] = g; p[i + 1] = rb; }
+    gfx_fill_lines(row0 * 8, nrows * 8, color);          /* relleno rapido de lineas completas */
     cur_show();
 }
 

@@ -188,5 +188,7 @@ ECBLB dash_ecblb sin-verificar bombilla E (aun sin ECM en vuelo)
 BULB bulb sin-verificar 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E
 SPBT bulb_s sin-verificar
 ECBT bulb_e sin-verificar
-DOKEY ctl_read propia cursores = alabeo y cabeceo, D acelera, F frena, A o espacio disparan; JSTX/JSTY los calcula space_controls
-TT102 ui_nav propia en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos
+DOKEY ctl_read propia cursores = alabeo y cabeceo, F acelera, D frena, A o espacio disparan; JSTX/JSTY los calcula space_controls
+TT102 ui_nav propia en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos; atracado: U despega, 0 galactica, 5-9 como en vuelo
+TT66 gfx_fill_lines propia borrado rapido de la vista y de la pantalla
+CLYNS txt_clear_rows propia borrado de filas de texto con el relleno rapido

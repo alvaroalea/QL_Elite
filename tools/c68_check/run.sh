@@ -16,7 +16,7 @@ buildc68() {          # salida fuentes...
   out=$1; shift; objs=""
   for f in "$@"; do
     b=$(basename $f .c)
-    gcc -E -P -nostdinc -I$ROOT/tools/c68_check/inc -I$S $f > $b.i 2>/dev/null
+    gcc -E -P -U__GNUC__ -nostdinc -I$ROOT/tools/c68_check/inc -I$S $f > $b.i 2>/dev/null
     $XTC68/c68 -int=16 -O -warn=0 $b.i $b.s 2>&1 | grep -iv "^!" | head -3 || true
     python3 conv.py $b.s ${b}_g.s
     m68k-linux-gnu-as -m68020 --register-prefix-optional -o $b.o ${b}_g.s
@@ -31,8 +31,9 @@ CHARTS="$S/chart.c $S/sun.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/universe
 GAME="$S/universe.c $S/game.c $S/cmdr.c $S/save.c $S/state.c $S/emath.c $GFX"
 FULL="$S/app.c $S/menu.c $S/chart.c $S/sun.c $S/dash.c $S/space.c $S/stars.c $S/flight.c $S/input.c $S/keys.c $S/keys_host.c $S/sound.c $S/sound_host.c $S/game.c $S/cmdr.c $S/save.c $S/shipview.c $S/ship3d.c $S/shipdata.c $S/ship_math.c $S/state.c $S/emath.c $S/gfx.c $S/text.c $S/universe.c"
 fail=0
-for p in emath:"$S/emath.c $S/state.c" keys:"$S/keys.c $S/keys_host.c $GFX" ships:"$SHIP" game:"$GAME" charts:"$CHARTS" dash:"$DASHM" flight:"$DASHM" session:"$FULL"; do
+for p in gfxfast:"$GFX" emath:"$S/emath.c $S/state.c" keys:"$S/keys.c $S/keys_host.c $GFX" ships:"$SHIP" game:"$GAME" charts:"$CHARTS" dash:"$DASHM" flight:"$DASHM" session:"$FULL"; do
   name=${p%%:*}; mods=${p#*:}; src=$ROOT/tests/c68/probe_$name.c
+  if [ $# -gt 0 ]; then case " $* " in *" $name "*) ;; *) continue ;; esac; fi        # make c68_check: solo las sondas indicadas
   gcc -std=gnu89 -O1 -I$S -o host_$name $src $mods $S/plat_host.c -lm 2>/dev/null
   rm -f screen.bin; ./host_$name; cp screen.bin host_$name.bin
   buildc68 c68_$name $src $mods
