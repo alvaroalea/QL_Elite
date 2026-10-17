@@ -33,6 +33,7 @@ int in_poll(void)
     int ch;
     frames++;
     if (in_script) {
+        key_scan();                                       /* con guion tambien se lee la matriz (pruebas: host_matrix) para los controles de vuelo */
         ch = in_script();
         if (ch == KC_QUIT) in_quit = 1;
         return ch;

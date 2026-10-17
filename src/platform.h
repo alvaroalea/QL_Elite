@@ -36,6 +36,8 @@ void gfx_xor_pixel(int x, int y, u8 c);
 u8   gfx_get(int x, int y);
 void gfx_line(int x0, int y0, int x1, int y1, u8 c, int xor_mode);
 void gfx_hline(int x0, int x1, int y, u8 c);
-void gfx_hline_xor(int x0, int x1, int y, u8 c);   /* como gfx_hline pero en XOR (sol: borrar = redibujar) */
+void gfx_hline_xor(int x0, int x1, int y, u8 c);
+void gfx_hloin(int x1, int x2, int y, u8 c);        /* HLOIN del original: XOR, extremos a pares, cubre X1..X2-1 */
+void gfx_dust(int x, int y, u8 zz);                  /* PIXEL del original (XOR, blanco): zz >= 128 = 2 puntos, 80..127 = 3, < 80 = 3 puntos en dos lineas */   /* como gfx_hline pero en XOR (sol: borrar = redibujar) */
 void gfx_rect(int x, int y, int w, int h, u8 c);
 #endif

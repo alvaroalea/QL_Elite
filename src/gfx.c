@@ -74,6 +74,26 @@ void gfx_hline_xor(int x0, int x1, int y, u8 c)
     for (x = x0; x <= x1; x++) gfx_xor_pixel(x, y, c);
 }
 
+/* HLOIN del original (Apple II): X1 y X2 se enmascaran a pares (granularidad de 2 puntos del modo hires), se ordenan y la linea
+   cubre de X1 a X2-1; si quedan iguales no dibuja nada. Siempre en XOR. */
+void gfx_hloin(int x1, int x2, int y, u8 c)
+{
+    int t;
+    x1 &= 0xFE; x2 &= 0xFE;
+    if (x1 == x2) return;
+    if (x1 > x2) { t = x1; x1 = x2; x2 = t; }
+    gfx_hline_xor(x1, x2 - 1, y, c);
+}
+
+/* PIXEL del original: un "punto" de polvo/compas en XOR. El ancho y las lineas dependen de la distancia ZZ:
+   ZZ >= 128: 2 puntos en una linea; 80 <= ZZ < 128: 3 puntos; ZZ < 80: 3 puntos en esta linea y en la de encima. */
+void gfx_dust(int x, int y, u8 zz)
+{
+    int w = (zz & 0x80) ? 2 : 3, i;
+    for (i = 0; i < w; i++) gfx_xor_pixel(x + i, y, C_WHITE);
+    if (zz < 80) for (i = 0; i < w; i++) gfx_xor_pixel(x + i, y - 1, C_WHITE);
+}
+
 void gfx_hline(int x0, int x1, int y, u8 c)
 {
     int x, t;

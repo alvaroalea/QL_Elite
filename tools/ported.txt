@@ -124,10 +124,40 @@ eq cash_spend sin-verificar dentro de equip_buy (cobra antes de reembolsar el la
 prx equip_price sin-verificar
 qv scr_equip propia pide la vista (0 a 3) al comprar un laser
 # --- teclado
-DOKEY ctl_read propia cursores = alabeo y cabeceo (y joystick CTL1); ya no S, X, coma, punto
 DK4 in_poll propia teclas secundarias por caracteres (key_getchar)
 TT17 in_held propia cursores o joystick
 TT217 in_wait propia
 YESNO scr_disk propia confirmaciones Y/N dentro del menu de disco
 TT214 scr_disk propia
 FLKB plat_flush_input propia
+# --- panel de instrumentos (2026-10-16), sin verificar
+DIALS dash_update sin-verificar velocidad, alabeo, cabeceo, 4 bancos de energia, escudos, combustible, altitud y temperaturas
+DIS1 dis1 sin-verificar
+DIS5 dis5 sin-verificar marcador de alabeo o cabeceo (2 puntos de ancho)
+dialY dialY sin-verificar
+dialle dialle sin-verificar
+dialc1 dialc1 sin-verificar
+dialc2 dialc2 sin-verificar
+MSBARS msbars sin-verificar cuatro lineas bajo Y1 con gfx_hloin
+COMPAS compas sin-verificar el acarreo de ADC #195 y SBC viene de em_carry (el que deja DVID4/LL28)
+SP1 compas sin-verificar estacion si SSPR
+SP2 compas sin-verificar
+DOT dot sin-verificar
+cntr space_cntr sin-verificar
+BUMP2 space_bump2 sin-verificar
+REDU2 space_redu2 sin-verificar
+MV40 mv40 sin-verificar solo la parte de posicion; K2 byte 0 queda a 0 (en el original es lo que hubiera en K2)
+MVT1 mvt1 sin-verificar
+PIXEL gfx_dust sin-verificar ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II
+HLOIN gfx_hloin sin-verificar mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II
+SOLAR space_launch propia solo las formulas de la posicion del planeta; la estacion y su salida son valores propios
+DOKEY ctl_read propia cursores = alabeo y cabeceo; los valores de JSTX/JSTY los calcula space_controls
+ABORT - no-necesaria misiles aun no existen
+ABORT2 - no-necesaria misiles aun no existen
+msblob - no-necesaria misiles aun no existen
+MSBAR - no-necesaria barra de misiles: hasta que haya misiles
+msloc - no-necesaria barra de misiles: hasta que haya misiles
+ECMOF - no-necesaria el ECM aun no existe en vuelo
+ECBLB2 - no-necesaria el ECM aun no existe en vuelo
+ECBLB - no-necesaria bombilla E: hasta que haya ECM
+ECBT - no-necesaria bombilla E: hasta que haya ECM

@@ -2,7 +2,7 @@
 
 Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.
 
-Rutinas: 528. Portadas o con equivalente propio: 118 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 1.
+Rutinas: 528. Portadas o con equivalente propio: 138 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 10.
 
 Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **no-necesaria** = la rutina no hace falta en el estado actual del juego (la nota dice por que y cuando hara falta); vacio = sin portar.
 
@@ -20,38 +20,38 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TT114 | Display either the Long-range or Short-range Chart | sin-verificar | `chart_draw` | dispatcher galactica/local; el redibujado tras un salto hecho desde una carta no hace falta aun: el salto solo se inicia desde la vista de vuelo |
 | hm | Select the closest system and redraw the chart crosshairs | sin-verificar | `chart_hm` | tecla D: sistema mas cercano a la cruz, nombre y distancia |
 
-## Dashboard (0/29)
+## Dashboard (15/29, 9 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| DIALS | Update the dashboard: speed indicator |  |  |  |
-| DIS1 | Update a bar-based indicator on the dashboard |  |  |  |
-| DIS5 | Update the roll or pitch indicator on the dashboard |  |  |  |
-| dialY | The screen y-coordinate of the top-left corner of each indicator |  |  |  |
-| dialle | The threshold value for each indicator that defines low and high |  |  |  |
-| dialc1 | The colour for each indicator for values that are below the |  |  |  |
-| dialc2 | The colour for each indicator for values that are on or above the |  |  |  |
-| cntr | Apply damping to the pitch or roll dashboard indicator |  |  |  |
-| BUMP2 | Bump up the value of the pitch or roll dashboard indicator |  |  |  |
-| REDU2 | Reduce the value of the pitch or roll dashboard indicator |  |  |  |
+| DIALS | Update the dashboard: speed indicator | sin-verificar | `dash_update` | velocidad, alabeo, cabeceo, 4 bancos de energia, escudos, combustible, altitud y temperaturas |
+| DIS1 | Update a bar-based indicator on the dashboard | sin-verificar | `dis1` |  |
+| DIS5 | Update the roll or pitch indicator on the dashboard | sin-verificar | `dis5` | marcador de alabeo o cabeceo (2 puntos de ancho) |
+| dialY | The screen y-coordinate of the top-left corner of each indicator | sin-verificar | `dialY` |  |
+| dialle | The threshold value for each indicator that defines low and high | sin-verificar | `dialle` |  |
+| dialc1 | The colour for each indicator for values that are below the | sin-verificar | `dialc1` |  |
+| dialc2 | The colour for each indicator for values that are on or above the | sin-verificar | `dialc2` |  |
+| cntr | Apply damping to the pitch or roll dashboard indicator | sin-verificar | `space_cntr` |  |
+| BUMP2 | Bump up the value of the pitch or roll dashboard indicator | sin-verificar | `space_bump2` |  |
+| REDU2 | Reduce the value of the pitch or roll dashboard indicator | sin-verificar | `space_redu2` |  |
 | WPSHPS | Clear the scanner, reset the ball line and sun line heaps |  |  |  |
-| COMPAS | Update the compass |  |  |  |
-| SP1 | Draw the space station on the compass |  |  |  |
-| SP2 | Draw a dot on the compass, given the planet/station vector |  |  |  |
-| DOT | Draw a dash on the compass |  |  |  |
-| ABORT | Unarm missiles and update the dashboard indicators |  |  |  |
-| ABORT2 | Set/unset the lock target for a missile and update the dashboard |  |  |  |
-| msblob | Display the dashboard's missile indicators in green |  |  |  |
-| ECMOF | Switch off the E.C.M. and turn off the dashboard bulb |  |  |  |
-| MSBARS | Draw two horizontal lines as part of an indicator bar, from |  |  |  |
-| ECBLB2 | Start up the E.C.M. (light up the indicator, start the countdown |  |  |  |
-| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard |  |  |  |
+| COMPAS | Update the compass | sin-verificar | `compas` | el acarreo de ADC |
+| SP1 | Draw the space station on the compass | sin-verificar | `compas` | estacion si SSPR |
+| SP2 | Draw a dot on the compass, given the planet/station vector | sin-verificar | `compas` |  |
+| DOT | Draw a dash on the compass | sin-verificar | `dot` |  |
+| ABORT | Unarm missiles and update the dashboard indicators | no-necesaria |  | misiles aun no existen |
+| ABORT2 | Set/unset the lock target for a missile and update the dashboard | no-necesaria |  | misiles aun no existen |
+| msblob | Display the dashboard's missile indicators in green | no-necesaria |  | misiles aun no existen |
+| ECMOF | Switch off the E.C.M. and turn off the dashboard bulb | no-necesaria |  | el ECM aun no existe en vuelo |
+| MSBARS | Draw two horizontal lines as part of an indicator bar, from | sin-verificar | `msbars` | cuatro lineas bajo Y1 con gfx_hloin |
+| ECBLB2 | Start up the E.C.M. (light up the indicator, start the countdown | no-necesaria |  | el ECM aun no existe en vuelo |
+| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard | no-necesaria |  | bombilla E: hasta que haya ECM |
 | SPBLB | Light up the space station indicator ("S") on the dashboard |  |  |  |
 | BULB | Draw an indicator bulb on the dashboard |  |  |  |
-| ECBT | The character bitmap for the E.C.M. indicator bulb |  |  |  |
+| ECBT | The character bitmap for the E.C.M. indicator bulb | no-necesaria |  | bombilla E: hasta que haya ECM |
 | SPBT | The bitmap definition for the space station indicator bulb |  |  |  |
-| MSBAR | Draw a specific indicator in the dashboard's missile bar |  |  |  |
-| msloc | The screen x-coordinates of the four missile indicators on the |  |  |  |
+| MSBAR | Draw a specific indicator in the dashboard's missile bar | no-necesaria |  | barra de misiles: hasta que haya misiles |
+| msloc | The screen x-coordinates of the four missile indicators on the | no-necesaria |  | barra de misiles: hasta que haya misiles |
 | SCAN | Display the current ship on the scanner |  |  |  |
 
 ## Drawing circles (5/9)
@@ -68,7 +68,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | CIRCLE2 | Draw a circle (for the planet or chart) | sin-verificar | `circle2_draw` |  |
 | CHKON | Check whether any part of a circle appears on the extended screen | sin-verificar | `sun_chkon` |  |
 
-## Drawing lines (3/27)
+## Drawing lines (4/27)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -96,16 +96,16 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TWFL | Ready-made pixel bytes for the left end of a horizontal line |  |  |  |
 | TWFR | Ready-made character rows for the right end of a horizontal line |  |  |  |
 | LOIN | Draw a line: Calculate the line gradient in the form of deltas |  |  |  |
-| HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) |  |  |  |
+| HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) | sin-verificar | `gfx_hloin` | mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II |
 | MASKT | High-resolution pixel bytes for drawing continuous lines of solid |  |  |  |
 | VLOIN | Draw a vertical line from (X1, Y1) to (X1, Y2) |  |  |  |
 
-## Drawing pixels (0/6)
+## Drawing pixels (1/6)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | PIXEL2 | Draw a stardust particle relative to the screen centre |  |  |  |
-| PIXEL | Draw a two-pixel dash, three-pixel dash or double-height |  |  |  |
+| PIXEL | Draw a two-pixel dash, three-pixel dash or double-height | sin-verificar | `gfx_dust` | ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II |
 | TWOS3 | Ready-made two-pixel and three-pixel bytes in white, with an extra |  |  |  |
 | TWOS | Ready-made bytes for drawing one-pixel dots in the space view |  |  |  |
 | TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels |  |  |  |
@@ -228,7 +228,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | DKS2 | Read the joystick position |  |  |  |
 | DKS3 | Toggle a configuration setting and emit a beep |  |  |  |
 | U% | Clear the key logger |  |  |  |
-| DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo (y joystick CTL1); ya no S, X, coma, punto |
+| DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo; los valores de JSTX/JSTY los calcula space_controls |
 | DK4 | Scan for pause, configuration and secondary flight keys | propia | `in_poll` | teclas secundarias por caracteres (key_getchar) |
 | TT217 | Scan the keyboard until a key is pressed | propia | `in_wait` |  |
 | KTRAN | An unused key logger buffer that's left over from the 6502 Second |  |  |  |
@@ -375,7 +375,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TRIBTA | A table for converting the number of Trumbles in the hold into a |  |  |  |
 | TRIBMA | A table for converting the number of Trumbles in the hold into a |  |  |  |
 
-## Moving (1/8)
+## Moving (3/8)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -383,10 +383,10 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | MVS5 | Apply a 3.6 degree pitch or roll to an orientation vector |  |  |  |
 | SFS2 | Move a ship in space along one of the coordinate axes |  |  |  |
 | MVEIT | Move current ship: Tidy the orientation vectors |  |  |  |
-| MVT1 | Calculate (x_sign x_hi x_lo) = (x_sign x_hi x_lo) + (A R) |  |  |  |
+| MVT1 | Calculate (x_sign x_hi x_lo) = (x_sign x_hi x_lo) + (A R) | sin-verificar | `mvt1` |  |
 | MVS4 | Apply pitch and roll to an orientation vector |  |  |  |
 | MVT6 | Calculate (A P+2 P+1) = (x_sign x_hi x_lo) + (A P+2 P+1) |  |  |  |
-| MV40 | Rotate the planet or sun's location in space by the amount of |  |  |  |
+| MV40 | Rotate the planet or sun's location in space by the amount of | sin-verificar | `mv40` | solo la parte de posicion; K2 byte 0 queda a 0 (en el original es lo que hubiera en K2) |
 
 ## Save and load (5/61)
 
@@ -610,7 +610,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 |---|---|---|---|---|
 | newosrdch | The custom OSRDCH routine for reading characters |  |  |  |
 
-## Universe (3/34)
+## Universe (4/34)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -636,7 +636,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | ypl | Print the current system name |  |  |  |
 | tal | Print the current galaxy number |  |  |  |
 | SOS1 | Update the missile indicators, set up the planet data block |  |  |  |
-| SOLAR | Set up various aspects of arriving in a new system |  |  |  |
+| SOLAR | Set up various aspects of arriving in a new system | propia | `space_launch` | solo las formulas de la posicion del planeta; la estacion y su salida son valores propios |
 | NWSPS | Add a new space station to our local bubble of universe |  |  |  |
 | NWSHP | Add a new ship to our local bubble of universe |  |  |  |
 | NwS1 | Flip the sign and double an INWK byte |  |  |  |

@@ -11,17 +11,7 @@
 
 static u8 q19[6];                                 /* QQ19..QQ19+5 */
 
-/* HLOIN del original: X1 y X2 se enmascaran a coordenadas pares (granularidad de 2 puntos del modo Apple II), se ordenan y la linea
-   cubre de X1 a X2-1 (el extremo derecho se calcula con X2-2); si quedan iguales no dibuja nada. Esto alinea el marco con sus
-   verticales y centra los brazos de las cruces. (SUN usa su propio hloin sin enmascarar: ver sun.c.) */
-static void hloin(u8 x1, u8 x2, u8 y)
-{
-    u8 t;
-    x1 = (u8)(x1 & 0xFE); x2 = (u8)(x2 & 0xFE);
-    if (x1 == x2) return;
-    if (x1 > x2) { t = x1; x1 = x2; x2 = t; }
-    gfx_hline_xor(x1, (u8)(x2 - 1), y, sun_col);
-}
+static void hloin(u8 x1, u8 x2, u8 y) { gfx_hloin(x1, x2, y, sun_col); }   /* HLOIN del original (gfx.c) */
 static void vloin(u8 x, u8 y1, u8 y2) { gfx_line(x, y1, x, y2, sun_col, 1); }
 /* DVLOIN: vertical del marco de la galactica, de GCYT a GCYB; dos puntos de ancho como la granularidad de HLOIN */
 static void dvloin(u8 x) { vloin(x, GCYT, GCYB); vloin((u8)(x + 1), GCYT, GCYB); }

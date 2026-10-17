@@ -149,6 +149,9 @@ static void logic(void)
 
 /* ------------------------------------------------------------ sesion guiada */
 #define SNAP(n) (-100 - (n))
+#define KD(k) (1000 + (k))         /* pulsa una tecla en la matriz simulada */
+#define KU(k) (2000 + (k))         /* la suelta */
+extern u8 host_matrix[8];
 static const int script[] = {
     SNAP(0),                                    /* titulo */
     '1', -1, -1, -1,                            /* nuevo comandante -> estado */
@@ -166,7 +169,7 @@ static const int script[] = {
     '6', SNAP(9),                               /* datos */
     '8', SNAP(10),                              /* estado */
     'i', '2', KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, 'b', 'o', 'b', KC_ENTER, SNAP(11), KC_ESC,   /* disco: guardar como BOB */
-    '0', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12), '1', -1, -1, -1, -1, SNAP(13), '2', -1, -1, -1, -1, SNAP(14), 'c',     /* despegar, unos fotogramas, atracar */
+    '0', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12), KD(K_LEFT), KD(K_DOWN), KD(K_SPACE), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_SPACE), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19), '1', -1, -1, -1, -1, SNAP(13), '2', -1, -1, -1, -1, SNAP(14), 'c',     /* despegar, unos fotogramas, atracar */
     '8', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(15),       /* cargar BOB */
     'i', 'q', 'y'                                /* salir */
 };
@@ -189,6 +192,8 @@ static int feed(void)
         if (sp >= sizeof script / sizeof script[0]) return KC_QUIT;
         v = script[sp++];
         if (v <= -100) { snapshot(-100 - v); continue; }
+        if (v >= 2000) { host_matrix[KEY_ROW(v - 2000)] &= (u8)~(1 << KEY_BIT(v - 2000)); continue; }
+        if (v >= 1000) { host_matrix[KEY_ROW(v - 1000)] |= (u8)(1 << KEY_BIT(v - 1000)); continue; }
         return v;
     }
 }
@@ -202,7 +207,7 @@ int main(void)
     in_script = feed;
     game_run();
     check(sp >= sizeof script / sizeof script[0] - 3, "la sesion guiada llego al final");
-    check(snapn == 18, "18 capturas");
+    check(snapn == 20, "20 capturas");
     check(strcmp(cmdr_name, "BOB") == 0, "se cargo el comandante BOB");
     printf("sesion: %u teclas, %d capturas; %d comprobaciones, %d fallos\n", sp, snapn, total, fails);
     return fails ? 1 : 0;
