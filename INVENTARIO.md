@@ -2,7 +2,7 @@
 
 Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.
 
-Rutinas: 528. Portadas o con equivalente propio: 171 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 6.
+Rutinas: 528. Portadas o con equivalente propio: 187 (verificadas con el emulador: 12). Marcadas como no necesarias en el estado actual del juego: 8.
 
 Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **no-necesaria** = la rutina no hace falta en el estado actual del juego (la nota dice por que y cuando hara falta); vacio = sin portar.
 
@@ -111,25 +111,25 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels | propia |  |  |
 | CPIX | Draw a colour pixel | sin-verificar | `gfx_cpix` | 2 puntos de ancho (x, x+1) en XOR; sin las tablas de bytes del Apple II |
 
-## Drawing planets (2/7)
+## Drawing planets (7/7)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| PL2 | Remove the planet or sun from the screen |  |  |  |
-| PLANET | Draw the planet or sun |  |  |  |
-| PL9 | Draw the planet as a plain circle |  |  |  |
+| PL2 | Remove the planet or sun from the screen | sin-verificar | `planet` |  |
+| PLANET | Draw the planet or sun | sin-verificar | `planet` | planeta (circulo con CIRCLE) y sol (SUN); PL9, PL2 y WP1 van dentro |
+| PL9 | Draw the planet as a plain circle | sin-verificar | `planet` |  |
 | WPLS2 | Remove the planet from the screen | sin-verificar | `circle_wpls2` |  |
-| WP1 | Reset the ball line heap |  |  |  |
-| PL21 | Return from a planet/sun-drawing routine with a failure flag |  |  |  |
+| WP1 | Reset the ball line heap | sin-verificar | `circle_wpls2` | reinicio del monton de la bola; LSY2[0] = $FF como centinela (el original no lo inicializa a la vista) |
+| PL21 | Return from a planet/sun-drawing routine with a failure flag | sin-verificar | `planet` | SEC; RTS: en C el retorno de PROJ ya lo cubre |
 | PLS6 | Calculate (X K) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `sm_pls6` |  |
 
-## Drawing ships (3/5)
+## Drawing ships (4/5, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | scacol | Ship colours on the scanner | sin-verificar | `scacol` | cadena con el color de cada tipo |
-| DOEXP | Draw an exploding ship |  |  |  |
-| exlook | A table to shift X left by one place when X is 0 or 1 |  |  |  |
+| DOEXP | Draw an exploding ship | sin-verificar | `doexp` | nube de la nave que explota; el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco |
+| exlook | A table to shift X left by one place when X is 0 or 1 | no-necesaria |  | tabla de EXNO (sonido de explosion): el sonido ya esta en sound.c |
 | SHPPT | Draw a distant ship as a point rather than a full wireframe | verificada | `ship_shppt` |  |
 | LL9 | Draw ship: Check if ship is exploding, check if ship is in front | verificada | `ship_ll9` |  |
 
@@ -175,7 +175,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | refund | Install a new laser, processing a refund if applicable | sin-verificar | `laser_refund` |  |
 | PRXS | Equipment prices | sin-verificar | `equip_price` |  |
 
-## Flight (2/29, 1 no necesarias)
+## Flight (3/29)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -205,7 +205,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | OUCH | Potentially lose cargo or equipment following damage |  |  |  |
 | ou2 | Display "E.C.M.SYSTEM DESTROYED" as an in-flight message |  |  |  |
 | ou3 | Display "FUEL SCOOPS DESTROYED" as an in-flight message |  |  |  |
-| PLUT | Flip the coordinate axes for the four different views | no-necesaria |  | invierte ejes para las 4 vistas: hara falta cuando haya naves dibujadas en vuelo |
+| PLUT | Flip the coordinate axes for the four different views | sin-verificar | `plut` | ejes de INWK para las vistas trasera, izquierda y derecha |
 | LOOK1 | Initialise the space view | propia | `change_view` | cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto |
 | SIGHT | Draw the laser crosshairs | sin-verificar | `chart_sight` | dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco) |
 
@@ -330,7 +330,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | LL123 | Calculate (Y X) = (S R) / XX12+2 or (S R) * XX12+2 |  |  |  |
 | LL129 | Calculate Q = XX12+2, A = S EOR XX12+3 and (S R) = |S R| |  |  |  |
 
-## Maths (Geometry) (17/19)
+## Maths (Geometry) (18/19)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -345,7 +345,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | SPS4 | Calculate the vector to the space station | transcripcion | `sm_sps4` |  |
 | SPS3 | Copy a space coordinate from the K% block into K3 | transcripcion | `sm_sps3` |  |
 | PROJ | Project the current ship or planet onto the screen | verificada | `sm_proj` |  |
-| FAROF | Compare x_hi, y_hi and z_hi with 224 |  |  |  |
+| FAROF | Compare x_hi, y_hi and z_hi with 224 | sin-verificar | `farof` |  |
 | FAROF2 | Compare x_hi, y_hi and z_hi with A |  |  |  |
 | MAS4 | Calculate a cap on the maximum distance to a ship | transcripcion | `sm_mas4` |  |
 | SPS1 | Calculate the vector to the planet and store it in XX15 | transcripcion | `sm_sps1` |  |
@@ -375,18 +375,18 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | TRIBTA | A table for converting the number of Trumbles in the hold into a |  |  |  |
 | TRIBMA | A table for converting the number of Trumbles in the hold into a |  |  |  |
 
-## Moving (4/8)
+## Moving (7/8, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | MVT3 | Calculate K(3 2 1) = (x_sign x_hi x_lo) + K(3 2 1) | transcripcion | `sm_mvt3` |  |
-| MVS5 | Apply a 3.6 degree pitch or roll to an orientation vector |  |  |  |
-| SFS2 | Move a ship in space along one of the coordinate axes |  |  |  |
-| MVEIT | Move current ship: Tidy the orientation vectors | propia | `space_step` | MVEIT reducido: SCAN antes y despues, MV40 y las comprobaciones de alcance; sin TACTICS ni movimiento propio de las naves |
+| MVS5 | Apply a 3.6 degree pitch or roll to an orientation vector | sin-verificar | `mvs5` |  |
+| SFS2 | Move a ship in space along one of the coordinate axes | no-necesaria |  | mover una nave a lo largo de un eje: solo para crear naves hijas (misiles, cargas, cápsulas) |
+| MVEIT | Move current ship: Tidy the orientation vectors | sin-verificar | `mveit` | partes 1 a 9; TACTICS es un gancho (move_tactics_hook) hasta el paso 3; los acarreos de MLTU2 salen del bit bajo del producto |
 | MVT1 | Calculate (x_sign x_hi x_lo) = (x_sign x_hi x_lo) + (A R) | sin-verificar | `mvt1` |  |
-| MVS4 | Apply pitch and roll to an orientation vector |  |  |  |
-| MVT6 | Calculate (A P+2 P+1) = (x_sign x_hi x_lo) + (A P+2 P+1) |  |  |  |
-| MV40 | Rotate the planet or sun's location in space by the amount of | sin-verificar | `mv40` | solo la parte de posicion; K2 byte 0 queda a 0 (en el original es lo que hubiera en K2) |
+| MVS4 | Apply pitch and roll to an orientation vector | sin-verificar | `mvs4` |  |
+| MVT6 | Calculate (A P+2 P+1) = (x_sign x_hi x_lo) + (A P+2 P+1) | sin-verificar | `mvt6` |  |
+| MV40 | Rotate the planet or sun's location in space by the amount of | sin-verificar | `mv40` | gira la posicion y sigue por MV45 (orientacion, contadores y radar); K2 byte 0 queda a 0 (en el original es lo que hubiera en K2) |
 
 ## Save and load (5/61)
 
@@ -610,7 +610,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 |---|---|---|---|---|
 | newosrdch | The custom OSRDCH routine for reading characters |  |  |  |
 
-## Universe (4/34)
+## Universe (9/34, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
@@ -618,7 +618,7 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | UNIV | Table of pointers to the local universe's ship data blocks |  |  |  |
 | SFS1 | Spawn a child ship from the current (parent) ship |  |  |  |
 | PDESC | Print the system's extended description or a mission 1 directive |  |  |  |
-| GINF | Fetch the address of a ship's data block into INF |  |  |  |
+| GINF | Fetch the address of a ship's data block into INF | no-necesaria |  | el puntero INF no existe en C: se indexa por ranura |
 | ping | Set the selected system to the current system | sin-verificar | `chart_ping` | tecla O: el cursor vuelve al sistema actual |
 | TT20 | Twist the selected system's seeds four times |  |  |  |
 | TT54 | Twist the selected system's seeds |  |  |  |
@@ -635,17 +635,17 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | cpl | Print the selected system name |  |  |  |
 | ypl | Print the current system name |  |  |  |
 | tal | Print the current galaxy number |  |  |  |
-| SOS1 | Update the missile indicators, set up the planet data block |  |  |  |
-| SOLAR | Set up various aspects of arriving in a new system | propia | `space_launch` | solo las formulas de la posicion del planeta; la estacion y su salida son valores propios |
-| NWSPS | Add a new space station to our local bubble of universe |  |  |  |
-| NWSHP | Add a new ship to our local bubble of universe |  |  |  |
+| SOS1 | Update the missile indicators, set up the planet data block | sin-verificar | `make_planet` |  |
+| SOLAR | Set up various aspects of arriving in a new system | sin-verificar | `ships_launch` | planeta con las formulas de SOLAR; al despegar el sol se sustituye por la estacion; ships_arrive pone planeta y sol |
+| NWSPS | Add a new space station to our local bubble of universe | sin-verificar | `make_station` | la posicion de la estacion es propia |
+| NWSHP | Add a new ship to our local bubble of universe | sin-verificar | `ship_new` | sin heap compartido (SLSP): un monton de 256 bytes por ranura; NEWB inicial de E% |
 | NwS1 | Flip the sign and double an INWK byte |  |  |  |
 | KS3 | Set the SLSP ship line heap pointer after shuffling ship slots |  |  |  |
 | KS1 | Remove the current ship from our local bubble of universe |  |  |  |
 | KS4 | Remove the space station and replace it with the sun |  |  |  |
 | KS2 | Check the local bubble for missiles with target lock |  |  |  |
-| KILLSHP | Remove a ship from our local bubble of universe |  |  |  |
-| ZINF | Reset the INWK workspace and orientation vectors |  |  |  |
+| KILLSHP | Remove a ship from our local bubble of universe | sin-verificar | `ship_kill` | sin puntos de muerte ni mensajes (paso 3) |
+| ZINF | Reset the INWK workspace and orientation vectors | sin-verificar | `ship_zinf` |  |
 | Ze | Initialise the INWK workspace to a fairly aggressive ship |  |  |  |
 | spasto | Contains the address of the Coriolis space station's ship |  |  |  |
 

@@ -11,8 +11,9 @@
 #include "emath.h"
 #include "keys.h"
 #include "shipdata.h"
+#include "ships.h"
 typedef unsigned short u16s;
-static u16s hv[40];
+static u16s hv[60];
 static u16s rs = 9876;
 static unsigned rnd(void) { rs = (u16s)(rs * 25173u + 13849u); return (unsigned)(rs >> 4); }
 static int n = 0;
@@ -21,7 +22,7 @@ static void hash(void)
     long j;
     u16s h = 0;
     for (j = 0; j < 32768L; j++) h = (u16s)(((h << 5) | (h >> 11)) ^ screen[j]);
-    if (n < 38) hv[n++] = h;
+    if (n < 58) hv[n++] = h;
 }
 int main(void)
 {
@@ -49,6 +50,28 @@ int main(void)
             dash_update();
             if (f % 50 == 49) hash();
         }
+        ships_explode_nearest(); ships_explode_nearest();      /* explosiones: nube y fin */
+        for (f = 0; f < 90; f++) {
+            c.speed_up = c.slow_down = c.roll_left = c.roll_right = c.pitch_up = c.pitch_down = 0;
+            c.fire = c.bomb = c.escape_pod = c.target = c.unarm = c.missile = c.ecm = c.jump = c.dock = c.undock = 0;
+            space_controls(&c);
+            space_step();
+            stars_set_speed(zDELTA); stars_update((u8)view); dash_update();
+            if (f == 30 || f == 89) hash();
+        }
+    }
+    /* planeta de frente y sol de frente */
+    for (view = 0; view < 2; view++) {
+        game_new(); gfx_clear(C_BLACK); sun_forget(); space_view = (u8)view; space_launch();
+        for (i = 0; i < NI; i++) state_slot(0)[i] = 0;
+        state_slot(0)[8] = 2; zDELTA = 3;
+        for (f = 0; f < 4; f++) space_step();
+        hash();
+        ships_arrive();
+        for (i = 0; i < NI; i++) state_slot(1)[i] = 0;
+        state_slot(1)[8] = 1; state_slot(1)[2] = 0; state_slot(1)[5] = 0;
+        for (f = 0; f < 4; f++) space_step();
+        hash();
     }
     gfx_clear(C_BLACK); sun_col = C_WHITE; tunnel_draw(4); hash();
     gfx_clear(C_BLACK); tunnel_draw(8); hash();

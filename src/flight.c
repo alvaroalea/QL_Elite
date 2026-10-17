@@ -13,6 +13,7 @@
 #include "sun.h"
 #include "chart.h"
 #include "shipdata.h"
+#include "ships.h"
 
 #define VIEW_H 136
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
@@ -43,7 +44,7 @@ static void panel_static(void)
     txt_print_at(0, 28, "TARGET");
     txt_print_at(0, 29, "CURSORS TURN F FAST D SLOW");
     txt_print_at(0, 30, "1-4 VIEW 5-9 INFO H/G JUMP");
-    txt_print_at(0, 31, "C DOCK N RADAR TEST SHIFT+ESC");
+    txt_print_at(0, 31, "C DOCK N SHIP K BLOW UP (TEST)");
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -66,13 +67,19 @@ static void say(const char *s, int error)
 }
 
 /* TT66 de la vista espacial: borra el area de vista (el panel no se toca) */
-static void clear_view(void) { gfx_fill_lines(0, VIEW_H, C_BLACK); }   /* rapido: palabras largas, no pixel a pixel */
+static void clear_view(void)
+{
+    gfx_fill_lines(0, VIEW_H, C_BLACK);     /* rapido: palabras largas, no pixel a pixel */
+    ships_forget_lines();                   /* las lineas de las naves, el sol y el planeta ya no estan en pantalla */
+    sun_forget();
+}
 
 /* LOOK1 al cambiar de vista estando en el espacio: el polvo se refleja en la diagonal (FLIP) y se vuelve a poner la mira */
 static void change_view(int v)
 {
     if (v == view) return;
     view = v;
+    space_view = (u8)view;                  /* las naves se redibujan en los ejes de la vista nueva (PLUT) */
     clear_view();
     stars_flip();
     chart_sight((u8)view);
@@ -83,6 +90,8 @@ static void change_view(int v)
 static void redraw_all(void)
 {
     gfx_clear(C_BLACK);
+    ships_forget_lines();                  /* la pantalla se ha borrado: ninguna nave figura como dibujada */
+    sun_forget();
     dash_show();                           /* el fondo viene de memoria: el fichero se lee una sola vez */
     space_scanner_reset();
     dash_msblob();
@@ -201,6 +210,7 @@ int flight_run(void)
             ch = in_up(ch);
             if (ch == 'c') { key_ctx_menu(); return FL_DOCK; }
             if (ch == 'n') { space_spawn(contact_types[em_dornd() % 6]); }
+            else if (ch == 'k') { if (ships_explode_nearest() < 0) say("NOTHING TO BLOW UP", 1); else snd_exno2(); }
             else {
                 sc = ui_nav(ch);
                 if (sc >= SC_VIEW0 && sc <= SC_VIEW3) change_view(sc - SC_VIEW0);
@@ -209,6 +219,7 @@ int flight_run(void)
                 else if (sc >= 0) { if (flight_screens(sc) == FL_QUIT) { key_ctx_menu(); return FL_QUIT; } }
             }
         }
+        space_view = (u8)view;
         ctl_read(&c);
         space_controls(&c);                                 /* ALPHA, BETA y velocidad */
         ev = space_step();                                  /* planeta, estacion y contactos; radar */

@@ -8,6 +8,9 @@
 #include "game.h"
 #include "keys.h"
 #include "stars.h"
+#include "ships.h"
+#include "move.h"
+#include "ship3d.h"
 #include "chart.h"
 #include "sun.h"
 #include "shipdata.h"
@@ -165,8 +168,8 @@ int main(void)
         space_scanner_clear();
         {
             int bad = 0;
-            for (j = 0; j < 32768L; j++) if (base[j] != screen[j]) { bad = 1; break; }
-            check(!bad, "radar: tras mover los contactos y borrar el radar la pantalla queda como estaba");
+            for (j = 136L * 128L; j < 192L * 128L; j++) if (base[j] != screen[j]) { bad = 1; break; }      /* solo el panel (el radar) */
+            check(!bad, "radar: tras mover los contactos y borrar el radar el panel queda como estaba");
         }
     }
     /* posiciones exactas: delante y detras */
@@ -321,6 +324,124 @@ int main(void)
             }
             check(!bad, "gfx_copy: copia exacta con direcciones pares e impares");
         }
+    }
+
+    /* ---- naves: MVEIT, PLUT, explosion (DOEXP), planeta y sol (PLANET), alta y baja (NWSHP, KILLSHP) ---- */
+    game_new(); gfx_clear(C_BLACK); ships_clear(); ships_hooks();
+    /* MVEIT: avance por el morro (velocidad 10, morro hacia nosotros): z baja velocidad * 4 * 96 / 256 = 15 */
+    ship_zinf();
+    set_pos(inwk, 0, 0, 0, 0x2000L);
+    inwk[27] = 10; inwk[32] = 0;
+    ztype = SHIPT_VIPER; zxx0 = SHIP_BP(SHIPT_VIPER); move_xsav = 0;
+    alpha = 0; beta = 0; zDELTA = 0; alp1 = 0; bet1 = 0; alp2[0] = alp2[1] = 0; bet2[0] = bet2[1] = 0;
+    mveit();
+    zQ = 40;
+    {
+        u8 dec = em_fmltu(96);                             /* FMLTU: 96 * 40 / 256 (aproximado con logaritmos: 14) */
+        check(inwk[6] == (u8)(0x2000 - dec) && inwk[7] == 0x1F && inwk[27] == 10 && dec >= 14 && dec <= 15, "MVEIT: z baja FMLTU(96) con velocidad 10 y el morro hacia nosotros");
+    }
+    /* la velocidad se limita al maximo del plano y la aceleracion se consume */
+    ship_zinf(); inwk[27] = 200; inwk[28] = 100; set_pos(inwk, 0, 0, 0, 0x2000L);
+    mveit();
+    check(inwk[27] == SHIP_BP(SHIPT_VIPER)[15] && inwk[28] == 0, "MVEIT: velocidad limitada por el plano y aceleracion a 0");
+    /* contador de alabeo: baja de uno en uno y gira los vectores */
+    ship_zinf(); set_pos(inwk, 0, 0, 0, 0x2000L); inwk[29] = 40; inwk[27] = 0;
+    mveit();
+    check((inwk[29] & 0x7F) == 39 && (inwk[15] | inwk[16]) != 0, "MV45: el contador de alabeo baja a 39 y el techo gira");
+    ship_zinf(); set_pos(inwk, 0, 0, 0, 0x2000L); inwk[29] = 0x7F; inwk[27] = 0;
+    mveit();
+    check((inwk[29] & 0x7F) == 0x7F, "MV45: un contador a 127 no baja (giro continuo)");
+    /* PLUT: vistas trasera, izquierda y derecha */
+    ship_zinf(); set_pos(inwk, 0, 100L, 200L, 300L);
+    plut(0);
+    check(inwk[0] == 100 && inwk[3] == 200 && inwk[6] == 44 && inwk[7] == 1, "PLUT 0: sin cambios");
+    plut(1);
+    check((inwk[2] & 0x80) && (inwk[8] & 0x80) && !(inwk[5] & 0x80) && inwk[0] == 100, "PLUT 1: atras invierte x y z");
+    ship_zinf(); set_pos(inwk, 0, 100L, 200L, 300L);
+    plut(2);
+    check(inwk[0] == 44 && inwk[1] == 1 && inwk[6] == 100 && inwk[7] == 0 && inwk[3] == 200, "PLUT 2: izquierda intercambia x y z");
+
+    /* altas y bajas */
+    ships_clear();
+    ship_zinf(); set_pos(inwk, 0, 0, 0, 0x3000L);
+    check(ship_new(SHIPT_VIPER) == 0 && ship_new(SHIPT_PYTHON) == 1 && ship_new(SHIPT_COBRA_MK_3) == 2, "NWSHP: ranuras 0, 1 y 2");
+    check(many[SHIPT_VIPER] == 1 && frin[1] == SHIPT_PYTHON && state_slot(0)[35] == SHIP_BP(SHIPT_VIPER)[14], "NWSHP: contadores y energia del plano");
+    state_slot(2)[3] = 77;
+    ship_kill(1);
+    check(frin[0] == SHIPT_VIPER && frin[1] == SHIPT_COBRA_MK_3 && frin[2] == 0 && state_slot(1)[3] == 77 && many[SHIPT_PYTHON] == 0, "KILLSHP: las demas bajan una ranura");
+    for (i = 0; i < 20; i++) { ship_zinf(); if (ship_new(SHIPT_VIPER) < 0) break; }
+    check(i == 6 && frin[NOSH - 1] == SHIPT_VIPER, "NWSHP: caben NOSH ranuras y no mas");
+    ships_clear();
+
+    /* planeta y sol: dibujar dos veces es lo mismo que una, y quitarlos deja la vista vacia */
+    {
+        static u8 one[32768];
+        int lit = 0;
+        game_new(); gfx_clear(C_BLACK); sun_forget();
+        ship_zinf(); set_pos(inwk, 0, 0, 0, 0x20000L);       /* z = 2 * 65536 */
+        ztype = 128; planet();
+        memcpy(one, screen, 32768);
+        for (j = 0; j < 136L * 128L; j++) if (one[j]) lit++;
+        check(lit > 20, "PLANET: el planeta de frente se dibuja (circulo)");
+        planet();
+        check(memcmp(one, screen, 32768) == 0, "PLANET: volver a dibujar el planeta no cambia nada (borra y dibuja)");
+        set_pos(inwk, 0, 0, 0, 0x300000L);                    /* muy lejos: se quita */
+        planet();
+        lit = 0;
+        for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
+        check(lit == 0, "PLANET: demasiado lejos se borra");
+        gfx_clear(C_BLACK); sun_forget();
+        set_pos(inwk, 0, 0, 0, 0x20000L);
+        ztype = 129; planet();
+        lit = 0;
+        for (j = 0; j < 136L * 128L; j++) if (screen[j]) lit++;
+        check(lit > 50, "PLANET: el sol se dibuja (SUN)");
+        set_pos(inwk, 0, 0, 0, 0x300000L);
+        planet();
+        lit = 0;
+        for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
+        check(lit == 0, "PLANET: el sol demasiado lejos se borra (WPLS)");
+    }
+
+    /* explosion: la nave explota, la nube crece y al final se quita; la vista queda igual que en una ejecucion sin la nave */
+    {
+        static u8 withship[32768];
+        int frames = 0, k3, n, bad;
+        for (k3 = 0; k3 < 4; k3++) {
+            game_new(); em_rand[0] = 5; em_rand[1] = 6; em_rand[2] = 7; em_rand[3] = 8;
+            gfx_clear(C_BLACK); sun_forget(); space_view = (u8)k3; space_launch();
+            zDELTA = 0; alpha = 0; beta = 0;
+            for (i = 0; i < 6; i++) space_step();
+            n = ships_spawn(SHIPT_COBRA_MK_3);
+            check(n >= 0, "explosion: nave de prueba");
+            state_slot(n)[7] = 14; state_slot(n)[1] = 0; state_slot(n)[4] = 0; state_slot(n)[2] = 0; state_slot(n)[5] = 0;
+            state_slot(n)[8] = 0; state_slot(n)[27] = 0; state_slot(n)[29] = 0; state_slot(n)[30] = 0;
+            zDELTA = 0; alpha = 0; beta = 0;
+            for (i = 0; i < 4; i++) space_step();
+            check(ships_explode_nearest() == n, "explosion: se elige la nave de prueba");
+            for (frames = 0; frames < 300 && frin[n] == SHIPT_COBRA_MK_3; frames++) space_step();
+            check(frin[n] != SHIPT_COBRA_MK_3 && frames > 10 && frames < 300, "explosion: la nube dura un rato y la nave se quita");
+            check(many[SHIPT_COBRA_MK_3] == 0, "explosion: el contador de naves baja");
+            memcpy(withship, screen, 32768);
+            game_new(); em_rand[0] = 5; em_rand[1] = 6; em_rand[2] = 7; em_rand[3] = 8;
+            gfx_clear(C_BLACK); sun_forget(); space_view = (u8)k3; space_launch();
+            zDELTA = 0; alpha = 0; beta = 0;
+            for (i = 0; i < 6; i++) space_step();
+            for (i = 0; i < 4 + frames; i++) space_step();
+            bad = 0;
+            for (j = 0; j < 136L * 128L; j++) if (withship[j] != screen[j]) { bad = 1; break; }
+            check(!bad, "explosion: sin restos de la nave ni de la nube en la vista");
+        }
+    }
+
+    /* la estacion se pierde de vista al alejarse y vuelve el sol */
+    game_new(); gfx_clear(C_BLACK); space_view = 0; space_launch();
+    zDELTA = 40; alpha = 0; beta = 0;
+    for (i = 0; i < 400; i++) { u8 ev = space_step(); if (ev & SPACE_EV_STATION) break; }
+    {
+        int sun = 0, stn = 0;
+        for (i = 0; i < NOSH; i++) { if (frin[i] == 129) sun++; if (frin[i] == SHIPT_CORIOLIS) stn++; }
+        check(sspr == 0 && sun == 1 && stn == 0, "estacion: al alejarse se quita y reaparece el sol");
     }
     printf("%d comprobaciones, %d fallos\n", total, fails);
     return fails ? 1 : 0;

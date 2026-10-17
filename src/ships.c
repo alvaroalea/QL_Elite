@@ -1,0 +1,391 @@
+#include "ships.h"
+#include "move.h"
+#include "space.h"
+#include "ship3d.h"
+#include "state.h"
+#include "emath.h"
+#include "ship_math.h"
+#include "universe.h"
+#include "game.h"
+#include "sun.h"
+
+static u8 heaps[NOSH][HEAP_BYTES];
+
+/* E%: banderas NEWB iniciales por tipo (1..32) */
+static const u8 e_newb[33] = {
+    0, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x61, 0xA0, 0xA0, 0xA0, 0xA1, 0xA1, 0xC2,
+    0x0C, 0x8C, 0x8C, 0x8C, 0x0C, 0x8C, 0x05, 0x8C, 0x8C, 0x8C, 0x82, 0x0C, 0x0C, 0x04, 0x04, 0x00
+};
+
+const u8 *ship_bp_for(u8 type)
+{
+    if (type == SHIPT_CORIOLIS && qq5 >= 10) return SHIP_BP(SHIPT_DODO);
+    return SHIP_BP(type);
+}
+
+void ship_zinf(void)
+{
+    int i;
+    for (i = 0; i < NI; i++) inwk[i] = 0;
+    inwk[18] = 96; inwk[22] = 96;
+    inwk[14] = (u8)(96 | 0x80);
+}
+
+static void put_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) p[i] = inwk[i]; }
+static void get_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) inwk[i] = p[i]; }
+
+int ship_new(u8 type)
+{
+    int n;
+    const u8 *bp;
+    for (n = 0; n < NOSH; n++) if (frin[n] == 0) break;
+    if (n >= NOSH) return -1;
+    if (!(type & 0x80)) {                              /* NW6: energia y banderas de linea del plano */
+        bp = ship_bp_for(type);
+        inwk[35] = bp[14];
+        inwk[31] = (u8)(bp[19] & 7);
+        inwk[36] = (u8)(inwk[36] | (e_newb[type] & 0x6F));
+        many[type]++;
+    }
+    frin[n] = type;
+    put_slot(n);
+    heaps[n][0] = 0;
+    return n;
+}
+
+void ship_kill(int n)
+{
+    u8 type = frin[n];
+    int j, i;
+    if (type < 128 && many[type]) many[type]--;
+    for (j = n; j < NOSH - 1; j++) {
+        frin[j] = frin[j + 1];
+        for (i = 0; i < NI; i++) state_slot(j)[i] = state_slot(j + 1)[i];
+        for (i = 0; i < HEAP_BYTES; i++) heaps[j][i] = heaps[j + 1][i];
+    }
+    frin[NOSH - 1] = 0;
+    for (i = 0; i < NI; i++) state_slot(NOSH - 1)[i] = 0;
+    for (i = 0; i < HEAP_BYTES; i++) heaps[NOSH - 1][i] = 0;
+}
+
+void ships_clear(void)
+{
+    int n, i;
+    for (n = 0; n <= NOSH; n++) { frin[n] = 0; for (i = 0; i < NI; i++) state_slot(n)[i] = 0; }
+    for (n = 0; n < NOSH; n++) for (i = 0; i < HEAP_BYTES; i++) heaps[n][i] = 0;
+    for (n = 0; n <= NTY; n++) many[n] = 0;
+}
+
+/* Borra las lineas dibujadas de la nave de la ranura n (monton de lineas) */
+static void erase_lines(int n)
+{
+    u8 *p = state_slot(n);
+    if (!(p[I_STATE] & 0x08)) return;
+    zxx19 = heaps[n];
+    zlsnum = 1; zlsnum2 = heaps[n][0];
+    ship_lsclr();
+    p[I_STATE] = (u8)(p[I_STATE] & 0xF7);
+}
+
+/* Tras borrar la pantalla entera: ninguna nave figura como dibujada (sus lineas ya no estan) */
+void ships_forget_lines(void)
+{
+    int n;
+    for (n = 0; n < NOSH; n++) { state_slot(n)[I_STATE] = (u8)(state_slot(n)[I_STATE] & 0xF7); heaps[n][0] = 0; }
+}
+
+void ships_erase_all(void)
+{
+    int n;
+    for (n = 0; n < NOSH; n++) if (frin[n] != 0 && !(frin[n] & 0x80)) erase_lines(n);
+}
+
+/* ---------------------------------------------------------------- SOLAR y NWSPS */
+
+/* SOS1: el planeta (tipo 128, o 130 si el nivel tecnologico lo pide) con los giros lentos */
+static void make_planet(void)
+{
+    u8 ztop;
+    ship_zinf();
+    ztop = (u8)((((uni_galaxy[cur_sys].seed0 >> 8) & 3)) + 3);
+    inwk[8] = ztop; inwk[2] = (u8)(ztop >> 1); inwk[5] = (u8)(ztop >> 1);
+    inwk[29] = 127; inwk[30] = 127;
+    ship_new((u8)((qq5 & 2) | 0x80));
+}
+
+/* El sol (tipo 129): detras (z negativa), con INWK todavia con los datos del planeta como en SOLAR */
+static void make_sun(void)
+{
+    const uni_system *s = &uni_galaxy[cur_sys];
+    inwk[8] = (u8)((s->goatsoupseed.b & 7) | 0x81);
+    inwk[2] = (u8)(s->goatsoupseed.d & 3); inwk[1] = inwk[2];
+    inwk[29] = 0; inwk[30] = 0;
+    ship_new(129);
+}
+
+/* NWSPS: la estacion; INWK ya tiene la posicion. Los tres NwS1 invierten el morro (x, y, z) */
+static void make_station(void)
+{
+    inwk[32] = 0x81;
+    inwk[30] = 0;
+    inwk[36] = 0;
+    inwk[29] = 0xFF;
+    inwk[10] = (u8)(inwk[10] ^ 0x80); inwk[12] = (u8)(inwk[12] ^ 0x80); inwk[14] = (u8)(inwk[14] ^ 0x80);
+    ship_new(SHIPT_CORIOLIS);
+}
+
+void ships_launch(void)
+{
+    int i;
+    ships_clear();
+    make_planet();
+    ship_zinf();                                       /* estacion detras y algo por debajo (colocacion propia) */
+    inwk[4] = 1; inwk[5] = 0x80;
+    inwk[7] = 6; inwk[8] = 0x80;
+    make_station();
+    sspr = 1;
+    for (i = 0; i <= NTY; i++) (void)i;
+}
+
+void ships_arrive(void)
+{
+    ships_clear();
+    make_planet();
+    make_sun();
+    sspr = 0;
+}
+
+/* ---------------------------------------------------------------- contactos de prueba */
+
+int ships_spawn(u8 type)
+{
+    int n;
+    const u8 *bp;
+    u8 sg, sp;
+    ship_zinf();
+    inwk[0] = em_dornd(); inwk[1] = (u8)(em_dornd() % 2);   inwk[2] = (u8)(em_dornd() & 0x80);      /* entre 500 y 1500 unidades: */
+    inwk[3] = em_dornd(); inwk[4] = (u8)(em_dornd() % 2);   inwk[5] = (u8)(em_dornd() & 0x80);      /* se ven como figuras de lineas */
+    inwk[6] = em_dornd(); inwk[7] = (u8)(2 + em_dornd() % 4); inwk[8] = 0;
+    bp = ship_bp_for(type);
+    sp = bp[15] ? (u8)(bp[15] / 8) : 0;                  /* se acercan despacio para poder verlas */
+    inwk[27] = sp;
+    sg = (u8)(em_dornd() & 0x80);
+    inwk[29] = (u8)(sg | 40);
+    inwk[30] = (u8)((sg ^ 0x80) | 20);
+    n = ship_new(type);
+    return n;
+}
+
+int ships_explode_nearest(void)
+{
+    int n, best = -1;
+    unsigned bd = 0xFFFF, d;
+    for (n = 0; n < NOSH; n++) {
+        u8 t = frin[n], *p;
+        if (t == 0) break;
+        if ((t & 0x80) || t == SHIPT_CORIOLIS || t == SHIPT_DODO) continue;
+        p = state_slot(n);
+        if (p[I_STATE] & 0xA0) continue;
+        d = (unsigned)p[7] + p[1] + p[4];
+        if (d < bd) { bd = d; best = n; }
+    }
+    if (best >= 0) state_slot(best)[I_STATE] = (u8)(state_slot(best)[I_STATE] | 0x80);
+    return best;
+}
+
+/* ---------------------------------------------------------------- PLANET */
+
+void planet(void)
+{
+    u8 a;
+    int sun;
+    a = inwk[8];
+    if (a >= 48) goto pl2;
+    if ((u8)(a | inwk[7]) == 0) goto pl2;
+    if (sm_proj()) goto pl2;
+    zP1 = 96; zP = 0;
+    em_dvid3b(0, (u8)(inwk[6] | 1), inwk[7], inwk[8]);   /* DVID3B2 */
+    if (zK[1] != 0) zK[0] = 248;
+    if (ztype & 1) { sun_draw(); return; }
+    circle_wpls2();                                      /* PL9: borra el circulo anterior y dibuja el nuevo */
+    circle_draw();
+    return;
+pl2:
+    sun = ztype & 1;
+    if (sun) sun_wpls(); else circle_wpls2();
+}
+
+/* ---------------------------------------------------------------- DOEXP */
+
+static u8 e_u, e_tgt;
+static u8 e_col;
+
+static u8 dornd0(void)                                  /* paso del generador con CLC delante (acarreo de entrada 0) */
+{
+    em_rand_c = 0;
+    return em_dornd();
+}
+
+/* colores de las particulas: COL = (aleatorio AND 12) OR 16 -> 16, 20, 24 y 28 (azul, "rojo", "fuzzy" y otro en el Apple II) */
+static u8 expl_col(u8 v)
+{
+    switch (v & 0x0C) {
+    case 0:  return C_CYAN;                              /* el azul puro se ve poco sobre negro */
+    case 4:  return C_RED;
+    case 8:  return C_YELLOW;
+    }
+    return C_WHITE;
+}
+
+/* EXS1: (A X) = (S R) +/- (aleatorio * Q / 256); devuelve A (Z = 0 si queda fuera de la pantalla) y X en *xout */
+static u8 exs1(u8 s_in, u8 *xout)
+{
+    u8 a, c, hi, t;
+    unsigned s;
+    int d, cc;
+    zS = s_in;
+    a = dornd0();
+    c = em_rand_c;
+    hi = (u8)(a >> 7);
+    a = (u8)((a << 1) | c);                              /* ROL A */
+    c = hi;
+    if (!c) {
+        a = em_fmltu(a);
+        c = em_carry;
+        s = (unsigned)a + zR + c;                        /* ADC R */
+        *xout = (u8)s;
+        c = (u8)(s >> 8);
+        return (u8)(zS + c);                             /* LDA S; ADC #0 */
+    }
+    a = em_fmltu(a);                                     /* EX5 */
+    t = a;
+    d = (int)zR - t - (1 - (int)em_carry); cc = (d >= 0);
+    *xout = (u8)d;
+    return (u8)(zS - (1 - cc));
+}
+
+/* PTCLS: dibuja (XOR) la nube de particulas del monton; llamarla dos veces la borra */
+static void ptcls(void)
+{
+    u8 a, x, y, cnt, rand1, k, xr, hi, y1, cnt2;
+    zQ = zxx19[0];
+    a = zxx19[1];
+    if (a & 0x80) a = (u8)(a ^ 0xFF);
+    a = (u8)(a >> 4);
+    e_u = (u8)(a | 1);
+    e_tgt = zxx19[2];
+    rand1 = em_rand[1];
+    y = 6;
+    for (;;) {                                           /* EXL5 */
+        for (x = 3; ; x--) { y++; zk3[x] = zxx19[y]; if (x == 0) break; }
+        cnt = y;
+        for (k = 3; k <= 6; k++) em_rand[k - 3] = (u8)(zxx19[k] ^ cnt);          /* EXL2: STA $FFFF,Y = RAND + Y - 3 */
+        cnt2 = e_u;
+        for (;;) {                                       /* EXL4 */
+            a = dornd0();
+            e_col = expl_col(a);
+            zR = zk3[1];
+            hi = exs1(zk3[0], &xr);
+            if (hi == 0 && xr < 2 * 68 - 1) {            /* BNE EX11; CPX #2*Y-1; BCS EX11 */
+                y1 = xr;
+                zR = zk3[3];
+                hi = exs1(zk3[2], &xr);
+                if (hi == 0) gfx_cpix(xr, y1, e_col);    /* LDA Y1; JSR CPIX */
+            } else {
+                dornd0();                                /* EX11: un paso mas del generador */
+            }
+            cnt2--;                                      /* DEC CNT2; BPL EXL4 */
+            if (cnt2 & 0x80) break;
+        }
+        y = cnt;
+        if (y < e_tgt) continue;                         /* CPY TGT; BCC EXL5 */
+        break;
+    }
+    em_rand[1] = rand1;                                  /* PLA; STA RAND+1 */
+    em_rand[3] = state_slot(0)[6];                       /* LDA K%+6; STA RAND+3 */
+}
+
+static void ex2(void) { inwk[31] = (u8)(inwk[31] | 0xA0); }
+
+/* DOEXP: una explosion mas: borra la nube anterior, la hace crecer y la dibuja (o termina la nave) */
+void doexp(void)
+{
+    u8 a, t, c, y;
+    unsigned s;
+    if (inwk[31] & 0x40) ptcls();                        /* borra la nube anterior */
+    t = inwk[6];
+    a = inwk[7];
+    if (a >= 32) { a = 0xFE; c = 1; }                    /* CMP #32; BCC; LDA #$FE; BNE yy (el acarreo queda a 1) */
+    else {
+        /* ASL T; ROL A; ASL T; ROL A; SEC; ROL A */
+        c = (u8)(t >> 7); t = (u8)(t << 1);
+        { u8 hi = (u8)(a >> 7); a = (u8)((a << 1) | c); c = hi; }
+        c = (u8)(t >> 7); t = (u8)(t << 1);
+        { u8 hi = (u8)(a >> 7); a = (u8)((a << 1) | c); c = hi; }
+        { u8 hi = (u8)(a >> 7); a = (u8)((a << 1) | 1); c = hi; }
+    }
+    zQ = a;                                              /* yy: STA Q */
+    s = (unsigned)zxx19[1] + 4 + c;                      /* LDA (XX19),Y; ADC #4 */
+    if (s > 255) { ex2(); return; }
+    a = (u8)s;
+    zxx19[1] = a;
+    em_dvid4(a);                                         /* (P R) = A * 256 / Q */
+    a = zP;
+    if (a >= 0x1C) a = 0xFE;
+    else {                                               /* ASL R; ROL A (tres veces) */
+        for (y = 0; y < 3; y++) { c = (u8)(zR >> 7); zR = (u8)(zR << 1); a = (u8)((a << 1) | c); }
+    }
+    zxx19[0] = a;                                        /* LABEL_1: DEY; STA (XX19),Y */
+    inwk[31] = (u8)(inwk[31] & 0xBF);
+    if (!(inwk[31] & 0x08)) return;                      /* TT48: la nube ya existe */
+    y = zxx19[2];
+    do { zxx19[y] = xx3[y - 7]; y--; } while (y != 6);   /* EXL1: copia los vertices de pantalla al monton */
+    inwk[31] = (u8)(inwk[31] | 0x40);
+    ptcls();
+}
+
+void ships_hooks(void)
+{
+    ship_doexp_hook = doexp;
+    ship_planet_hook = planet;
+}
+
+/* FAROF: 1 si alguna coordenada alta pasa de 224 */
+static int farof(void) { return inwk[1] > 224 || inwk[4] > 224 || inwk[7] > 224; }
+
+/* ---------------------------------------------------------------- bucle por nave (MAIN LOOP: MVEIT, PLUT, LL9, KILLSHP) */
+
+u8 ships_step(u8 view)
+{
+    int n;
+    u8 type, ev = 0, *sl;
+    ships_hooks();
+    for (n = 0; n < NOSH; ) {
+        type = frin[n];
+        if (type == 0) break;
+        get_slot(n);
+        sl = state_slot(n);
+        ztype = type; zinf = sl; zxx19 = heaps[n]; move_xsav = (u8)n;
+        if (!(type & 0x80)) zxx0 = ship_bp_for(type);
+        mveit();
+        put_slot(n);                                     /* MAL3 */
+        plut(view);
+        ship_ll9();
+        sl[35] = inwk[35];
+        if (type == SHIPT_CORIOLIS && (sl[7] > 0x30 || (sl[8] & 0x7F))) {      /* lejos de la estacion (regla propia) */
+            erase_lines(n);
+            ship_kill(n);
+            sspr = 0;
+            get_slot(0);
+            make_sun();                                  /* vuelve el sol, como al alejarse en el original */
+            ev |= SHIPS_EV_STATION;
+            continue;
+        }
+        if ((inwk[31] & 0x80) && (inwk[31] & 0x20)) { ship_kill(n); continue; }     /* la explosion ha terminado */
+        if (!(type & 0x80) && !farof()) { /* cerca: sigue */ }
+        else if (!(type & 0x80)) { ship_kill(n); continue; }     /* MAC1: FAROF con C = 0 */
+        sl[31] = inwk[31];                               /* MA27 */
+        n++;
+    }
+    return ev;
+}

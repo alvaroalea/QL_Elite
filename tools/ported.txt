@@ -146,7 +146,7 @@ DOT dot sin-verificar
 cntr space_cntr sin-verificar
 BUMP2 space_bump2 sin-verificar
 REDU2 space_redu2 sin-verificar
-MV40 mv40 sin-verificar solo la parte de posicion; K2 byte 0 queda a 0 (en el original es lo que hubiera en K2)
+MV40 mv40 sin-verificar gira la posicion y sigue por MV45 (orientacion, contadores y radar); K2 byte 0 queda a 0 (en el original es lo que hubiera en K2)
 MVT1 mvt1 sin-verificar
 PIXEL gfx_dust sin-verificar ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II
 HLOIN gfx_hloin sin-verificar mascara a pares y cobertura X1..X2-1; sin la geometria de bytes del Apple II
@@ -172,7 +172,6 @@ TWOS2 - propia
 SCAN space_scan sin-verificar el bit 4 de INWK+31 (dibujada), colores de scacol y recorte a 146..190 como el original
 scacol scacol sin-verificar cadena con el color de cada tipo
 WPSHPS space_scanner_reset propia solo la parte del radar: ninguna nave figura como dibujada
-MVEIT space_step propia MVEIT reducido: SCAN antes y despues, MV40 y las comprobaciones de alcance; sin TACTICS ni movimiento propio de las naves
 SIGHT chart_sight sin-verificar dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco)
 HFS2 tunnel_draw sin-verificar STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia
 LL164 arrive sin-verificar sonido (SOBLIP) y tunel al saltar; el salto en si es propio
@@ -192,3 +191,30 @@ DOKEY ctl_read propia cursores = alabeo y cabeceo, F acelera, D frena, A o espac
 TT102 ui_nav propia en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos; atracado: U despega, 0 galactica, 5-9 como en vuelo
 TT66 gfx_fill_lines propia borrado rapido de la vista y de la pantalla
 CLYNS txt_clear_rows propia borrado de filas de texto con el relleno rapido
+# --- paso 2 (proyeccion 3D) completado el 2026-10-17: movimiento, explosiones, planeta, naves en vuelo; sin verificar
+MVEIT mveit sin-verificar partes 1 a 9; TACTICS es un gancho (move_tactics_hook) hasta el paso 3; los acarreos de MLTU2 salen del bit bajo del producto
+MV45 mv45 sin-verificar z -= DELTA, giro de los tres vectores (MVS4), contadores de alabeo y cabeceo (MVS5) y radar
+MVS4 mvs4 sin-verificar
+MVS5 mvs5 sin-verificar
+MVT6 mvt6 sin-verificar
+PLUT plut sin-verificar ejes de INWK para las vistas trasera, izquierda y derecha
+DOEXP doexp sin-verificar nube de la nave que explota; el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco
+PTCLS ptcls sin-verificar semillas del generador desde el monton y restauracion de RAND+1 y RAND+3
+EX2 ex2 sin-verificar
+EXS1 exs1 sin-verificar el acarreo de FMLTU sale de em_carry
+TT48 - sin-verificar simple RTS
+PLANET planet sin-verificar planeta (circulo con CIRCLE) y sol (SUN); PL9, PL2 y WP1 van dentro
+PL9 planet sin-verificar
+PL2 planet sin-verificar
+PL21 planet sin-verificar SEC; RTS: en C el retorno de PROJ ya lo cubre
+WP1 circle_wpls2 sin-verificar reinicio del monton de la bola; LSY2[0] = $FF como centinela (el original no lo inicializa a la vista)
+ZINF ship_zinf sin-verificar
+NWSHP ship_new sin-verificar sin heap compartido (SLSP): un monton de 256 bytes por ranura; NEWB inicial de E%
+NWSPS make_station sin-verificar la posicion de la estacion es propia
+SOLAR ships_launch sin-verificar planeta con las formulas de SOLAR; al despegar el sol se sustituye por la estacion; ships_arrive pone planeta y sol
+SOS1 make_planet sin-verificar
+KILLSHP ship_kill sin-verificar sin puntos de muerte ni mensajes (paso 3)
+FAROF farof sin-verificar
+GINF - no-necesaria el puntero INF no existe en C: se indexa por ranura
+SFS2 - no-necesaria mover una nave a lo largo de un eje: solo para crear naves hijas (misiles, cargas, cápsulas)
+exlook - no-necesaria tabla de EXNO (sonido de explosion): el sonido ya esta en sound.c

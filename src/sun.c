@@ -8,7 +8,8 @@
 u8 sun_col = C_WHITE;
 u8 sun_lso[256];
 u8 sun_lsx = 255;
-u8 circ_lsx2[256], circ_lsy2[256];
+u8 circ_lsx2[256];
+u8 circ_lsy2[256] = { 255 };               /* [0] = $FF: centinela; sin el, WPLS2 dibujaria una linea basura al empezar */
 u8 circ_lsp = 1, circ_flag, circ_stp, circ_cnt;
 
 #define X1 zx15[0]
@@ -305,6 +306,7 @@ wp2:
 wp1:
     circ_lsp = 1;
     circ_lsx2[0] = 255;
+    circ_lsy2[0] = 255;
 }
 
 /* ---------------------------------------------------------------- tunel de hiperespacio / lanzamiento (HFS2, HFS1, HFL1) */
@@ -332,4 +334,13 @@ void tunnel_draw(u8 stp)
     zk3[0] = 128; zk3[1] = 0;                    /* HFS1: K3 = X, K4 = Y */
     zk4[0] = 68;  zk4[1] = 0;
     for (xx4 = 0; xx4 != 8; xx4++) hfl1(xx4);
+}
+
+/* Tras borrar el area de vista: ni el sol ni el circulo del planeta figuran como dibujados */
+void sun_forget(void)
+{
+    sun_flflls();
+    circ_lsp = 1;
+    circ_lsx2[0] = 255;
+    circ_lsy2[0] = 255;
 }

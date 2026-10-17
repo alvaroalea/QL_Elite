@@ -14,6 +14,7 @@ extern u8 mcnt;                      /* MCNT: contador de fotogramas del bucle p
 extern u8 flh;                       /* FLH: 0 = barras fijas (por defecto), $FF = barras parpadeantes */
 extern u8 damp;                      /* DAMP: 0 = amortiguacion de los giros activada (por defecto), $FF = desactivada */
 extern u8 djd;                       /* DJD: 0 = al cruzar el centro el giro se detiene en 128 (por defecto) */
+extern u8 space_view;                /* VIEW: vista actual; PLUT la usa para los ejes de las naves */
 extern u8 energy, fsh, ash;          /* energia y escudos delantero y trasero (255 = lleno) */
 extern u8 altit, cabtmp, gntmp;      /* altitud sobre el planeta (255 = lejos), temperatura de cabina y de los lasers */
 

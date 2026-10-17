@@ -173,7 +173,9 @@ static const int script[] = {
     'u', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12),                  /* despegar (tunel de lanzamiento), unos fotogramas */
     KD(K_LEFT), KD(K_DOWN), KD(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19),   /* alabeo, cabeceo y D acelera; luego se suelta */
     '2', -1, -1, -1, -1, SNAP(13), '3', -1, -1, -1, -1, SNAP(14), '4', -1, -1, -1, -1, SNAP(20), '1', -1, -1, -1, -1,    /* vistas trasera, izquierda, derecha y frontal (teclas 1-4) */
-    'n', 'n', 'n', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(21),                            /* contactos en el radar */
+    KD(K_D), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, KU(K_D),                                 /* frenar con D hasta velocidad 1 */
+    'n', 'n', 'n', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(21),                            /* contactos en el radar y en la vista */
+    'k', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(26), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(27),             /* una nave explota (tecla K de prueba): la nube */
     '5', SNAP(22), KC_ESC, '8', SNAP(23), '9', SNAP(24), '1', -1, -1, -1,    /* pantallas 5-9 desde el vuelo y vuelta con ESC o con una vista */
     'c',                                                             /* atracar */
     '8', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(15),       /* cargar BOB */
@@ -214,7 +216,7 @@ int main(void)
     in_script = feed;
     game_run();
     check(sp >= sizeof script / sizeof script[0] - 3, "la sesion guiada llego al final");
-    check(snapn == 26, "26 capturas");
+    check(snapn == 28, "28 capturas");
     check(dash_loads() == 1, "elite_dash se lee del disco una sola vez y se queda en memoria entre despegues");
     check(strcmp(cmdr_name, "BOB") == 0, "se cargo el comandante BOB");
     printf("sesion: %u teclas, %d capturas; %d comprobaciones, %d fallos\n", sp, snapn, total, fails);
