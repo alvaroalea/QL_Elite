@@ -42,3 +42,9 @@ universe.c: galaxias, sistemas, mercado, distancia, hiperespacio galactico y des
 - `plat_ql.c`: `plat_init` redefine la ventana de consola a pantalla completa, borde negro y sin cursor (SD.WDEF/SD.CLEAR/SD.CURS) y registra `plat_shutdown` con `atexit`.
 - La cola de teclado de la consola se vacia con IO.FBYTE (timeout 0) al arrancar, en cada `plat_present()` y al salir, para que SuperBASIC no reciba las teclas. `ql_trap3` (en `ql_ipc.asm`) es el stub generico de trap #3.
 - Pendiente de validar en QL real/emulador (QPC2, uQLx, sQLux): que `fgetchid(stdin)` devuelva el canal correcto y que no queden pulsaciones al salir.
+
+## Proyeccion 3D (hecho en PC, verificado contra el original)
+- `shipdata.c/.h` (generado por tools/gen_shipdata.py): 32 planos de nave en un bloque; algunos comparten aristas/caras con otro plano (desplazamientos de 16 bits con signo), por eso se construyen punteros con `bp_ptr`.
+- `ship3d.c`: LL9, LL51, SHPPT, CLIP/CLIP2 (LL118/120/123/129), LSPUT/LSCLR. Ganchos: `ship_loin_hook` (por defecto gfx_line XOR), `ship_doexp_hook`, `ship_planet_hook`. `ship_c_in` = acarreo de entrada a LL9.
+- Verificacion: `make test_orig` ejecuta el codigo original en un emulador de 6502 (ver tools/README_ref.txt). Pendiente: DOEXP, PLANET/SUN/CIRCLE, STARS, DIALS, SCAN, MVEIT; aplicar la misma verificacion a ship_math.c y emath.c.
+- Demo: `make host_demo_ship` (PC) y `make ql_ship` (QL, sin probar).

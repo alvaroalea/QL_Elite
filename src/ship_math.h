@@ -11,6 +11,7 @@
 #include "emath.h"
 
 extern u8 sm_x, sm_y, sm_c;                /* X, Y y acarreo de la ultima rutina */
+extern u8 sm_a;                            /* A a la salida de PROJ (SHPPT lo usa aunque haya desbordado) */
 
 /* K(3 2 1) += vector (x_sign x_hi x_lo) de INWK + x; K+3 lleva el signo. Devuelve A (= K+3). */
 u8   sm_mvt3(u8 x);

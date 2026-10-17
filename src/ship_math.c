@@ -1,6 +1,6 @@
 #include "ship_math.h"
 
-u8 sm_x, sm_y, sm_c;
+u8 sm_x, sm_y, sm_c, sm_a;
 
 /* ---------- MVT3: suma con signo-magnitud de 24 bits ---------- */
 u8 sm_mvt3(u8 x)
@@ -253,14 +253,14 @@ u8 sm_proj(void)
 {
     unsigned s;
     zP = inwk[0]; zP1 = inwk[1];
-    if (sm_pls6(inwk[2])) return 1;
+    if (sm_pls6(inwk[2])) { sm_a = (u8)((zK[3] & 0x7F) | zK[2]); return 1; }
     s = (unsigned)zK[0] + VIEW_CX; zk3[0] = (u8)s;
     s = (unsigned)sm_x + (s >> 8); zk3[1] = (u8)s;
     zP = inwk[3]; zP1 = inwk[4];
-    if (sm_pls6((u8)(inwk[5] ^ 0x80))) return 1;
+    if (sm_pls6((u8)(inwk[5] ^ 0x80))) { sm_a = (u8)((zK[3] & 0x7F) | zK[2]); return 1; }
     s = (unsigned)zK[0] + VIEW_CY; zk4[0] = (u8)s;
     s = (unsigned)sm_x + (s >> 8); zk4[1] = (u8)s;
-    sm_c = 0;
+    sm_a = (u8)s; sm_c = 0;
     return 0;
 }
 

@@ -65,3 +65,17 @@ host_demo_universe:
 	./demo_universe && python3 tools/ql2png.py screen.bin demo_universe.png
 ql_universe:
 	qcc -O -Isrc -I/usr/local/share/qdos/include -o universe_ql src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/plat_ql.c src/ql_ipc.asm
+
+# Demo de proyeccion 3D: seis naves dibujadas con LL9 (XOR)
+host_demo_ship:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o demo_ship src/demo_ship.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/plat_host.c
+	./demo_ship && python3 tools/ql2png.py screen.bin demo_ship.png
+ql_ship:
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o ship_ql src/demo_ship.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
+
+# Comparacion con el codigo ORIGINAL ejecutado en un emulador de 6502 (necesita la fuente de referencia clonada:
+# git clone https://github.com/markmoxon/elite-source-code-apple-ii /tmp/moxon  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
+test_orig:
+	python3 tools/gen_ll9.py 3000
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ll9 tests/test_ll9.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c
+	./tests/test_ll9
