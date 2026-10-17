@@ -67,10 +67,10 @@ CHECK cmdr_check transcripcion
 CHECK2 cmdr_check2 transcripcion
 JAMESON cmdr_default sin-verificar
 DFAULT cmdr_unpack sin-verificar
-tnpr trade_room sin-verificar
+tnpr trade_room verificada
 TT151 trade_price sin-verificar
-TT219 trade_buy sin-verificar
-TT208 trade_sell sin-verificar
+TT219 trade_buy verificada
+TT208 trade_sell verificada
 EQSHP equip_buy sin-verificar
 refund laser_refund sin-verificar
 PRXS equip_price sin-verificar

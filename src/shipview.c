@@ -64,11 +64,15 @@ void shipview_draw(u8 type, int x, int y, int z, int ay, int ax, u8 *heap, u8 *s
 {
     shipview_pos(x, y, z);
     shipview_orient(ay, ax);
-    inwk[I_STATE] = 0; inwk[I_NEWB] = 0;
+    inwk[I_NEWB] = 0;
+    /* LL9 solo borra las lineas viejas del monton si el bit 3 de INWK+31 esta puesto (lo pone al terminar de dibujar):
+       ese estado va con la nave (slot[I_STATE]); ponerlo a 0 en cada fotograma dejaba todas las lineas viejas en pantalla */
+    inwk[I_STATE] = fresh ? 0 : slot[I_STATE];
     ztype = type;
     zxx0 = SHIP_BP(type);
     zxx19 = heap;
     if (fresh) zxx19[0] = 0;                         /* sin esto el monton conserva las lineas viejas y LL9 las borra (XOR) */
     zinf = slot;
     ship_ll9();
+    slot[I_STATE] = inwk[I_STATE];
 }

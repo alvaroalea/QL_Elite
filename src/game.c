@@ -121,16 +121,36 @@ int trade_room(int good)
     return room < 0 ? 0 : room;
 }
 
+/* tnpr del original, transcrito: A = cantidad; t (mercancias 0..12): A = qty + C(=1, deja CPX) + QQ20[12..0] + TRIBBLE+1 con acarreo
+   entre sumas; "no cabe" si A >= CRGO. kg/g: A = qty + QQ20[good] (C=0); "no cabe" si A >= 200. */
+int trade_fits(int good, unsigned qty)
+{
+#if TRADE_FAITHFUL
+    unsigned a = qty & 255, c, t;
+    int x;
+    if (good <= 12) {
+        c = 1;
+        for (x = 12; x >= 0; x--) { t = a + qq20[x] + c; c = t >> 8; a = t & 255; }
+        t = a + tribble[1] + c;
+        a = t & 255;
+        return a < crgo;
+    }
+    a = (a + qq20[good]) & 255;
+    return a < 200;
+#else
+    return (int)qty <= trade_room(good);
+#endif
+}
+
 unsigned trade_price(int good) { return mkt.price[good]; }
 
 unsigned trade_max_buy(int good)
 {
     unsigned n = mkt.quantity[good];
     unsigned long afford;
-    int room = trade_room(good);
     if (mkt.price[good] == 0) afford = 255; else afford = cash_get() / mkt.price[good];
     if (afford < n) n = (unsigned)afford;
-    if ((unsigned)room < n) n = (unsigned)room;
+    while (n > 0 && !trade_fits(good, n)) n--;       /* con TRADE_FAITHFUL "cabe" no es monotono: se busca hacia abajo */
     return n;
 }
 
@@ -139,8 +159,11 @@ int trade_buy(int good, unsigned qty)
     unsigned long cost;
     if (good < 0 || good >= NGOODS || qty == 0) return TR_NONE;
     if (qty > mkt.quantity[good]) return TR_NOSTOCK;
-    if ((int)qty > trade_room(good)) return TR_NOROOM;
+    if (!trade_fits(good, qty)) return TR_NOROOM;
     cost = (unsigned long)mkt.price[good] * qty;
+#if TRADE_FAITHFUL
+    cost &= 0xFFFFUL;                                 /* GCASH: (Y X) = precio * cantidad * 4 en 16 bits */
+#endif
     if (!cash_spend(cost)) return TR_NOCASH;
     qq20[good] = (u8)(qq20[good] + qty);
     mkt.quantity[good] -= qty;
@@ -153,7 +176,13 @@ int trade_sell(int good, unsigned qty)
     if (good < 0 || good >= NGOODS || qty == 0 || qq20[good] == 0) return TR_NONE;
     if (qty > qq20[good]) return TR_NOSTOCK;
     qq20[good] = (u8)(qq20[good] - qty);
-    cash_earn((unsigned long)mkt.price[good] * qty);  /* DIFERENCIA: GCASH del 6502 calcula en 16 bits (se desbordaria con 200 kg de platino) */
+    {
+        unsigned long amount = (unsigned long)mkt.price[good] * qty;
+#if TRADE_FAITHFUL
+        amount &= 0xFFFFUL;                           /* GCASH del 6502: importe de 16 bits (verificado contra el original) */
+#endif
+        cash_earn(amount);
+    }
     return TR_OK;                                     /* como en el original, vender no repone las existencias */
 }
 

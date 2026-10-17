@@ -15,8 +15,8 @@ Resultado de las pruebas propias en el PC (`make test_game`, `make test_save`): 
 
 | # | Funcion C | Rutina original | Que comparar con el 6502 | Prio | Estado |
 |---|---|---|---|---|---|
-| 1 | `trade_room` | `tnpr` | Para cada mercancia y bodega: cabe o no cabe (incluye el +1 del acarreo de `CPX`, el limite de 200 en kg/g y los tribbles) | A | sin-verificar |
-| 2 | `trade_buy`, `trade_sell`, `trade_max_buy` | `TT219`, `TT208` (+ `GCASH`/`LCASH`/`MCASH`) | Dinero y bodega tras comprar/vender; el original calcula el importe en 16 bits (`GCASH`): aqui es 32 bits (**diferencia intencionada**, ver `game.c`) | A | sin-verificar |
+| 1 | `trade_fits` (y `trade_room`, sin desbordamiento) | `tnpr` | **Verificada (2026-10-16)** con el 6502 original: 20.000 casos (`make test_trade`), 0 discrepancias, 4 mutaciones detectadas. Con `TRADE_FAITHFUL=1` (por defecto) se reproduce la suma de 8 bits del original: en kg/g `198 + 63` da la vuelta y el original dice que "cabe" | A | verificada |
+| 2 | `trade_buy`, `trade_sell`, `trade_max_buy` | `TT219`, `TT208` (+ `GCASH`/`LCASH`/`MCASH` ejecutados en el emulador) | **Verificada (2026-10-16)**: dinero, bodega y existencias tras comprar/vender coinciden en todo el dominio alcanzable (cantidad <= existencias o <= bodega, que es lo que deja pedir `gnum`). El importe de 16 bits de `GCASH` se reproduce (`TRADE_FAITHFUL=1`). Las rutinas `sm_gcash`/`sm_lcash`/`sm_mcash` siguen en `transcripcion` (el test ejecuta las originales, no esas) | A | verificada |
 | 3 | `trade_price` y mercado (`uni_gen_market`) | `TT151`, `var`, `GVL` | Precio y existencias para todas las combinaciones sistema/`QQ26`; la comparacion con `TXTELITE.C` ya existe pero no con el 6502 | A | sin-verificar |
 | 4 | `equip_buy`, `equip_price`, `laser_refund`, `equip_count` | `EQSHP`, `PRXS`, `refund`, `qv` | Dinero, equipo y lasers tras cada compra; articulos ofrecidos por nivel tecnologico; cobra antes de reembolsar el laser antiguo | A | sin-verificar |
 | 5 | `cmdr_check`, `cmdr_check2` | `CHECK`, `CHECK2` | Ya coinciden con una transcripcion literal (3.003 bloques) y con las constantes de fabrica `$03`/`$27`; falta el emulador | B | transcripcion |
@@ -29,7 +29,8 @@ Resultado de las pruebas propias en el PC (`make test_game`, `make test_save`): 
 | 12 | `scr_status`, `scr_inventory`, `scr_market` | `STATUS`, `TT213`, `TT167` | Contenido y orden de las lineas (la maquetacion es propia) | C | sin-verificar |
 | 13 | `flight_run` (polvo, panel, hiperespacio, atraque) | `STARS`, `DIALS`, `hyp`, `main loop` | **Sustituto provisional**: no es un port. Se sustituira al portar `STARS`, `MVEIT`, `DIALS`, `SCAN`, `TACTICS`... | A | propia |
 | 14 | `save_commander`, `load_commander`, `save_encode/decode` | `SVE`, `LOD`, `MUTILATE`, `UNMUTILATE` | **Formato propio** (94 bytes con cifrado XOR). Solo debe comprobarse que los tres checksums y el bloque de 77 bytes coinciden con los del original | C | propia |
-| 15 | `plat_wait_key` (QL) | - | En el QL: que espere una tecla y que no queden pulsaciones en la consola al salir | A | sin-verificar |
+| 15 | `plat_wait_key` (QL) | - | **Confirmado en el QL real por el usuario (2026-10-16)** | A | verificada |
+| 16 | `shipview_draw` (titulo animado) | `LL9` + `LSPUT`/`LSCLR` | **Corregido (2026-10-16)**: el estado de la nave (`INWK+31`, bit 3: hay lineas en el monton) se ponia a 0 en cada fotograma y LL9 no borraba las viejas (caos de pixeles en el QL). Ahora el estado va por nave. `make test_shipview` (animar = dibujar desde cero, 6 naves; falla sin el arreglo). Falta confirmar en el QL | A | sin-verificar |
 
 ## Reglas para esta lista
 

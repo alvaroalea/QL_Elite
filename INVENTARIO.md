@@ -2,7 +2,7 @@
 
 Generado por `tools/inventory.py` a partir de la fuente de referencia y de `tools/ported.txt`.
 
-Rutinas: 528. Portadas: 76 (verificadas con el emulador: 9)
+Rutinas: 528. Portadas: 76 (verificadas con el emulador: 12)
 
 Estados: **verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, en PENDIENTES.md; **propia** = sustituto no basado en la rutina; vacio = sin portar.
 
@@ -254,11 +254,11 @@ Estados: **verificada** = comparada con el 6502 original (emulador); **transcrip
 | Rutina | Resumen | Estado | C |
 |---|---|---|---|
 | tnpr1 | Work out if we have space for one tonne of cargo |  |  |
-| tnpr | Work out if we have space for a specific amount of cargo | sin-verificar | `trade_room` |
-| TT219 | Show the Buy Cargo screen | sin-verificar | `trade_buy` |
+| tnpr | Work out if we have space for a specific amount of cargo | verificada | `trade_room` |
+| TT219 | Show the Buy Cargo screen | verificada | `trade_buy` |
 | gnum | Get a number from the keyboard |  |  |
 | NWDAV4 | Print an "ITEM?" error, make a beep and rejoin the TT210 routine |  |  |
-| TT208 | Show the Sell Cargo screen | sin-verificar | `trade_sell` |
+| TT208 | Show the Sell Cargo screen | verificada | `trade_sell` |
 | TT210 | Show a list of current cargo in our hold, optionally to sell |  |  |
 | TT213 | Show the Inventory screen | sin-verificar | `scr_inventory` |
 | TT151 | Print the name, price and availability of a market item | sin-verificar | `trade_price` |

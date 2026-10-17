@@ -100,6 +100,16 @@ test_save:
 	./tests/test_save
 
 clean:
-	rm -f elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
+	rm -f tests/test_trade tests/test_shipview tests/vectors_trade.txt elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
 
-test_all: test test_keys test_sound test_universe test_save test_game
+test_shipview:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_shipview tests/test_shipview.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/gfx.c src/plat_host.c
+	./tests/test_shipview
+
+# Comercio contra el 6502 original (tnpr, TT219, TT208, GCASH, LCASH, MCASH). Requiere ELITE_SRC (tools/README_ref.txt)
+test_trade:
+	python3 tools/gen_trade.py 20000 7
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_trade tests/test_trade.c src/game.c src/cmdr.c src/state.c src/universe.c src/emath.c
+	./tests/test_trade
+
+test_all: test test_keys test_sound test_universe test_save test_game test_shipview

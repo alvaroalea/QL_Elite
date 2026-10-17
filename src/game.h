@@ -32,6 +32,14 @@ void game_set_target(int idx);           /* qq9/qq10/qq8 del objetivo */
 #define TR_NOROOM   2
 #define TR_NOSTOCK  3
 #define TR_NONE     4                    /* cantidad 0 o nada que vender */
+/* TRADE_FAITHFUL = 1: aritmetica del 6502 tal cual (verificada contra el original, ver tools/gen_trade.py):
+     - tnpr suma en 8 bits con acarreo: en kg/g, 198 + 63 da la vuelta (=5) y el original dice que "cabe";
+     - GCASH calcula importe = precio * cantidad * 4 en 16 bits: vender >= 64K decimas de credito de una vez pierde los bits altos.
+   TRADE_FAITHFUL = 0: aritmetica corregida (sin vueltas, importe en 32 bits). */
+#ifndef TRADE_FAITHFUL
+#define TRADE_FAITHFUL 1
+#endif
+int  trade_fits(int good, unsigned qty); /* 1 si qty de esa mercancia cabe en la bodega (carry limpio de tnpr) */
 int  trade_hold_t(void);                 /* toneladas ocupadas (mercancias 0..12) + tribbles */
 int  trade_room(int good);               /* cuanto mas cabe de esa mercancia (tnpr) */
 unsigned trade_price(int good);          /* decimas de credito por unidad en este sistema */
