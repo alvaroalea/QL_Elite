@@ -142,6 +142,9 @@ void ships_zero(void)
     enc_ev = 0; dly = 0; mess_de = 0;
 }
 
+/* SLSP = LS% (el monton de lineas del original vuelve a estar vacio) */
+void ships_slsp_reset(void) { orig_slsp = ORIG_LS; }
+
 void ships_clear(void)
 {
     int n, i;
@@ -150,7 +153,7 @@ void ships_clear(void)
     for (n = 0; n < NOSH; n++) for (i = 0; i < HEAP_BYTES; i++) heaps[n][i] = 0;
     for (n = 0; n <= NTY; n++) many[n] = 0;
     junk_count = 0;
-    orig_slsp = ORIG_LS;                               /* RES2: SLSP = LS% */
+    ships_slsp_reset();                                /* RES2: SLSP = LS% */
 }
 
 /* Borra las lineas dibujadas de la nave de la ranura n (monton de lineas) */

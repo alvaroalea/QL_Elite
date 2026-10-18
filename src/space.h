@@ -18,6 +18,7 @@ extern u8 space_view;                /* VIEW: vista actual; PLUT la usa para los
 extern u8 energy, fsh, ash;          /* energia y escudos delantero y trasero (255 = lleno) */
 extern u8 altit, cabtmp, gntmp;      /* altitud sobre el planeta (255 = lejos), temperatura de cabina y de los lasers */
 
+void space_reset_all(void);         /* RESET: ZERO + valores de fabrica de vuelo + RES2 */
 void space_reset(void);              /* RES2: valores iniciales de los giros y la velocidad */
 void space_launch(void);             /* planeta y estacion respecto a la nave al despegar (SOLAR simplificado) */
 void space_controls(const struct controls *c);   /* teclas -> JSTX/JSTY -> ALPHA/BETA y velocidad */

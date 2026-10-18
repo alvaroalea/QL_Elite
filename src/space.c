@@ -8,6 +8,11 @@
 #include "ships.h"
 #include "combat.h"
 #include "damage.h"
+#include "stars.h"
+#include "sun.h"
+#include "tactics.h"
+#include "dash.h"
+#include "keys.h"
 
 u8 jstx = 128, jsty = 128;
 u8 alpha, beta, alp1, bet1;
@@ -20,16 +25,36 @@ static u8 auto_pilot = 0;              /* auto: piloto automatico del atraque (a
 
 int space_signed(u8 v) { return (v & 0x80) ? -(int)(v & 0x7F) : (int)v; }
 
-/* RES2: lo que toca a los giros y la velocidad */
+/* RES2: valores iniciales de los giros y la velocidad, polvo, MSTG, centinelas del ultimo circulo, y apaga la bombilla S y el ECM si
+   estaban encendidos. La limpieza de la pantalla (WPSHPS) la hace quien llama (clear_view); JSTX no se toca, como el original */
 void space_reset(void)
 {
-    jstx = 128;
+    stars_nostm = NOST;
+    circ_lsx2[0] = 0xFF;
+    circ_lsy2[0] = 0xFF;
+    mstg = 0xFF;
     jsty = 128;
     alp2[0] = 128; bet2[0] = 128;
     beta = 0; bet1 = 0;
     alp2[1] = 0; bet2[1] = 0;
     mcnt = 0;
     zDELTA = 3; alpha = 3; alp1 = 3;
+    if (sspr) dash_spblb();
+    if (ecma) ecm_off();
+    ships_zero();                                /* WPSHPS (quien llama) y ZERO */
+    ships_slsp_reset();                          /* SLSP = LS% */
+    ship_zinf();                                 /* ZINF */
+}
+
+/* RESET: ZERO, giros y contadores del hiperespacio a 0, JSTGY y QQ12 a $FF (atracados), escudos y energia llenos, y RES2 */
+void space_reset_all(void)
+{
+    ships_zero();
+    beta = 0; bet1 = 0; qq22[0] = 0; qq22[1] = 0; ecma = 0; alp1 = 0; alp2[0] = 0;
+    jstgy = 0xFF;
+    qq12 = 0xFF;
+    fsh = 0xFF; ash = 0xFF; energy = 0xFF;
+    space_reset();
 }
 
 /* BUMP2: X += A (satura en 255); si queda en la mitad baja y DJD = 0, se detiene en el centro (128) */

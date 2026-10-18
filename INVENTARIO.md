@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 269, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 7 y pendientes de verificar: 150
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 272, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 12 y pendientes de verificar: 142
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -35,7 +35,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Save and load | 61 | 27 | 3 | 0 | 34 | 24 | 0 |
 | Sound | 13 | 11 | 1 | 0 | 2 | 10 | 0 |
 | Stardust | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
-| Start and end | 8 | 8 | 0 | 0 | 0 | 8 | 0 |
+| Start and end | 8 | 8 | 3 | 5 | 0 | 0 | 0 |
 | Status | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
 | Tactics | 8 | 7 | 7 | 0 | 1 | 0 | 0 |
 | Text | 77 | 73 | 70 | 3 | 4 | 0 | 0 |
@@ -43,7 +43,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Universe | 34 | 32 | 32 | 0 | 2 | 0 | 0 |
 | Utility routines | 18 | 1 | 1 | 0 | 17 | 0 | 0 |
 | Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **426** | **269** | **7** | **102** | **150** | **0** |
+| **Total** | **528** | **426** | **272** | **12** | **102** | **142** | **0** |
 
 Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -536,14 +536,14 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| RESET | Reset most variables | propia | `game_new` | reinicia las variables de la partida |
-| RES2 | Reset a number of flight variables and workspaces | propia | `space_reset`, `ships_clear` | reinicia las variables de vuelo |
-| DEATH | Display the death screen | sin-verificar | `flight_death`, `ships_death_debris` | D1 verificado (Ze, fq1, restos); SOEXPL, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces con el teclado (DOKEY) y DEATH2 |
-| TT170 | Main entry point for the Elite game code | propia | `game_run` | punto de entrada del juego (app.c) |
-| DEATH2 | Reset most of the game and restart from the title screen | propia | `game_run` | vuelve a la pantalla de titulo (nuevo comandante o cargar) |
-| BR1 | Show the "Load New Commander (Y/N)?" screen and start the game | propia | `scr_title`, `scr_disk` | el titulo ofrece cargar un comandante por el menu de disco |
-| DFAULT | Reset the current commander data block to the last saved commander | sin-verificar | `cmdr_unpack` |  |
-| TITLE | Display a title screen with a rotating ship and prompt | propia | `scr_title` | pantalla de titulo con la nave que gira |
+| RESET | Reset most variables | verificada | `space_reset_all` | make test_start (1.000 casos con ZERO, RES2 y ZINF reales: giros, QQ22, ECMA, ALP1/2, JSTGY, QQ12 y FSH/ASH/ENERGY a $FF) |
+| RES2 | Reset a number of flight variables and workspaces | verificada | `space_reset`, `ships_zero`, `ship_zinf` | make test_start (1.000 casos: NOSTM, LSX2/LSY2 = $FF, MSTG, giros, DELTA/ALPHA/ALP1 = 3, SPBLB si SSPR, ECMOF si ECMA, ZERO, SLSP y ZINF; WPSHPS lo hace quien llama (clear_view); JSTX no se toca; ships_clear vacia ademas K% y los montones) |
+| DEATH | Display the death screen | no-verificable | `flight_death`, `ships_death_debris` | D1 (Ze, fq1, restos) verificado en make test_damage; el resto es orquestacion: SOEXPL con Y = 210, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces (el bucle principal completo y el sonido son propios del port) |
+| TT170 | Main entry point for the Elite game code | no-verificable | `game_run` | punto de entrada: RESET (verificado) y el flujo hacia el titulo; es el bucle principal propio del port (app.c) |
+| DEATH2 | Reset most of the game and restart from the title screen | no-verificable | `game_run` | vuelta al titulo (RES2 verificado); el flujo del titulo es propio del port |
+| BR1 | Show the "Load New Commander (Y/N)?" screen and start the game | no-verificable | `scr_title`, `scr_disk` | flujo de la pantalla de titulo y la carga de comandante propios del port (DFAULT y RESET verificados aparte) |
+| DFAULT | Reset the current commander data block to the last saved commander | verificada | `cmdr_unpack`, `cmdr_pack` | make test_start (1.000 bloques con CHECK/CHECK2 reales: COK con bit 7 si falla CHK2 y bit 3; el original se queda en un bucle si CHK o CHK3 fallan, el port devuelve error; CHK2/CHK3/CHK van fuera del bloque copiado en el original y en b[74..76] en el port; QQ11 = 0 lo hace quien llama) |
+| TITLE | Display a title screen with a rotating ship and prompt | no-verificable | `scr_title` | pantalla de titulo propia del port (nave que gira, menu de disco); depende del modo grafico del Apple II |
 
 ## Status (7 portadas de 7)
 

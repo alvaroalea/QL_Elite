@@ -1,6 +1,7 @@
 #include "game.h"
 #include "cmdr.h"
 #include "state.h"
+#include "space.h"
 #include "emath.h"
 
 int cur_sys = 0;
@@ -90,6 +91,7 @@ void game_new(void)
 {
     int i;
     state_clear();
+    space_reset_all();                               /* TT170: RESET */
     cmdr_default();
     gcnt = 0;
     uni_build_galaxy(1);

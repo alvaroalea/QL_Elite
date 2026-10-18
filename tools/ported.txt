@@ -66,7 +66,7 @@ SCALEY2 sm_scaley2 verificada make test_geom (codigo original en el emulador)
 CHECK cmdr_check transcripcion
 CHECK2 cmdr_check2 transcripcion
 JAMESON cmdr_default sin-verificar
-DFAULT cmdr_unpack sin-verificar
+DFAULT cmdr_unpack,cmdr_pack verificada make test_start (1.000 bloques con CHECK/CHECK2 reales: COK con bit 7 si falla CHK2 y bit 3; el original se queda en un bucle si CHK o CHK3 fallan, el port devuelve error; CHK2/CHK3/CHK van fuera del bloque copiado en el original y en b[74..76] en el port; QQ11 = 0 lo hace quien llama)
 tnpr trade_room verificada
 TT219 trade_buy verificada
 TT208 trade_sell verificada
@@ -261,11 +261,11 @@ LASNOISE snd_lasnoise propia
 SOBOMB snd_sobomb verificada make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio
 CLICK - no-necesaria conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c)
 LASNOISE2 - no-necesaria sin uso en el original
-RESET game_new propia reinicia las variables de la partida
-RES2 space_reset,ships_clear propia reinicia las variables de vuelo
-TT170 game_run propia punto de entrada del juego (app.c)
-TITLE scr_title propia pantalla de titulo con la nave que gira
-BR1 scr_title,scr_disk propia el titulo ofrece cargar un comandante por el menu de disco
+RESET space_reset_all verificada make test_start (1.000 casos con ZERO, RES2 y ZINF reales: giros, QQ22, ECMA, ALP1/2, JSTGY, QQ12 y FSH/ASH/ENERGY a $FF)
+RES2 space_reset,ships_zero,ship_zinf verificada make test_start (1.000 casos: NOSTM, LSX2/LSY2 = $FF, MSTG, giros, DELTA/ALPHA/ALP1 = 3, SPBLB si SSPR, ECMOF si ECMA, ZERO, SLSP y ZINF; WPSHPS lo hace quien llama (clear_view); JSTX no se toca; ships_clear vacia ademas K% y los montones)
+TT170 game_run no-verificable punto de entrada: RESET (verificado) y el flujo hacia el titulo; es el bucle principal propio del port (app.c)
+TITLE scr_title no-verificable pantalla de titulo propia del port (nave que gira, menu de disco); depende del modo grafico del Apple II
+BR1 scr_title,scr_disk no-verificable flujo de la pantalla de titulo y la carga de comandante propios del port (DFAULT y RESET verificados aparte)
 cmn cmn verificada nombre del comandante con TT26 (ficha 4 de TT27 y titulo de STATUS), make test_missions
 BAY bay verificada QQ12 = $FF y FRCE con f8 (pantalla de estado), make test_missions; brp y DOENTRY acaban en bay
 NLI4 nlin4 no-verificable guiones bajo la fila 1 en el modo texto del Apple II; el QL no tiene modo texto y NLIN4 dibuja siempre la linea de NLIN2 en y = 19 (en medio de la fila 2)
@@ -408,7 +408,7 @@ OUCH ouch verificada QQ20+X con X = 0..21 (mercancias, ECM, BST, BOMB, ENGY, DKC
 ou2 ouch verificada
 ou3 ouch verificada
 mes9 flight_mess,mess_de propia " DESTROYED" con la bandera de (vale para un mensaje)
-DEATH2 game_run propia vuelve a la pantalla de titulo (nuevo comandante o cargar)
+DEATH2 game_run no-verificable vuelta al titulo (RES2 verificado); el flujo del titulo es propio del port
 DET1 - no-necesaria en el Apple II es un RTS
 Ze ze verificada dentro de D1
 # --- 2026-10-17 undecima ronda: rutinas que faltaban de Flight y Drawing lines (make test_equip contra el 6502)
@@ -502,7 +502,7 @@ KS4 ks4 verificada la estacion lejana (FAROF) deja en su ranura el sol con y_sig
 FAROF2 sm_farof2,ships_part14,farof verificada make test_geom; FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves
 TT110 space_launch transcripcion RES2, planeta delante (z_sign = 1) y estacion detras (z = -256) con SOS1 y NWSPS, DELTA = 12, FIST |= BAD; make test_space
 BAD space_bad,bad,legal_name verificada carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name
-DEATH flight_death,ships_death_debris sin-verificar D1 verificado (Ze, fq1, restos); SOEXPL, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces con el teclado (DOKEY) y DEATH2
+DEATH flight_death,ships_death_debris no-verificable D1 (Ze, fq1, restos) verificado en make test_damage; el resto es orquestacion: SOEXPL con Y = 210, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces (el bucle principal completo y el sonido son propios del port)
 Main ships_step,flight_run,encounters_tick,ships_part14,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock verificada bucle de vuelo (partes 1-16) y bucle principal (partes 1-6): naves, laser, choques, recogida, atraque, partes 14 (estacion) y 15, bomba, ECM, misiles y aparicion de naves; verificados por partes con make test_laser, test_damage, test_equip, test_tactics y test_missions (MCNT baja como en el original)
 # --- verificacion de Text y Universe contra el 6502 (2026-10-18)
 TENS dt_bprnt verificada impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num

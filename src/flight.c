@@ -240,7 +240,6 @@ static void arrive(void)
     const char *p = "ARRIVED AT ";
     hyper_tunnel();                        /* LL164: sonido de hiperespacio y tunel */
     space_scanner_clear();                 /* quita del radar lo que hubiera */
-    if (sspr) dash_spblb();                /* se apaga la S */
     if (!hyper_gal && jump_possible(tgt_sys)) {             /* TT18: el combustible se gasta antes de saber si llegamos */
         if (((patg & 0x80) && key_down(K_TAB)) || em_dornd() >= 253) {   /* ee5: TAB con PATG (ptg) o 0,78 %: MJP */
             unsigned d = jump_distance(tgt_sys);

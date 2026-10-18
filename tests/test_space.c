@@ -61,19 +61,19 @@ int main(void)
     djd = 1; check(space_redu2(200, 20) == 180, "redu2 con DJD != 0"); djd = 0;
 
     /* controles: valores de alabeo y cabeceo tras un fotograma (transcripcion del bucle principal) */
-    space_reset();
+    space_reset(); jstx = 128;
     c = none(); c.roll_left = 1; space_controls(&c);
     check(jstx == 146 && alp2[0] == 0 && alp1 == 2 && alpha == 2, "alabeo a la izquierda: JSTX 146, ALPHA 2");
-    space_reset();
+    space_reset(); jstx = 128;
     c = none(); c.roll_right = 1; space_controls(&c);
     check(jstx == 110 && alp2[0] == 0x80 && alp1 == 2 && alpha == 0x82, "alabeo a la derecha: JSTX 110, ALPHA con signo");
-    space_reset();
+    space_reset(); jstx = 128;
     for (i = 0; i < 40; i++) { c = none(); c.roll_left = 1; space_controls(&c); }
     check(jstx > 128 && alp1 > 2, "alabeo sostenido: crece");
     c = none();
     for (i = 0; i < 400; i++) space_controls(&c);
     check(jstx == 128 && alp1 == 0 && (alpha & 0x7F) == 0, "al soltar la tecla el giro vuelve al centro");
-    space_reset();
+    space_reset(); jstx = 128;
     c = none(); c.speed_up = 1;
     for (i = 0; i < 100; i++) space_controls(&c);
     check(zDELTA == 40, "la velocidad llega a 40 y no pasa");
