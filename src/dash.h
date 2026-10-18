@@ -26,4 +26,6 @@ void dash_msbar(u8 x, u8 color);         /* MSBAR: indicador X (1..4) con el col
 void dash_msblob(void);                 /* msblob: indicadores de misil (NOMSL en verde, el resto apagados) */
 void dash_spblb(void);                  /* SPBLB: enciende o apaga (XOR) la bombilla S de estacion cerca */
 void dash_ecblb(void);                  /* ECBLB: enciende o apaga (XOR) la bombilla E del ECM */
+extern void (*dash_trace)(char kind, u8 a, u8 b, u8 c, u8 d);   /* pruebas: 'h' x1 x2 y col, 'v' x y1 y2 col, 'p' x y zz, 'c' x y col (colores del original) */
+extern u8 dash_dials[13], dash_dialc[13], dash_comx, dash_comy, dash_comc, dash_mscol[4];   /* dials, dialc, COMX, COMY, COMC y mscol del original */
 #endif

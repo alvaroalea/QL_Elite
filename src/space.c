@@ -21,7 +21,7 @@ u8 mcnt, flh = 0, damp = 0, djd = 0;
 u8 space_view = 0;                     /* VIEW: vista actual (0 delante, 1 atras, 2 izquierda, 3 derecha) */
 u8 energy = 255, fsh = 255, ash = 255;
 u8 altit = 255, cabtmp = 30, gntmp = 0;
-static u8 auto_pilot = 0;              /* auto: piloto automatico del atraque (aun no existe) */
+#define auto_pilot dock_auto               /* auto: el ordenador de atraque esta al mando (flight.c) */
 
 int space_signed(u8 v) { return (v & 0x80) ? -(int)(v & 0x7F) : (int)v; }
 
@@ -200,6 +200,7 @@ void space_scan(u8 type)
     a = (u8)s;
     if (a < 146) a = 146;                                     /* CMP #146; BCS ...; LDA #146 */
     if (a >= 191) a = 190;                                    /* CMP #191; BCC ...; LDA #190 */
+    if (dash_trace) { dash_trace('c', (u8)(x1 - 2), a, 0, space_scacol(type)); dash_trace('v', x1, a, y2, space_scacol(type)); }
     gfx_cpix((int)x1 - 2, a, col);                            /* cabeza (CPIX con X = X1 - 2) */
     gfx_vloin(x1, a, y2, col);                                /* palo (VLOIN) */
 }

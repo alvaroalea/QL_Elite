@@ -25,13 +25,13 @@ static const u8 dialle[13] = {  28,   0,   0,  16,   0,   0,   0,   8,   8,   0,
 static const u8 dialc1[13] = { D_WHITE, D_WHITE, D_WHITE, D_WARN, D_VIOLET, D_VIOLET, D_VIOLET, D_WARN, D_WARN, D_GREEN, D_WARN, D_BLUE, D_BLUE };
 static const u8 dialc2[13] = { D_WARN, D_WHITE, D_WHITE, D_VIOLET, D_VIOLET, D_VIOLET, D_VIOLET, D_VIOLET, D_VIOLET, D_GREEN, D_GREEN, D_WARN, D_WARN };
 
-static u8 dials[13];                      /* ultimo valor dibujado de cada indicador */
-static u8 dialc[13];                      /* ultimo color dibujado */
+u8 dash_dials[13];                      /* ultimo valor dibujado de cada indicador */
+u8 dash_dialc[13];                      /* ultimo color dibujado */
 static u8 dy;                             /* registro Y: indicador en curso */
 static u8 dial_k, dial_k1, dial_k2;       /* K, K+1, K+2 */
 static u8 dial_col;                       /* COL */
-static u8 comx, comy, comc;               /* brujula: posicion y tamano del punto */
-static u8 mscol[4];                       /* color de cada indicador de misil (0 = apagado) */
+u8 dash_comx, dash_comy, dash_comc;               /* brujula: posicion y tamano del punto */
+u8 dash_mscol[4];                       /* color de cada indicador de misil (0 = apagado) */
 static const u8 msloc[4] = { 40, 32, 24, 16 };     /* x de los cuatro indicadores de misil */
 
 int dash_loaded(void) { return bg_ok; }
@@ -40,9 +40,9 @@ int dash_loads(void) { return bg_loads; }
 void dash_reset(void)
 {
     int i;
-    for (i = 0; i < 13; i++) { dials[i] = 0; dialc[i] = 0; }
-    for (i = 0; i < 4; i++) mscol[i] = 0;
-    comc = 0;
+    for (i = 0; i < 13; i++) { dash_dials[i] = 0; dash_dialc[i] = 0; }
+    for (i = 0; i < 4; i++) dash_mscol[i] = 0;
+    dash_comc = 0;
 }
 
 int dash_load(void)
@@ -68,6 +68,8 @@ int dash_load(void)
     return DASH_OK;
 }
 
+void (*dash_trace)(char kind, u8 a, u8 b, u8 c, u8 d) = 0;
+
 static u8 qlcol(u8 c)
 {
     switch (c) {
@@ -78,6 +80,19 @@ static u8 qlcol(u8 c)
     case D_RED:    return C_RED;               /* el "RED" de Elite es el naranja del Apple II */
     }
     return C_BLACK;
+}
+
+/* primitivas del panel con el color del original (D_*): registran la llamada si hay dash_trace (pruebas) */
+static void d_hloin(u8 x1, u8 x2, u8 y, u8 dcol)
+{
+    if (dash_trace) dash_trace('h', x1, x2, y, dcol);
+    gfx_hloin(x1, x2, y, qlcol(dcol));
+}
+
+static void d_vloin(u8 x, u8 y1, u8 y2, u8 dcol)
+{
+    if (dash_trace) dash_trace('v', x, y1, y2, dcol);
+    gfx_vloin(x, y1, y2, qlcol(dcol));
 }
 
 /* panel minimo si falta el fichero: marco, pistas punteadas y etiquetas */
@@ -114,7 +129,7 @@ void dash_show(void)
 static void msbars(u8 x1, u8 x2, u8 y1)       /* MSBARS: cuatro lineas debajo de Y1 */
 {
     u8 k;
-    for (k = 1; k <= 4; k++) gfx_hloin(x1, x2, (u8)(y1 + k), qlcol(dial_col));
+    for (k = 1; k <= 4; k++) d_hloin(x1, x2, (u8)(y1 + k), dial_col);
 }
 
 static void dis7(u8 a, u8 xcol)
@@ -135,12 +150,12 @@ static void dis2(u8 a)
     if (x == D_WARN) x = dial_k2;
     dy++;
     newa = a;
-    if (newa == dials[dy - 1] && x == dialc[dy - 1]) return;     /* DI8 */
+    if (newa == dash_dials[dy - 1] && x == dash_dialc[dy - 1]) return;     /* DI8 */
     {
-        u8 oldc = dialc[dy - 1];
-        dialc[dy - 1] = x;                     /* DI6 */
-        dis7(dials[dy - 1], oldc);             /* borra el dibujo anterior (XOR con el color anterior) */
-        dials[dy - 1] = newa;
+        u8 oldc = dash_dialc[dy - 1];
+        dash_dialc[dy - 1] = x;                     /* DI6 */
+        dis7(dash_dials[dy - 1], oldc);             /* borra el dibujo anterior (XOR con el color anterior) */
+        dash_dials[dy - 1] = newa;
         dis7(newa, x);                         /* dibuja el nuevo */
     }
 }
@@ -151,7 +166,7 @@ static void dis1(u8 a) { dis2((u8)(a >> 3)); }
 static void dis6(u8 x1)
 {
     u8 y1 = dialY[dy - 1];
-    gfx_vloin(x1, y1, (u8)(y1 + 6), qlcol(dial_col));      /* VLOIN: 7 puntos de alto y 2 de ancho */
+    d_vloin(x1, y1, (u8)(y1 + 6), dial_col);      /* VLOIN: 7 puntos de alto y 2 de ancho */
 }
 
 static void dis5(u8 a, u8 neg)
@@ -159,9 +174,9 @@ static void dis5(u8 a, u8 neg)
     if (neg) a = (u8)((a ^ 0xFF) + 1);         /* BPL DI9; EOR #$FF; CLC; ADC #1 */
     dy++;
     a = (u8)(a + 224);
-    if (a == dials[dy - 1]) return;            /* BEQ DIR1 */
-    if (dials[dy - 1] != 0) dis6(dials[dy - 1]);   /* borra el anterior */
-    dials[dy - 1] = a;
+    if (a == dash_dials[dy - 1]) return;            /* BEQ DIR1 */
+    if (dash_dials[dy - 1] != 0) dis6(dash_dials[dy - 1]);   /* borra el anterior */
+    dash_dials[dy - 1] = a;
     dis6(a);
 }
 
@@ -169,8 +184,9 @@ static void dis5(u8 a, u8 neg)
 
 static void dot(void)
 {
-    if (comc == 0) return;                     /* BEQ COR1 */
-    gfx_dust(comx, comy, comc);                /* JMP PIXEL con ZZ = COMC */
+    if (dash_comc == 0) return;                     /* BEQ COR1 */
+    if (dash_trace) dash_trace('p', dash_comx, dash_comy, dash_comc, 0);
+    gfx_dust(dash_comx, dash_comy, dash_comc);                /* JMP PIXEL con ZZ = COMC */
 }
 
 static void compas(void)
@@ -183,13 +199,13 @@ static void compas(void)
     sm_sps2(zx15[0]);                          /* SP2 */
     x = sm_x;
     s = (unsigned)x + 195 + em_carry;          /* TXA; ADC #195 con el acarreo con que vuelve SPS2 */
-    comx = (u8)s;
+    dash_comx = (u8)s;
     sm_sps2(zx15[1]);
     t = sm_x;
     d = 148 - (int)t - (1 - (int)em_carry);    /* LDA #148; SBC T */
-    comy = (u8)d;
-    comc = 0x60;
-    if (zx15[2] & 0x80) comc = (u8)(comc >> 1);    /* detras de nosotros: punto mas tenue */
+    dash_comy = (u8)d;
+    dash_comc = 0x60;
+    if (zx15[2] & 0x80) dash_comc = (u8)(dash_comc >> 1);    /* detras de nosotros: punto mas tenue */
     dot();
 }
 
@@ -201,8 +217,8 @@ static void msbar(u8 x, u8 color)
     u8 x1;
     if (x < 1 || x > 4) return;
     x1 = msloc[x - 1];
-    if (mscol[x - 1] != 0) { dial_col = mscol[x - 1]; msbars(x1, (u8)(x1 + 6), 184); }       /* 4 lineas: 185..188 */
-    mscol[x - 1] = color;
+    if (dash_mscol[x - 1] != 0) { dial_col = dash_mscol[x - 1]; msbars(x1, (u8)(x1 + 6), 184); }       /* 4 lineas: 185..188 */
+    dash_mscol[x - 1] = color;
     if (color != 0) { dial_col = color; msbars(x1, (u8)(x1 + 6), 184); }
 }
 

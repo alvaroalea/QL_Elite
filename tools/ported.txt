@@ -63,9 +63,9 @@ SCALEX sm_scalex verificada make test_geom (codigo original en el emulador)
 SCALEY sm_scaley verificada make test_geom (codigo original en el emulador)
 SCALEY2 sm_scaley2 verificada make test_geom (codigo original en el emulador)
 # --- port sin verificar (estrategia 2026-10-16): ver PENDIENTES.md
-CHECK cmdr_check transcripcion
-CHECK2 cmdr_check2 transcripcion
-JAMESON cmdr_default sin-verificar
+CHECK cmdr_check verificada make test_start (DFAULT con CHECK real: la suma del port coincide en 1.000 bloques) y make test_jameson
+CHECK2 cmdr_check2 verificada make test_start (DFAULT con CHECK2 real) y make test_jameson
+JAMESON cmdr_default verificada make test_jameson: los 76 bytes de NA2% (Q% = FALSE) ensamblados de la fuente son los de cmdr_default (COK con el bit 3 que pone DFAULT; CHK2/CHK3/CHK de fabrica = sumas del bloque)
 DFAULT cmdr_unpack,cmdr_pack verificada make test_start (1.000 bloques con CHECK/CHECK2 reales: COK con bit 7 si falla CHK2 y bit 3; el original se queda en un bucle si CHK o CHK3 fallan, el port devuelve error; CHK2/CHK3/CHK van fuera del bloque copiado en el original y en b[74..76] en el port; QQ11 = 0 lo hace quien llama)
 tnpr trade_room verificada
 TT219 trade_buy verificada
@@ -76,8 +76,8 @@ PRXS equip_price verificada make test_eqshp (3.000 EQSHP del original con eq, pr
 STATUS status_mode,scr_status,rating_name,legal_name verificada transcripcion literal con el motor de fichas (titulo, estado, rango, equipo y lasers, letra a letra con columna y fila, TRADEMODE y TT111 registran); 800 casos, make test_missions
 TT213 scr_inventory no-verificable pantalla propia (maquetacion); los datos (QQ20, unidades) se verifican en TT208/TT219
 TT167 scr_market no-verificable pantalla propia (maquetacion); precios y existencias verificados (TT151, GVL)
-SVE scr_disk propia
-LOD load_commander propia
+SVE scr_disk no-verificable menu de disco propio; el cifrado MUTILATE y el fichero del DOS 3.3 no se portan (formato propio ELQD)
+LOD load_commander no-verificable carga de fichero de QDOS (formato propio ELQD, make test_save); validacion CHK/CHK3/CHK2 verificada con make test_start
 TT102 ui_nav propia
 # --- cartas, SUN y CIRCLE (2026-10-16), sin verificar
 SUN sun_draw verificada make test_planet (secuencias de PLANET contra el 6502)
@@ -117,11 +117,11 @@ eq cash_spend verificada make test_eqshp (3.000 EQSHP del original con eq, prx, 
 prx equip_price verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales); el combustible (70 - QQ14) * 2
 qv scr_equip no-verificable pide la vista (0 a 3) con un menu propio; en el original es TT217 + pantalla
 # --- teclado
-TT17 in_held propia cursores o joystick
-TT217 in_wait propia
-YESNO scr_disk propia confirmaciones Y/N dentro del menu de disco
-TT214 scr_disk propia
-FLKB plat_flush_input propia
+TT17 in_held no-verificable cursores o joystick: lectura del teclado del QL (keys.c), sin equivalente comparable
+TT217 in_wait no-verificable esperar una tecla: propio de la consola del QL
+YESNO scr_disk no-verificable confirmacion Y/N propia del menu de disco
+TT214 scr_disk no-verificable pregunta Y/N propia del menu de disco
+FLKB plat_flush_input no-verificable vaciar el buffer de teclado: propio de la consola del QL
 # --- panel de instrumentos (2026-10-16), sin verificar
 DIALS dash_update sin-verificar velocidad, alabeo, cabeceo, 4 bancos de energia, escudos, combustible, altitud y temperaturas
 DIS1 dis1 sin-verificar
@@ -178,8 +178,8 @@ ECBLB dash_ecblb sin-verificar bombilla E (XOR); la enciende y apaga el ECM
 BULB bulb sin-verificar 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E
 SPBT bulb_s sin-verificar
 ECBT bulb_e sin-verificar
-DOKEY ctl_read propia cursores = alabeo y cabeceo, F acelera, D frena, A o espacio disparan; JSTX/JSTY los calcula space_controls
-TT102 ui_nav propia en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos; atracado: U despega, 0 galactica, 5-9 como en vuelo
+DOKEY ctl_read no-verificable lectura de las teclas de vuelo con la disposicion del QL; el tramo del ordenador de atraque esta verificado en make test_equip
+TT102 ui_nav no-verificable despacho de teclas a pantallas con la disposicion de teclas del QL
 TT66 tt66 verificada make test_screen
 CLYNS clyns verificada make test_screen (DLY, de, XC/YC, DTW2, QQ17; 64 espacios en las vistas de texto o clearrow 15 y 16 en las graficas)
 # --- paso 2 (proyeccion 3D) completado el 2026-10-17: movimiento, explosiones, planeta, naves en vuelo; sin verificar
@@ -239,11 +239,11 @@ XX3 - no-necesaria tabla de coordenadas de pantalla de los vertices: matriz xx3 
 K% - no-necesaria bloques de las naves: matriz de state.c (state_slot) y un monton de lineas por ranura en ships.c
 WP - no-necesaria montones de la bola, del sol y de las naves y datos del polvo estelar: matrices de C (sun.c, stars.c, ships.c)
 newosrdch - no-necesaria rutina OSRDCH personalizada del BBC con procesador Tube; no aplica
-RDKEY key_scan propia lectura de las filas del teclado por IPC (keys.c)
-KYTB keys.c propia tabla de teclas de vuelo: las teclas del QL se definen en keys.h
-RDS1 ctl_read propia palanca de mando CTL1 (keys.c)
-DKS2 ctl_read propia palanca de mando CTL1 (keys.c)
-PAUSE2 plat_wait_key propia esperar una tecla ignorando la anterior
+RDKEY key_scan no-verificable lectura del teclado del Apple II; el QL usa KEYROW por IPC
+KYTB keys.c no-verificable tabla de teclas del Apple II; las del QL estan en keys.h
+RDS1 ctl_read no-verificable joystick del Apple II (paddles); en el QL son teclas CTL1
+DKS2 ctl_read no-verificable joystick del Apple II; en el QL son teclas CTL1
+PAUSE2 plat_wait_key no-verificable esperar una tecla: propio de la consola del QL
 ZEKTRAN - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
 U% - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
 DKSANYKEY - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
@@ -359,28 +359,28 @@ isfull - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa de
 findf - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
 finde - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
 rentry - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rfile load_commander propia lectura del fichero de comandante
-wfile save_commander,write_file propia escritura del fichero de comandante
-NA% cmdr_default propia datos del comandante por defecto y del ultimo guardado
-NA2% cmdr_default propia datos del comandante por defecto y del ultimo guardado
+rfile load_commander no-verificable lectura de fichero del DOS 3.3 (RWTS); el port usa fopen de QDOS
+wfile save_commander,write_file no-verificable escritura de fichero del DOS 3.3 (RWTS); el port usa fopen de QDOS
+NA% cmdr_default no-verificable area de datos del ultimo comandante guardado: en el port son las variables del comandante y el fichero de save.c
+NA2% cmdr_default verificada make test_jameson
 CHK cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
 CHK2 cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
 CHK3 cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
-COPYNAME cmdr_set_name,save_filename propia copia del nombre del comandante
-TRNME cmdr_set_name,save_filename propia copia del nombre del comandante
-TR1 cmdr_set_name,save_filename propia copia del nombre del comandante
-comnam cmdr_set_name,save_filename propia copia del nombre del comandante
-GTNMEW edit_name propia nombre del comandante
-FILEPR scr_disk propia unidad actual y errores de disco en el menu de disco
-OTHERFILEPR scr_disk propia unidad actual y errores de disco en el menu de disco
-diskerror scr_disk propia unidad actual y errores de disco en el menu de disco
-DERR1 save_errstr propia mensajes de error de disco
-DERR2 save_errstr propia mensajes de error de disco
-DERR3 save_errstr propia mensajes de error de disco
-DERR4 save_errstr propia mensajes de error de disco
-DERR5 save_errstr propia mensajes de error de disco
-ERTAB save_errstr propia mensajes de error de disco
-S1% save_dev propia unidad y directorio
+COPYNAME cmdr_set_name,save_filename no-verificable nombre del fichero del DOS: el port filtra y copia el nombre a su manera (cmdr_set_name)
+TRNME cmdr_set_name,save_filename no-verificable idem COPYNAME
+TR1 cmdr_set_name,save_filename no-verificable idem COPYNAME
+comnam cmdr_set_name,save_filename no-verificable nombre del fichero del DOS 3.3
+GTNMEW edit_name no-verificable entrada del nombre propia del port (edit_name)
+FILEPR scr_disk no-verificable menu de disco propio
+OTHERFILEPR scr_disk no-verificable menu de disco propio
+diskerror scr_disk no-verificable errores de disco de QDOS en el menu propio
+DERR1 save_errstr no-verificable mensajes de error de RWTS del DOS 3.3; QDOS tiene los suyos
+DERR2 save_errstr no-verificable idem DERR1
+DERR3 save_errstr no-verificable idem DERR1
+DERR4 save_errstr no-verificable idem DERR1
+DERR5 save_errstr no-verificable idem DERR1
+ERTAB save_errstr no-verificable idem DERR1
+S1% save_dev no-verificable unidad y directorio del DOS 3.3 del Apple II; el port usa la unidad de QDOS
 thislong - no-necesaria longitud de los nombres: en C se calcula con strlen
 oldlong - no-necesaria longitud de los nombres: en C se calcula con strlen
 WHITETEXT - no-necesaria RTS compartido con VOWEL (VRTS); en C no hace falta
@@ -492,9 +492,9 @@ THERE there verificada sistema del Constrictor, make test_missions
 TBRIEF - no-necesaria comentada en el original (Trumbles, que esta version no tiene)
 DOENTRY missions_doentry,missions_choose,flight_run,combat_collide verificada la decision de las sesiones informativas (EN1..EN5) verificada con make test_missions; se atraca por la ranura (ISDK), con el ordenador de atraque o, sin el, con C (provisional); energia y escudos se reponen al despegar
 # --- configuracion, estacion (parte 14, KS4, TT110, SOLAR) y DEATH (2026-10-17)
-TGINT tgint verificada teclas de configuracion DAXFYJKUT (config.c); el orden de las opciones es el de DAMP..DISK
-DKS3 dks3 transcripcion invierte la opcion con EOR #$FF, dos pitidos al encenderla, DELAY 20 (config.c; make test_missions comprueba D, X, Q y -)
-DK4 in_poll,freeze transcripcion teclas secundarias por caracteres (key_getchar); "=" pausa (FREEZE): Q/S sonido, DAXFYJKUT, ESC = DEATH2, "-" sigue
+TGINT tgint verificada teclas DAXFYJKUT y su orden (DAMP..DISK); make test_dk4
+DKS3 dks3 verificada invierte la opcion con EOR si la tecla coincide con TGINT,Y; make test_dk4 (2.000 pausas con teclas al azar: opciones DAMP..DISK, DNOIZ, final por "-" o ESC y teclas leidas; RDKEY, WSCAN, DELAY y BELL son stubs, los pitidos no se cuentan)
+DK4 in_poll,freeze verificada FREEZE (la pausa con "=") y sus teclas: Q/S sonido, DAXFYJKUT, ESC = DEATH2, "-" sigue; make test_dk4 (2.000 pausas con teclas al azar: opciones DAMP..DISK, DNOIZ, final por "-" o ESC y teclas leidas; RDKEY, WSCAN, DELAY y BELL son stubs, los pitidos no se cuentan). La lectura de "=" y de la tecla es de in_poll (propia)
 SOLAR ships_arrive verificada FIST a la mitad (su acarreo entra en el ADC #3), Trumbles, planeta y sol; make test_missions
 NWSPS nwsps verificada estacion en la ranura 1 (STX FRIN+1); Dodo con nivel tecnologico >= 10; make test_missions
 SOS1 sos1 verificada planeta 128/130 con giros 127; make test_missions

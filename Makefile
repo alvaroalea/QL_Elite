@@ -276,3 +276,27 @@ test_eqshp:
 	python3 tools/gen_eqshp.py 3000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_eqshp tests/test_eqshp.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_eqshp
+
+# Keyboard: DK4 (FREEZE) y DKS3 contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+test_dk4:
+	python3 tools/gen_keys.py 2000
+	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_dk4 tests/test_dk4.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	./tests/test_dk4
+
+# Save and load: el comandante JAMESON de fabrica (NA2%) contra la fuente original (necesita ELITE_SRC)
+test_jameson:
+	python3 tools/gen_jameson.py
+	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_jameson tests/test_jameson.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	./tests/test_jameson
+
+# Dashboard: DIALS, COMPAS, MSBAR, msblob, SCAN, cntr, BUMP2 y REDU2 contra el codigo ORIGINAL (necesita ELITE_SRC)
+test_dash:
+	python3 tools/gen_dash.py 2000
+	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_dash tests/test_dash.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	./tests/test_dash
+
+# Flight: PLUT, ESCAPE, MJP y TT110 contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+test_flight:
+	python3 tools/gen_flight.py 1000
+	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_flight tests/test_flight.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	./tests/test_flight

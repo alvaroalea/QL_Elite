@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 292, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 25 y pendientes de verificar: 109
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 298, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 57 y pendientes de verificar: 71
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -24,7 +24,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Drawing the screen | 18 | 8 | 7 | 1 | 10 | 0 | 0 |
 | Equipment | 6 | 6 | 5 | 1 | 0 | 0 | 0 |
 | Flight | 29 | 29 | 12 | 0 | 0 | 17 | 0 |
-| Keyboard | 19 | 15 | 1 | 0 | 4 | 14 | 0 |
+| Keyboard | 19 | 15 | 3 | 12 | 4 | 0 | 0 |
 | Loader | 5 | 0 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
 | Market | 19 | 19 | 8 | 11 | 0 | 0 | 0 |
@@ -32,7 +32,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Maths (Geometry) | 19 | 19 | 19 | 0 | 0 | 0 | 0 |
 | Missions | 16 | 10 | 10 | 0 | 6 | 0 | 0 |
 | Moving | 8 | 8 | 8 | 0 | 0 | 0 | 0 |
-| Save and load | 61 | 27 | 3 | 0 | 34 | 24 | 0 |
+| Save and load | 61 | 27 | 7 | 20 | 34 | 0 | 0 |
 | Sound | 13 | 11 | 10 | 1 | 2 | 0 | 0 |
 | Stardust | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
 | Start and end | 8 | 8 | 3 | 5 | 0 | 0 | 0 |
@@ -43,7 +43,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Universe | 34 | 32 | 32 | 0 | 2 | 0 | 0 |
 | Utility routines | 18 | 1 | 1 | 0 | 17 | 0 | 0 |
 | Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **426** | **292** | **25** | **102** | **109** | **0** |
+| **Total** | **528** | **426** | **298** | **57** | **102** | **71** | **0** |
 
 Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -261,24 +261,24 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| TGINT | The keys used to toggle configuration settings when the game is | verificada | `tgint` | teclas de configuracion DAXFYJKUT (config.c); el orden de las opciones es el de DAMP..DISK |
-| FLKB | Flush the keyboard buffer | propia | `plat_flush_input` |  |
-| PAUSE2 | Wait until a key is pressed, ignoring any existing key press | propia | `plat_wait_key` | esperar una tecla ignorando la anterior |
-| TT214 | Ask a question with a "Y/N?" prompt and return the response | propia | `scr_disk` |  |
-| YESNO | Wait until either "Y" or "N" is pressed | propia | `scr_disk` | confirmaciones Y/N dentro del menu de disco |
-| TT17 | Scan the keyboard for cursor key or joystick movement | propia | `in_held` | cursores o joystick |
-| TT102 | Process number key, save key, hyperspace and chart key presses | propia | `ui_nav` | en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos; atracado: U despega, 0 galactica, 5-9 como en vuelo |
+| TGINT | The keys used to toggle configuration settings when the game is | verificada | `tgint` | teclas DAXFYJKUT y su orden (DAMP..DISK); make test_dk4 |
+| FLKB | Flush the keyboard buffer | no-verificable | `plat_flush_input` | vaciar el buffer de teclado: propio de la consola del QL |
+| PAUSE2 | Wait until a key is pressed, ignoring any existing key press | no-verificable | `plat_wait_key` | esperar una tecla: propio de la consola del QL |
+| TT214 | Ask a question with a "Y/N?" prompt and return the response | no-verificable | `scr_disk` | pregunta Y/N propia del menu de disco |
+| YESNO | Wait until either "Y" or "N" is pressed | no-verificable | `scr_disk` | confirmacion Y/N propia del menu de disco |
+| TT17 | Scan the keyboard for cursor key or joystick movement | no-verificable | `in_held` | cursores o joystick: lectura del teclado del QL (keys.c), sin equivalente comparable |
+| TT102 | Process number key, save key, hyperspace and chart key presses | no-verificable | `ui_nav` | despacho de teclas a pantallas con la disposicion de teclas del QL |
 | ZEKTRAN | Clear the key logger | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
-| RDS1 | Scan one axis of the joystick and return its position | propia | `ctl_read` | palanca de mando CTL1 (keys.c) |
-| RDKEY | Scan the keyboard for key presses and the joystick, and update the | propia | `key_scan` | lectura de las filas del teclado por IPC (keys.c) |
-| KYTB | Lookup table for in-flight keyboard controls | propia | `keys.c` | tabla de teclas de vuelo: las teclas del QL se definen en keys.h |
+| RDS1 | Scan one axis of the joystick and return its position | no-verificable | `ctl_read` | joystick del Apple II (paddles); en el QL son teclas CTL1 |
+| RDKEY | Scan the keyboard for key presses and the joystick, and update the | no-verificable | `key_scan` | lectura del teclado del Apple II; el QL usa KEYROW por IPC |
+| KYTB | Lookup table for in-flight keyboard controls | no-verificable | `keys.c` | tabla de teclas del Apple II; las del QL estan en keys.h |
 | DKSANYKEY | An unused routine that scans the keyboard to detect whether any | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
-| DKS2 | Read the joystick position | propia | `ctl_read` | palanca de mando CTL1 (keys.c) |
-| DKS3 | Toggle a configuration setting and emit a beep | transcripcion | `dks3` | invierte la opcion con EOR |
+| DKS2 | Read the joystick position | no-verificable | `ctl_read` | joystick del Apple II; en el QL son teclas CTL1 |
+| DKS3 | Toggle a configuration setting and emit a beep | verificada | `dks3` | invierte la opcion con EOR si la tecla coincide con TGINT,Y; make test_dk4 (2.000 pausas con teclas al azar: opciones DAMP..DISK, DNOIZ, final por "-" o ESC y teclas leidas; RDKEY, WSCAN, DELAY y BELL son stubs, los pitidos no se cuentan) |
 | U% | Clear the key logger | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
-| DOKEY | Scan for the seven primary flight controls and apply the docking | propia | `ctl_read` | cursores = alabeo y cabeceo, F acelera, D frena, A o espacio disparan; JSTX/JSTY los calcula space_controls |
-| DK4 | Scan for pause, configuration and secondary flight keys | transcripcion | `in_poll`, `freeze` | teclas secundarias por caracteres (key_getchar); "=" pausa (FREEZE): Q/S sonido, DAXFYJKUT, ESC = DEATH2, "-" sigue |
-| TT217 | Scan the keyboard until a key is pressed | propia | `in_wait` |  |
+| DOKEY | Scan for the seven primary flight controls and apply the docking | no-verificable | `ctl_read` | lectura de las teclas de vuelo con la disposicion del QL; el tramo del ordenador de atraque esta verificado en make test_equip |
+| DK4 | Scan for pause, configuration and secondary flight keys | verificada | `in_poll`, `freeze` | FREEZE (la pausa con "=") y sus teclas: Q/S sonido, DAXFYJKUT, ESC = DEATH2, "-" sigue; make test_dk4 (2.000 pausas con teclas al azar: opciones DAMP..DISK, DNOIZ, final por "-" o ESC y teclas leidas; RDKEY, WSCAN, DELAY y BELL son stubs, los pitidos no se cuentan). La lectura de "=" y de la tecla es de in_poll (propia) |
+| TT217 | Scan the keyboard until a key is pressed | no-verificable | `in_wait` | esperar una tecla: propio de la consola del QL |
 | KTRAN | An unused key logger buffer that's left over from the 6502 Second | no-necesaria |  | registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo |
 
 ## Loader (0 portadas de 5, 5 no necesarias)
@@ -442,35 +442,35 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 |---|---|---|---|---|
 | wtable | 6-bit to 7-bit nibble conversion table | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
 | BRKBK | Set the standard BRKV handler for the game | no-necesaria |  | manejador de errores BRK del 6502; el runtime de C se ocupa de los errores |
-| NA% | The data block for the last saved commander | propia | `cmdr_default` | datos del comandante por defecto y del ultimo guardado |
+| NA% | The data block for the last saved commander | no-verificable | `cmdr_default` | area de datos del ultimo comandante guardado: en el port son las variables del comandante y el fichero de save.c |
 | CHK2 | Second checksum byte for the saved commander data file | verificada | `cmdr_check`, `cmdr_check2` | bytes de comprobacion (verificadas con el 6502) |
 | CHK3 | Third checksum byte for the saved commander data file | verificada | `cmdr_check`, `cmdr_check2` | bytes de comprobacion (verificadas con el 6502) |
 | CHK | First checksum byte for the saved commander data file | verificada | `cmdr_check`, `cmdr_check2` | bytes de comprobacion (verificadas con el 6502) |
-| S1% | The drive and directory number used when saving or loading a | propia | `save_dev` | unidad y directorio |
-| NA2% | The data block for the default commander | propia | `cmdr_default` | datos del comandante por defecto y del ultimo guardado |
-| CHECK | Calculate the checksum for the last saved commander data block | transcripcion | `cmdr_check` |  |
-| CHECK2 | Calculate the third checksum for the last saved commander data | transcripcion | `cmdr_check2` |  |
-| JAMESON | Restore the default JAMESON commander | sin-verificar | `cmdr_default` |  |
-| COPYNAME | Copy the last saved commander's name from INWK+5 to comnam and pad | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
-| TRNME | Copy the last saved commander's name from INWK to NA% | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
-| TR1 | Copy the last saved commander's name from NA% to INWK | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
-| GTNMEW | Fetch the name of a commander file to save or load | propia | `edit_name` | nombre del comandante |
-| FILEPR | Display the currently selected media (disk or tape) | propia | `scr_disk` | unidad actual y errores de disco en el menu de disco |
-| OTHERFILEPR | Display the non-selected media (disk or tape) | propia | `scr_disk` | unidad actual y errores de disco en el menu de disco |
-| SVE | Display the disk access menu and process saving of commander files | propia | `scr_disk` |  |
-| diskerror | Print a disk error, make a beep and wait for a key press | propia | `scr_disk` | unidad actual y errores de disco en el menu de disco |
+| S1% | The drive and directory number used when saving or loading a | no-verificable | `save_dev` | unidad y directorio del DOS 3.3 del Apple II; el port usa la unidad de QDOS |
+| NA2% | The data block for the default commander | verificada | `cmdr_default` | make test_jameson |
+| CHECK | Calculate the checksum for the last saved commander data block | verificada | `cmdr_check` | make test_start (DFAULT con CHECK real: la suma del port coincide en 1.000 bloques) y make test_jameson |
+| CHECK2 | Calculate the third checksum for the last saved commander data | verificada | `cmdr_check2` | make test_start (DFAULT con CHECK2 real) y make test_jameson |
+| JAMESON | Restore the default JAMESON commander | verificada | `cmdr_default` | make test_jameson: los 76 bytes de NA2% (Q% = FALSE) ensamblados de la fuente son los de cmdr_default (COK con el bit 3 que pone DFAULT; CHK2/CHK3/CHK de fabrica = sumas del bloque) |
+| COPYNAME | Copy the last saved commander's name from INWK+5 to comnam and pad | no-verificable | `cmdr_set_name`, `save_filename` | nombre del fichero del DOS: el port filtra y copia el nombre a su manera (cmdr_set_name) |
+| TRNME | Copy the last saved commander's name from INWK to NA% | no-verificable | `cmdr_set_name`, `save_filename` | idem COPYNAME |
+| TR1 | Copy the last saved commander's name from NA% to INWK | no-verificable | `cmdr_set_name`, `save_filename` | idem COPYNAME |
+| GTNMEW | Fetch the name of a commander file to save or load | no-verificable | `edit_name` | entrada del nombre propia del port (edit_name) |
+| FILEPR | Display the currently selected media (disk or tape) | no-verificable | `scr_disk` | menu de disco propio |
+| OTHERFILEPR | Display the non-selected media (disk or tape) | no-verificable | `scr_disk` | menu de disco propio |
+| SVE | Display the disk access menu and process saving of commander files | no-verificable | `scr_disk` | menu de disco propio; el cifrado MUTILATE y el fichero del DOS 3.3 no se portan (formato propio ELQD) |
+| diskerror | Print a disk error, make a beep and wait for a key press | no-verificable | `scr_disk` | errores de disco de QDOS en el menu propio |
 | thislong | Contains the length of the most recently entered commander name | no-necesaria |  | longitud de los nombres: en C se calcula con strlen |
 | oldlong | Contains the length of the last saved commander name | no-necesaria |  | longitud de los nombres: en C se calcula con strlen |
-| LOD | Load a commander file | propia | `load_commander` |  |
-| DERR1 | The error message for when a disk is write protected | propia | `save_errstr` | mensajes de error de disco |
-| DERR2 | The error message for when a disk is full | propia | `save_errstr` | mensajes de error de disco |
-| DERR3 | The error message for when a disk catalog is full | propia | `save_errstr` | mensajes de error de disco |
-| DERR4 | The error message for when there is a disk I/O error | propia | `save_errstr` | mensajes de error de disco |
-| DERR5 | The error message for when a file is not found | propia | `save_errstr` | mensajes de error de disco |
-| ERTAB | A lookup table for the five disk error messages | propia | `save_errstr` | mensajes de error de disco |
-| comnam | Storage for the commander filename, padded out with spaces to a | propia | `cmdr_set_name`, `save_filename` | copia del nombre del comandante |
-| rfile | Read a commander file from a DOS disk into the buffer | propia | `load_commander` | lectura del fichero de comandante |
-| wfile | Write a commander file from the buffer to a DOS disk | propia | `save_commander`, `write_file` | escritura del fichero de comandante |
+| LOD | Load a commander file | no-verificable | `load_commander` | carga de fichero de QDOS (formato propio ELQD, make test_save); validacion CHK/CHK3/CHK2 verificada con make test_start |
+| DERR1 | The error message for when a disk is write protected | no-verificable | `save_errstr` | mensajes de error de RWTS del DOS 3.3; QDOS tiene los suyos |
+| DERR2 | The error message for when a disk is full | no-verificable | `save_errstr` | idem DERR1 |
+| DERR3 | The error message for when a disk catalog is full | no-verificable | `save_errstr` | idem DERR1 |
+| DERR4 | The error message for when there is a disk I/O error | no-verificable | `save_errstr` | idem DERR1 |
+| DERR5 | The error message for when a file is not found | no-verificable | `save_errstr` | idem DERR1 |
+| ERTAB | A lookup table for the five disk error messages | no-verificable | `save_errstr` | idem DERR1 |
+| comnam | Storage for the commander filename, padded out with spaces to a | no-verificable | `cmdr_set_name`, `save_filename` | nombre del fichero del DOS 3.3 |
+| rfile | Read a commander file from a DOS disk into the buffer | no-verificable | `load_commander` | lectura de fichero del DOS 3.3 (RWTS); el port usa fopen de QDOS |
+| wfile | Write a commander file from the buffer to a DOS disk | no-verificable | `save_commander`, `write_file` | escritura de fichero del DOS 3.3 (RWTS); el port usa fopen de QDOS |
 | findf | Search the disk catalog for an existing file | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
 | finde | Search the disk catalog for an empty file entry | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
 | rentry | Search the disk catalog for an existing file or an empty file | no-necesaria |  | RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c) |
