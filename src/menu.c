@@ -33,16 +33,18 @@ void ui_clear(void)
 
 static int slen(const char *s) { int n = 0; while (s[n]) n++; return n; }
 
-void ui_title(const char *t)
+static void ui_title_bg(const char *t, u8 bg)
 {
     int n = slen(t), col;
-    txt_color(C_YELLOW, C_BLUE);
-    txt_clear_rows(0, 1, C_BLUE);
+    txt_color(C_YELLOW, bg);
+    txt_clear_rows(0, 1, bg);
     col = (TXT_COLS - n) / 2;
     if (col < 0) col = 0;
     txt_print_at(col, 0, t);
     txt_color(C_WHITE, C_BLACK);
 }
+
+void ui_title(const char *t) { ui_title_bg(t, C_BLUE); }
 
 /* titulo de las cartas: como el de STATUS y DATA (fila 1, amarillo sobre negro, centrado); la linea azul de debajo la dibuja la carta */
 static void ui_title_row1(const char *t)
@@ -120,10 +122,20 @@ int ui_nav(int ch)
         case '0': return SC_INVENTORY;
         case 'h': return SC_HYPER;
         case 'g': return SC_GHYPER;
+#ifdef DEBUG
+        case '!': return SC_DBG_BUY;                   /* SHIFT-1/2/3 (el UK de los menus) */
+        case '@': return SC_DBG_SELL;
+        case '#': return SC_DBG_EQUIP;
+#endif
         }
         return -1;
     }
     switch (ch) {
+#ifdef DEBUG
+    case '!': return SC_DBG_BUY;
+    case '@': return SC_DBG_SELL;
+    case '#': return SC_DBG_EQUIP;
+#endif
     case 'u': return SC_LAUNCH;                        /* U = undock */
     case '1': return SC_BUY;
     case '2': return SC_SELL;
@@ -257,14 +269,15 @@ static void trade_info(int buying, int sel, const char *entry)
     txt_color(C_WHITE, C_BLACK);
 }
 
-static int trade_screen(int buying)
+static int trade_screen(int buying, int dbg)
 {
     int sel = 0, ch, i, nlen = 0, r;
     unsigned qty;
     char entry[4];
     entry[0] = 0;
     ui_clear();
-    ui_title(buying ? "BUY CARGO" : "SELL CARGO");
+    if (dbg) ui_title_bg(buying ? "BUY CARGO (DEBUG: FREE)" : "SELL CARGO (DEBUG: KEEP)", C_RED);
+    else ui_title(buying ? "BUY CARGO" : "SELL CARGO");
     market_header();
     for (i = 0; i < NGOODS; i++) market_row(i, 3 + i, i == sel);
     trade_info(buying, sel, entry);
@@ -307,8 +320,31 @@ static int trade_screen(int buying)
     }
 }
 
-int scr_buy(void)  { return trade_screen(1); }
-int scr_sell(void) { return trade_screen(0); }
+int scr_buy(void)  { return trade_screen(1, 0); }
+int scr_sell(void) { return trade_screen(0, 0); }
+
+#ifdef DEBUG
+/* DEBUG: compra gratis, venta sin quitar carga y equipo completo gratis (titulo en rojo) */
+static int scr_dbg_trade(int buying)
+{
+    int r;
+    dbg_free = 1;
+    r = trade_screen(buying, 1);
+    dbg_free = 0;
+    return r;
+}
+
+static int equip_screen(int dbg);
+
+static int scr_dbg_equip(void)
+{
+    int r;
+    dbg_free = 1;
+    r = equip_screen(1);
+    dbg_free = 0;
+    return r;
+}
+#endif
 
 /* ---------------------------------------------------------------- equipo */
 
@@ -322,12 +358,13 @@ static void equip_row(int i, int row, int hl)
     txt_color(C_WHITE, C_BLACK);
 }
 
-int scr_equip(void)
+static int equip_screen(int dbg)
 {
     int n = equip_count(), sel = 0, ch, i, r, view;
     static const char *vn[4] = { "FRONT", "REAR", "LEFT", "RIGHT" };
     ui_clear();
-    ui_title("EQUIP SHIP");
+    if (dbg) ui_title_bg("EQUIP SHIP (DEBUG: FREE)", C_RED);
+    else ui_title("EQUIP SHIP");
     for (;;) {
         for (i = 0; i < n; i++) equip_row(i, 2 + i, i == sel);
         txt_clear_rows(21, 8, C_BLACK);
@@ -391,6 +428,8 @@ int scr_equip(void)
         if (sel >= 0 && n != equip_count()) n = equip_count();
     }
 }
+
+int scr_equip(void) { return equip_screen(0); }
 
 /* ---------------------------------------------------------------- datos del sistema */
 
@@ -628,8 +667,10 @@ int scr_title(void)
     if (patg) txt_print_at(0, 27, "BY D.BRABEN & I.BELL");      /* PATG: autores (ficha 13 del original) */
     txt_print_at(0, 28, "QL PORT FROM THE APPLE II CODE");
     txt_print_at(0, 29, "by A.Alea & Claude 2026 R " ELITE_VERSION);
-    txt_color(dash_loaded() ? C_GREEN : C_RED, C_BLACK);
-    txt_print_at(0, 30, dash_loaded() ? "PANEL LOADED: DISK CAN BE REMOVED" : "NO ELITE_DASH FILE (BASIC PANEL)");
+    if (!dash_loaded()) {                            /* la carga correcta es invisible; solo se avisa si falta el fichero */
+        txt_color(C_RED, C_BLACK);
+        txt_print_at(0, 30, "NO ELITE_DASH FILE (BASIC PANEL)");
+    }
     shipview_draw(SHIPT_COBRA_MK_3, 0, 0, TITLE_Z, ay, 10, title_heap, state_slot(0), 1);
     for (;;) {
         ch = in_poll();
@@ -672,6 +713,11 @@ int scr_dispatch(int sc)
     case SC_MARKET:    return scr_market();
     case SC_INVENTORY: return scr_inventory();
     case SC_DISK:      return scr_disk();
+#ifdef DEBUG
+    case SC_DBG_BUY:   return scr_dbg_trade(1);
+    case SC_DBG_SELL:  return scr_dbg_trade(0);
+    case SC_DBG_EQUIP:  return scr_dbg_equip();
+#endif
     }
     return sc;
 }

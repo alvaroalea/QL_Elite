@@ -2,7 +2,10 @@
 .DEFAULT_GOAL := disk
 # Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=pre0.3
 VERSION ?= pre0.2
-VERDEF = -DELITE_VERSION='"$(VERSION)"'
+# Funciones de depuracion (SHIFT-1/2/3 compra/venta/combustible gratis, SHIFT-C/P/H en vuelo): make DEBUG= para quitarlas
+DEBUG ?= 1
+DBGDEF = $(if $(DEBUG),-DDEBUG)
+VERDEF = $(DBGDEF) -DELITE_VERSION='"$(VERSION)"'
 COMMON = src/gfx.c src/text.c
 
 host:

@@ -67,6 +67,10 @@ const char *laser_name(u8 v);            /* nombre del laser segun su valor */
 
 /* ---- hiperespacio ---- */
 unsigned jump_distance(int idx);         /* decimas de anio luz desde el sistema actual */
+#ifdef DEBUG
+extern int dbg_free;                     /* DEBUG: comprar no gasta creditos y vender no quita carga */
+extern int dbg_range;                    /* DEBUG: el proximo salto ignora el limite de combustible */
+#endif
 int  jump_possible(int idx);             /* 1 si idx != actual y hay combustible */
 int  jump_do(int idx);                   /* gasta combustible y llega; 0 si no era posible */
 int  jump_galactic(void);                /* necesita hiperimpulsor galactico; pasa a la galaxia siguiente */

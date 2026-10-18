@@ -230,7 +230,12 @@ static void start_hyper(int galactic)
         if (!ghyp) { say("NO GALACTIC HYPERDRIVE", 1); snd_boop(); return; }
     } else {
         game_tt111();                      /* hyp: TTX110 (o hm en las cartas) llama a TT111 antes de TTX111 */
-        if (tgt_sys == cur_sys) { say("NO TARGET SELECTED", 1); snd_boop(); return; }
+        if (tgt_sys == cur_sys) {
+#ifdef DEBUG
+            dbg_range = 0;
+#endif
+            say("NO TARGET SELECTED", 1); snd_boop(); return;
+        }
         if (!jump_possible(tgt_sys)) { say("OUT OF RANGE", 1); snd_boop(); return; }
     }
     hyper = 15; hyper_gal = galactic; hyper_tick = 0;
@@ -294,6 +299,9 @@ static void arrive(void)
         }
     }
     ok = hyper_gal ? jump_galactic() : jump_do(tgt_sys);
+#ifdef DEBUG
+    dbg_range = 0;
+#endif
     hyper = 0;
     if (ecma) ecm_off();                                    /* RES2 */
     if (!(mstg & 0x80)) abort_missile(MS_GREEN);
@@ -408,6 +416,15 @@ int flight_run(void)
         ch = in_poll();
         if (ch == KC_QUIT) { key_ctx_menu(); return FL_QUIT; }
         if (ch >= 0) {
+#ifdef DEBUG
+            if (ch == 'C') { dock_auto = 0xFF; ch = -1; }                          /* SHIFT-C: atraque automatico, como con ordenador */
+            else if (ch == 'P') { snd_off(); key_ctx_menu(); return FL_DOCK; }     /* SHIFT-P: atraque instantaneo */
+            else if (ch == 'J') {                                                  /* SHIFT-J: la estacion aparece cerca, delante */
+                if (ships_dbg_near_station()) say("STATION NEARBY", 0); else say("NO STATION HERE", 1);
+                ch = -1;
+            }
+            else if (ch == 'H') { dbg_range = 1; ch = 'h'; }                       /* SHIFT-H: salta aunque no llegue el combustible */
+#endif
             ch = in_up(ch);
             if (ch == 'c') {                                /* KY19: ordenador de atraque si lo llevamos (MA64: STA auto) */
                 if (dkcmp) dock_auto = dkcmp;

@@ -23,6 +23,9 @@ void ships_launch(void);                         /* planeta (ranura 0) y estacio
 void ships_arrive(void);
 int  ships_part14(u8 mc);                       /* parte 14: aparece la estacion cerca del planeta (1 si aparece) */                         /* planeta y sol (SOLAR) tras el hiperespacio */
 int  ships_spawn(u8 type);                       /* contacto de prueba delante de la nave; devuelve la ranura o -1 */
+#ifdef DEBUG
+int  ships_dbg_near_station(void);              /* DEBUG (SHIFT-J): estacion delante de nosotros; 0 si no hay */
+#endif
 int  ships_explode_nearest(void);                /* prueba: hace explotar la nave mas cercana (no planeta ni estacion); devuelve la ranura o -1 */
 u8   ships_step(u8 view);                        /* un fotograma: mueve, dibuja, borra y quita naves; devuelve SHIPS_EV_* */
 void ships_hooks(void);                          /* pone DOEXP y PLANET como ganchos de LL9 */

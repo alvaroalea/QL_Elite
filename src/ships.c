@@ -278,6 +278,22 @@ int ships_part14(u8 mc)
     return 1;
 }
 
+#ifdef DEBUG
+/* DEBUG (SHIFT-J): coloca la estacion (ranura 1) delante de nosotros, a z = 1024 unidades, quieta; 0 si no hay estacion en el sistema */
+int ships_dbg_near_station(void)
+{
+    u8 *p;
+    int i;
+    if (!sspr) return 0;
+    ships_erase_all();                                   /* sus lineas dibujadas se borran antes de moverla */
+    p = state_slot(1);
+    for (i = 0; i < 9; i++) p[i] = 0;
+    p[7] = 4;                                            /* z = +1024 (hi = 4, signo +) */
+    p[I_SPEED] = 0;
+    return 1;
+}
+#endif
+
 /* ---------------------------------------------------------------- contactos de prueba */
 
 int ships_spawn(u8 type)
@@ -495,11 +511,13 @@ void planet(void)
     em_dvid3b(0, (u8)(inwk[6] | 1), inwk[7], inwk[8]);   /* DVID3B2 */
     if (zK[1] != 0) zK[0] = 248;
     if (ztype & 1) { sun_draw(); return; }
+    sun_col = C_BLUE;                                    /* propio: el planeta siempre azul (el original usa el COL que haya quedado) */
     circle_wpls2();                                      /* PL9: borra el circulo anterior y dibuja el nuevo */
     circle_draw();
     return;
 pl2:
     sun = ztype & 1;
+    sun_col = sun ? C_RED : C_BLUE;                      /* el borrado XOR debe usar el color con que se dibujo */
     if (sun) sun_wpls(); else circle_wpls2();
 }
 

@@ -55,6 +55,9 @@ void key_ctx_flight(void)
 {
     u8 fast = 0x1A, slow = 0xE5;
     if (ctl_joystick == 2) { fast |= 1; slow &= (u8)~1; }
+#ifdef DEBUG
+    fast |= 0x80; slow &= (u8)~0x80;                         /* SHIFT (fila 7) sin retraso para SHIFT-C/P/H/1/2/3 */
+#endif
     key_set_scan(fast, slow);
 }
 

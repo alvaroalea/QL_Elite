@@ -22,6 +22,9 @@
 #define SC_VIEW2     15
 #define SC_VIEW3     16
 #define SC_HYPER     17                  /* en vuelo: H, salto de hiperespacio */
+#define SC_DBG_BUY   19                  /* DEBUG: SHIFT-1, SHIFT-2, SHIFT-3 */
+#define SC_DBG_SELL  20
+#define SC_DBG_EQUIP  21
 #define SC_GHYPER    18                  /* en vuelo: G, salto galactico */
 
 #define TITLE_NEW  1

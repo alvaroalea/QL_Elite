@@ -169,6 +169,10 @@ unsigned trade_max_buy(int good)
     return n;
 }
 
+#ifdef DEBUG
+int dbg_free = 0, dbg_range = 0;
+#endif
+
 int trade_buy(int good, unsigned qty)
 {
     unsigned long cost;
@@ -178,6 +182,9 @@ int trade_buy(int good, unsigned qty)
     cost = (unsigned long)mkt.price[good] * qty;
 #if TRADE_FAITHFUL
     cost &= 0xFFFFUL;                                 /* GCASH: (Y X) = precio * cantidad * 4 en 16 bits */
+#endif
+#ifdef DEBUG
+    if (!dbg_free)
 #endif
     if (!cash_spend(cost)) return TR_NOCASH;
     qq20[good] = (u8)(qq20[good] + qty);
@@ -190,6 +197,9 @@ int trade_sell(int good, unsigned qty)
 {
     if (good < 0 || good >= NGOODS || qty == 0 || qq20[good] == 0) return TR_NONE;
     if (qty > qq20[good]) return TR_NOSTOCK;
+#ifdef DEBUG
+    if (!dbg_free)
+#endif
     qq20[good] = (u8)(qq20[good] - qty);
     {
         unsigned long amount = (unsigned long)mkt.price[good] * qty;
@@ -244,6 +254,9 @@ int equip_buy(int item, int view)
         newlaser = (item == 4) ? LASER_POW : (item == 5) ? LASER_BEAM : (item == 12) ? LASER_MIL : LASER_MINING;
     }
     price = equip_price(item);
+#ifdef DEBUG
+    if (dbg_free) price = 0;                         /* DEBUG: todo gratis */
+#endif
     if (!cash_spend(price)) return EQ_NOCASH;       /* eq: cobra primero (sin dinero se avisa aunque ya lo tengas) */
     switch (item) {                                  /* pres: si ya lo tienes, MCASH devuelve lo cobrado */
     case 1: if (nomsl >= 4) goto present; break;
@@ -269,6 +282,9 @@ int equip_buy(int item, int view)
     case 10: dkcmp = 0xFF; break;
     case 11: ghyp = 0xFF; break;
     default:                                         /* lasers: cobra primero y devuelve el antiguo despues, como EQSHP */
+#ifdef DEBUG
+        if (!dbg_free)
+#endif
         cash_earn(laser_refund(laser[view]));
         laser[view] = newlaser;
         break;
@@ -328,6 +344,9 @@ unsigned jump_distance(int idx)
 int jump_possible(int idx)
 {
     if (idx == cur_sys && !mj) return 0;
+#ifdef DEBUG
+    if (dbg_range) return 1;
+#endif
     return jump_distance(idx) <= qq14;
 }
 
@@ -336,7 +355,7 @@ int jump_do(int idx)
     unsigned d;
     if (!jump_possible(idx)) return 0;
     d = jump_distance(idx);
-    qq14 = (u8)(qq14 - d);
+    qq14 = (u8)(qq14 >= d ? qq14 - d : 0);
     game_enter_system(idx, 1);
     mj = 0;                                        /* se sale del hiperespacio al llegar a un sistema */
     return 1;
