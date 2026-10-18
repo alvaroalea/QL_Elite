@@ -167,7 +167,7 @@ int main(void)
             memcpy(em_rand, r, 4); em_rand_c = (u8)atoi(tok[6]);
             sfs1((u8)atoi(tok[3]), (u8)ch);
             ok = frin[3] == ch && atoi(tok[7]) == ch && memcmp(inwk, keep, NI) == 0 && memcmp(em_rand, ro, 4) == 0;
-            for (i = 0; i < NI; i++) if (i != 31 && i != 35 && i != 36) ok = ok && state_slot(3)[i] == got[i];
+            for (i = 0; i < NI; i++) if (i != 31 && i != 33 && i != 34 && i != 35 && i != 36) ok = ok && state_slot(3)[i] == got[i];
             if (!ok && getenv("ALLF")) { printf("  C: frin3 %d rnd %02x%02x%02x%02x keep %d slot3 ", frin[3], em_rand[0], em_rand[1], em_rand[2], em_rand[3], memcmp(inwk, keep, NI) == 0);
                 for (i = 0; i < NI; i++) printf("%02x", state_slot(3)[i]);
                 printf("\n"); }

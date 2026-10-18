@@ -22,6 +22,15 @@ extern void (*dt_nlin4_hook)(void);          /* NLIN4: linea bajo el titulo */
 extern void (*dt_clyns_hook)(void);          /* CLYNS: borra la parte de abajo de la pantalla */
 extern void (*dt_name_hook)(u8 which);       /* nombres de sistema por TT27: 2 = actual (ypl), 3 = seleccionado (cpl) */
 
+void dt_bprnt(const u8 *k4, u8 u, u8 c);     /* BPRNT: K(0..3) (byte alto primero) con u cifras; c = punto antes de la ultima */
+void dt_tt11(u8 a, u8 x, u8 y, u8 c);        /* TT11: (y x) con a cifras */
+void dt_pr2(u8 x, u8 c);                     /* pr2: x con 3 cifras */
+void dt_pr5(u8 x, u8 y, u8 c);               /* pr5: (y x) con 5 cifras */
+void dt_pr6(u8 x, u8 y);                     /* pr6: (y x) con 5 cifras, sin punto */
+void dt_csh(void);                           /* csh */
+void dt_fwl(void);                           /* fwl */
+void dt_tt67(void); void dt_tt69(void); void dt_ttx69(void); void dt_tt60(u8 a); void dt_tt162(void);
+void dt_spc(u8 a); void dt_prq(u8 a); void dt_tt73(void); void dt_tt68(u8 a); void dt_plf(u8 a); void dt_plf2(u8 a); void dt_feed(void);
 void dt_reset(void);                         /* valores iniciales de DTW1..DTW8 (los del original al cargar) */
 void dt_chpr(u8 a);                          /* CHPR */
 void dt_dasc(u8 a);                          /* DASC / TT26 (con justificacion si DTW4 bit 7) */

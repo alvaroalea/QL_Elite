@@ -40,14 +40,31 @@ void ship_zinf(void)
 static void put_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) p[i] = inwk[i]; }
 static void get_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) inwk[i] = p[i]; }
 
+/* Monton de lineas del original (SLSP): baja desde LS% = $0B5F y cada nave (salvo la estacion y los planetas) toma el
+   byte 5 de su plano; la direccion de su monton va en los bytes 33 y 34 de su bloque. NWSHP falla si el monton nuevo
+   quedaria a menos de NI% bytes por encima del bloque de la ranura en K% ($0800); KILLSHP baja los montones (KS3). En el
+   port los montones son propios (heaps), pero se lleva la cuenta del original para que haya las mismas naves */
+#define ORIG_LS 0x0B5F
+#define ORIG_K  0x0800
+#define ORIG_LSO 0x0600
+u16 orig_slsp = ORIG_LS;
+
 int ship_new(u8 type)
 {
     int n;
     const u8 *bp;
+    long d;
     for (n = 0; n < NOSH; n++) if (frin[n] == 0) break;
     if (n >= NOSH) return -1;
     if (!(type & 0x80)) {                              /* NW6: energia y banderas de linea del plano */
         bp = ship_bp_for(type);
+        if (type != SHIPT_CORIOLIS) {                  /* NW1: sitio en el monton (SLSP) */
+            u16 hp = (u16)(orig_slsp - bp[5]);
+            d = (long)hp - (ORIG_K + (long)n * NI);
+            if (d < NI) return -1;                     /* BCC NW3+1 / CPY #NI%: C = 0 */
+            inwk[33] = (u8)hp; inwk[34] = (u8)(hp >> 8);
+            orig_slsp = hp;                            /* NW4 */
+        }
         inwk[35] = bp[14];
         inwk[31] = (u8)(bp[19] & 7);
         inwk[36] = (u8)(inwk[36] | (e_newb[type] & 0x6F));
@@ -91,6 +108,16 @@ void ship_kill(int n)
     if (type == SHIPT_CONSTRICTOR) { tp = (u8)(tp | 0x02); tally[1]++; }   /* mision 1: Constrictor destruido */
     if (type < 128 && many[type]) many[type]--;
     if ((type == SHIPT_ROCK_HERMIT || (type >= SHIPT_ESCAPE_POD && type < SHIPT_SHUTTLE + 2)) && junk_count) junk_count--;
+    if (type < 128) {                                    /* KS2..KS3: el monton del original sube */
+        u8 *sl = state_slot(n);
+        u16 pp = (u16)((sl[33] | (sl[34] << 8)) + ship_bp_for(type)[5]);
+        for (j = n + 1; j < NOSH && frin[j]; j++) {
+            if (frin[j] & 0x80) continue;
+            pp = (u16)(pp - ship_bp_for(frin[j])[5]);
+            state_slot(j)[33] = (u8)pp; state_slot(j)[34] = (u8)(pp >> 8);   /* el bloque se copia despues a la ranura j - 1 */
+        }
+        orig_slsp = pp;
+    }
     for (j = n; j < NOSH - 1; j++) {
         frin[j] = frin[j + 1];
         for (i = 0; i < NI; i++) state_slot(j)[i] = state_slot(j + 1)[i];
@@ -109,6 +136,7 @@ void ships_clear(void)
     for (n = 0; n < NOSH; n++) for (i = 0; i < HEAP_BYTES; i++) heaps[n][i] = 0;
     for (n = 0; n <= NTY; n++) many[n] = 0;
     junk_count = 0;
+    orig_slsp = ORIG_LS;                               /* RES2: SLSP = LS% */
 }
 
 /* Borra las lineas dibujadas de la nave de la ranura n (monton de lineas) */
@@ -153,6 +181,7 @@ static void nwsps(void)
     frin[1] = 0;                                         /* STX FRIN+1: la estacion sustituye al sol */
     inwk[29] = 0xFF;
     inwk[10] = (u8)(inwk[10] ^ 0x80); inwk[12] = (u8)(inwk[12] ^ 0x80); inwk[14] = (u8)(inwk[14] ^ 0x80);
+    inwk[33] = (u8)ORIG_LSO; inwk[34] = (u8)(ORIG_LSO >> 8);        /* monton LSO */
     ship_new(SHIPT_CORIOLIS);                            /* Dodo si el nivel tecnologico es 10 o mas (ship_bp_for) */
 }
 

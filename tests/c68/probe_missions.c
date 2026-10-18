@@ -40,7 +40,7 @@ int main(void)
     fin();
     for (i = 2; i < 256; i++) { if (i == 5 || i == 119 || i == 125 || i == 199 || i == 225) continue; st(i); dt_tt27((u8)i); hb(dtw5); hb(qq17); }
     fin();
-    for (i = 1; i <= dt_nru(); i++) { st(0); tp = 1; qq8[0] = qq8[1] = 0; qq12 = 0x80; gcnt = (u8)(dt_rugal((u8)i) & 0x7F); hb((u8)pdesc(dt_rupla((u8)i))); }
+    for (i = 1; i <= dt_nru(); i++) { st(0); tp = 1; qq8[0] = qq8[1] = 0; qq12 = 0x80; gcnt = (u8)(dt_rugal((u8)i) & 0x7F); hb((u8)pdesc(dt_rupla((u8)i), 0)); }
     fin();
     for (i = 0; i < 256; i++) { tp = (u8)i; tally[1] = (u8)(i * 7); gcnt = (u8)(i % 4); qq0 = (u8)(i & 1 ? 215 : 63); qq1 = (u8)(i & 1 ? 84 : 72); hb((u8)missions_choose()); }
     fin();
@@ -52,6 +52,11 @@ int main(void)
         for (k = 0; k < NOSH; k++) { int j; hb(frin[k]); for (j = 0; j < NI; j++) hb(state_slot(k)[j]); }
         hb(enc_ev); hb(junk_count); hb(enc_c);
     }
+    fin();
+    { u8 k4[4]; for (i = 0; i < 200; i++) { k4[0] = (u8)(i * 7); k4[1] = (u8)(i * 13); k4[2] = (u8)(i * 29); k4[3] = (u8)i; st(i); dt_bprnt(k4, (u8)(1 + i % 11), (u8)(i & 1)); } }
+    fin();
+    for (i = 0; i < 32; i++) { u8 q[6]; q[0] = (u8)i; q[1] = (u8)(i * 3); q[2] = (u8)(i * 5); q[3] = (u8)(i * 7); q[4] = (u8)(i * 37); q[5] = (u8)(i * 11);
+        st(0); qq12 = 0x80; qq8[0] = (u8)i; qq8[1] = 0; tt25_raw(q, (u8)(i & 7), (u8)((i >> 1) & 7), (u8)(i % 15), (u8)(i * 2), (u8)i, 1, (u8)i, 0, (u8)i); }
     fin();
     gfx_clear(C_BLACK);
     for (i = 0; i < nh; i++) { screen[2 * i] = (u8)hv[i]; screen[2 * i + 1] = (u8)(hv[i] >> 8); }

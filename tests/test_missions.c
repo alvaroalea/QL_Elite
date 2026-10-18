@@ -82,6 +82,8 @@ static void t_case(char **a)
     hexb(a[17], zk3, 14);
     strcpy(nm_sel, strcmp(a[18], "-") ? a[18] : ""); strcpy(nm_cur, strcmp(a[19], "-") ? a[19] : "");
     strcpy(cmdr_name, a[20]);
+    hexb(a[21], cash, 4); qq14 = (u8)atoi(a[22]);
+    a += 2;
     glen = 0; got[0] = 0;
     if (kind == 'E') detok((u8)tok); else if (kind == 'R') detok3((u8)tok); else dt_tt27((u8)tok);
     fin[0] = 0;
@@ -114,6 +116,7 @@ static void check(int ok, const char *what, const char *l)
     if (!ok) { fails++; if (fails <= 12) printf("FALLO %s: %.300s\n", what, l); }
 }
 
+static const u8 *pq15;
 static void p_case(char **a, const char *l)
 {
     /* P zz gc tp q8 q12 rnd name | printed ev rnd */
@@ -121,14 +124,15 @@ static void p_case(char **a, const char *l)
     char rs[16];
     gcnt = (u8)atoi(a[2]); tp = (u8)atoi(a[3]); qq8[0] = (u8)q8; qq8[1] = (u8)(q8 >> 8); qq12 = (u8)atoi(a[5]);
     hexb(a[6], em_rand, 4);
-    strcpy(nm_sel, strcmp(a[7], "-") ? a[7] : "");
-    a++;
+    { static u8 q15[6]; hexb(a[7], q15, 6); pq15 = q15; }
+    strcpy(nm_sel, strcmp(a[8], "-") ? a[8] : "");
+    a += 2;
     qq17 = 0x80; dtw1 = 0x20; dtw2 = 0xFF; dtw3 = 0; dtw4 = 0; dtw5 = 0; dtw6 = 0; dtw8 = 0xFF; dt_xc = 1; dt_yc = 10; mj = 0;
     memset(inwk, 0, NI); memset(zk3, 0, 14);
     glen = 0; got[0] = 0;
-    r = pdesc((u8)zz);
+    r = pdesc((u8)zz, pq15);
     sprintf(rs, "%02x%02x%02x%02x", em_rand[0], em_rand[1], em_rand[2], em_rand[3]);
-    if (atoi(a[8]) == 0) check(r == 0, "PDESC (descripcion normal)", l);
+    if (atoi(a[8]) == 0) check(r == 0 && !strcmp(strcmp(a[9], "-") ? a[9] : "", got) && !strcmp(a[10], rs), "PDESC (descripcion normal: ficha 5)", l);
     else {
         check(r == 1 && !strcmp(a[9], got) && !strcmp(a[10], rs), "PDESC (descripcion especial)", l);
         if (fails <= 2 && strcmp(a[9], got)) { int k = 0; while (a[9][k] && a[9][k] == got[k]) k++; printf("  r %d difiere en %d: ...%.80s | ...%.80s\n", r, k, a[9] + (k > 20 ? k - 20 : 0), got + (k > 20 ? k - 20 : 0)); }
@@ -180,38 +184,35 @@ static void b_case(char **a, const char *l)
 
 static void e_case(char **a, const char *l)
 {
-    /* E rnd c0 mj junk sspr cops con tp gc q0 q1 gov c3 c6 c10 fist ev occ made... | end rnd ev junk cops con c */
-    int occ, k, i, bar;
-    char exp[4000], g[4000], rs[16];
-    u8 was[NOSH];
+    /* E rnd c0 mj junk sspr cops con tp gc q0 q1 gov c3 c6 c10 fist ev k0 | frin bloques rnd ev junk cops con */
+    int k, i, k0;
+    char g[3000], rs[16];
     state_clear(); ships_clear();
+    k0 = atoi(a[18]);
+    for (k = 0; k < k0; k++) { ship_zinf(); ship_new(SHIPT_ASTEROID); }
     hexb(a[1], em_rand, 4);
     mj = (u8)atoi(a[3]); junk_count = (u8)atoi(a[4]);
-    memset(many, 0, sizeof many);
     sspr = (u8)atoi(a[5]); many[SHIPT_VIPER] = (u8)atoi(a[6]); many[SHIPT_CONSTRICTOR] = (u8)atoi(a[7]);
     tp = (u8)atoi(a[8]); gcnt = (u8)atoi(a[9]); qq0 = (u8)atoi(a[10]); qq1 = (u8)atoi(a[11]); qq4 = (u8)atoi(a[12]);
     qq20[3] = (u8)atoi(a[13]); qq20[6] = (u8)atoi(a[14]); qq20[10] = (u8)atoi(a[15]); fist = (u8)atoi(a[16]); enc_ev = (u8)atoi(a[17]);
-    occ = atoi(a[18]);
-    for (k = 0; k < NOSH; k++) { frin[k] = (u8)((occ >> k) & 1 ? (k == 0 ? 0x81 : 7) : 0); was[k] = frin[k]; }
-    frin[NOSH] = 0;
     encounters_tick((u8)atoi(a[2]));
-    exp[0] = 0;
-    for (bar = 19; strcmp(a[bar], "|"); bar++)
-        if (strcmp(a[bar], "-") && a[bar][strlen(a[bar]) - 1] != '-') { if (exp[0]) strcat(exp, " "); strcat(exp, a[bar]); }
     g[0] = 0;
+    for (k = 0; k < NOSH; k++) sprintf(g + strlen(g), "%02x", frin[k]);
+    strcat(g, " ");
     for (k = 0; k < NOSH; k++) {
-        u8 *p = state_slot(k);
-        char b[120];
-        if (was[k] || !frin[k]) continue;
-        sprintf(b, "%s%d:%d:", g[0] ? " " : "", frin[k], k);
-        for (i = 0; i < 37; i++) sprintf(b + strlen(b), "%02x", (i == 31 || i == 35) ? 0 : p[i]);
-        strcat(g, b);
+        if (k) strcat(g, ",");
+        if (!frin[k]) { strcat(g, "-"); continue; }
+        for (i = 0; i < NI; i++) sprintf(g + strlen(g), "%02x", state_slot(k)[i]);
     }
     sprintf(rs, "%02x%02x%02x%02x", em_rand[0], em_rand[1], em_rand[2], em_rand[3]);
-    check(!strcmp(exp, g), "encuentros: naves creadas", l);
-    check(!strcmp(rs, a[bar + 2]) && enc_ev == atoi(a[bar + 3]) && junk_count == atoi(a[bar + 4]) &&
-          many[SHIPT_VIPER] == atoi(a[bar + 5]) && many[SHIPT_CONSTRICTOR] == atoi(a[bar + 6]), "encuentros: estado", l);
-    if (fails && fails <= 3 && strcmp(exp, g)) printf("  6502: %.400s\n     C: %.400s\n", exp, g);
+    {
+        char exp[3000];
+        sprintf(exp, "%s %s", a[20], a[21]);
+        check(!strcmp(exp, g), "encuentros: naves creadas", l);
+        if (fails && fails <= 3 && strcmp(exp, g)) printf("  6502: %.500s\n     C: %.500s\n", exp, g);
+    }
+    check(!strcmp(rs, a[22]) && enc_ev == atoi(a[23]) && junk_count == atoi(a[24]) &&
+          many[SHIPT_VIPER] == atoi(a[25]) && many[SHIPT_CONSTRICTOR] == atoi(a[26]), "encuentros: estado", l);
 }
 
 static int cmp_slot(int n, const char *hexs, int planet)
@@ -241,6 +242,7 @@ static void s_case(char **a, const char *l)
     if (r && strcmp(a[9], "-")) {
         p = strchr(a[9], ':');
         check(frin[1] == atoi(a[9]) && sspr == 1 && cmp_slot(1, p + 1, 0), "parte 14: NWSPS", l);
+        check((ship_bp_for(SHIPT_CORIOLIS) == ship_bp_for(SHIPT_DODO)) == atoi(a[10]), "spasto: Coriolis o Dodo", l);
     }
 }
 
@@ -277,6 +279,37 @@ static const char *frz = "dxQ-";
 static int frz_i;
 static int frz_feed(void) { return frz[frz_i] ? frz[frz_i++] : -1; }
 
+static void d_case(char **a, const char *l)
+{
+    /* D k u c | ev */
+    u8 k[4];
+    hexb(a[1], k, 4);
+    qq17 = 0x80; dtw4 = 0; dtw5 = 0; dt_xc = 1; dt_yc = 5;
+    glen = 0; got[0] = 0;
+    dt_bprnt(k, (u8)atoi(a[2]), (u8)atoi(a[3]));
+    check(!strcmp(strcmp(a[5], "-") ? a[5] : "", got), "BPRNT", l);
+    if (fails && fails <= 3 && strcmp(a[5], got)) printf("  6502: %s\n     C: %s\n", a[5], got);
+}
+
+static void y_case(char **a, const char *l)
+{
+    /* Y q15 q3 q4 q5 q6 p7l p7h q8 zz gc tp q12 name | ev rnd */
+    u8 q15[6];
+    int q8 = atoi(a[8]);
+    char rs[16];
+    hexb(a[1], q15, 6);
+    qq8[0] = (u8)q8; qq8[1] = (u8)(q8 >> 8); gcnt = (u8)atoi(a[10]); tp = (u8)atoi(a[11]); qq12 = (u8)atoi(a[12]); mj = 0;
+    strcpy(nm_sel, strcmp(a[13], "-") ? a[13] : "");
+    qq17 = 0x80; dtw1 = 0x20; dtw2 = 0xFF; dtw3 = 0; dtw4 = 0; dtw5 = 0; dtw6 = 0; dtw8 = 0xFF; dt_xc = 1; dt_yc = 1;
+    memset(inwk, 0, NI); memset(zk3, 0, 14);
+    glen = 0; got[0] = 0;
+    tt25_raw(q15, (u8)atoi(a[2]), (u8)atoi(a[3]), (u8)atoi(a[4]), (u8)atoi(a[5]), (u8)atoi(a[6]), (u8)atoi(a[7]),
+             (u8)q8, (u8)(q8 >> 8), (u8)atoi(a[9]));
+    sprintf(rs, "%02x%02x%02x%02x", em_rand[0], em_rand[1], em_rand[2], em_rand[3]);
+    check(!strcmp(a[15], got) && !strcmp(a[16], rs), "TT25", l);
+    if (fails && fails <= 3 && strcmp(a[15], got)) { int k = 0; while (a[15][k] && a[15][k] == got[k]) k++; printf("  difiere en %d: ...%.120s\n             | ...%.120s\n", k, a[15] + (k > 30 ? k - 30 : 0), got + (k > 30 ? k - 30 : 0)); }
+}
+
 static void config_checks(void)
 {
     u8 d0 = damp, p0 = patg;
@@ -312,11 +345,13 @@ int main(void)
         else if (a[0][0] == 'B') b_case(a, copy);
         else if (a[0][0] == 'E') e_case(a, copy);
         else if (a[0][0] == 'S') s_case(a, copy);
+        else if (a[0][0] == 'D') d_case(a, copy);
+        else if (a[0][0] == 'Y') y_case(a, copy);
         else if (a[0][0] == 'K') k_case(a, copy);
         else if (a[0][0] == 'O') o_case(a, copy);
     }
     fclose(f);
-    printf("S %d, K %d, O %d; ", cnt['S'], cnt['K'], cnt['O']);
+    printf("S %d, K %d, O %d, D %d, Y %d; ", cnt['S'], cnt['K'], cnt['O'], cnt['D'], cnt['Y']);
     printf("T %d, P %d, M %d, B %d, E %d casos; %d comprobaciones, %d fallos\n", cnt['T'], cnt['P'], cnt['M'], cnt['B'], cnt['E'], total, fails);
     return fails != 0;
 }

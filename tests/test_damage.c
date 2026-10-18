@@ -133,7 +133,7 @@ int main(void)
             n = ships_death_debris_one();
             ok = n == 3 && frin[3] == atoi(a[4]) && state_slot(3)[31] == atoi(a[6]) && mcnt == atoi(a[7]) &&
                  lasct == atoi(a[8]) && memcmp(em_rand, r2, 4) == 0;
-            for (i = 0; i < NI; i++) if (i != 31 && i != 35 && i != 36) ok = ok && state_slot(3)[i] == iw[i];
+            for (i = 0; i < NI; i++) if (i != 31 && i != 33 && i != 34 && i != 35 && i != 36) ok = ok && state_slot(3)[i] == iw[i];
             if (!ok && getenv("ALLF")) { printf("  C: n %d frin3 %d s31 %d mcnt %d lasct %d rnd %02x%02x%02x%02x slot ", n, frin[3], state_slot(3)[31], mcnt, lasct, em_rand[0], em_rand[1], em_rand[2], em_rand[3]);
                 for (i = 0; i < NI; i++) printf("%02x", state_slot(3)[i]);
                 printf("\n"); }

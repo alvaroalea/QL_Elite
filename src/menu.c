@@ -402,55 +402,12 @@ int scr_equip(void)
 
 /* ---------------------------------------------------------------- datos del sistema */
 
-static char desc[512];
-static int dlen;
-static void cap(int c) { if (dlen < 511) desc[dlen++] = (char)c; desc[dlen] = 0; }
-
-static void put_wrapped(const char *s)
-{
-    char word[40];
-    int n;
-    while (*s) {
-        while (*s == ' ') s++;
-        n = 0;
-        while (*s && *s != ' ' && n < 39) word[n++] = *s++;
-        word[n] = 0;
-        if (n == 0) break;
-        if (txt_col() + n > TXT_COLS) txt_putc('\n');
-        txt_puts(word);
-        if (txt_col() != 0) txt_putc(' ');
-    }
-}
-
 int scr_data(void)
 {
-    const uni_system *p = &uni_galaxy[tgt_sys];
-    char t[28];
-    int n = 0;
-    const char *q = "DATA ON ";
-    while (*q) t[n++] = *q++;
-    for (q = p->name; *q && n < 27; q++) t[n++] = *q;
-    t[n] = 0;
-    ui_clear();
-    ui_title(t);
-    lbl(2, "Distance:");   val(17, 2); ui_tenths(jump_distance(tgt_sys)); txt_puts(" LY");
-    lbl(3, "Economy:");    val(17, 3); txt_puts(uni_econnames[p->economy]);
-    lbl(4, "Government:"); val(17, 4); txt_puts(uni_govnames[p->govtype]);
-    lbl(5, "Tech.Level:"); val(17, 5); ui_num((unsigned long)p->techlev + 1, 0);
-    lbl(6, "Population:"); val(17, 6); ui_num((unsigned long)(p->population >> 3), 0); txt_putc('.'); ui_num((unsigned long)(p->population & 7), 0); txt_puts(" Billion");
-    lbl(7, "Productivity:"); val(17, 7); ui_num(p->productivity, 0); txt_puts(" M CR");
-    lbl(8, "Avg. Radius:"); val(17, 8); ui_num(p->radius, 0); txt_puts(" km");
-    txt_color(C_CYAN, C_BLACK);
-    txt_at(0, 10);
-    dt_xc = 1; dt_yc = 10;
-    missions_set_ink(C_CYAN);
-    if (!pdesc((u8)tgt_sys)) {                         /* PDESC: descripciones especiales (misiones) */
-        dlen = 0; desc[0] = 0;
-        uni_putc = cap;
-        uni_describe(p);
-        put_wrapped(desc);
-    }
+    unsigned d = jump_distance(tgt_sys);
+    qq8[0] = (u8)d; qq8[1] = (u8)(d >> 8);
     missions_set_ink(C_WHITE);
+    tt25(tgt_sys);                                     /* TT25 del original con el motor de fichas (y PDESC) */
     txt_color(C_WHITE, C_BLACK);
     ui_footer();
     return wait_nav();

@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **429**, de ellas verificadas contra el 6502: 141 y pendientes de verificar: 288
+- **Portadas** (con la funcion C que las cubre): **429**, de ellas verificadas contra el 6502: 192 y pendientes de verificar: 237
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **99**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -27,7 +27,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 429 + 99 + 0)
 | Keyboard | 19 | 15 | 1 | 4 | 14 | 0 |
 | Loader | 5 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 1 | 1 | 0 | 0 | 0 |
-| Market | 19 | 19 | 4 | 0 | 15 | 0 |
+| Market | 19 | 19 | 8 | 0 | 11 | 0 |
 | Maths (Arithmetic) | 52 | 51 | 13 | 1 | 38 | 0 |
 | Maths (Geometry) | 19 | 19 | 2 | 0 | 17 | 0 |
 | Missions | 16 | 10 | 10 | 6 | 0 | 0 |
@@ -36,14 +36,14 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 429 + 99 + 0)
 | Sound | 13 | 11 | 0 | 2 | 11 | 0 |
 | Stardust | 7 | 7 | 0 | 0 | 7 | 0 |
 | Start and end | 8 | 8 | 0 | 0 | 8 | 0 |
-| Status | 7 | 7 | 2 | 0 | 5 | 0 |
+| Status | 7 | 7 | 4 | 0 | 3 | 0 |
 | Tactics | 8 | 7 | 5 | 1 | 2 | 0 |
-| Text | 77 | 73 | 45 | 4 | 28 | 0 |
+| Text | 77 | 73 | 70 | 4 | 3 | 0 |
 | Tube | 1 | 0 | 0 | 1 | 0 | 0 |
-| Universe | 34 | 32 | 10 | 2 | 22 | 0 |
+| Universe | 34 | 32 | 30 | 2 | 2 | 0 |
 | Utility routines | 18 | 1 | 0 | 17 | 1 | 0 |
 | Workspaces | 7 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **429** | **141** | **99** | **288** | **0** |
+| **Total** | **528** | **429** | **192** | **99** | **237** | **0** |
 
 Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -309,17 +309,17 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | TT208 | Show the Sell Cargo screen | verificada | `trade_sell` |  |
 | TT210 | Show a list of current cargo in our hold, optionally to sell | propia | `trade_screen` | la lista de venta es el mismo listado con las existencias en bodega |
 | TT213 | Show the Inventory screen | sin-verificar | `scr_inventory` | maquetacion propia |
-| TT151 | Print the name, price and availability of a market item | sin-verificar | `trade_price` |  |
+| TT151 | Print the name, price and availability of a market item | verificada | `uni_gen_market` | precio de cada articulo (QQ24 * 4 con GC2), make test_univ6502; la pantalla del mercado es propia |
 | TT152 | Print the unit ("t", "kg" or "g") for a market item | propia | `unit_char` | unidad (t, kg, g) en menu.c |
 | TT160 | Print "t" (for tonne) and a space | propia | `unit_char` |  |
 | TT161 | Print "kg" (for kilograms) | propia | `unit_char` |  |
 | TT16a | Print "g" (for grams) | propia | `unit_char` |  |
 | TT163 | Print the headers for the table of market prices | propia | `market_header` | cabecera del mercado en menu.c |
 | TT167 | Show the Market Price screen | sin-verificar | `scr_market` | maquetacion propia |
-| var | Calculate QQ19+3 = economy * |economic_factor| | sin-verificar | `uni_gen_market` | precio = base + (QQ26 AND mask) + gradiente * economia; viene de Text Elite (universe.c), comparar con el 6502 |
+| var | Calculate QQ19+3 = economy * |economic_factor| | verificada | `uni_gen_market` | economia * factor, dentro de GVL y TT151 (make test_univ6502) |
 | dn | Print the amount of money we have left in the cash pot, then make | propia | `trade_info` | el dinero restante se redibuja tras cada operacion |
-| ITEM | Macro definition for the market prices table | sin-verificar | `uni_goods` | tabla de mercancias copiada de Text Elite |
-| QQ23 | Market prices table | sin-verificar | `uni_goods` | comparar con la tabla del 6502 |
+| ITEM | Macro definition for the market prices table | verificada | `uni_goods` | macro de la tabla QQ23 (make test_univ6502) |
+| QQ23 | Market prices table | verificada | `uni_goods` | tabla de mercancias, comprobada a traves de GVL y TT151 (make test_univ6502) |
 
 ## Maths (Arithmetic) (51 portadas de 52, 1 no necesarias)
 
@@ -551,8 +551,8 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 |---|---|---|---|---|
 | STATUS | Show the Status Mode screen | sin-verificar | `scr_status` | maquetacion propia; rango y estado legal en rating_name / legal_name |
 | cmn | Print the commander's name | propia | `scr_status` | nombre del comandante en la pantalla de estado |
-| fwl | Print fuel and cash levels | propia | `scr_status`, `ui_num` | combustible y dinero |
-| csh | Print the current amount of cash | propia | `scr_status`, `ui_num` | combustible y dinero |
+| fwl | Print fuel and cash levels | verificada | `dt_fwl` | combustible y dinero, make test_missions |
+| csh | Print the current amount of cash | verificada | `dt_csh` | dinero con BPRNT (9 cifras y punto), make test_missions |
 | BAD | Calculate how bad we have been | verificada | `space_bad`, `bad`, `legal_name` | carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name |
 | BAY | Go to the docking bay (i.e. show the Status Mode screen) | propia | `scr_status` | pantalla de estado al atracar |
 | EXNO2 | Process us making a kill | verificada | `exno2` | TALLY con KWL%/KWH% y mensaje 101; el sonido es snd_exno2 |
@@ -596,11 +596,11 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | JMTB | The extended token table for jump tokens 1-32 (DETOK) | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | TKN2 | The extended two-letter token lookup table | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | QQ16 | The two-letter token lookup table | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
-| plf2 | Print text followed by a newline and indent of 6 characters | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TENS | A constant used when printing large numbers in BPRNT | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
-| pr2 | Print an 8-bit number, left-padded to 3 digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
-| TT11 | Print a 16-bit number, left-padded to n digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
-| BPRNT | Print a 32-bit number, left-padded to a specific number of digits, | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
+| plf2 | Print text followed by a newline and indent of 6 characters | verificada | `dt_plf2` | detok.c, make test_missions |
+| TENS | A constant used when printing large numbers in BPRNT | verificada | `dt_bprnt` | impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num |
+| pr2 | Print an 8-bit number, left-padded to 3 digits, and optional point | verificada | `dt_pr2` | impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num |
+| TT11 | Print a 16-bit number, left-padded to n digits, and optional point | verificada | `dt_tt11` | impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num |
+| BPRNT | Print a 32-bit number, left-padded to a specific number of digits, | verificada | `dt_bprnt` | impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num |
 | DTW1 | A mask for applying the lower case part of Sentence Case to | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | DTW2 | A flag that indicates whether we are currently printing a word | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | DTW3 | A flag for switching between standard and extended text tokens | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
@@ -608,27 +608,27 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | DTW5 | The size of the justified text buffer at BUF | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | DTW6 | A flag to denote whether printing in lower case is enabled for | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
 | DTW8 | A mask for capitalising the next letter in an extended text token | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
-| FEED | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| FEED | Print a newline | verificada | `dt_feed` | detok.c, make test_missions |
 | MT16 | Print the character in variable DTW7 | verificada | `jump` | ficha de salto (detok.c), make test_missions |
 | TT26 | Print a character at the text cursor, with support for verified | verificada | `dt_dasc` | DASC con la justificacion de LL = 30 (detok.c); las pantallas propias siguen con txt_putc, make test_missions |
 | MT23 | Move to row 9 and switch to lower case | verificada | `jump` | ficha de salto (detok.c), make test_missions |
 | MT29 | Move to row 5 and switch to lower case when printing extended | verificada | `jump` | ficha de salto (detok.c), make test_missions |
 | MTIN | Lookup table for random tokens in the extended token table (0-37) | verificada | `tokens_data.h`, `detok.c` | tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions |
-| DOXC | Move the text cursor to a specific column | propia | `txt_col` | columna del cursor |
-| DOYC | Move the text cursor to a specific row | propia | `txt_row` | fila del cursor |
-| INCYC | Move the text cursor to the next row | propia | `txt_row` | fila del cursor |
-| TT60 | Print a text token and a paragraph break | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TTX69 | Print a paragraph break | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TT69 | Set Sentence Case and print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TT67 | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| spc | Print a text token followed by a space | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| pr6 | Print 16-bit number, left-padded to 5 digits, no point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
-| pr5 | Print a 16-bit number, left-padded to 5 digits, and optional point | propia | `ui_num`, `ui_tenths` | impresion de numeros (menu.c) |
-| prq | Print a text token followed by a question mark | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TT162 | Print a space | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| DOXC | Move the text cursor to a specific column | verificada | `dt_xc`, `dt_yc` | cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions |
+| DOYC | Move the text cursor to a specific row | verificada | `dt_xc`, `dt_yc` | cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions |
+| INCYC | Move the text cursor to the next row | verificada | `dt_xc`, `dt_yc` | cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions |
+| TT60 | Print a text token and a paragraph break | verificada | `dt_tt60` | detok.c, make test_missions |
+| TTX69 | Print a paragraph break | verificada | `dt_ttx69` | detok.c, make test_missions |
+| TT69 | Set Sentence Case and print a newline | verificada | `dt_tt69` | detok.c, make test_missions |
+| TT67 | Print a newline | verificada | `dt_tt67` | detok.c, make test_missions |
+| spc | Print a text token followed by a space | verificada | `dt_spc` | detok.c, make test_missions |
+| pr6 | Print 16-bit number, left-padded to 5 digits, no point | verificada | `dt_pr6` | impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num |
+| pr5 | Print a 16-bit number, left-padded to 5 digits, and optional point | verificada | `dt_pr5` | impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num |
+| prq | Print a text token followed by a question mark | verificada | `dt_prq` | detok.c, make test_missions |
+| TT162 | Print a space | verificada | `dt_tt162` | detok.c, make test_missions |
 | dn2 | Make a low, long beep and delay for 0.5 seconds | propia | `snd_boop` | pitido largo y espera |
-| plf | Print a text token followed by a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
-| TT68 | Print a text token followed by a colon | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| plf | Print a text token followed by a newline | verificada | `dt_plf` | detok.c, make test_missions |
+| TT68 | Print a text token followed by a colon | verificada | `dt_tt68` | detok.c, make test_missions |
 | TT73 | Print a colon | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
 | TT27 | Print a text token | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
 | TT42 | Print a letter in lower case | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
@@ -645,12 +645,12 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | CHPR2 | Character print vector handler | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | R5 | Make a beep and jump back into the character-printing routine at | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | RR5 | Print a character in the text screen mode | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
-| TT67K | Print a newline | propia | `txt_print_at`, `txt_putc` | saltos de linea, espacios, dos puntos y signos de interrogacion se escriben con las funciones de texto |
+| TT67K | Print a newline | verificada | `dt_chpr` | detok.c, make test_missions |
 | CHPR | Print a character at the text cursor by poking into screen memory | verificada | `dt_chpr` | salida del motor de fichas: XC/YC, saltos de linea, clss (detok.c); las pantallas propias siguen con txt_putc, make test_missions |
-| letter | Draw a character in the high-resolution screen mode using the game | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
-| letter2 | Draw a character or indicator bulb bitmap in the high-resolution | propia | `txt_putc`, `draw_glyph` | impresion de caracteres sobre la pantalla grafica (text.c) |
-| SETXC | Move the text cursor to a specific column | propia | `txt_col` | columna del cursor |
-| SETYC | Move the text cursor to a specific row | propia | `txt_row` | fila del cursor |
+| letter | Draw a character in the high-resolution screen mode using the game | verificada | `txt_putc`, `draw_glyph` | la fuente es la FONT del original (A.FLOWY.bin, tools/gen_font.py), comparada con make test_univ6502; el dibujo es el de la pantalla del QL |
+| letter2 | Draw a character or indicator bulb bitmap in the high-resolution | verificada | `txt_putc`, `draw_glyph`, `dash` | letras con la FONT del original (make test_univ6502); las bombillas del panel salen del volcado de la pantalla original |
+| SETXC | Move the text cursor to a specific column | verificada | `dt_xc`, `dt_yc` | cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions |
+| SETYC | Move the text cursor to a specific row | verificada | `dt_xc`, `dt_yc` | cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions |
 
 ## Tube (0 portadas de 1, 1 no necesarias)
 
@@ -663,39 +663,39 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | SPIN | Randomly spawn cargo from a destroyed ship | verificada | `spin`, `spin2` | la cantidad es tipo AND byte 0 AND 15 (el TYA tapa el numero aleatorio) |
-| UNIV | Table of pointers to the local universe's ship data blocks | propia | `state_slot` | tabla de punteros a los bloques de las naves |
+| UNIV | Table of pointers to the local universe's ship data blocks | verificada | `state_slot` | K% + n * NI%, comprobado en las secuencias de NWSHP/KILLSHP (make test_univ6502) |
 | SFS1 | Spawn a child ship from the current (parent) ship | verificada | `sfs1` | nave hija desde K%; velocidad de los restos = X de DORND AND 15; acarreos modelados |
-| PDESC | Print the system's extended description or a mission 1 directive | verificada | `pdesc`, `uni_describe` | descripciones especiales (RUPLA/RUGAL/RUTOK) con NRU% = 26: el original pone 0 y recorre memoria; la normal sigue con Text Elite, make test_missions |
+| PDESC | Print the system's extended description or a mission 1 directive | verificada | `pdesc` | descripciones especiales y la normal con la ficha 5 del original (RAND = QQ15+2..5); NRU% = 26; make test_missions |
 | GINF | Fetch the address of a ship's data block into INF | no-necesaria |  | el puntero INF no existe en C: se indexa por ranura |
-| ping | Set the selected system to the current system | sin-verificar | `chart_ping` | tecla O: el cursor vuelve al sistema actual |
-| TT20 | Twist the selected system's seeds four times | propia | `twist`, `nextgalaxy` | giro de las semillas (universe.c, de Text Elite) |
-| TT54 | Twist the selected system's seeds | propia | `twist`, `nextgalaxy` | giro de las semillas (universe.c, de Text Elite) |
-| TT146 | Print the distance to the selected system in light years | propia | `chart_info` | distancia en anos luz |
-| TT70 | Display "MAINLY " and jump to TT72 | propia | `uni_describe` | MAINLY en la descripcion del sistema |
-| TT25 | Show the Data on System screen | sin-verificar | `scr_data` |  |
-| TT24 | Calculate system data from the system seeds | propia | `uni_make_system`, `uni_build_galaxy` | datos del sistema y semillas de la galaxia (universe.c: iguales al oraculo de Text Elite) |
-| TT81 | Set the selected system's seeds to those of system 0 | propia | `uni_make_system`, `uni_build_galaxy` | datos del sistema y semillas de la galaxia (universe.c: iguales al oraculo de Text Elite) |
-| TT111 | Set the current system to the nearest system to a point | sin-verificar | `uni_nearest` |  |
-| jmp | Set the current system to the selected system | propia | `game_enter_system`, `jump_do` | entrada en el sistema y salto al mas cercano |
-| hyp1 | Process a jump to the system closest to (QQ9, QQ10) | propia | `game_enter_system`, `jump_do` | entrada en el sistema y salto al mas cercano |
-| GVL | Calculate the availability of market items | propia | `uni_gen_market` | disponibilidad del mercado |
+| ping | Set the selected system to the current system | transcripcion | `chart_ping` | QQ9/QQ10 = QQ0/QQ1 |
+| TT20 | Twist the selected system's seeds four times | verificada | `uni_make_system`, `tweakseed` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
+| TT54 | Twist the selected system's seeds | verificada | `uni_make_system`, `tweakseed` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
+| TT146 | Print the distance to the selected system in light years | verificada | `tt25_raw` | distancia con pr5 y LIGHT YEARS, make test_missions |
+| TT70 | Display "MAINLY " and jump to TT72 | verificada | `tt25_raw` | MAINLY, make test_missions |
+| TT25 | Show the Data on System screen | verificada | `tt25`, `tt25_raw`, `scr_data` | pantalla de datos del sistema del original con el motor de fichas (missions.c), make test_missions (letra a letra, con TT24 y PDESC reales) |
+| TT24 | Calculate system data from the system seeds | verificada | `uni_make_system` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
+| TT81 | Set the selected system's seeds to those of system 0 | verificada | `uni_build_galaxy` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
+| TT111 | Set the current system to the nearest system to a point | verificada | `uni_nearest`, `uni_distance` | sistema mas cercano y distancia QQ8 para 2.000 puntos de las 8 galaxias, make test_univ6502 |
+| jmp | Set the current system to the selected system | verificada | `game_enter_system`, `jump_do` | QQ0/QQ1 = QQ9/QQ10, make test_univ6502 |
+| hyp1 | Process a jump to the system closest to (QQ9, QQ10) | transcripcion | `jump_do`, `game_enter_system` | TT111 y jmp verificados (make test_univ6502); copia de semillas, EV = 0, economia, nivel y gobierno del sistema nuevo |
+| GVL | Calculate the availability of market items | verificada | `uni_gen_market`, `game_enter_system` | QQ26 con DORND y disponibilidad AVL, make test_univ6502 |
 | GTHG | Spawn a Thargoid ship and a Thargon companion | verificada | `gthg` | make test_equip |
-| cpl | Print the selected system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
-| ypl | Print the current system name | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
-| tal | Print the current galaxy number | propia | `put_name`, `chart_info` | nombre del sistema, del actual y numero de galaxia |
+| cpl | Print the selected system name | verificada | `uni_make_system`, `name` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
+| ypl | Print the current system name | verificada | `name` | nombre del sistema actual (cpl sobre QQ2), make test_univ6502 y make test_missions |
+| tal | Print the current galaxy number | verificada | `dt_tt27` | numero de galaxia con pr2, make test_missions |
 | SOS1 | Update the missile indicators, set up the planet data block | verificada | `sos1` | planeta 128/130 con giros 127; make test_missions |
 | SOLAR | Set up various aspects of arriving in a new system | verificada | `ships_arrive` | FIST a la mitad (su acarreo entra en el ADC |
 | NWSPS | Add a new space station to our local bubble of universe | verificada | `nwsps` | estacion en la ranura 1 (STX FRIN+1); Dodo con nivel tecnologico >= 10; make test_missions |
-| NWSHP | Add a new ship to our local bubble of universe | sin-verificar | `ship_new` | sin heap compartido (SLSP): un monton de 256 bytes por ranura; NEWB inicial de E% |
-| NwS1 | Flip the sign and double an INWK byte | propia | `make_station` | los tres NwS1 que invierten el morro de la estacion |
+| NWSHP | Add a new ship to our local bubble of universe | verificada | `ship_new` | con el monton de lineas del original (SLSP, bytes 33 y 34): falla cuando el original falla; secuencias de NWSHP y KILLSHP con SHIPS.bin, make test_univ6502 |
+| NwS1 | Flip the sign and double an INWK byte | verificada | `nwsps` | dentro de NWSPS (make test_missions) |
 | KS3 | Set the SLSP ship line heap pointer after shuffling ship slots | no-necesaria |  | puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura |
-| KS1 | Remove the current ship from our local bubble of universe | propia | `ship_kill` | quita la nave y desplaza las demas |
+| KS1 | Remove the current ship from our local bubble of universe | verificada | `ship_kill` | quita la nave actual (KILLSHP verificado con make test_univ6502) |
 | KS4 | Remove the space station and replace it with the sun | verificada | `ks4` | la estacion lejana (FAROF) deja en su ranura el sol con y_sign = 6; make test_missions |
 | KS2 | Check the local bubble for missiles with target lock | verificada | `ks2` | make test_tactics |
-| KILLSHP | Remove a ship from our local bubble of universe | sin-verificar | `ship_kill` | TARGET LOST, Constrictor (TP, TALLY+1), JUNK, MANY y KS4 para la estacion (verificado aparte) |
-| ZINF | Reset the INWK workspace and orientation vectors | sin-verificar | `ship_zinf` |  |
+| KILLSHP | Remove a ship from our local bubble of universe | verificada | `ship_kill` | desplaza las ranuras y los montones (KS3), KS2, TARGET LOST, Constrictor, JUNK, MANY y KS4; make test_univ6502 |
+| ZINF | Reset the INWK workspace and orientation vectors | verificada | `ship_zinf` | make test_univ6502 |
 | Ze | Initialise the INWK workspace to a fairly aggressive ship | verificada | `ze` | dentro de D1 |
-| spasto | Contains the address of the Coriolis space station's ship | propia | `ship_bp_for` | plano de la estacion (Coriolis o Dodo) |
+| spasto | Contains the address of the Coriolis space station's ship | verificada | `ship_bp_for` | plano de la estacion: Dodo con nivel tecnologico >= 10 (NWSPS, make test_missions) |
 
 ## Utility routines (1 portadas de 18, 17 no necesarias)
 

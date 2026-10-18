@@ -127,6 +127,103 @@ void dt_dasc(u8 a)
     dtw5++;
 }
 
+/* ---------------------------------------------------------------- BPRNT: numeros */
+
+static const u8 tens[4] = { 0x48, 0x76, 0xE8, 0x00 };   /* TENS: EQUD $00E87648 (en memoria, byte bajo primero) */
+
+/* BPRNT: imprime K(0 1 2 3) (K = byte alto) con u cifras; c = punto decimal antes de la ultima. Usa TT26 directamente */
+void dt_bprnt(const u8 *k4, u8 u, u8 c)
+{
+    u8 k[4], x15[5], s, t, xx17, y, a, cy, b;
+    int x;
+    unsigned v;
+    for (x = 0; x < 4; x++) k[x] = k4[x];
+    t = 11;
+    if (c) { t--; u--; }                         /* DEC T; DEC U */
+    xx17 = 11;
+    u = (u8)(11 - u + 1);                        /* SBC U; INC U */
+    y = 0; s = 0;
+    goto tt36;
+tt35:
+    for (b = 0; b < 3; b++) {                    /* K(S 0 1 2 3) * 2, copia en XX15, y * 4 */
+        cy = 0;
+        for (x = 3; x >= 0; x--) { a = (u8)(k[x] >> 7); k[x] = (u8)((k[x] << 1) | cy); cy = a; }
+        s = (u8)((s << 1) | cy);
+        if (b == 0) { for (x = 0; x < 4; x++) x15[x] = k[x]; x15[4] = s; }
+    }
+    cy = 0;                                      /* K = K * 8 + K * 2 */
+    for (x = 3; x >= 0; x--) { v = (unsigned)k[x] + x15[x] + cy; k[x] = (u8)v; cy = (u8)(v >> 8); }
+    s = (u8)(x15[4] + s + cy);
+    y = 0;
+tt36:
+    for (;;) {                                   /* restar 10^11 mientras se pueda */
+        int d;
+        cy = 1;
+        for (x = 3; x >= 0; x--) { d = (int)k[x] - tens[x] - (1 - cy); cy = (u8)(d >= 0); x15[x] = (u8)d; }   /* c68 -O: el signo antes de truncar */
+        d = (int)s - 0x17 - (1 - cy); cy = (u8)(d >= 0); x15[4] = (u8)d;
+        if (!cy) break;                          /* BCC TT37 */
+        for (x = 0; x < 4; x++) k[x] = x15[x];
+        s = x15[4];
+        y++;
+    }
+    a = y;                                       /* TT37 */
+    if (a == 0 && t != 0) {
+        u--;
+        if (!(u & 0x80)) goto tt34n;             /* BPL TT34: no se imprime */
+        dt_dasc(' ');
+        goto tt34n;
+    }
+    t = 0;                                       /* TT32 */
+    dt_dasc((u8)(a + '0'));
+tt34n:
+    t--; if (t & 0x80) t++;                      /* TT34: DEC T; BPL; INC T */
+    xx17--;
+    if (xx17 & 0x80) return;                     /* BMI rT10 */
+    if (xx17 == 0 && c) dt_dasc('.');            /* PLP; BCC; LDA #'.'; JSR TT26 */
+    goto tt35;
+}
+
+/* TT11: (y x) con a cifras */
+void dt_tt11(u8 a, u8 x, u8 y, u8 c)
+{
+    u8 k[4];
+    k[0] = 0; k[1] = 0; k[2] = y; k[3] = x;
+    dt_bprnt(k, a, c);
+}
+
+void dt_pr2(u8 x, u8 c) { dt_tt11(3, x, 0, c); }                 /* pr2: 3 cifras */
+void dt_pr5(u8 x, u8 y, u8 c) { dt_tt11(5, x, y, c); }          /* pr5: 5 cifras */
+void dt_pr6(u8 x, u8 y) { dt_tt11(5, x, y, 0); }                /* pr6: sin punto */
+
+void dt_tt67(void) { dt_tt27(12); }                              /* TT67: salto de linea */
+void dt_tt69(void) { qq17 = 0x80; dt_tt67(); }                   /* TT69: Sentence Case y salto */
+void dt_ttx69(void) { dt_yc++; dt_tt69(); }                      /* TTX69: parrafo */
+void dt_tt60(u8 a) { dt_tt27(a); dt_ttx69(); }                   /* TT60 */
+void dt_tt162(void) { dt_tt27(' '); }                            /* TT162: espacio */
+void dt_spc(u8 a) { dt_tt27(a); dt_tt162(); }                    /* spc */
+void dt_prq(u8 a) { dt_tt27(a); dt_tt27('?'); }                  /* prq */
+void dt_tt73(void) { dt_tt27(':'); }                             /* TT73 */
+void dt_tt68(u8 a) { dt_tt27(a); dt_tt73(); }                    /* TT68: ficha y dos puntos */
+void dt_plf(u8 a) { dt_tt27(a); dt_tt67(); }                     /* plf */
+void dt_plf2(u8 a) { dt_plf(a); dt_xc = 6; }                     /* plf2 */
+void dt_feed(void) { dt_tt27(12); }                              /* FEED */
+
+/* csh: el dinero con 9 cifras y punto, " CR" y salto de linea */
+void dt_csh(void)
+{
+    dt_bprnt(cash, 9, 1);
+    dt_plf(226);
+}
+
+/* fwl: "FUEL: xx.x LIGHT YEARS", salto, y "CASH:" con el dinero (PCASH) */
+void dt_fwl(void)
+{
+    dt_tt68(105);
+    dt_pr2(qq14, 1);
+    dt_plf(195);
+    dt_tt27(119);                                /* PCASH: ficha 119 (CASH: y el codigo 0) */
+}
+
 /* ---------------------------------------------------------------- TT27: fichas normales */
 
 static void tt26(u8 a) { dt_dasc(a); }
@@ -156,7 +253,7 @@ static void cmn(void)
 void dt_tt27(u8 a)
 {
     u8 x;
-    if (a == 0) return;                          /* csh: dinero (no se usa en las fichas de las misiones) */
+    if (a == 0) { dt_csh(); return; }            /* csh: dinero */
     if (a & 0x80) {                              /* TT43 */
         if (a >= 160) { dt_ex((u8)(a - 160)); return; }    /* TT47 */
         x = (u8)((a & 127) << 1);
@@ -166,11 +263,11 @@ void dt_tt27(u8 a)
         return;
     }
     switch (a) {
-    case 1: return;                              /* tal: numero de galaxia (no se usa aqui) */
+    case 1: dt_pr2((u8)(gcnt + 1), 0); return;   /* tal: numero de galaxia */
     case 2: if (!(mj & 0x80) && dt_name_hook) dt_name_hook(2); return;   /* ypl */
     case 3: if (dt_name_hook) dt_name_hook(3); return;                   /* cpl */
     case 4: cmn(); return;
-    case 5: return;                              /* fwl: combustible y dinero (no se usa aqui) */
+    case 5: dt_fwl(); return;                    /* fwl: combustible y dinero */
     case 6: qq17 = 0x80; return;
     case 8: qq17 = 0; return;
     case 9: dt_xc = 21; dt_tt27(':'); return;    /* crlf + TT73 */

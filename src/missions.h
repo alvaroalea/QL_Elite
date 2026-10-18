@@ -23,6 +23,8 @@ void bris(void);                   /* BRIS */
 void pas1(void);                   /* PAS1 */
 void mis_pause(void);              /* PAUSE */
 void mis_tt66(u8 view);            /* TT66 de las pantallas de las misiones */
-int  pdesc(u8 zz);                 /* PDESC: descripcion especial del sistema zz (1 si la imprime) */
+int  pdesc(u8 zz, const u8 *q15);  /* PDESC: descripcion especial del sistema zz (1) o, con q15 (QQ15), la normal (0) */
+void tt25_raw(const u8 *q15, u8 q3, u8 q4, u8 q5, u8 q6, u8 p7lo, u8 p7hi, u8 d8lo, u8 d8hi, u8 zz);  /* TT25 */
+void tt25(int n);                  /* TT25: datos del sistema n (QQ8 = distancia) */
 void missions_set_ink(u8 c);       /* color de las letras del motor de fichas */
 #endif

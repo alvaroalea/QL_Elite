@@ -77,6 +77,8 @@ void mis_tt66(u8 view)
     dt_yc = 1;
 }
 
+static void nlin4(void) { gfx_hline(0, 255, 19, C_BLUE); }   /* NLIN4 (NLIN2 en la linea 19) */
+
 void missions_hooks(void)
 {
     dt_letter_hook = letter;
@@ -86,6 +88,7 @@ void missions_hooks(void)
     dt_pause2_hook = pause2;
     dt_delay_hook = delay;
     dt_name_hook = name;
+    dt_nlin4_hook = nlin4;
 }
 
 /* ---------------------------------------------------------------- rutinas de las misiones */
@@ -201,18 +204,18 @@ int missions_doentry(void)
 /* PDESC (la parte de RUPLA/RUGAL/RUTOK): descripcion especial del sistema zz si estamos atracados en el. Devuelve 1 si la
    ha impreso (en dt_xc/dt_yc); 0 si toca la descripcion normal. RUPLA tiene 26 entradas: el original pone NRU% = 0 y
    recorre 256 posiciones de memoria (fallo que lo cuelga en algunos sistemas); aqui se recorren solo las 26 */
-int pdesc(u8 zz)
+int pdesc(u8 zz, const u8 *q15)
 {
-    u8 y, g;
-    if (qq8[0] | qq8[1]) return 0;
-    if (!(qq12 & 0x80)) return 0;
+    u8 y, g, x;
+    if (qq8[0] | qq8[1]) goto pd1;
+    if (!(qq12 & 0x80)) goto pd1;
     for (y = dt_nru(); y; y--) {                 /* PDL1 */
         if (dt_rupla(y) != zz) continue;
         g = dt_rugal(y);
         if ((u8)(g & 0x7F) != gcnt) continue;
         if (g & 0x80) detok2(176);               /* PD3 */
         else {
-            if (!(tp & 1)) return 0;             /* solo durante la mision 1 */
+            if (!(tp & 1)) goto pd1;             /* solo durante la mision 1 */
             dt_mt14();
             detok2(1);                           /* LDA #1 (salta el LDA #176): DETOK2 con la ficha de salto 1 (MT1) */
         }
@@ -220,7 +223,84 @@ int pdesc(u8 zz)
         detok(177);                              /* PD4 */
         return 1;
     }
+pd1:
+    if (!q15) return 0;
+    for (x = 0; x < 4; x++) em_rand[x] = q15[2 + x];   /* PD1: RAND = QQ15+2..5 */
+    detok(5);                                    /* la descripcion ("goat soup") con el motor de fichas */
     return 0;
+}
+
+
+/* ---------------------------------------------------------------- TT25: datos del sistema */
+
+
+/* TT25 con los datos del sistema en bruto (QQ3..QQ7, QQ15, QQ8, ZZ) */
+void tt25_raw(const u8 *q15, u8 q3, u8 q4, u8 q5, u8 q6, u8 p7lo, u8 p7hi, u8 d8lo, u8 d8hi, u8 zz)
+{
+    u8 a, q19;
+    if (dt_tt66_hook) dt_tt66_hook(1);           /* TRADEMODE con la vista 1 */
+    dt_xc = 9;
+    dt_tt27(163);                                /* NLIN3: "DATA ON <sistema>" */
+    if (dt_nlin4_hook) dt_nlin4_hook();
+    dt_ttx69();
+    if (d8lo | d8hi) {                           /* TT146 */
+        dt_tt68(191);
+        dt_pr5(d8lo, d8hi, 1);
+        dt_tt60(195);
+    } else dt_yc++;
+    dt_tt68(194);                                /* ECONOMY: */
+    a = (u8)((q3 + 1) >> 1);
+    if (a == 2) dt_tt27(173);                    /* TT70: MAINLY */
+    else {
+        a = q3;
+        if (((q3 + 1) >> 1) > 2) a = (u8)(a - 5); /* SBC #5 */
+        dt_tt27((u8)(a + 170));                  /* TT71 */
+    }
+    dt_tt60((u8)((q3 >> 2) + 168));              /* TT72 */
+    dt_tt68(162);                                /* GOVERNMENT: */
+    dt_tt60((u8)(q4 + 177));
+    dt_tt68(196);                                /* TECH.LEVEL: */
+    dt_pr2((u8)(q5 + 1), 0);
+    dt_ttx69();
+    dt_tt68(192);                                /* POPULATION: */
+    dt_pr2(q6, 1);
+    dt_tt60(198);
+    dt_tt27('(');
+    if (q15[4] & 0x80) {                         /* TT75: especie alienigena */
+        a = (u8)(q15[5] >> 2);
+        if ((a & 7) < 3) dt_spc((u8)((a & 7) + 227));
+        a = (u8)(a >> 3);
+        if (a < 6) dt_spc((u8)(a + 230));
+        q19 = (u8)((q15[3] ^ q15[1]) & 7);
+        if (q19 < 6) dt_spc((u8)(q19 + 236));
+        dt_tt27((u8)((((q15[5] & 3) + q19) & 7) + 242));
+    } else dt_tt27(188);                         /* HUMAN COLONIAL */
+    dt_tt27('S');                                /* TT76 */
+    dt_tt60(')');
+    dt_tt68(193);                                /* GROSS PRODUCTIVITY: */
+    dt_pr6(p7lo, p7hi);
+    dt_tt162();
+    qq17 = 0;
+    dt_tt27('M');
+    dt_tt60(226);                                /* " CR" */
+    dt_tt68(250);                                /* AVERAGE RADIUS: */
+    dt_pr5(q15[3], (u8)((q15[5] & 15) + 11), 0);
+    dt_tt162();
+    dt_dasc('k');
+    dt_dasc('m');
+    dt_ttx69();
+    pdesc(zz, q15);
+}
+
+/* TT25 del sistema n de la galaxia actual, con la distancia de QQ8 */
+void tt25(int n)
+{
+    const uni_system *p = &uni_galaxy[n];
+    u8 q15[6];
+    q15[0] = (u8)(p->seed0 & 255); q15[1] = (u8)(p->seed0 >> 8);
+    q15[2] = p->goatsoupseed.a; q15[3] = p->goatsoupseed.b; q15[4] = p->goatsoupseed.c; q15[5] = p->goatsoupseed.d;
+    tt25_raw(q15, p->economy, p->govtype, p->techlev, p->population, (u8)(p->productivity & 255), (u8)(p->productivity >> 8),
+             qq8[0], qq8[1], (u8)n);
 }
 
 void missions_set_ink(u8 c) { mis_ink = c; }

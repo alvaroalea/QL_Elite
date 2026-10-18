@@ -28,7 +28,7 @@ static int hexb(const char *s, u8 *out, int n)
     return 1;
 }
 static void bl(u8 a, u8 b, u8 c, u8 d) { char t[32]; sprintf(t, "%s%d,%d,%d,%d", got[0] ? " " : "", a, b, c, d); strcat(got, t); }
-static int same_but(const u8 *a, const u8 *b) { int i; for (i = 0; i < NI; i++) if (i != 31 && i != 35 && i != 36 && a[i] != b[i]) return 0; return 1; }
+static int same_but(const u8 *a, const u8 *b) { int i; for (i = 0; i < NI; i++) if (i != 31 && i != 33 && i != 34 && i != 35 && i != 36 && a[i] != b[i]) return 0; return 1; }
 
 int main(void)
 {

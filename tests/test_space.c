@@ -372,8 +372,11 @@ int main(void)
     state_slot(2)[3] = 77;
     ship_kill(1);
     check(frin[0] == SHIPT_VIPER && frin[1] == SHIPT_COBRA_MK_3 && frin[2] == 0 && state_slot(1)[3] == 77 && many[SHIPT_PYTHON] == 0, "KILLSHP: las demas bajan una ranura");
-    for (i = 0; i < 20; i++) { ship_zinf(); if (ship_new(SHIPT_VIPER) < 0) break; }
-    check(i == 6 && frin[NOSH - 1] == SHIPT_VIPER, "NWSHP: caben NOSH ranuras y no mas");
+    for (i = 0; i < 20; i++) { ship_zinf(); if (ship_new(SHIPT_ESCAPE_POD) < 0) break; }
+    check(i == 6 && frin[NOSH - 1] == SHIPT_ESCAPE_POD, "NWSHP: caben NOSH ranuras y no mas");
+    ships_clear();
+    for (i = 0; i < 20; i++) { ship_zinf(); if (ship_new(SHIPT_COBRA_MK_3) < 0) break; }
+    check(i == 4, "NWSHP: el monton de lineas del original (SLSP) solo deja 4 Cobras");
     ships_clear();
 
     /* planeta y sol: dibujar dos veces es lo mismo que una, y quitarlos deja la vista vacia */

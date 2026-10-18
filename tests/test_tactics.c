@@ -110,7 +110,7 @@ int main(void)
             int t; char h[200]; u8 kw[NI];
             sscanf(a[31], "%d/%199s", &t, h); hexb(h, kw, NI);
             ok = ok && child == 3 && frin[3] == t;
-            for (i = 0; i < NI && child == 3; i++) if (i != 31 && i != 35 && i != 36) ok = ok && state_slot(3)[i] == kw[i];
+            for (i = 0; i < NI && child == 3; i++) if (i != 31 && i != 33 && i != 34 && i != 35 && i != 36) ok = ok && state_slot(3)[i] == kw[i];
             kids++;
         }
         sprintf(got, "rat %d rat2 %d cnt %d cnt2 %d ecma %d f %d a %d e %d tal %d %d %d rnd %d inwk %d log %s child %d/%d",
