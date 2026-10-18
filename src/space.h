@@ -27,6 +27,7 @@ void space_controls(const struct controls *c);   /* teclas -> JSTX/JSTY -> ALPHA
 #define SPACE_EV_DEATH 4             /* space_step: muerte (choque, planeta, sol o sin energia) */
 u8   space_bad(void);                /* BAD: nivel de carga ilegal */
 u8   space_step(void);               /* un fotograma: MV40 de cada nave, radar (SCAN), altitud; devuelve los SPACE_EV_* */
+extern void (*space_scan_hook)(u8 type); /* pruebas: sustituye a SCAN (registra la llamada) */
 void space_scan(u8 type);            /* SCAN: dibuja (XOR) la nave de INWK en el radar */
 void space_scanner_reset(void);      /* tras repintar el panel: ninguna nave figura como dibujada */
 void space_scanner_clear(void);      /* borra del radar todo lo dibujado (antes de cambiar de sistema) */

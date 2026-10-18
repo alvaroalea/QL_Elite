@@ -171,10 +171,13 @@ static u8 scan_ql(char k)
 
 /* SCAN: dibuja (XOR) la nave de INWK en el radar si su bit 4 de INWK+31 esta puesto: un punto de 4 de ancho y un palo hasta el
    plano del radar. Planetas y soles (tipo con bit 7) no salen; tampoco lo que esta a 16384 unidades o mas en algun eje. */
+void (*space_scan_hook)(u8 type) = 0;
+
 void space_scan(u8 type)
 {
     u8 a, x1, y2, col;
     unsigned s;
+    if (space_scan_hook) { space_scan_hook(type); return; }
     if (!(inwk[31] & 0x10)) return;
     if (type & 0x80) return;
     if (type >= sizeof scacol - 1) return;

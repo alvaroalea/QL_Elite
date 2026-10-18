@@ -11,8 +11,8 @@ u8 move_xsav;
 void (*move_tactics_hook)(void) = 0;
 
 static u8 k2[4];                          /* K2..K2+3 */
-static u8 p2;                             /* P+2 */
-static u8 rat2;                           /* RAT2 de MV45/MVS5 */
+u8 move_p2;                               /* P+2 */
+u8 move_rat2;                             /* RAT2 de MV45/MVS5 */
 
 /* MVT1: (x_sg x_hi x_lo) = (x_sg x_hi x_lo) +/- (A R); A = signo (bit 7) y alto (bits 0-6) de la cantidad; X = 0, 3 o 6 */
 void mvt1(u8 a, u8 x)
@@ -41,33 +41,51 @@ void mvt1(u8 a, u8 x)
 }
 
 /* MVT6: (A P+2 P+1) = (x_sg x_hi x_lo de INWK+X) + (A P+2 P+1) con signos; devuelve el signo en A */
-static u8 mvt6(u8 a, u8 x)
+u8 mvt6(u8 a, u8 x)
 {
     u8 y = a;
     unsigned s;
     int d, cc;
     if (!((y ^ inwk[x + 2]) & 0x80)) {
         s = (unsigned)zP1 + inwk[x]; zP1 = (u8)s;
-        s = (unsigned)p2 + inwk[x + 1] + (s >> 8); p2 = (u8)s;
+        s = (unsigned)move_p2 + inwk[x + 1] + (s >> 8); move_p2 = (u8)s;
         return y;
     }
     d = (int)inwk[x] - zP1; cc = (d >= 0); zP1 = (u8)d;                       /* MV50 */
-    d = (int)inwk[x + 1] - p2 - (1 - cc); cc = (d >= 0); p2 = (u8)d;
+    d = (int)inwk[x + 1] - move_p2 - (1 - cc); cc = (d >= 0); move_p2 = (u8)d;
     if (cc) return (u8)(y ^ 0x80);
     d = 1 - (int)zP1 - 1; cc = (d >= 0); zP1 = (u8)d;                         /* MV51 */
-    d = 0 - (int)p2 - (1 - cc); p2 = (u8)d;
+    d = 0 - (int)move_p2 - (1 - cc); move_p2 = (u8)d;
     return y;
 }
 
-/* MLTU2 con el acarreo con que sale el 6502: el bit bajo del producto ((~P) AND Q AND 1) */
+/* MLTU2 transcrito literalmente (16 vueltas de ROR/ADC) para obtener el acarreo con que vuelve el 6502: es el ultimo bit que sale de
+   ROR P. Deja (A P+1 P) como em_mltu2 */
 static u8 mltu2(u8 a, u8 *carry)
 {
-    *carry = (u8)((u8)(zP ^ 0xFF) & zQ & 1);
-    return em_mltu2(a);
+    u8 x, c, t, p1;
+    unsigned s;
+    a = (u8)(a ^ 0xFF);
+    c = (u8)(a & 1); a = (u8)(a >> 1); p1 = a; a = 0;      /* EOR #$FF; LSR A; STA P+1; LDA #0 */
+    t = zP; zP = (u8)((c << 7) | (t >> 1)); c = (u8)(t & 1);   /* ROR P */
+    for (x = 16; x; x--) {
+        if (!c) {                                            /* BCS MU21 no se toma */
+            s = (unsigned)a + zQ;                            /* ADC Q (con C = 0) */
+            c = (u8)(s >> 8); a = (u8)s;
+            t = a; a = (u8)((c << 7) | (a >> 1)); c = (u8)(t & 1);   /* ROR A */
+        } else {
+            c = (u8)(a & 1); a = (u8)(a >> 1);               /* MU21: LSR A */
+        }
+        t = p1; p1 = (u8)((c << 7) | (p1 >> 1)); c = (u8)(t & 1);    /* ROR P+1 */
+        t = zP; zP = (u8)((c << 7) | (zP >> 1)); c = (u8)(t & 1);    /* ROR P */
+    }
+    zP1 = p1;
+    *carry = c;
+    return a;
 }
 
 /* MVS4: gira un vector de orientacion (INWK+Y) por alabeo (ALPHA) y cabeceo (BETA) */
-static void mvs4(u8 y)
+void mvs4(u8 y)
 {
     u8 a, x;
     zQ = alpha;
@@ -87,7 +105,7 @@ static void mvs4(u8 y)
 }
 
 /* MVS5: gira 3,6 grados el par de vectores (INWK+X, INWK+Y) */
-static void mvs5(u8 x, u8 y)
+void mvs5(u8 x, u8 y)
 {
     u8 a, t, c, i, q;
     int d, cc;
@@ -98,7 +116,7 @@ static void mvs5(u8 x, u8 y)
     t = (u8)(inwk[y + 1] & 0x80);
     a = (u8)(inwk[y + 1] & 0x7F);
     for (i = 0; i < 4; i++) { c = (u8)(a & 1); a = (u8)(a >> 1); zP = (u8)((zP >> 1) | (c << 7)); }
-    a = (u8)(a | t); a = (u8)(a ^ rat2);
+    a = (u8)(a | t); a = (u8)(a ^ move_rat2);
     q = x;
     a = em_add(a);
     zK[1] = a; zK[0] = em_x;
@@ -110,7 +128,7 @@ static void mvs5(u8 x, u8 y)
     t = (u8)(inwk[x + 1] & 0x80);
     a = (u8)(inwk[x + 1] & 0x7F);
     for (i = 0; i < 4; i++) { c = (u8)(a & 1); a = (u8)(a >> 1); zP = (u8)((zP >> 1) | (c << 7)); }
-    a = (u8)(a | t); a = (u8)(a ^ 0x80); a = (u8)(a ^ rat2);
+    a = (u8)(a | t); a = (u8)(a ^ 0x80); a = (u8)(a ^ move_rat2);
     a = em_add(a);
     inwk[y + 1] = a; inwk[y] = em_x;
     x = q;
@@ -125,20 +143,20 @@ void mv45(void)
     mvt1(0x80, 6);                                /* z -= DELTA */
     if ((ztype & 0x81) == 129) return;            /* el sol no gira */
     mvs4(9); mvs4(15); mvs4(21);
-    rat2 = (u8)(inwk[30] & 0x80);
+    move_rat2 = (u8)(inwk[30] & 0x80);
     a = (u8)(inwk[30] & 0x7F);
     if (a != 0) {                                 /* contador de cabeceo */
         c = (u8)(a >= 0x7F);
         if (!c) a = (u8)(a - 1);
-        inwk[30] = (u8)(a | rat2);
+        inwk[30] = (u8)(a | move_rat2);
         mvs5(15, 9); mvs5(17, 11); mvs5(19, 13);
     }
-    rat2 = (u8)(inwk[29] & 0x80);                 /* MV8 */
+    move_rat2 = (u8)(inwk[29] & 0x80);                 /* MV8 */
     a = (u8)(inwk[29] & 0x7F);
     if (a != 0) {                                 /* contador de alabeo */
         c = (u8)(a >= 0x7F);
         if (!c) a = (u8)(a - 1);
-        inwk[29] = (u8)(a | rat2);
+        inwk[29] = (u8)(a | move_rat2);
         mvs5(15, 21); mvs5(17, 23); mvs5(19, 25);
     }
     if ((inwk[31] & 0xA0) != 0) { inwk[31] = (u8)(inwk[31] & 0xEF); return; }    /* MV5 / MVD1 */
@@ -146,8 +164,8 @@ void mv45(void)
     space_scan(ztype);
 }
 
-/* MV40: planetas y soles: la posicion gira con nuestro alabeo y cabeceo y luego sigue por MV45 */
-void mv40(void)
+/* MV40 hasta antes de MV45 (aparte para poder compararlo con el original) */
+void mv40_pre(void)
 {
     u8 a, t;
     unsigned s;
@@ -191,6 +209,12 @@ mv2:
     em_mult3(inwk[5]);
     sm_mvt3(0);
     inwk[0] = zK[1]; inwk[1] = zK[2]; inwk[2] = zK[3];
+}
+
+/* MV40: planetas y soles: la posicion gira con nuestro alabeo y cabeceo y luego sigue por MV45 */
+void mv40(void)
+{
+    mv40_pre();
     mv45();
 }
 
@@ -225,24 +249,24 @@ mv30:
     /* parte 3: giro de la posicion por nuestro alabeo (ALP1, ALP2) y cabeceo (BET1, BET2) */
     zQ = alp1;
     zP = (u8)(inwk[0] ^ 0xFF);
-    p2 = mltu2(inwk[1], &c);
+    move_p2 = mltu2(inwk[1], &c);
     a = (u8)(alp2[1] ^ inwk[2]); a = mvt6(a, 3);
-    k2[3] = a; k2[1] = zP1; zP = (u8)(zP1 ^ 0xFF); k2[2] = p2;
+    k2[3] = a; k2[1] = zP1; zP = (u8)(zP1 ^ 0xFF); k2[2] = move_p2;
     zQ = bet1;
-    p2 = mltu2(p2, &c);
+    move_p2 = mltu2(move_p2, &c);
     a = (u8)(k2[3] ^ bet2[0]); a = mvt6(a, 6);
     inwk[8] = a;
-    inwk[6] = zP1; zP = (u8)(zP1 ^ 0xFF); inwk[7] = p2;
-    p2 = mltu2(p2, &c3);                                 /* MLTU2: Q sigue siendo BET1 */
+    inwk[6] = zP1; zP = (u8)(zP1 ^ 0xFF); inwk[7] = move_p2;
+    move_p2 = mltu2(move_p2, &c3);                                 /* MLTU2: Q sigue siendo BET1 */
     inwk[5] = k2[3];
     a = (u8)(k2[3] ^ bet2[0] ^ inwk[8]);
     if (!(a & 0x80)) goto mv43;
     s = (unsigned)zP1 + k2[1] + c3; inwk[3] = (u8)s;                          /* signos opuestos: suma */
-    s = (unsigned)p2 + k2[2] + (s >> 8); inwk[4] = (u8)s;
+    s = (unsigned)move_p2 + k2[2] + (s >> 8); inwk[4] = (u8)s;
     goto mv44;
 mv43:
     d = (int)k2[1] - zP1 - (1 - (int)c3); cc = (d >= 0); inwk[3] = (u8)d;
-    d = (int)k2[2] - p2 - (1 - cc); cc = (d >= 0); inwk[4] = (u8)d;
+    d = (int)k2[2] - move_p2 - (1 - cc); cc = (d >= 0); inwk[4] = (u8)d;
     if (cc) goto mv44;
     d = 1 - (int)inwk[3] - 1; cc = (d >= 0); inwk[3] = (u8)d;
     d = 0 - (int)inwk[4] - (1 - cc); inwk[4] = (u8)d;
@@ -250,9 +274,9 @@ mv43:
 mv44:
     zQ = alp1;
     zP = (u8)(inwk[3] ^ 0xFF);
-    p2 = mltu2(inwk[4], &c);
+    move_p2 = mltu2(inwk[4], &c);
     a = (u8)(alp2[0] ^ inwk[5]); a = mvt6(a, 0);
-    inwk[2] = a; inwk[1] = p2; inwk[0] = zP1;
+    inwk[2] = a; inwk[1] = move_p2; inwk[0] = zP1;
     mv45();
 }
 
