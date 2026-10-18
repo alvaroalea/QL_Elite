@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 281, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 13 y pendientes de verificar: 132
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 292, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 25 y pendientes de verificar: 109
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -22,16 +22,16 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Drawing ships | 5 | 4 | 4 | 0 | 1 | 0 | 0 |
 | Drawing suns | 3 | 3 | 3 | 0 | 0 | 0 | 0 |
 | Drawing the screen | 18 | 8 | 7 | 1 | 10 | 0 | 0 |
-| Equipment | 6 | 6 | 0 | 0 | 0 | 6 | 0 |
+| Equipment | 6 | 6 | 5 | 1 | 0 | 0 | 0 |
 | Flight | 29 | 29 | 12 | 0 | 0 | 17 | 0 |
 | Keyboard | 19 | 15 | 1 | 0 | 4 | 14 | 0 |
 | Loader | 5 | 0 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
-| Market | 19 | 19 | 8 | 0 | 0 | 11 | 0 |
+| Market | 19 | 19 | 8 | 11 | 0 | 0 | 0 |
 | Maths (Arithmetic) | 52 | 51 | 22 | 0 | 1 | 29 | 0 |
 | Maths (Geometry) | 19 | 19 | 19 | 0 | 0 | 0 | 0 |
 | Missions | 16 | 10 | 10 | 0 | 6 | 0 | 0 |
-| Moving | 8 | 8 | 2 | 0 | 0 | 6 | 0 |
+| Moving | 8 | 8 | 8 | 0 | 0 | 0 | 0 |
 | Save and load | 61 | 27 | 3 | 0 | 34 | 24 | 0 |
 | Sound | 13 | 11 | 10 | 1 | 2 | 0 | 0 |
 | Stardust | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
@@ -43,7 +43,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Universe | 34 | 32 | 32 | 0 | 2 | 0 | 0 |
 | Utility routines | 18 | 1 | 1 | 0 | 17 | 0 | 0 |
 | Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **426** | **281** | **13** | **102** | **132** | **0** |
+| **Total** | **528** | **426** | **292** | **25** | **102** | **109** | **0** |
 
 Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -216,12 +216,12 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| EQSHP | Show the Equip Ship screen | sin-verificar | `equip_buy` | la pantalla es scr_equip (propia); equip_buy lleva las reglas, el cobro y el reembolso |
-| eq | Subtract the price of equipment from the cash pot | sin-verificar | `cash_spend` | dentro de equip_buy (cobra antes de reembolsar el laser antiguo) |
-| prx | Return the price of a piece of equipment | sin-verificar | `equip_price` |  |
-| qv | Print a menu of the four space views, for buying lasers | propia | `scr_equip` | pide la vista (0 a 3) al comprar un laser |
-| refund | Install a new laser, processing a refund if applicable | sin-verificar | `laser_refund` |  |
-| PRXS | Equipment prices | sin-verificar | `equip_price` |  |
+| EQSHP | Show the Equip Ship screen | verificada | `equip_buy` | make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales): cobra primero (sin dinero se avisa aunque ya lo tengas), si ya lo tienes devuelve el importe, laser antiguo reembolsado; la pantalla es scr_equip (propia) |
+| eq | Subtract the price of equipment from the cash pot | verificada | `cash_spend` | make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales) |
+| prx | Return the price of a piece of equipment | verificada | `equip_price` | make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales); el combustible (70 - QQ14) * 2 |
+| qv | Print a menu of the four space views, for buying lasers | no-verificable | `scr_equip` | pide la vista (0 a 3) con un menu propio; en el original es TT217 + pantalla |
+| refund | Install a new laser, processing a refund if applicable | verificada | `laser_refund` | make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales) |
+| PRXS | Equipment prices | verificada | `equip_price` | make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales) |
 
 ## Flight (29 portadas de 29)
 
@@ -304,20 +304,20 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | tnpr1 | Work out if we have space for one tonne of cargo | verificada | `combat_collide`, `trade_fits` | recogida de cargas (make test_damage) |
 | tnpr | Work out if we have space for a specific amount of cargo | verificada | `trade_room` |  |
 | TT219 | Show the Buy Cargo screen | verificada | `trade_buy` |  |
-| gnum | Get a number from the keyboard | propia | `trade_screen` | la cantidad se teclea en el propio listado (cursores, cifras, M = maximo) |
-| NWDAV4 | Print an "ITEM?" error, make a beep and rejoin the TT210 routine | propia | `ui_msg` | los errores salen como mensaje en la fila 28 con sonido |
+| gnum | Get a number from the keyboard | no-verificable | `trade_screen` | entrada de la cantidad propia (cursores, cifras, M = maximo); en el original lee el teclado del Apple II |
+| NWDAV4 | Print an "ITEM?" error, make a beep and rejoin the TT210 routine | no-verificable | `ui_msg` | mensaje de error propio con sonido |
 | TT208 | Show the Sell Cargo screen | verificada | `trade_sell` |  |
-| TT210 | Show a list of current cargo in our hold, optionally to sell | propia | `trade_screen` | la lista de venta es el mismo listado con las existencias en bodega |
-| TT213 | Show the Inventory screen | sin-verificar | `scr_inventory` | maquetacion propia |
+| TT210 | Show a list of current cargo in our hold, optionally to sell | no-verificable | `trade_screen` | lista de venta propia (mismo listado con las existencias) |
+| TT213 | Show the Inventory screen | no-verificable | `scr_inventory` | pantalla propia (maquetacion); los datos (QQ20, unidades) se verifican en TT208/TT219 |
 | TT151 | Print the name, price and availability of a market item | verificada | `uni_gen_market` | precio de cada articulo (QQ24 * 4 con GC2), make test_univ6502; la pantalla del mercado es propia |
-| TT152 | Print the unit ("t", "kg" or "g") for a market item | propia | `unit_char` | unidad (t, kg, g) en menu.c |
-| TT160 | Print "t" (for tonne) and a space | propia | `unit_char` |  |
-| TT161 | Print "kg" (for kilograms) | propia | `unit_char` |  |
-| TT16a | Print "g" (for grams) | propia | `unit_char` |  |
-| TT163 | Print the headers for the table of market prices | propia | `market_header` | cabecera del mercado en menu.c |
-| TT167 | Show the Market Price screen | sin-verificar | `scr_market` | maquetacion propia |
+| TT152 | Print the unit ("t", "kg" or "g") for a market item | no-verificable | `unit_char` | unidad t/kg/g: el listado es propio; el dato (bits de unidad de QQ23) esta verificado |
+| TT160 | Print "t" (for tonne) and a space | no-verificable | `unit_char` | idem TT152 |
+| TT161 | Print "kg" (for kilograms) | no-verificable | `unit_char` | idem TT152 |
+| TT16a | Print "g" (for grams) | no-verificable | `unit_char` | idem TT152 |
+| TT163 | Print the headers for the table of market prices | no-verificable | `market_header` | cabecera propia del listado |
+| TT167 | Show the Market Price screen | no-verificable | `scr_market` | pantalla propia (maquetacion); precios y existencias verificados (TT151, GVL) |
 | var | Calculate QQ19+3 = economy * |economic_factor| | verificada | `uni_gen_market` | economia * factor, dentro de GVL y TT151 (make test_univ6502) |
-| dn | Print the amount of money we have left in the cash pot, then make | propia | `trade_info` | el dinero restante se redibuja tras cada operacion |
+| dn | Print the amount of money we have left in the cash pot, then make | no-verificable | `trade_info` | redibujo del dinero tras cada operacion (pantalla propia); el cobro esta verificado |
 | ITEM | Macro definition for the market prices table | verificada | `uni_goods` | macro de la tabla QQ23 (make test_univ6502) |
 | QQ23 | Market prices table | verificada | `uni_goods` | tabla de mercancias, comprobada a traves de GVL y TT151 (make test_univ6502) |
 
@@ -428,13 +428,13 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | MVT3 | Calculate K(3 2 1) = (x_sign x_hi x_lo) + K(3 2 1) | verificada | `sm_mvt3` | make test_geom (codigo original en el emulador) |
-| MVS5 | Apply a 3.6 degree pitch or roll to an orientation vector | sin-verificar | `mvs5` |  |
+| MVS5 | Apply a 3.6 degree pitch or roll to an orientation vector | verificada | `mvs5` | make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) |
 | SFS2 | Move a ship in space along one of the coordinate axes | verificada | `sfs2` | dentro de SFS1 (make test_laser, nave madre = estacion) |
-| MVEIT | Move current ship: Tidy the orientation vectors | sin-verificar | `mveit` | partes 1 a 9; TACTICS es un gancho (move_tactics_hook) hasta el paso 3; los acarreos de MLTU2 salen del bit bajo del producto |
-| MVT1 | Calculate (x_sign x_hi x_lo) = (x_sign x_hi x_lo) + (A R) | sin-verificar | `mvt1` |  |
-| MVS4 | Apply pitch and roll to an orientation vector | sin-verificar | `mvs4` |  |
-| MVT6 | Calculate (A P+2 P+1) = (x_sign x_hi x_lo) + (A P+2 P+1) | sin-verificar | `mvt6` |  |
-| MV40 | Rotate the planet or sun's location in space by the amount of | sin-verificar | `mv40` | gira la posicion y sigue por MV45 (orientacion, contadores y radar); K2 byte 0 queda a 0 (en el original es lo que hubiera en K2) |
+| MVEIT | Move current ship: Tidy the orientation vectors | verificada | `mveit` | make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran); encontro que el acarreo de MLTU2 no era el bit bajo del producto: es el ultimo bit que sale de ROR P (siempre 0), ahora MLTU2 esta transcrita literalmente en move.c; TACTICS/SCAN son ganchos (move_tactics_hook, space_scan_hook) |
+| MVT1 | Calculate (x_sign x_hi x_lo) = (x_sign x_hi x_lo) + (A R) | verificada | `mvt1` | make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) |
+| MVS4 | Apply pitch and roll to an orientation vector | verificada | `mvs4` | make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) |
+| MVT6 | Calculate (A P+2 P+1) = (x_sign x_hi x_lo) + (A P+2 P+1) | verificada | `mvt6` | make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) |
+| MV40 | Rotate the planet or sun's location in space by the amount of | verificada | `mv40`, `mv40_pre`, `mv45` | make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) (MV40 hasta MV45 y MV45 por separado); K2 byte 0 vale 0 como en el original (nadie lo escribe) |
 
 ## Save and load (27 portadas de 61, 34 no necesarias)
 

@@ -70,12 +70,12 @@ DFAULT cmdr_unpack,cmdr_pack verificada make test_start (1.000 bloques con CHECK
 tnpr trade_room verificada
 TT219 trade_buy verificada
 TT208 trade_sell verificada
-EQSHP equip_buy sin-verificar la pantalla es scr_equip (propia); equip_buy lleva las reglas, el cobro y el reembolso
-refund laser_refund sin-verificar
-PRXS equip_price sin-verificar
+EQSHP equip_buy verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales): cobra primero (sin dinero se avisa aunque ya lo tengas), si ya lo tienes devuelve el importe, laser antiguo reembolsado; la pantalla es scr_equip (propia)
+refund laser_refund verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales)
+PRXS equip_price verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales)
 STATUS status_mode,scr_status,rating_name,legal_name verificada transcripcion literal con el motor de fichas (titulo, estado, rango, equipo y lasers, letra a letra con columna y fila, TRADEMODE y TT111 registran); 800 casos, make test_missions
-TT213 scr_inventory sin-verificar maquetacion propia
-TT167 scr_market sin-verificar maquetacion propia
+TT213 scr_inventory no-verificable pantalla propia (maquetacion); los datos (QQ20, unidades) se verifican en TT208/TT219
+TT167 scr_market no-verificable pantalla propia (maquetacion); precios y existencias verificados (TT151, GVL)
 SVE scr_disk propia
 LOD load_commander propia
 TT102 ui_nav propia
@@ -104,18 +104,18 @@ TT16 chart_tt16 verificada make test_charts (borra la cruz, TT123 en y con -Y y 
 TT123 tt123 verificada make test_charts (no se mueve si daria la vuelta)
 # --- market y equipment
 tnpr1 combat_collide,trade_fits verificada recogida de cargas (make test_damage)
-gnum trade_screen propia la cantidad se teclea en el propio listado (cursores, cifras, M = maximo)
-NWDAV4 ui_msg propia los errores salen como mensaje en la fila 28 con sonido
-TT210 trade_screen propia la lista de venta es el mismo listado con las existencias en bodega
-TT152 unit_char propia unidad (t, kg, g) en menu.c
-TT160 unit_char propia
-TT161 unit_char propia
-TT16a unit_char propia
-TT163 market_header propia cabecera del mercado en menu.c
-dn trade_info propia el dinero restante se redibuja tras cada operacion
-eq cash_spend sin-verificar dentro de equip_buy (cobra antes de reembolsar el laser antiguo)
-prx equip_price sin-verificar
-qv scr_equip propia pide la vista (0 a 3) al comprar un laser
+gnum trade_screen no-verificable entrada de la cantidad propia (cursores, cifras, M = maximo); en el original lee el teclado del Apple II
+NWDAV4 ui_msg no-verificable mensaje de error propio con sonido
+TT210 trade_screen no-verificable lista de venta propia (mismo listado con las existencias)
+TT152 unit_char no-verificable unidad t/kg/g: el listado es propio; el dato (bits de unidad de QQ23) esta verificado
+TT160 unit_char no-verificable idem TT152
+TT161 unit_char no-verificable idem TT152
+TT16a unit_char no-verificable idem TT152
+TT163 market_header no-verificable cabecera propia del listado
+dn trade_info no-verificable redibujo del dinero tras cada operacion (pantalla propia); el cobro esta verificado
+eq cash_spend verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales)
+prx equip_price verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales); el combustible (70 - QQ14) * 2
+qv scr_equip no-verificable pide la vista (0 a 3) con un menu propio; en el original es TT217 + pantalla
 # --- teclado
 TT17 in_held propia cursores o joystick
 TT217 in_wait propia
@@ -138,8 +138,8 @@ DOT dot sin-verificar
 cntr space_cntr sin-verificar
 BUMP2 space_bump2 sin-verificar
 REDU2 space_redu2 sin-verificar
-MV40 mv40 sin-verificar gira la posicion y sigue por MV45 (orientacion, contadores y radar); K2 byte 0 queda a 0 (en el original es lo que hubiera en K2)
-MVT1 mvt1 sin-verificar
+MV40 mv40,mv40_pre,mv45 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) (MV40 hasta MV45 y MV45 por separado); K2 byte 0 vale 0 como en el original (nadie lo escribe)
+MVT1 mvt1 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
 PIXEL gfx_dust verificada make test_lines punto a punto (2 o 3 puntos segun ZZ y dos filas si ZZ < 80; el QL no muestra x >= 256)
 HLOIN gfx_hloin,hloin,lines_hloin verificada make test_lines punto a punto en blanco (pares de puntos de X1 a X2-1); los colores del Apple II son patrones de bits (MASKT): en el QL, color liso; hloin() de sun.c deja X1/X2 como el original (make test_planet)
 ABORT abort_missile verificada dentro de las teclas de misil (make test_tactics)
@@ -183,11 +183,11 @@ TT102 ui_nav propia en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y 
 TT66 tt66 verificada make test_screen
 CLYNS clyns verificada make test_screen (DLY, de, XC/YC, DTW2, QQ17; 64 espacios en las vistas de texto o clearrow 15 y 16 en las graficas)
 # --- paso 2 (proyeccion 3D) completado el 2026-10-17: movimiento, explosiones, planeta, naves en vuelo; sin verificar
-MVEIT mveit sin-verificar partes 1 a 9; TACTICS es un gancho (move_tactics_hook) hasta el paso 3; los acarreos de MLTU2 salen del bit bajo del producto
+MVEIT mveit verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran); encontro que el acarreo de MLTU2 no era el bit bajo del producto: es el ultimo bit que sale de ROR P (siempre 0), ahora MLTU2 esta transcrita literalmente en move.c; TACTICS/SCAN son ganchos (move_tactics_hook, space_scan_hook)
 MV45 mv45 sin-verificar z -= DELTA, giro de los tres vectores (MVS4), contadores de alabeo y cabeceo (MVS5) y radar
-MVS4 mvs4 sin-verificar
-MVS5 mvs5 sin-verificar
-MVT6 mvt6 sin-verificar
+MVS4 mvs4 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
+MVS5 mvs5 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
+MVT6 mvt6 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
 PLUT plut sin-verificar ejes de INWK para las vistas trasera, izquierda y derecha
 DOEXP doexp verificada make test_draw (CPIX con X, Y y COL; monton, INWK+31 y RAND); el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco
 PTCLS ptcls verificada a traves de DOEXP en make test_draw

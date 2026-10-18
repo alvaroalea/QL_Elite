@@ -239,25 +239,24 @@ int equip_buy(int item, int view)
     unsigned price;
     u8 newlaser = 0;
     if (item < 0 || item >= NEQUIP) return EQ_BAD;
-    /* estado "ya lo tienes" antes de cobrar (el original cobra y devuelve el dinero: el resultado es el mismo) */
-    switch (item) {
-    case 1: if (nomsl >= 4) return EQ_PRESENT; break;
-    case 2: if (crgo == 37) return EQ_PRESENT; break;
-    case 3: if (ecm_fitted) return EQ_PRESENT; break;
-    case 6: if (bst) return EQ_PRESENT; break;
-    case 7: if (escp) return EQ_PRESENT; break;
-    case 8: if (bomb) return EQ_PRESENT; break;
-    case 9: if (engy) return EQ_PRESENT; break;
-    case 10: if (dkcmp) return EQ_PRESENT; break;
-    case 11: if (ghyp) return EQ_PRESENT; break;
-    default: break;
-    }
     if (equip_is_laser(item)) {
         if (view < 0 || view > 3) return EQ_BAD;
         newlaser = (item == 4) ? LASER_POW : (item == 5) ? LASER_BEAM : (item == 12) ? LASER_MIL : LASER_MINING;
     }
     price = equip_price(item);
-    if (!cash_spend(price)) return EQ_NOCASH;
+    if (!cash_spend(price)) return EQ_NOCASH;       /* eq: cobra primero (sin dinero se avisa aunque ya lo tengas) */
+    switch (item) {                                  /* pres: si ya lo tienes, MCASH devuelve lo cobrado */
+    case 1: if (nomsl >= 4) goto present; break;
+    case 2: if (crgo == 37) goto present; break;
+    case 3: if (ecm_fitted) goto present; break;
+    case 6: if (bst) goto present; break;
+    case 7: if (escp) goto present; break;
+    case 8: if (bomb) goto present; break;
+    case 9: if (engy) goto present; break;
+    case 10: if (dkcmp) goto present; break;
+    case 11: if (ghyp) goto present; break;
+    default: break;
+    }
     switch (item) {
     case 0: qq14 = 70; break;
     case 1: nomsl++; break;
@@ -275,6 +274,9 @@ int equip_buy(int item, int view)
         break;
     }
     return EQ_OK;
+present:
+    cash_earn(price);
+    return EQ_PRESENT;
 }
 
 /* ---------------- comandante ---------------- */
