@@ -55,19 +55,40 @@ static void panel_static(void)
     txt_print_at(0, 27, "HERE");
     txt_print_at(0, 28, "TARGET");
     txt_print_at(0, 29, "CURSORS TURN F FAST D SLOW");
-    txt_print_at(0, 30, "1-4 VIEW 5-9 INFO H/G JUMP");
-    txt_print_at(0, 31, "A FIRE B BOMB J JUMP C/P DOCK N K");
+    txt_print_at(0, 30, "1-4 VIEW 5-0 INFO H/G/J JUMPS");
+    txt_print_at(0, 31, "B BOMB C/P DOCK = PAUSE");
     txt_color(C_WHITE, C_BLACK);
+}
+
+/* valor en decimas con un sufijo (por ejemplo 12345 y " Cr" -> "1234.5 Cr"); devuelve la longitud */
+static int tenths_text(char *b, unsigned long tenths, const char *suffix)
+{
+    char t[12];
+    unsigned long v = tenths / 10UL;
+    int n = 0, i = 0;
+    do { t[n++] = (char)('0' + (int)(v % 10UL)); v /= 10UL; } while (v);
+    while (n) b[i++] = t[--n];
+    b[i++] = '.';
+    b[i++] = (char)('0' + (int)(tenths % 10UL));
+    while (*suffix) b[i++] = *suffix++;
+    b[i] = 0;
+    return i;
 }
 
 static void panel_update(void)
 {
+    char b[24];
+    int n;
     txt_color(C_WHITE, C_BLACK);
+    txt_nowrap(1);                                          /* un nombre largo o mucho dinero no debe saltar a la fila 29 (borraba la C de CURSORS) */
     txt_print_at(7, 26, vnames[view]);
-    txt_print_at(7, 27, uni_galaxy[cur_sys].name); txt_puts("        ");
-    txt_at(7, 28); txt_puts(uni_galaxy[tgt_sys].name); txt_puts("  ");
-    ui_tenths(jump_distance(tgt_sys)); txt_puts(" LY  ");
-    ui_tenths(cash_get()); txt_puts(" Cr    ");
+    txt_print_at(7, 27, uni_galaxy[cur_sys].name); txt_puts("                         ");
+    n = tenths_text(b, cash_get(), " Cr");                  /* los creditos, alineados a la derecha en la fila de HERE */
+    txt_print_at(32 - n, 27, b);
+    txt_at(7, 28); txt_puts(uni_galaxy[tgt_sys].name); txt_puts("                         ");
+    n = tenths_text(b, (unsigned long)jump_distance(tgt_sys), " LY");   /* y la distancia, a la derecha en la de TARGET */
+    txt_print_at(32 - n, 28, b);
+    txt_nowrap(0);
 }
 
 static void say(const char *s, int error)
@@ -76,6 +97,26 @@ static void say(const char *s, int error)
     txt_color(error ? C_RED : C_GREEN, C_BLACK);
     txt_print_at(0, 24, s);
     txt_color(C_WHITE, C_BLACK);
+}
+
+/* Pausa: "PAUSED" a mitad del hueco entre la mira (hasta y = 64) y el panel (y = 136): fila de texto 12 (y = 96..103), centrado.
+   Se guarda lo que habia debajo (naves, polvo) y se restaura al reanudar */
+#define PAUSE_ROW 12
+#define PAUSE_COL 13
+static u8 pause_save[8][24];
+
+static void pause_banner(int on)
+{
+    int r, i;
+    u8 *p;
+    for (r = 0; r < 8; r++) {
+        p = screen + (long)(PAUSE_ROW * 8 + r) * 128L + PAUSE_COL * 4;     /* 128 bytes por linea; 4 bytes por celda de 8 puntos */
+        for (i = 0; i < 24; i++) { if (on) pause_save[r][i] = p[i]; else p[i] = pause_save[r][i]; }
+    }
+    if (on) {
+        txt_color(C_WHITE, C_BLACK);
+        txt_print_at(PAUSE_COL, PAUSE_ROW, "PAUSED");
+    }
 }
 
 /* TT66 de la vista espacial: borra el area de vista (el panel no se toca) */
@@ -335,7 +376,7 @@ static void flight_death(void)
 
 int flight_run(void)
 {
-    int ch, sc;
+    int ch, sc, r;
     u8 ev;
     struct controls c;
     static const u8 contact_types[6] = { SHIPT_VIPER, SHIPT_COBRA_MK_3, SHIPT_PYTHON, SHIPT_ASTEROID, SHIPT_SIDEWINDER, SHIPT_KRAIT };
@@ -374,7 +415,10 @@ int flight_run(void)
             }
             if (ch == '=') {                                /* DK4: pausa (FREEZE) y teclas de configuracion */
                 key_ctx_menu();
-                if (freeze()) { snd_off(); return FL_DEATH; }    /* ESC: DEATH2 */
+                pause_banner(1);
+                r = freeze();
+                pause_banner(0);
+                if (r) { snd_off(); return FL_DEATH; }    /* ESC: DEATH2 */
                 if (in_quit) return FL_QUIT;
                 key_ctx_flight();
                 ch = -1;

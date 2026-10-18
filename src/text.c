@@ -12,6 +12,8 @@ static int cx = 0, cy = 0;
 static int cur_on = 0;          /* cursor activado */
 static int cur_vis = 0;         /* bloque dibujado ahora mismo */
 static u8 cur_col = C_WHITE;
+static int nowrap = 0;          /* 1: el texto que se sale por la derecha se pierde en vez de seguir en la fila de abajo */
+static int clipped = 0;         /* ya se llego a la ultima columna con nowrap: se ignora lo que siga (hasta el siguiente txt_at) */
 
 void txt_init(void)
 {
@@ -80,6 +82,7 @@ void txt_color(u8 i, int p) { ink = (u8)(i & 7); paper = (p < 0) ? TXT_TRANSPARE
 void txt_at(int col, int row)
 {
     cur_hide();
+    clipped = 0;
     cx = col < 0 ? 0 : (col >= TXT_COLS ? TXT_COLS - 1 : col);
     cy = row < 0 ? 0 : (row >= TXT_ROWS ? TXT_ROWS - 1 : row);
     cur_show();
@@ -94,12 +97,18 @@ void txt_putc(int ch)
     if (ch == '\n') { cx = 0; if (cy < TXT_ROWS - 1) cy++; }
     else if (ch == '\r') { cx = 0; }
     else if (ch == '\b') { if (cx > 0) cx--; }
+    else if (clipped) { }
     else {
         draw_glyph(cx, cy, ch);
-        if (++cx >= TXT_COLS) { cx = 0; if (cy < TXT_ROWS - 1) cy++; }
+        if (++cx >= TXT_COLS) {
+            if (nowrap) { cx = TXT_COLS - 1; clipped = 1; }
+            else { cx = 0; if (cy < TXT_ROWS - 1) cy++; }
+        }
     }
     cur_show();
 }
+
+void txt_nowrap(int on) { nowrap = on ? 1 : 0; clipped = 0; }
 
 void txt_puts(const char *s) { while (*s) txt_putc((u8)*s++); }
 

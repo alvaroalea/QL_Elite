@@ -43,11 +43,11 @@ void ui_footer(void)
 {
     txt_color(C_CYAN, C_BLACK);
     if (qq12) {
-        txt_print_at(0, 30, "1BUY 2SELL 3EQUIP 5LOCAL 6DATA");
-        txt_print_at(0, 31, "7MKT 8STAT 9INV 0GAL IDISK UGO");
+        txt_print_at(0, 30, "1BUY 2SELL 3EQUIP 5GAL 6LOCAL");
+        txt_print_at(0, 31, "7DATA 8MKT 9STAT 0INV IDISK UGO");
     } else {                                           /* en vuelo: 1-4 vistas, 5-9 pantallas (como en el original) */
-        txt_print_at(0, 30, "1-4 VIEW 5LOCAL 6DATA 7MKT");
-        txt_print_at(0, 31, "8STAT 9INV 0GAL H/G JUMP ESC");
+        txt_print_at(0, 30, "1-4 VIEW 5GAL 6LOCAL 7DATA");
+        txt_print_at(0, 31, "8MKT 9STAT 0INV H/G JUMP ESC");
     }
     txt_color(C_WHITE, C_BLACK);
 }
@@ -98,29 +98,28 @@ int ui_nav(int ch)
         case '2': return SC_VIEW1;
         case '3': return SC_VIEW2;
         case '4': return SC_VIEW3;
-        case '5': return SC_LOCCHART;
-        case '6': return SC_DATA;
-        case '7': return SC_MARKET;
-        case '8': return SC_STATUS;
-        case '9': return SC_INVENTORY;
-        case '0': return SC_GALCHART;
+        case '5': return SC_GALCHART;                  /* 5-0 iguales en vuelo y atracado */
+        case '6': return SC_LOCCHART;
+        case '7': return SC_DATA;
+        case '8': return SC_MARKET;
+        case '9': return SC_STATUS;
+        case '0': return SC_INVENTORY;
         case 'h': return SC_HYPER;
         case 'g': return SC_GHYPER;
         }
         return -1;
     }
     switch (ch) {
-    case 'u': return SC_LAUNCH;                        /* U = undock; 0 es la carta galactica, como en vuelo */
-    case '0': return SC_GALCHART;
+    case 'u': return SC_LAUNCH;                        /* U = undock */
     case '1': return SC_BUY;
     case '2': return SC_SELL;
-    case '3': return SC_EQUIP;
-    case '4': return SC_GALCHART;
-    case '5': return SC_LOCCHART;
-    case '6': return SC_DATA;
-    case '7': return SC_MARKET;
-    case '8': return SC_STATUS;
-    case '9': return SC_INVENTORY;
+    case '3': return SC_EQUIP;                         /* 4 no hace nada atracado (son las vistas del espacio) */
+    case '5': return SC_GALCHART;                      /* 5-0 iguales en vuelo y atracado */
+    case '6': return SC_LOCCHART;
+    case '7': return SC_DATA;
+    case '8': return SC_MARKET;
+    case '9': return SC_STATUS;
+    case '0': return SC_INVENTORY;
     case 'i': return SC_DISK;
     case 'h': case 'g': ui_msg("DOCKED", 1); return -1;    /* dockEd: no se puede saltar atracado */
     }
@@ -572,6 +571,8 @@ int scr_disk(void)
 
 static u8 title_heap[SHIPVIEW_HEAP];
 
+#define TITLE_Z 2                                /* distancia de la nave del titulo (el original la deja en z = 1 * 256 + 250 = 506) */
+
 int scr_title(void)
 {
     int ay = 0, ch, r, i;
@@ -579,7 +580,7 @@ int scr_title(void)
     ui_clear();
     state_clear();                                   /* LL9 trabaja sobre INWK/K%: el titulo usa su propio estado */
     txt_color(C_YELLOW, C_BLACK);
-    txt_print_at(7, 18, "E L I T E  -  QL");
+    txt_print_at(6, 1, "---- E L I T E ----");         /* TITLE: la ficha 30 del original (plf) en la columna 6 de la fila 1 */
     txt_color(C_WHITE, C_BLACK);
     txt_print_at(4, 21, "1  NEW COMMANDER (JAMESON)");
     txt_print_at(4, 22, "2  LOAD COMMANDER");
@@ -587,14 +588,15 @@ int scr_title(void)
     txt_color(C_CYAN, C_BLACK);
     if (patg) txt_print_at(0, 27, "BY D.BRABEN & I.BELL");      /* PATG: autores (ficha 13 del original) */
     txt_print_at(0, 28, "QL PORT FROM THE APPLE II CODE");
-    shipview_draw(SHIPT_COBRA_MK_3, 0, 0, 5, ay, 10, title_heap, state_slot(0), 1);
+    txt_print_at(0, 29, "by A.Alea & Claude 2026");
+    shipview_draw(SHIPT_COBRA_MK_3, 0, 0, TITLE_Z, ay, 10, title_heap, state_slot(0), 1);
     for (;;) {
         ch = in_poll();
         if (ch == KC_QUIT) return TITLE_QUIT;
         if (ch < 0) {                                /* la nave gira mientras se espera */
             ay = (ay + 1) & (SHIPVIEW_ANG - 1);
             if (in_script == 0 || (in_frames() & 7) == 0)
-                shipview_draw(SHIPT_COBRA_MK_3, 0, 0, 5, ay, 10, title_heap, state_slot(0), 0);
+                shipview_draw(SHIPT_COBRA_MK_3, 0, 0, TITLE_Z, ay, 10, title_heap, state_slot(0), 0);
             continue;
         }
         ch = in_up(ch);

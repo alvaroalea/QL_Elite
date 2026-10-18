@@ -112,7 +112,7 @@ static void fallback_panel(void)
     for (i = 0; i < 6; i++) txt_print_at(0, (136 + 1 + 8 * i) / 8, left[i]);
     txt_print_at(30, 17, "SP"); txt_print_at(30, 18, "RL"); txt_print_at(30, 19, "DC");
     txt_print_at(30, 20, "1"); txt_print_at(30, 21, "2"); txt_print_at(30, 22, "3"); txt_print_at(30, 23, "4");
-    txt_print_at(8, 21, "(NO ELITE_DASH FILE)");
+    txt_print_at(6, 21, "(NO ELITE_DASH FILE)");
     txt_color(C_WHITE, C_BLACK);
 }
 
