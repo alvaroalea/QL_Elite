@@ -61,6 +61,7 @@ tests/*.addr
 tests/test_*
 !tests/test_*.c
 screen.bin
+.vscode/
 
 # debug information files
 *.dwo

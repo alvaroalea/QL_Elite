@@ -300,3 +300,9 @@ test_flight:
 	python3 tools/gen_flight.py 1000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_flight tests/test_flight.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_flight
+
+# Maths (Arithmetic) contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+test_arith:
+	python3 tools/gen_arith.py 2000
+	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_arith tests/test_arith.c src/emath.c
+	./tests/test_arith

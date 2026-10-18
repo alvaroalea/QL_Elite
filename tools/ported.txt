@@ -2,31 +2,31 @@
 # --- verificadas contra el 6502 original (emulador) o contra transcripcion literal; ver Proyecto.md
 DORND em_dornd verificada
 DORND2 em_dornd2 transcripcion
-MULTU em_multu transcripcion
-MU11 em_mu11 transcripcion
-SQUA em_squa transcripcion
-SQUA2 em_squa2 transcripcion
-MULT1 em_mult1 transcripcion
-MULT12 em_mult12 transcripcion
-MAD em_mad transcripcion
-ADD em_add transcripcion
+MULTU em_multu verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MU11 em_mu11 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+SQUA em_squa verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+SQUA2 em_squa2 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MULT1 em_mult1 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MULT12 em_mult12 verificada salidas: R y S; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MAD em_mad verificada salidas: A y X; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+ADD em_add verificada salidas: A y X; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
 MULTS em_mults transcripcion
 FMLTU em_fmltu verificada
 FMLTU2 em_fmltu2 verificada a traves de CIRCLE2 en make test_planet
-MLTU2 em_mltu2 transcripcion
-MLU1 em_mlu1 transcripcion
-MLU2 em_mlu2 transcripcion
-MULT3 em_mult3 transcripcion
-TIS1 em_tis1 transcripcion
-TIS2 em_tis2 transcripcion
+MLTU2 em_mltu2 verificada salidas: A, P+1 y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MLU1 em_mlu1 verificada salidas: A, P e Y1; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MLU2 em_mlu2 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MULT3 em_mult3 verificada salidas: K(3 2 1 0); make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+TIS1 em_tis1 verificada salidas: A; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+TIS2 em_tis2 verificada salidas: A; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
 DVID96 em_dvid96 transcripcion
 LL5 em_ll5 verificada transcripcion literal con el acarreo de salida (lo usa SUN); a traves de SUN en make test_planet
 LL28 em_ll28 verificada
 LL61 em_ll61 verificada
-LL38 em_ll38 transcripcion
-DVID4 em_dvid4 transcripcion
-DV41 em_dv41 transcripcion
-DV42 em_dv42 transcripcion
+LL38 em_ll38 verificada salidas: A, S y el acarreo; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+DVID4 em_dvid4 verificada salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+DV41 em_dv41 verificada salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+DV42 em_dv42 verificada salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
 DVIDT em_dvidt verificada a traves de TIS3 en make test_geom; el bit que sale de P+1 al principio se pierde (estaba mal hasta la 16.a ronda)
 DVID3B em_dvid3b verificada
 LL9 ship_ll9 verificada
@@ -44,7 +44,7 @@ MAS3 sm_mas3 verificada make test_geom (codigo original en el emulador)
 MAS4 sm_mas4 verificada make test_geom (codigo original en el emulador)
 TAS1 sm_tas1 verificada make test_geom (codigo original en el emulador)
 VCSUB sm_vcsub verificada make test_geom (codigo original en el emulador)
-VCSU1 sm_vcsu1 transcripcion
+VCSU1 sm_vcsu1 verificada VCSUB con V = K% + NI: make test_geom (VCSUB)
 TAS2 sm_tas2 verificada make test_geom (codigo original en el emulador)
 TAS3 sm_tas3 verificada make test_geom (codigo original en el emulador)
 TAS4 sm_tas4 verificada make test_geom (codigo original en el emulador)
@@ -310,17 +310,17 @@ MESS mess,say no-verificable mensaje en vuelo en la fila 24 del port
 log em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
 logL em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
 alogh em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
-PIX1 pixel2 propia dibujo del polvo estelar (stars.c)
-MU5 emath.c propia entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion
-MU6 emath.c propia entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion
-MU1 emath.c propia entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion
-MLS1 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
-MLS2 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
-MUT1 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
-MUT2 mls1,mls2 propia envoltorios de la multiplicacion con signo (stars.c)
+PIX1 pixel2 verificada ADD + PIXEL2 dentro del polvo estelar: make test_stars
+MU5 emath.c verificada entrada de MULT3 con Q AND 127 = 0 (K = A A A A, C = 0), dentro de em_mult3; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MU6 emath.c verificada entrada de MULTS con A AND 127 = 0 (P+1 = P = A), dentro de em_mults; make test_emath y make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MU1 emath.c verificada entrada de MULTU con Q = 0 (P = X, A = X, C = 0), dentro de em_multu; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MLS1 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
+MLS2 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
+MUT1 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
+MUT2 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
 MUT3 - no-necesaria sin uso en el original
-DVID3B2 em_dvid3b propia la entrada con INWK se hace en ship_math.c y en planet()
-GC2 tt22,tt23 propia la multiplicacion por 4 va en linea en las cartas
+DVID3B2 em_dvid3b verificada salidas: K(3 2 1 0); make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+GC2 tt22,tt23 verificada multiplicacion por 4 en linea en TT22 y TT23: make test_charts
 LL62 ship_ll9 verificada etiqueta ll62 de LL9 (verificada)
 LL120 ll120_123 verificada recorte de linea (ship3d.c, verificadas)
 LL123 ll120_123 verificada recorte de linea (ship3d.c, verificadas)

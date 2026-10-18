@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 325, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 72 y pendientes de verificar: 29
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 354, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 72 y pendientes de verificar: 0
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -28,7 +28,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Loader | 5 | 0 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
 | Market | 19 | 19 | 8 | 11 | 0 | 0 | 0 |
-| Maths (Arithmetic) | 52 | 51 | 22 | 0 | 1 | 29 | 0 |
+| Maths (Arithmetic) | 52 | 51 | 51 | 0 | 1 | 0 | 0 |
 | Maths (Geometry) | 19 | 19 | 19 | 0 | 0 | 0 | 0 |
 | Missions | 16 | 10 | 10 | 0 | 6 | 0 | 0 |
 | Moving | 8 | 8 | 8 | 0 | 0 | 0 | 0 |
@@ -43,7 +43,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Universe | 34 | 32 | 32 | 0 | 2 | 0 | 0 |
 | Utility routines | 18 | 1 | 1 | 0 | 17 | 0 | 0 |
 | Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **426** | **325** | **72** | **102** | **29** | **0** |
+| **Total** | **528** | **426** | **354** | **72** | **102** | **0** | **0** |
 
 Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -328,50 +328,50 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | log | Binary logarithm table (high byte) | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
 | logL | Binary logarithm table (low byte) | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
 | alogh | Binary antilogarithm table | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
-| PIX1 | Calculate (YY+1 SYL+Y) = (A P) + (S R) and draw stardust particle | propia | `pixel2` | dibujo del polvo estelar (stars.c) |
+| PIX1 | Calculate (YY+1 SYL+Y) = (A P) + (S R) and draw stardust particle | verificada | `pixel2` | ADD + PIXEL2 dentro del polvo estelar: make test_stars |
 | MAS3 | Calculate A = x_hi^2 + y_hi^2 + z_hi^2 in the K% block | verificada | `sm_mas3` | make test_geom (codigo original en el emulador) |
-| VCSU1 | Calculate vector K3(8 0) = [x y z] - coordinates of the sun or | transcripcion | `sm_vcsu1` |  |
+| VCSU1 | Calculate vector K3(8 0) = [x y z] - coordinates of the sun or | verificada | `sm_vcsu1` | VCSUB con V = K% + NI: make test_geom (VCSUB) |
 | VCSUB | Calculate vector K3(8 0) = [x y z] - coordinates in (A V) | verificada | `sm_vcsub` | make test_geom (codigo original en el emulador) |
 | TAS1 | Calculate K3 = (x_sign x_hi x_lo) - V(1 0) | verificada | `sm_tas1` | make test_geom (codigo original en el emulador) |
-| MU5 | Set K(3 2 1 0) = (A A A A) and clear the C flag | propia | `emath.c` | entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion |
-| MULT3 | Calculate K(3 2 1 0) = (A P+1 P) * Q | transcripcion | `em_mult3` |  |
-| MLS2 | Calculate (S R) = XX(1 0) and (A P) = A * ALP1 | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
-| MLS1 | Calculate (A P) = ALP1 * A | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
-| MU6 | Set P(1 0) = (A A) | propia | `emath.c` | entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion |
-| SQUA | Clear bit 7 of A and calculate (A P) = A * A | transcripcion | `em_squa` |  |
-| SQUA2 | Calculate (A P) = A * A | transcripcion | `em_squa2` |  |
-| MU1 | Copy X into P and A, and clear the C flag | propia | `emath.c` | entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion |
-| MLU1 | Calculate Y1 = y_hi and (A P) = |y_hi| * Q for Y-th stardust | transcripcion | `em_mlu1` |  |
-| MLU2 | Calculate (A P) = |A| * Q | transcripcion | `em_mlu2` |  |
-| MULTU | Calculate (A P) = P * Q | transcripcion | `em_multu` |  |
-| MU11 | Calculate (A P) = P * X | transcripcion | `em_mu11` |  |
+| MU5 | Set K(3 2 1 0) = (A A A A) and clear the C flag | verificada | `emath.c` | entrada de MULT3 con Q AND 127 = 0 (K = A A A A, C = 0), dentro de em_mult3; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MULT3 | Calculate K(3 2 1 0) = (A P+1 P) * Q | verificada | `em_mult3` | salidas: K(3 2 1 0); make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MLS2 | Calculate (S R) = XX(1 0) and (A P) = A * ALP1 | verificada | `mls1`, `mls2` | envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real) |
+| MLS1 | Calculate (A P) = ALP1 * A | verificada | `mls1`, `mls2` | envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real) |
+| MU6 | Set P(1 0) = (A A) | verificada | `emath.c` | entrada de MULTS con A AND 127 = 0 (P+1 = P = A), dentro de em_mults; make test_emath y make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| SQUA | Clear bit 7 of A and calculate (A P) = A * A | verificada | `em_squa` | salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| SQUA2 | Calculate (A P) = A * A | verificada | `em_squa2` | salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MU1 | Copy X into P and A, and clear the C flag | verificada | `emath.c` | entrada de MULTU con Q = 0 (P = X, A = X, C = 0), dentro de em_multu; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MLU1 | Calculate Y1 = y_hi and (A P) = |y_hi| * Q for Y-th stardust | verificada | `em_mlu1` | salidas: A, P e Y1; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MLU2 | Calculate (A P) = |A| * Q | verificada | `em_mlu2` | salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MULTU | Calculate (A P) = P * Q | verificada | `em_multu` | salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MU11 | Calculate (A P) = P * X | verificada | `em_mu11` | salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
 | FMLTU2 | Calculate A = K * sin(A) | verificada | `em_fmltu2` | a traves de CIRCLE2 en make test_planet |
 | FMLTU | Calculate A = A * Q / 256 | verificada | `em_fmltu` |  |
-| MLTU2 | Calculate (A P+1 P) = (A ~P) * Q | transcripcion | `em_mltu2` |  |
+| MLTU2 | Calculate (A P+1 P) = (A ~P) * Q | verificada | `em_mltu2` | salidas: A, P+1 y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
 | MUT3 | An unused routine that does the same as MUT2 | no-necesaria |  | sin uso en el original |
-| MUT2 | Calculate (S R) = XX(1 0) and (A P) = Q * A | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
-| MUT1 | Calculate R = XX and (A P) = Q * A | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
-| MULT1 | Calculate (A P) = Q * A | transcripcion | `em_mult1` |  |
-| MULT12 | Calculate (S R) = Q * A | transcripcion | `em_mult12` |  |
-| MAD | Calculate (A X) = Q * A + (S R) | transcripcion | `em_mad` |  |
-| ADD | Calculate (A X) = (A P) + (S R) | transcripcion | `em_add` |  |
-| TIS1 | Calculate (A ?) = (-X * A + (S R)) / 96 | transcripcion | `em_tis1` |  |
-| DV42 | Calculate (P R) = 256 * DELTA / z_hi | transcripcion | `em_dv42` |  |
-| DV41 | Calculate (P R) = 256 * DELTA / A | transcripcion | `em_dv41` |  |
-| DVID4 | Calculate (P R) = 256 * A / Q | transcripcion | `em_dvid4` |  |
-| DVID3B2 | Calculate K(3 2 1 0) = (A P+1 P) / (z_sign z_hi z_lo) | propia | `em_dvid3b` | la entrada con INWK se hace en ship_math.c y en planet() |
+| MUT2 | Calculate (S R) = XX(1 0) and (A P) = Q * A | verificada | `mls1`, `mls2` | envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real) |
+| MUT1 | Calculate R = XX and (A P) = Q * A | verificada | `mls1`, `mls2` | envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real) |
+| MULT1 | Calculate (A P) = Q * A | verificada | `em_mult1` | salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MULT12 | Calculate (S R) = Q * A | verificada | `em_mult12` | salidas: R y S; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| MAD | Calculate (A X) = Q * A + (S R) | verificada | `em_mad` | salidas: A y X; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| ADD | Calculate (A X) = (A P) + (S R) | verificada | `em_add` | salidas: A y X; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| TIS1 | Calculate (A ?) = (-X * A + (S R)) / 96 | verificada | `em_tis1` | salidas: A; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| DV42 | Calculate (P R) = 256 * DELTA / z_hi | verificada | `em_dv42` | salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| DV41 | Calculate (P R) = 256 * DELTA / A | verificada | `em_dv41` | salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| DVID4 | Calculate (P R) = 256 * A / Q | verificada | `em_dvid4` | salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
+| DVID3B2 | Calculate K(3 2 1 0) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `em_dvid3b` | salidas: K(3 2 1 0); make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
 | LCASH | Subtract an amount of cash from the cash pot | verificada | `sm_lcash` | make test_geom (codigo original en el emulador) |
 | MCASH | Add an amount of cash to the cash pot | verificada | `sm_mcash` | make test_geom (codigo original en el emulador) |
 | GCASH | Calculate (Y X) = P * Q * 4 | verificada | `sm_gcash` | make test_geom (codigo original en el emulador) |
-| GC2 | Calculate (Y X) = (A P) * 4 | propia | `tt22`, `tt23` | la multiplicacion por 4 va en linea en las cartas |
+| GC2 | Calculate (Y X) = (A P) * 4 | verificada | `tt22`, `tt23` | multiplicacion por 4 en linea en TT22 y TT23: make test_charts |
 | SPS2 | Calculate (Y X) = A / 10 | verificada | `sm_sps2` | make test_geom (codigo original en el emulador) |
 | DORND | Generate random numbers | verificada | `em_dornd` |  |
-| TIS2 | Calculate A = A / Q | transcripcion | `em_tis2` |  |
+| TIS2 | Calculate A = A / Q | verificada | `em_tis2` | salidas: A; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
 | TIS3 | Calculate -(nosev_1 * roofv_1 + nosev_2 * roofv_2) / nosev_3 | verificada | `sm_tis3` | make test_geom (codigo original en el emulador) |
 | DVIDT | Calculate (P+1 A) = (A P) / Q | verificada | `em_dvidt` | a traves de TIS3 en make test_geom; el bit que sale de P+1 al principio se pierde (estaba mal hasta la 16.a ronda) |
 | LL5 | Calculate Q = SQRT(R Q) | verificada | `em_ll5` | transcripcion literal con el acarreo de salida (lo usa SUN); a traves de SUN en make test_planet |
 | LL28 | Calculate R = 256 * A / Q | verificada | `em_ll28` |  |
-| LL38 | Calculate (S A) = (S R) + (A Q) | transcripcion | `em_ll38` |  |
+| LL38 | Calculate (S A) = (S R) + (A Q) | verificada | `em_ll38` | salidas: A, S y el acarreo; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba) |
 | LL61 | Calculate (U R) = 256 * A / Q | verificada | `em_ll61` |  |
 | LL62 | Calculate 128 - (U R) | verificada | `ship_ll9` | etiqueta ll62 de LL9 (verificada) |
 | LL120 | Calculate (Y X) = (S x1_lo) * XX12+2 or (S x1_lo) / XX12+2 | verificada | `ll120_123` | recorte de linea (ship3d.c, verificadas) |
