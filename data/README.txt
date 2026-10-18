@@ -13,3 +13,8 @@ elite_dash  Fondo del panel de instrumentos (tira de 256 x 56 pixeles en modo 8)
             y python3 tools/png2dash.py --export [elite_dash] [imagen.png] [--scale K] (K = 0: 256 x 56; K: 512K x 56K).
             El juego dibuja encima las barras, la brujula, el radar, los misiles y las bombillas: conviene respetar esas
             zonas de la plantilla.
+
+Imagen de disco completa: make elite.img   (compila elite, compila qltools, formatea elite.img DS/DD 720 KB y escribe
+            elite, boot, elite_scr y elite_dash; ver Proyecto.md 3.5). Copiar elite.img a un disco o montarla en un emulador como flp1_.
+boot        Programa de arranque de SuperBASIC: MODE 8, carga elite_scr en la pantalla ($20000) y ejecuta elite.
+elite_scr   Volcado de pantalla del modo 8 (32768 bytes) que muestra boot mientras carga el juego.

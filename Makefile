@@ -120,8 +120,46 @@ test_orig:
 GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
 host_game:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
-ql_game:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o elite $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm -lm
+# Cadena de qcc (tools/install_xtc68.sh la instala en /tmp/qlsdk): si existe, se pone sola en el PATH
+QLSDK ?= /tmp/qlsdk
+ifneq ($(wildcard $(QLSDK)/bin/qcc),)
+export PATH := $(QLSDK)/bin:$(PATH)
+export QLINC := $(QLSDK)/share/qdos/include
+export QLLIB := $(QLSDK)/share/qdos/lib
+endif
+
+# El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
+GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm
+elite: $(GAME_QL) $(wildcard src/*.h)
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o elite $(GAME_QL) -lm
+ql_game: elite
+
+# ---- Imagen de disco DS/DD 720 KB (elite.img) -------------------------------------------------------------
+# qltools (N. Dunbar) se compila desde las fuentes: git clone + make -C Unix, en tools/qltools_src (no se incluye en el tar).
+# Otro qltools ya instalado:  make elite.img QLTOOLS=/ruta/qltools
+QLTOOLS_REPO ?= https://github.com/NormanDunbar/qltools
+QLTOOLS_DIR  ?= tools/qltools_src
+QLTOOLS      ?= $(QLTOOLS_DIR)/Unix/qltools
+DISK_LABEL   ?= ELITE
+DISK_FILES    = data/boot data/elite_scr data/elite_dash
+
+$(QLTOOLS):
+	test -d $(QLTOOLS_DIR)/Unix || git clone --depth 1 $(QLTOOLS_REPO) $(QLTOOLS_DIR)
+	$(MAKE) -C $(QLTOOLS_DIR)/Unix
+
+qltools: $(QLTOOLS)
+
+# Formatea (-fdd = DS/DD 720 KB) y escribe: elite (ejecutable, con su dataspace), boot, elite_scr y elite_dash.
+# Dentro del disco los nombres son los de los ficheros sin el directorio: boot, elite, elite_scr, elite_dash.
+elite.img: elite $(DISK_FILES) $(QLTOOLS)
+	rm -f $@
+	$(QLTOOLS) $@ -fdd $(DISK_LABEL)
+	$(QLTOOLS) $@ -W elite $(DISK_FILES)
+	$(QLTOOLS) $@ -d
+
+disk: elite.img
+
+.PHONY: ql_game qltools disk
 
 # Logica de juego y sesion guiada por guion (PC): guarda capturas en tests/shots/
 test_game:
@@ -137,7 +175,7 @@ test_save:
 	./tests/test_save
 
 clean:
-	rm -f tests/test_trade tests/test_laser tests/vectors_laser.txt tests/test_damage tests/vectors_damage.txt tests/test_planet tests/vectors_planet.txt tests/test_equip tests/vectors_equip.txt tests/test_tactics tests/vectors_tactics.txt tests/test_missions tests/vectors_missions.txt tests/test_univ6502 tests/vectors_univ.txt tests/test_shipview tests/vectors_trade.txt elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
+	rm -f tests/test_trade tests/test_laser tests/vectors_laser.txt tests/test_damage tests/vectors_damage.txt tests/test_planet tests/vectors_planet.txt tests/test_equip tests/vectors_equip.txt tests/test_tactics tests/vectors_tactics.txt tests/test_missions tests/vectors_missions.txt tests/test_univ6502 tests/vectors_univ.txt tests/test_shipview tests/vectors_trade.txt elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/* elite elite.img
 
 test_shipview:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_shipview tests/test_shipview.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/plat_host.c

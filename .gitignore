@@ -36,6 +36,7 @@
 *.x86_64
 *.hex
 elite
+elite.img
 
 # Debug files
 *.dSYM/
@@ -51,6 +52,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+tools/qltools_src/
 
 # debug information files
 *.dwo
