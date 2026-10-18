@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 272, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 12 y pendientes de verificar: 142
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 281, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 13 y pendientes de verificar: 132
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -33,7 +33,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Missions | 16 | 10 | 10 | 0 | 6 | 0 | 0 |
 | Moving | 8 | 8 | 2 | 0 | 0 | 6 | 0 |
 | Save and load | 61 | 27 | 3 | 0 | 34 | 24 | 0 |
-| Sound | 13 | 11 | 1 | 0 | 2 | 10 | 0 |
+| Sound | 13 | 11 | 10 | 1 | 2 | 0 | 0 |
 | Stardust | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
 | Start and end | 8 | 8 | 3 | 5 | 0 | 0 | 0 |
 | Status | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
@@ -43,7 +43,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Universe | 34 | 32 | 32 | 0 | 2 | 0 | 0 |
 | Utility routines | 18 | 1 | 1 | 0 | 17 | 0 | 0 |
 | Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **426** | **272** | **12** | **102** | **142** | **0** |
+| **Total** | **528** | **426** | **281** | **13** | **102** | **132** | **0** |
 
 Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -506,18 +506,18 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| BELL | Make a standard system beep | propia | `snd_bell` |  |
-| EXNO | Make the sound of a laser strike on another ship | propia | `snd_exno` |  |
-| BOOP | Make a long, low beep | propia | `snd_boop` |  |
-| SOHISS | Make the sound of a launch from the station, hyperspace or missile | propia | `snd_sohiss` | el sonido es propio; los Y DORND del retardo aleatorio si se hacen (snd_dornd_hook), porque cambian la secuencia al azar |
-| EXNO3 | Make the sound of a collision, or an exploding cargo canister or | propia | `snd_exno3` |  |
-| SOEXPL | Make an explosion sound | propia | `snd_soexpl` | el sonido es propio; los Y DORND del retardo aleatorio (Y = 0: 256) si se hacen (snd_dornd_hook) |
-| BEEP | Make a short, high beep | propia | `snd_beep` |  |
-| SOBEEP | Make a beep | propia | `snd_sobeep` |  |
-| SOBLIP | Make the sound of the hyperspace drive being engaged, or the sound | propia | `snd_soblip` |  |
-| LASNOISE | Make the sound of our laser firing or the sound of us being hit by | propia | `snd_lasnoise` |  |
+| BELL | Make a standard system beep | no-verificable | `snd_bell` | CHPR(7): el pitido de la consola del Apple II; el sonido sale por el BEEP del QL (propio) |
+| EXNO | Make the sound of a laser strike on another ship | verificada | `snd_exno` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): SOEXPL con Y = 15 |
+| BOOP | Make a long, low beep | verificada | `snd_boop` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el sonido es propio |
+| SOHISS | Make the sound of a launch from the station, hyperspace or missile | verificada | `snd_sohiss` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): Y DORND (256 si Y = 0) solo con el sonido activo, con la cadena de acarreos de DORND; el sonido es propio |
+| EXNO3 | Make the sound of a collision, or an exploding cargo canister or | verificada | `snd_exno3` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): SOEXPL con Y = 40 |
+| SOEXPL | Make an explosion sound | verificada | `snd_soexpl` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): Y DORND (256 si Y = 0) solo con el sonido activo; el sonido es propio |
+| BEEP | Make a short, high beep | verificada | `snd_beep` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND ni toca RAND; el sonido es propio |
+| SOBEEP | Make a beep | verificada | `snd_sobeep` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el tono es la traduccion de los ciclos del bucle (propia) |
+| SOBLIP | Make the sound of the hyperspace drive being engaged, or the sound | verificada | `snd_soblip` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el barrido es la traduccion de los ciclos (propia) |
+| LASNOISE | Make the sound of our laser firing or the sound of us being hit by | verificada | `snd_lasnoise` | make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el barrido es propio |
 | LASNOISE2 | An unused routine that makes a different laser sound | no-necesaria |  | sin uso en el original |
-| SOBOMB | Make the sound of an energy bomb going off | verificada | `snd_sobomb` | make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio |
+| SOBOMB | Make the sound of an energy bomb going off | verificada | `snd_sobomb` | make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio; tambien make test_soundorig |
 | CLICK | Toggle the state of the speaker (i.e. move it in or out) to make a | no-necesaria |  | conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c) |
 
 ## Stardust (7 portadas de 7)

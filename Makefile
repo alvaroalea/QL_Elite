@@ -258,3 +258,9 @@ test_start:
 	python3 tools/gen_start.py 1000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_start tests/test_start.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_start
+
+# Sound: DORND gastados por cada sonido, RAND y acarreo contra el codigo ORIGINAL en el emulador (necesita ELITE_SRC)
+test_soundorig:
+	python3 tools/gen_sound.py 300
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_sound_orig tests/test_sound_orig.c src/sound.c src/sound_host.c src/emath.c -lm
+	./tests/test_sound_orig

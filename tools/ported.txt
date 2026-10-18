@@ -248,17 +248,17 @@ ZEKTRAN - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las
 U% - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
 DKSANYKEY - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
 KTRAN - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
-BELL snd_bell propia 
-BEEP snd_beep propia 
-BOOP snd_boop propia 
-SOBEEP snd_sobeep propia 
-SOBLIP snd_soblip propia 
-SOHISS snd_sohiss propia el sonido es propio; los Y DORND del retardo aleatorio si se hacen (snd_dornd_hook), porque cambian la secuencia al azar
-SOEXPL snd_soexpl propia el sonido es propio; los Y DORND del retardo aleatorio (Y = 0: 256) si se hacen (snd_dornd_hook)
-EXNO snd_exno propia 
-EXNO3 snd_exno3 propia 
-LASNOISE snd_lasnoise propia 
-SOBOMB snd_sobomb verificada make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio
+BELL snd_bell no-verificable CHPR(7): el pitido de la consola del Apple II; el sonido sale por el BEEP del QL (propio)
+BEEP snd_beep verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND ni toca RAND; el sonido es propio
+BOOP snd_boop verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el sonido es propio
+SOBEEP snd_sobeep verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el tono es la traduccion de los ciclos del bucle (propia)
+SOBLIP snd_soblip verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el barrido es la traduccion de los ciclos (propia)
+SOHISS snd_sohiss verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): Y DORND (256 si Y = 0) solo con el sonido activo, con la cadena de acarreos de DORND; el sonido es propio
+SOEXPL snd_soexpl verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): Y DORND (256 si Y = 0) solo con el sonido activo; el sonido es propio
+EXNO snd_exno verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): SOEXPL con Y = 15
+EXNO3 snd_exno3 verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): SOEXPL con Y = 40
+LASNOISE snd_lasnoise verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el barrido es propio
+SOBOMB snd_sobomb verificada make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio; tambien make test_soundorig
 CLICK - no-necesaria conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c)
 LASNOISE2 - no-necesaria sin uso en el original
 RESET space_reset_all verificada make test_start (1.000 casos con ZERO, RES2 y ZINF reales: giros, QQ22, ECMA, ALP1/2, JSTGY, QQ12 y FSH/ASH/ENERGY a $FF)
