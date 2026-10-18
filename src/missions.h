@@ -12,6 +12,7 @@
 extern void (*mis_ll9_hook)(void);     /* LL9 y MVEIT del Constrictor de BRIEF (las pruebas los sustituyen) */
 extern void (*mis_mveit_hook)(void);
 int  missions_choose(void);        /* la parte de DOENTRY que decide la sesion informativa (MIS_*) */
+void missions_set_title_ink(u8 c);  /* color de la primera linea (el titulo) de STATUS y DATA; 0 = el normal */
 void missions_hooks(void);         /* conecta el motor de fichas con la pantalla, el teclado y los nombres */
 int  bay(void);                    /* BAY: QQ12 = $FF y pantalla de estado */
 int  missions_doentry(void);       /* DOENTRY tras atracar: RES2 y la sesion informativa que toque; devuelve SC_STATUS (BAY) */

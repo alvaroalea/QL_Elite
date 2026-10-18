@@ -1,4 +1,8 @@
 # Pruebas en PC:  make host        QL con XTC68:  make ql
+.DEFAULT_GOAL := disk
+# Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=pre0.3
+VERSION ?= pre0.2
+VERDEF = -DELITE_VERSION='"$(VERSION)"'
 COMMON = src/gfx.c src/text.c
 
 host:
@@ -119,7 +123,7 @@ test_orig:
 # Juego completo (provisional: vuelo sin MVEIT/TACTICS). PC: make host_game (para pruebas); QL: make ql_game
 GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
 host_game:
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	gcc -std=c89 -pedantic -Wall -O2 $(VERDEF) -Isrc -o elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
 # Cadena de qcc (tools/install_xtc68.sh la instala en /tmp/qlsdk): si existe, se pone sola en el PATH
 QLSDK ?= /tmp/qlsdk
 ifneq ($(wildcard $(QLSDK)/bin/qcc),)
@@ -130,8 +134,8 @@ endif
 
 # El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
 GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm
-elite: $(GAME_QL) $(wildcard src/*.h)
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o elite $(GAME_QL) -lm
+elite: $(GAME_QL) $(wildcard src/*.h) Makefile
+	qcc -O $(VERDEF) -Isrc -I/usr/local/share/qdos/include -o elite $(GAME_QL) -lm
 ql_game: elite
 
 # ---- Imagen de disco DS/DD 720 KB (elite.img) -------------------------------------------------------------

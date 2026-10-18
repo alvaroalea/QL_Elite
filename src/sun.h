@@ -14,6 +14,14 @@ extern u8 sun_lsx;                        /* LSX: estado del montón de lineas (
 extern u8 circ_lsx2[256], circ_lsy2[256]; /* LSX2, LSY2: puntos del ultimo circulo */
 extern u8 circ_lsp, circ_flag, circ_stp, circ_cnt;   /* LSP, FLAG, STP, CNT */
 
+void chart_xf_set(int mode);              /* transformacion de dibujo de las cartas: 0 ninguna, 1 local (4:3, centrada y mas grande), 2 galactica (8 puntos abajo y estirada 6/5) */
+int  chart_xf_mode(void);
+int  sun_xf_x(int x);                     /* coordenadas de pantalla a partir de las del original */
+int  sun_xf_y(int y);
+void sun_xf_hloin(int x1, int x2, int y, u8 col);   /* gfx_hloin con la transformacion */
+void sun_xf_vloin(int x, int y1, int y2, u8 col);
+void sun_xf_disc(int cx, int cy, int k, u8 col);   /* planeta de la carta corta (elipse rellena a 1 punto) */
+void sun_xf_dust(int x, int y, u8 zz);
 void sun_flflls(void);                    /* FLFLLS: vacia el montón de lineas del sol */
 u8   sun_chkon(void);                     /* CHKON: 1 si el circulo (K3, K4, K) queda fuera de la vista */
 void sun_draw(void);                      /* SUN: dibuja (XOR) el sol de K3, K4, K y borra el anterior */

@@ -1,3 +1,6 @@
+#ifndef ELITE_VERSION
+#define ELITE_VERSION "pre0.2"    /* normalmente lo pone el Makefile (VERSION) */
+#endif
 #include "menu.h"
 #include "text.h"
 #include "input.h"
@@ -8,10 +11,12 @@
 #include "sound.h"
 #include "shipview.h"
 #include "chart.h"
+#include "sun.h"
 #include "emath.h"
 #include "missions.h"
 #include "detok.h"
 #include "config.h"
+#include "dash.h"
 
 #define ROW_MSG 28
 
@@ -36,6 +41,15 @@ void ui_title(const char *t)
     col = (TXT_COLS - n) / 2;
     if (col < 0) col = 0;
     txt_print_at(col, 0, t);
+    txt_color(C_WHITE, C_BLACK);
+}
+
+/* titulo de las cartas: como el de STATUS y DATA (fila 1, amarillo sobre negro, centrado); la linea azul de debajo la dibuja la carta */
+static void ui_title_row1(const char *t)
+{
+    int col = (TXT_COLS - slen(t)) / 2;
+    txt_color(C_YELLOW, C_BLACK);
+    txt_print_at(col < 0 ? 0 : col, 1, t);
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -153,7 +167,9 @@ static int wait_nav(void)
 int scr_status(void)
 {
     missions_set_ink(C_WHITE);
-    status_mode();                                     /* STATUS del original con el motor de fichas */
+    missions_set_title_ink(C_YELLOW);
+    status_mode();
+    missions_set_title_ink(0);                                     /* STATUS del original con el motor de fichas */
     txt_color(C_WHITE, C_BLACK);
     ui_footer();
     return wait_nav();
@@ -317,7 +333,7 @@ int scr_equip(void)
         txt_clear_rows(21, 8, C_BLACK);
         lbl(21, "Cash:"); val(7, 21); ui_tenths(cash_get()); txt_puts(" Cr");
         txt_color(C_CYAN, C_BLACK);
-        txt_print_at(0, 24, "UP/DOWN ENTER=BUY ESC=EXIT");
+        txt_print_at(0, 24, "UP/DOWN ENTER=BUY 5-0=SCREENS");
         txt_color(C_WHITE, C_BLACK);
         for (;;) {
             ch = in_wait();
@@ -331,18 +347,28 @@ int scr_equip(void)
                 equip_row(old, 2 + old, 0);
                 equip_row(sel, 2 + sel, 1);
             } else if (ch == KC_ENTER) break;
+            else {                                     /* las teclas de pantalla (1-9, 0, U, I...) navegan sin pasar por ESC */
+                int sc = ui_nav(ch);
+                if (sc >= 0 && sc != SC_EQUIP) return sc;
+            }
         }
         view = 0;
         if (equip_is_laser(sel)) {
             txt_clear_rows(26, 3, C_BLACK);
-            txt_color(C_CYAN, C_BLACK);
-            txt_print_at(0, 26, "VIEW? 0 FRONT 1 REAR 2 LEFT 3 RIGHT");
-            txt_color(C_WHITE, C_BLACK);
-            for (;;) {
+            for (;;) {                                 /* vista con los cursores: izquierda/derecha (o arriba/abajo) y ENTER */
+                txt_color(C_CYAN, C_BLACK);
+                txt_print_at(0, 26, "VIEW? <> ENTER ESC:");
+                txt_color(C_YELLOW, C_BLACK);
+                txt_print_at(20, 26, "      ");
+                txt_print_at(20, 26, vn[view]);
+                txt_color(C_WHITE, C_BLACK);
                 ch = in_wait();
                 if (ch == KC_QUIT) return SC_QUIT;
                 if (ch == KC_ESC) { view = -1; break; }
-                if (ch >= '0' && ch <= '3') { view = ch - '0'; break; }
+                if (ch == KC_ENTER) break;
+                if (ch == KC_RIGHT || ch == KC_DOWN) view = (view + 1) & 3;
+                else if (ch == KC_LEFT || ch == KC_UP) view = (view + 3) & 3;
+                else if (ch >= '0' && ch <= '3') { view = ch - '0'; break; }
             }
             if (view < 0) continue;
         }
@@ -375,7 +401,9 @@ int scr_data(void)
     d = jump_distance(tgt_sys);
     qq8[0] = (u8)d; qq8[1] = (u8)(d >> 8);
     missions_set_ink(C_WHITE);
-    tt25(tgt_sys);                                     /* TT25 del original con el motor de fichas (y PDESC) */
+    missions_set_title_ink(C_YELLOW);
+    tt25(tgt_sys);
+    missions_set_title_ink(0);                                     /* TT25 del original con el motor de fichas (y PDESC) */
     txt_color(C_WHITE, C_BLACK);
     ui_footer();
     return wait_nav();
@@ -387,28 +415,29 @@ int scr_data(void)
 static void chart_info(int local)
 {
     unsigned d = jump_distance(tgt_sys);
-    txt_clear_rows(18, 6, C_BLACK);
+    int r0 = local ? 21 : 19;                          /* la carta local es mas grande: el texto baja 3 filas; la galactica 1 (el marco acaba en y = 143) */
+    txt_clear_rows(r0, local ? 5 : 6, C_BLACK);
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 18, "Target:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); txt_puts(uni_galaxy[tgt_sys].name);
+    txt_print_at(0, r0, "Target:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); txt_puts(uni_galaxy[tgt_sys].name);
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 19, "Distance:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); ui_tenths(d); txt_puts(" LY");
+    txt_print_at(0, r0 + 1, "Distance:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); ui_tenths(d); txt_puts(" LY");
     if (tgt_sys == cur_sys) { txt_color(C_YELLOW, C_BLACK); txt_puts("  (HERE)"); }
     else if (d > qq14) { txt_color(C_RED, C_BLACK); txt_puts("  OUT OF RANGE"); }
     else { txt_color(C_GREEN, C_BLACK); txt_puts("  IN RANGE"); }
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 20, "Fuel:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); ui_tenths(qq14); txt_puts(" LY");
+    txt_print_at(0, r0 + 2, "Fuel:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); ui_tenths(qq14); txt_puts(" LY");
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 22, qq12 ? "CURSORS O=HOME D=DIST F=FIND" : "CURSORS=MOVE O=HOME D=DIST");
+    txt_print_at(0, r0 + 4, qq12 ? "CURSORS O=HOME D=DIST F=FIND" : "CURSORS=MOVE O=HOME D=DIST");
     txt_color(C_WHITE, C_BLACK);
 }
 
 /* El dibujo de las cartas esta en chart.c (TT22/TT23/TT14/TT103/TT105 con SUN y CIRCLE). Aqui, el teclado: la mira se mueve con
    TT16/TT123 (QQ9, QQ10 libres, como el original) y el objetivo que se muestra abajo es el sistema mas cercano (TT111; propio). */
-int scr_chart(int local)
+static int scr_chart_run(int local)
 {
     int ch, dx, dy, sc, step = local ? 1 : 2, idx;
     ui_clear();
-    ui_title(local ? "SHORT RANGE CHART" : "GALACTIC CHART");
+    ui_title_row1(local ? "SHORT RANGE CHART" : "GALACTIC CHART");
     chart_draw(local);
     ui_footer();
     chart_info(local);
@@ -434,8 +463,8 @@ int scr_chart(int local)
             char name[9];
             int k, found;
             for (k = 0; k < 9; k++) name[k] = 0;
-            k = edit_text(24, "PLANET NAME?", name, 8);
-            txt_clear_rows(24, 2, C_BLACK);
+            k = edit_text(26, "PLANET NAME?", name, 8);
+            txt_clear_rows(26, 2, C_BLACK);
             if (k > 0) {
                 found = chart_find_system(name);
                 if (found >= 0) {
@@ -465,6 +494,16 @@ int scr_chart(int local)
             }
         }
     }
+}
+
+/* la carta se dibuja con la transformacion de pantalla (sun.c: local mas ancha que alta y centrada, galactica 8 puntos abajo) */
+int scr_chart(int local)
+{
+    int r;
+    chart_xf_set(local ? 1 : 2);
+    r = scr_chart_run(local);
+    chart_xf_set(0);
+    return r;
 }
 
 /* ---------------------------------------------------------------- nombre y disco */
@@ -588,7 +627,9 @@ int scr_title(void)
     txt_color(C_CYAN, C_BLACK);
     if (patg) txt_print_at(0, 27, "BY D.BRABEN & I.BELL");      /* PATG: autores (ficha 13 del original) */
     txt_print_at(0, 28, "QL PORT FROM THE APPLE II CODE");
-    txt_print_at(0, 29, "by A.Alea & Claude 2026");
+    txt_print_at(0, 29, "by A.Alea & Claude 2026 R " ELITE_VERSION);
+    txt_color(dash_loaded() ? C_GREEN : C_RED, C_BLACK);
+    txt_print_at(0, 30, dash_loaded() ? "PANEL LOADED: DISK CAN BE REMOVED" : "NO ELITE_DASH FILE (BASIC PANEL)");
     shipview_draw(SHIPT_COBRA_MK_3, 0, 0, TITLE_Z, ay, 10, title_heap, state_slot(0), 1);
     for (;;) {
         ch = in_poll();

@@ -26,11 +26,12 @@
 /* ---------------------------------------------------------------- ganchos de pantalla del motor de fichas */
 
 static u8 mis_ink = C_WHITE;
+static u8 mis_title_ink = 0;                     /* tinta de la primera linea (fila 1: el titulo) de STATUS y DATA; 0 = la normal */
 
 static void letter(u8 ch, u8 xc, u8 yc)
 {
     if ((uptog & 0x80) && ch >= '[') ch = (u8)(ch - 0x20);      /* RR5: UPTOG, solo mayusculas (pantallas de texto) */
-    txt_color(mis_ink, C_BLACK);
+    txt_color((mis_title_ink && yc == 1) ? mis_title_ink : mis_ink, C_BLACK);
     txt_at(xc, yc);
     txt_putc(ch);
 }
@@ -379,11 +380,14 @@ void tt25(int n)
     u8 q15[6];
     q15[0] = (u8)(p->seed0 & 255); q15[1] = (u8)(p->seed0 >> 8);
     q15[2] = p->goatsoupseed.a; q15[3] = p->goatsoupseed.b; q15[4] = p->goatsoupseed.c; q15[5] = p->goatsoupseed.d;
+    dt_nojustify = 1;                                  /* pantalla de datos: texto normal, cortando entre palabras */
     tt25_raw(q15, p->economy, p->govtype, p->techlev, p->population, (u8)(p->productivity & 255), (u8)(p->productivity >> 8),
              qq8[0], qq8[1], (u8)n);
+    dt_nojustify = 0;
 }
 
 void missions_set_ink(u8 c) { mis_ink = c; }
+void missions_set_title_ink(u8 c) { mis_title_ink = c; }
 
 /* ---------------------------------------------------------------- STATUS (pantalla de estado) */
 

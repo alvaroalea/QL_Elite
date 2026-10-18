@@ -9,6 +9,7 @@
 
 extern u8 dt_xc, dt_yc;                      /* XC, YC: cursor de texto (columna 0..31, fila 0..23) */
 extern u8 dtw1, dtw2, dtw3, dtw4, dtw5, dtw6, dtw8;
+extern u8 dt_nojustify;                      /* 1 = texto sin justificar (solo cortar la linea entre palabras) */
 extern u8 dt_buf[256];                       /* BUF: linea en curso del texto justificado */
 
 /* ganchos (0 = no hace nada) */

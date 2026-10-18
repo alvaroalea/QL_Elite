@@ -213,7 +213,9 @@ static void say_hyper(void)
 {
     char b[24];
     int i = 0;
+    static const char *const start[5] = { "Computer Initialization", "Loading Vectors", "Tracing Route", "Verifying Route", "Aligning Engines" };
     const char *p = hyper_gal ? "GALACTIC JUMP " : "HYPERSPACE ";
+    if (hyper >= 11) { say(start[15 - hyper], 0); return; }     /* los 5 primeros pasos de la cuenta atras (15..11) */
     while (*p) b[i++] = *p++;
     if (hyper >= 10) b[i++] = (char)('0' + hyper / 10);
     b[i++] = (char)('0' + hyper % 10);
@@ -384,7 +386,6 @@ int flight_run(void)
     ui_clear();
     gfx_clear(C_BLACK);
     key_ctx_flight();                                       /* menos filas de teclado por fotograma: ver keys.c */
-    if (!dash_loaded()) dash_load();                        /* solo la primera vez; luego se queda en memoria */
     view = 0; hyper = 0;
     player_dead = 0; mess_de = 0; dock_auto = 0; mj = 0; mstg = 0xFF; msar = 0;
     ecma = 0; ecmp = 0;

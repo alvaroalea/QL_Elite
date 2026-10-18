@@ -17,8 +17,8 @@ static u8 q19[6];                                 /* QQ19..QQ19+5 */
 void (*chart_line_hook)(u8 kind, u8 a, u8 b, u8 c) = 0;
 void (*chart_event_hook)(char kind, u8 a, u8 b, u8 c) = 0;   /* pruebas: PIXEL (p), TT128 (c), SUN (s), cpl (n) */
 #define EV(k, a, b, c) do { if (chart_event_hook) chart_event_hook(k, (u8)(a), (u8)(b), (u8)(c)); } while (0)
-static void hloin(u8 x1, u8 x2, u8 y) { if (chart_line_hook) chart_line_hook(0, x1, x2, y); gfx_hloin(x1, x2, y, sun_col); }   /* HLOIN del original (gfx.c) */
-static void vloin(u8 x, u8 y1, u8 y2) { if (chart_line_hook) chart_line_hook(1, x, y1, y2); gfx_vloin(x, y1, y2, sun_col); }   /* VLOIN (CPIX: 2 de ancho) */
+static void hloin(u8 x1, u8 x2, u8 y) { if (chart_line_hook) chart_line_hook(0, x1, x2, y); sun_xf_hloin(x1, x2, y, sun_col); }   /* HLOIN del original (gfx.c) */
+static void vloin(u8 x, u8 y1, u8 y2) { if (chart_line_hook) chart_line_hook(1, x, y1, y2); sun_xf_vloin(x, y1, y2, sun_col); }   /* VLOIN (CPIX: 2 de ancho) */
 /* DVLOIN: VLOIN de (A, GCYT) a (A, GCYB) con el color de COL (vertical del marco de la galactica) */
 static void dvloin(u8 x) { vloin(x, GCYT, GCYB); }
 
@@ -177,7 +177,8 @@ ee4:
         if (dist >= 70) continue;                  /* QQ8+1 != 0 o QQ8 >= 70 */
         rows[y] = 255;
         EV('n', col, y, i);
-        put_name(col, y, p->name);
+        if (chart_xf_mode()) put_name(sun_xf_x((int)col * 8) >> 3, sun_xf_y((int)y * 8) >> 3, p->name);   /* con la transformacion: la celda del nombre (columna y fila del original) en pantalla */
+        else put_name(col, y, p->name);
         c = cpl_carry(p);
 ee1:
         zk3[1] = 0; zk4[1] = 0; zK[1] = 0;
@@ -185,7 +186,8 @@ ee1:
         zK[0] = (u8)((p->goatsoupseed.d & 1) + 2 + c);       /* LDA QQ15+5; AND #1; ADC #2 */
         (void)row;
         EV('s', zk3[0], zk4[0], zK[0]);
-        sun_flflls(); sun_draw(); sun_flflls();
+        if (chart_xf_mode() == 1) sun_xf_disc(zk3[0], zk4[0], zK[0], C_RED);   /* pantalla: elipse rellena de 1 punto */
+        else { sun_flflls(); sun_draw(); sun_flflls(); }
     }
 }
 
@@ -196,11 +198,13 @@ static void tt22(void)
     u8 x, y;
     sun_col = C_BLUE;                              /* NLIN2 pone COL = BLUE y el marco la hereda */
 #if CHART_TOP_FULLWIDTH
-    hloin(0, 255, GCYT - 1);                       /* NLIN5 -> NLIN2: X1 = 0, X2 = 255 (linea bajo el titulo) */
+    { int m = chart_xf_mode(); chart_xf_set(0); hloin(0, 255, GCYT - 1); chart_xf_set(m); }   /* NLIN5 -> NLIN2: X1 = 0, X2 = 255 (linea bajo el titulo, sin bajar con el mapa) */
+    if (chart_xf_mode()) gfx_hline_xor(30, 226, sun_xf_y(GCYT - 1), sun_col);   /* arista superior del marco: de palo a palo (30..226), baja con el mapa */
 #else
     hloin(30, 228, GCYT - 1);                      /* variante: la linea superior solo cierra el marco */
 #endif
-    hloin(31, 228, GCYB + 1);
+    if (chart_xf_mode()) gfx_hline_xor(30, 226, sun_xf_y(GCYB + 1), sun_col);   /* arista inferior: de palo a palo */
+    else hloin(31, 228, GCYB + 1);
     dvloin(30);                                    /* DVLOIN */
     dvloin(226);
     tt14(0);
@@ -208,7 +212,7 @@ static void tt22(void)
         x = sm_scalex(uni_galaxy[i].x);
         y = (u8)(sm_scaley(uni_galaxy[i].y) + GCYT);
         EV('p', x, y, 255);
-        gfx_dust(x, y, 255);                       /* PIXEL con ZZ = 255: dos puntos */
+        sun_xf_dust(x, y, 255);                    /* PIXEL con ZZ = 255: dos puntos */
     }
     chart_cursor(0);
 }

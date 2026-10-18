@@ -69,9 +69,32 @@ static u8 sc1;                                   /* SC+1: mascara de los espacio
 
 /* DA1: fin de parrafo (CR) con el texto justificado: cada LL caracteres se ensanchan espacios hasta que el caracter LL
    de BUF sea un espacio, se imprime la linea y se sigue con el resto */
+u8 dt_nojustify = 0;                             /* propio: 1 = salto de linea sin ensanchar espacios (pantalla de datos) */
+
+/* DA1 sin justificar: corta cada linea en el ultimo espacio que cabe en LL columnas (o en LL si no hay ninguno) */
+static void da1_ragged(void)
+{
+    u8 x, y, n;
+    for (;;) {
+        x = dtw5;
+        if (x == 0) break;
+        if (x <= DT_LL) { das1(x); break; }
+        y = DT_LL;
+        while (y > 0 && dt_buf[y] != ' ') y--;
+        if (y == 0) { das1(DT_LL); n = DT_LL; }                 /* palabra mas larga que la linea */
+        else { das1(y); n = (u8)(y + 1); }                      /* se descarta el espacio del corte */
+        dt_chpr(12);
+        dtw5 = (u8)(dtw5 - n);
+        for (y = 0; y < dtw5; y++) dt_buf[y] = dt_buf[(u8)(n + y)];
+    }
+    dtw5 = 0;
+    dt_chpr(12);
+}
+
 static void da1(void)
 {
     u8 x, y, s, a;
+    if (dt_nojustify) { da1_ragged(); return; }
     for (;;) {                                   /* DA5 */
         x = dtw5;
         if (x == 0) break;                       /* DA6+3 */

@@ -23,6 +23,73 @@ static u8 yy[2];                         /* YY */
 static u8 chk_p1, chk_p2;                /* P+1, P+2 (los pone CHKON) */
 static u8 k5[4], k6[4];                  /* K5, K6 */
 
+/* Transformacion de dibujo de las cartas (solo en pantalla; las rutinas siguen trabajando en las coordenadas del original): la carta
+   local se aprieta a 9/10 en x y se estira 6/5 en y y se centra (los puntos del QL son mas anchos que altos: asi los circulos
+   salen redondos en un monitor 4:3); la galactica baja 8 puntos. */
+static int xf_mode = 0;
+
+void chart_xf_set(int mode) { xf_mode = mode; }
+int chart_xf_mode(void) { return xf_mode; }
+
+int sun_xf_x(int x)
+{
+    if (xf_mode == 1) { x = 128 + ((x - 105) * 9) / 10; if (x < 0) x = 0; if (x > 255) x = 255; }
+    return x;
+}
+
+int sun_xf_y(int y)
+{
+    if (xf_mode == 1) { y = 90 + ((y - 75) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }
+    else if (xf_mode == 2) { y = 27 + ((y - 19) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* galactica: baja 8 y se estira 6/5 (aspecto de los puntos) */
+    return y;
+}
+
+/* HLOIN con la transformacion: la fila y cubre las filas de la imagen entre y y y + 1 (sin huecos al estirar) */
+void sun_xf_hloin(int x1, int x2, int y, u8 col)
+{
+    int a, b, r;
+    if (!xf_mode) { gfx_hloin(x1, x2, y, col); return; }
+    x1 = sun_xf_x(x1); x2 = sun_xf_x(x2);
+    a = sun_xf_y(y); b = sun_xf_y(y + 1);
+    if (b <= a) b = a + 1;
+    for (r = a; r < b; r++) gfx_hloin(x1, x2, r, col);
+}
+
+void sun_xf_vloin(int x, int y1, int y2, u8 col)
+{
+    int t;
+    if (!xf_mode) { gfx_vloin(x, y1, y2, col); return; }
+    if (y1 > y2) { t = y1; y1 = y2; y2 = t; }
+    t = sun_xf_x(x);                                /* palo de 1 punto de ancho (el CPIX del original es de 2) */
+    for (y1 = sun_xf_y(y1), y2 = (sun_xf_y(y2 + 1) > sun_xf_y(y2) ? sun_xf_y(y2 + 1) - 1 : sun_xf_y(y2)); y1 <= y2; y1++)
+        gfx_xor_pixel(t, y1, col);
+}
+
+/* Planeta de la carta corta: elipse rellena en coordenadas de pantalla, a 1 punto de resolucion (el SUN del original rellena
+   con HLOIN de pares de puntos y la transformacion lo deforma). Radio original k; los puntos del QL son 4/3 mas anchos que altos */
+void sun_xf_disc(int cx, int cy, int k, u8 col)
+{
+    int rx = k, ry, dy, w, r;
+    long t, big;
+    if (rx < 1) rx = 1;
+    ry = (rx * 4 + 1) / 3;
+    big = 2L * ry + 1;                                     /* alto del disco entre bordes (en medios puntos) */
+    cx = sun_xf_x(cx); cy = sun_xf_y(cy);
+    for (dy = -ry; dy <= ry; dy++) {
+        t = (long)rx * rx * (big * big - 4L * dy * dy) * 4 / (big * big);   /* (2 * semiancho)^2 */
+        r = 0;
+        while ((long)(r + 1) * (r + 1) <= t) r++;          /* raiz entera */
+        w = (r + 1) / 2;                                   /* semiancho redondeado */
+        gfx_hline_xor(cx - w, cx + w, cy + dy, col);
+    }
+}
+
+void sun_xf_dust(int x, int y, u8 zz)
+{
+    if (xf_mode == 2) { gfx_xor_pixel(sun_xf_x(x), sun_xf_y(y), C_WHITE); return; }   /* galactica: sistemas de un solo punto */
+    gfx_dust(sun_xf_x(x), sun_xf_y(y), zz);
+}
+
 void (*sun_loin_hook)(void) = 0;                /* pruebas: cada LOIN, con X1..Y2 ya ordenados y SWAP (zswap) */
 void (*sun_hloin_hook)(u8 l, u8 r, u8 y) = 0;   /* pruebas: cada HLOIN que dibuja (izquierda, derecha, fila) */
 
@@ -35,7 +102,7 @@ static void hloin(void)
     if (l == r) return;
     if (r < l) { X2 = l; t = l; l = r; r = t; }
     if (sun_hloin_hook) sun_hloin_hook(l, r, Y1);
-    gfx_hloin(l, r, Y1, sun_col);
+    sun_xf_hloin(l, r, Y1, sun_col);
 }
 
 /* LOIN del original con sus efectos en memoria (partes 1 y comienzo de STPX/STPY): S = 128, P = |dx|, Q = |dy|, SWAP = 0;
@@ -58,7 +125,8 @@ static void loin(void)
         t = Y1; Y1 = Y2; Y2 = t;
     }
     if (sun_loin_hook) sun_loin_hook();
-    loin_draw(ox1, oy1, ox2, oy2, sun_col);
+    if (xf_mode) loin_draw((u8)sun_xf_x(ox1), (u8)sun_xf_y(oy1), (u8)sun_xf_x(ox2), (u8)sun_xf_y(oy2), sun_col);
+    else loin_draw(ox1, oy1, ox2, oy2, sun_col);
 }
 
 /* FLFLLS */

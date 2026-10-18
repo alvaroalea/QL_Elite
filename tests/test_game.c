@@ -216,11 +216,12 @@ int main(void)
     logic();
     printf("logica: %d comprobaciones, %d fallos\n", total, fails);
     save_set_device("tests/tmp/");
+    dash_load();                                     /* como main: lo primero de todo */
     in_script = feed;
     game_run();
     check(sp >= sizeof script / sizeof script[0] - 3, "la sesion guiada llego al final");
     check(snapn == 29, "29 capturas");
-    check(dash_loads() == 1, "elite_dash se lee del disco una sola vez y se queda en memoria entre despegues");
+    check(dash_loads() == 1, "elite_dash se lee del disco una sola vez (al arrancar) y se queda en memoria entre despegues");
     check(strcmp(cmdr_name, "BOB") == 0, "se cargo el comandante BOB");
     printf("sesion: %u teclas, %d capturas; %d comprobaciones, %d fallos\n", sp, snapn, total, fails);
     return fails ? 1 : 0;
