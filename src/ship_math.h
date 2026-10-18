@@ -20,6 +20,7 @@ u8   sm_mas1(u8 y, u8 x);
 u8   sm_mas2(u8 a, u8 y);                  /* A = (a | signos x,y,z de la ranura en K% + y) y 0x7F */
 u8   sm_mas2m(u8 y);                       /* entrada .m: igual con A = 0 */
 u8   sm_mas3(u8 y);                        /* A = x_hi^2 + y_hi^2 + z_hi^2 (ranura K% + y), 255 si desborda */
+u8   sm_farof2(u8 a);                      /* FAROF2: C = 1 si x_hi, y_hi y z_hi de INWK son <= a (FAROF: a = 224) */
 u8   sm_mas4(u8 a);                        /* A = a | x_hi | y_hi | z_hi de INWK */
 
 /* K3(0..8) = vector INWK(0..8) - vector de v (posicion x,y,z de otra nave, 3 bytes cada eje) */

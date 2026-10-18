@@ -1,4 +1,5 @@
 #include "ship3d.h"
+#include "lines.h"
 
 u8 ztype;
 const u8 *zxx0;
@@ -9,7 +10,7 @@ u8 zxx18[9];
 u8 xx3[258];
 u8 ship_c_in;
 
-static void default_loin(void) { gfx_line(zx15[0], zx15[1], zx15[2], zx15[3], C_WHITE, 1); }
+static void default_loin(void) { loin_draw(zx15[0], zx15[1], zx15[2], zx15[3], C_WHITE); }
 void (*ship_loin_hook)(void) = default_loin;
 void (*ship_doexp_hook)(void) = 0;
 void (*ship_planet_hook)(void) = 0;

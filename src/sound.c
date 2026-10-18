@@ -7,6 +7,10 @@
 #define SND_NOISE_RND  12
 
 static int enabled = 1;
+void (*snd_dornd_hook)(void) = 0;
+
+/* los DORND que gastan los sonidos con retardo aleatorio, solo si el sonido esta activo (BIT DNOIZ; BMI SOUR) */
+static void dornds(long n) { if (enabled && snd_dornd_hook) while (n--) snd_dornd_hook(); }
 static long clock_ms = 0;
 static long busy_until = 0;
 static int busy_prio = 0;
@@ -137,6 +141,7 @@ void snd_soexpl(int y)
     c0 = 9 * 51L + 1010; c1 = 9 * t1 + 1010;
     sweep(snd_pitch_from_cycles(c0), snd_pitch_from_cycles(c1), snd_units_from(y, (c0 + c1) / 2), 1,
           y >= 200 ? SND_P_DEATH : SND_P_EXPL);
+    dornds(y ? y : 256);                         /* DEY; BNE BEEPL4 */
 }
 
 /* SOHISS: ~965 ciclos por clic (retardo aleatorio medio). y = 0 significa 256 clics */
@@ -145,6 +150,7 @@ void snd_sohiss(int y)
     long n = y ? y : 256;
     long p = snd_pitch_from_cycles(965);
     noise(p - 3, p + 5, snd_units_from(n, 965), SND_P_BLIP);
+    dornds(n);
 }
 
 /* SOBOMB: 25 clics con retardo de 7*(224..255) ciclos: ~1745 por clic */
@@ -152,6 +158,7 @@ void snd_sobomb(void)
 {
     long p = snd_pitch_from_cycles(1745);
     noise(p - 3, p + 3, snd_units_from(25, 1745), SND_P_BOMB);
+    dornds(25);
 }
 
 /* LASNOISE: 11 clics, T de 152 a 172 (+2 por clic), ciclos = 5*T + 21 */

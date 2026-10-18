@@ -35,7 +35,7 @@ int main(int argc, char **argv)
             zP = a[0]; zP1 = a[1]; em_dvid3b(a[2], a[3], a[4], a[5]);
             CHECK(zK[0] == a[6] && zK[1] == a[7] && zK[2] == a[8] && zK[3] == a[9], "dvid3b %d %d %d %d %d %d -> %d,%d,%d,%d esperado %d,%d,%d,%d", a[0],a[1],a[2],a[3],a[4],a[5],zK[0],zK[1],zK[2],zK[3],a[6],a[7],a[8],a[9]); }
         else if (!strcmp(op, "fmltu2")) { fscanf(f, "%d %d %d %d", &a[0],&a[1],&a[2],&a[3]);
-            zK[0] = a[1]; r = em_fmltu2(a[0]); CHECK(r == a[2] && em_carry == a[3], "fmltu2 %d %d -> %d,%d esperado %d,%d", a[0],a[1],r,em_carry,a[2],a[3]); }
+            zK[0] = a[1]; em_carry = 0; r = em_fmltu2(a[0]); CHECK(r == a[2] && em_carry == a[3], "fmltu2 %d %d -> %d,%d esperado %d,%d", a[0],a[1],r,em_carry,a[2],a[3]); }
         else if (!strcmp(op, "mlu2")) { fscanf(f, "%d %d %d %d", &a[0],&a[1],&a[2],&a[3]);
             zQ = a[1]; r = em_mlu2(a[0]); CHECK(r == a[2] && zP == a[3], "mlu2 %d %d", a[0],a[1]); }
         else { printf("op desconocida %s\n", op); return 2; }

@@ -6,7 +6,7 @@
 #include "ship3d.h"
 u8 *screen;
 void plat_init(void){} void plat_present(void){} void plat_shutdown(void){}
-void gfx_line(int a, int b, int c, int d, u8 e, int f){ (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; }
+void loin_draw(u8 a, u8 b, u8 c, u8 d, u8 e) { (void)a; (void)b; (void)c; (void)d; (void)e; }
 
 static int fails, total, nops;
 static char opcount[64][16]; static long opn[64], opf[64];

@@ -28,6 +28,8 @@ struct snd_params {
 int snd_ipc(const u8 *blk, int len);
 
 void snd_init(void);
+extern void (*snd_dornd_hook)(void);     /* un DORND del juego (lo pone ships_hooks): SOEXPL, SOHISS y SOBOMB del original llaman a
+                                            DORND una vez por clic para el retardo, y eso cambia la secuencia de numeros al azar */
 void snd_enable(int on);           /* equivale a DNOIZ del original; al desactivar silencia */
 int  snd_enabled(void);
 void snd_off(void);                /* BEEP sin parametros */

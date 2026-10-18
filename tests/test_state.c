@@ -48,7 +48,11 @@ static int apply(const char *s, int compare, const char *op, const char *line)
             if (!compare) v->p[i] = b;
             else if (v->p[i] != b) { bad = 1; }
         }
-        if (compare && bad && fails < 8) { printf("FALLO %s: variable %s\n  %.200s\n", op, v->name, line); }
+        if (compare && bad && fails < 8) {
+            printf("FALLO %s: variable %s =", op, v->name);
+            for (i = 0; i < n / 2; i++) printf("%02x", v->p[i]);
+            printf("\n  %.200s\n", line);
+        }
         s = e + n; if (*s == ',') s++;
     }
     return bad;
@@ -78,6 +82,7 @@ static void run(const char *op)
     else if (!strcmp(op, "sps2")) { o_rx = sm_sps2(r_ia); o_ry = sm_y; }
     else if (!strcmp(op, "pls6")) { o_rc = sm_pls6(r_ia); o_rx = sm_x; }
     else if (!strcmp(op, "proj")) o_rc = sm_proj();
+    else if (!strcmp(op, "farof2")) o_rc = sm_farof2(r_ia);
     else if (!strcmp(op, "lcash")) o_rc = sm_lcash(r_ix, r_iy);
     else if (!strcmp(op, "mcash")) sm_mcash(r_ix, r_iy);
     else if (!strcmp(op, "gcash")) { o_rx = sm_gcash(); o_ry = sm_y; }

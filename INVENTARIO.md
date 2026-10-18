@@ -5,68 +5,68 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **429**, de ellas verificadas contra el 6502: 192 y pendientes de verificar: 237
-- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **99**
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 261, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 7 y pendientes de verificar: 158
+- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
-Comprobacion: total = portadas + no necesarias + sin portar (528 = 429 + 99 + 0).
+Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0).
 
-| Area | Total | Portadas | De ellas verificadas | No necesarias | Pendientes verificar | Pendientes implementar |
-|---|---:|---:|---:|---:|---:|---:|
-| Charts | 9 | 9 | 0 | 0 | 9 | 0 |
-| Dashboard | 29 | 29 | 4 | 0 | 25 | 0 |
-| Drawing circles | 9 | 9 | 6 | 0 | 3 | 0 |
-| Drawing lines | 27 | 23 | 11 | 4 | 12 | 0 |
-| Drawing pixels | 6 | 6 | 0 | 0 | 6 | 0 |
-| Drawing planets | 7 | 7 | 7 | 0 | 0 | 0 |
-| Drawing ships | 5 | 4 | 2 | 1 | 2 | 0 |
-| Drawing suns | 3 | 3 | 3 | 0 | 0 | 0 |
-| Drawing the screen | 18 | 8 | 0 | 10 | 8 | 0 |
-| Equipment | 6 | 6 | 0 | 0 | 6 | 0 |
-| Flight | 29 | 29 | 11 | 0 | 18 | 0 |
-| Keyboard | 19 | 15 | 1 | 4 | 14 | 0 |
-| Loader | 5 | 0 | 0 | 5 | 0 | 0 |
-| Main loop | 1 | 1 | 1 | 0 | 0 | 0 |
-| Market | 19 | 19 | 8 | 0 | 11 | 0 |
-| Maths (Arithmetic) | 52 | 51 | 13 | 1 | 38 | 0 |
-| Maths (Geometry) | 19 | 19 | 2 | 0 | 17 | 0 |
-| Missions | 16 | 10 | 10 | 6 | 0 | 0 |
-| Moving | 8 | 8 | 1 | 0 | 7 | 0 |
-| Save and load | 61 | 27 | 3 | 34 | 24 | 0 |
-| Sound | 13 | 11 | 0 | 2 | 11 | 0 |
-| Stardust | 7 | 7 | 0 | 0 | 7 | 0 |
-| Start and end | 8 | 8 | 0 | 0 | 8 | 0 |
-| Status | 7 | 7 | 4 | 0 | 3 | 0 |
-| Tactics | 8 | 7 | 5 | 1 | 2 | 0 |
-| Text | 77 | 73 | 70 | 4 | 3 | 0 |
-| Tube | 1 | 0 | 0 | 1 | 0 | 0 |
-| Universe | 34 | 32 | 30 | 2 | 2 | 0 |
-| Utility routines | 18 | 1 | 0 | 17 | 1 | 0 |
-| Workspaces | 7 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **429** | **192** | **99** | **237** | **0** |
+| Area | Total | Portadas | De ellas verificadas | No verificables | No necesarias | Pendientes verificar | Pendientes implementar |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Charts | 9 | 9 | 9 | 0 | 0 | 0 | 0 |
+| Dashboard | 29 | 29 | 4 | 0 | 0 | 25 | 0 |
+| Drawing circles | 9 | 9 | 9 | 0 | 0 | 0 | 0 |
+| Drawing lines | 27 | 23 | 20 | 3 | 4 | 0 | 0 |
+| Drawing pixels | 6 | 3 | 3 | 0 | 3 | 0 | 0 |
+| Drawing planets | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
+| Drawing ships | 5 | 4 | 4 | 0 | 1 | 0 | 0 |
+| Drawing suns | 3 | 3 | 3 | 0 | 0 | 0 | 0 |
+| Drawing the screen | 18 | 8 | 7 | 1 | 10 | 0 | 0 |
+| Equipment | 6 | 6 | 0 | 0 | 0 | 6 | 0 |
+| Flight | 29 | 29 | 12 | 0 | 0 | 17 | 0 |
+| Keyboard | 19 | 15 | 1 | 0 | 4 | 14 | 0 |
+| Loader | 5 | 0 | 0 | 0 | 5 | 0 | 0 |
+| Main loop | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+| Market | 19 | 19 | 8 | 0 | 0 | 11 | 0 |
+| Maths (Arithmetic) | 52 | 51 | 22 | 0 | 1 | 29 | 0 |
+| Maths (Geometry) | 19 | 19 | 19 | 0 | 0 | 0 | 0 |
+| Missions | 16 | 10 | 10 | 0 | 6 | 0 | 0 |
+| Moving | 8 | 8 | 2 | 0 | 0 | 6 | 0 |
+| Save and load | 61 | 27 | 3 | 0 | 34 | 24 | 0 |
+| Sound | 13 | 11 | 1 | 0 | 2 | 10 | 0 |
+| Stardust | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
+| Start and end | 8 | 8 | 0 | 0 | 0 | 8 | 0 |
+| Status | 7 | 7 | 4 | 0 | 0 | 3 | 0 |
+| Tactics | 8 | 7 | 5 | 0 | 1 | 2 | 0 |
+| Text | 77 | 73 | 70 | 3 | 4 | 0 | 0 |
+| Tube | 1 | 0 | 0 | 0 | 1 | 0 | 0 |
+| Universe | 34 | 32 | 30 | 0 | 2 | 2 | 0 |
+| Utility routines | 18 | 1 | 0 | 0 | 17 | 1 | 0 |
+| Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
+| **Total** | **528** | **426** | **261** | **7** | **102** | **158** | **0** |
 
-Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
+Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
 ## Rutinas sin portar, por area
 
 
 ## Estados
 
-**verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, anotada en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **parcial** = existe una version reducida y falta parte (cuenta como pendiente de implementar); **no-necesaria** = no hace falta en la version QL (la nota dice por que); vacio = sin portar.
+**verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, anotada en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **parcial** = existe una version reducida y falta parte (cuenta como pendiente de implementar); **no-verificable** = portada, pero no se puede comparar con el 6502 (depende del hardware del Apple II, como el modo texto, o de pantallas propias del port): queda fuera de los pendientes de verificar; **no-necesaria** = no hace falta en la version QL (la nota dice por que); vacio = sin portar.
 
 ## Charts (9 portadas de 9)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| HME2 | Search the galaxy for a system | sin-verificar | `chart_find_system` | busqueda por nombre completo sin mayusculas; solo atracado (tecla F); la entrada de texto es edit_text en menu.c |
-| TT22 | Show the Long-range Chart | sin-verificar | `chart_draw` |  |
-| TT16 | Move the crosshairs on a chart | propia | `scr_chart` | movimiento de la mira propio: libre, y el objetivo es el sistema mas cercano (TT111); el original mueve QQ9/QQ10 directamente |
-| TT103 | Draw a small set of crosshairs on a chart | sin-verificar | `chart_cursor` |  |
-| TT123 | Move galactic coordinates by a signed delta | propia | `scr_chart` | suma con saturacion (clampi) en lugar de la rutina |
-| TT105 | Draw crosshairs on the Short-range Chart, with clipping | sin-verificar | `chart_cursor` |  |
-| TT23 | Show the Short-range Chart | sin-verificar | `chart_draw` |  |
-| TT114 | Display either the Long-range or Short-range Chart | sin-verificar | `chart_draw` | dispatcher galactica/local; el redibujado tras un salto hecho desde una carta no hace falta aun: el salto solo se inicia desde la vista de vuelo |
-| hm | Select the closest system and redraw the chart crosshairs | sin-verificar | `chart_hm` | tecla D: sistema mas cercano a la cruz, nombre y distancia |
+| HME2 | Search the galaxy for a system | verificada | `chart_find_system` | make test_charts (busqueda con el motor de texto real: nombre completo, sin mayusculas, misma longitud); la entrada de texto (MT26) es edit_text. El original con QQ17 = $80 no encuentra el sistema 0 y con 0 o $40 ninguno (con $C0, el estado normal, todos) |
+| TT22 | Show the Long-range Chart | verificada | `chart_draw`, `tt22` | make test_charts (lineas, marco, cada PIXEL con ZZ = 255 = dos puntos, TT14 y TT103); el titulo es el de menu.c |
+| TT16 | Move the crosshairs on a chart | verificada | `chart_tt16` | make test_charts (borra la cruz, TT123 en y con -Y y en x, y cae en TT103); scr_chart la usa con pasos de 1 (local) o 2 (galactica) por fotograma; el objetivo que se muestra abajo es el de TT111 (propio) |
+| TT103 | Draw a small set of crosshairs on a chart | verificada | `chart_cursor` | make test_charts |
+| TT123 | Move galactic coordinates by a signed delta | verificada | `tt123` | make test_charts (no se mueve si daria la vuelta) |
+| TT105 | Draw crosshairs on the Short-range Chart, with clipping | verificada | `chart_cursor` | make test_charts |
+| TT23 | Show the Short-range Chart | verificada | `chart_draw`, `tt23` | make test_charts (filas libres de INWK, nombres con XC/YC, SUN con el acarreo de cpl, readdistnce); con Y = 255 lee INWK-1 = SC+1 (nunca 0) |
+| TT114 | Display either the Long-range or Short-range Chart | verificada | `chart_draw` | make test_charts (galactica o local segun QQ11) |
+| hm | Select the closest system and redraw the chart crosshairs | verificada | `chart_hm` | make test_charts |
 
 ## Dashboard (29 portadas de 29)
 
@@ -107,10 +107,10 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | BLINE | Draw a circle segment and add it to the ball line heap | verificada | `bline` | make test_planet (secuencias de PLANET contra el 6502) |
-| LL164 | Make the hyperspace sound and draw the hyperspace tunnel | sin-verificar | `arrive` | sonido (SOBLIP) y tunel al saltar; el salto en si es propio |
-| LAUN | Make the launch sound and draw the launch tunnel | sin-verificar | `flight_run` | sonido (SOHISS) y tunel al despegar |
+| LL164 | Make the hyperspace sound and draw the hyperspace tunnel | verificada | `tunnel_ll164` | make test_draw (nueve SOBLIP, HFS2 con STP = 4, cada SOHISS y CIRCLE2, RAND); el primer SBC |
+| LAUN | Make the launch sound and draw the launch tunnel | verificada | `tunnel_laun` | make test_draw (dos SOHISS de 256, HFS2 con STP = 8; RAND); en TT110 los mismos anillos se borran despues con HFS1 |
 | HFS2 | Draw the launch or hyperspace tunnel | verificada | `tunnel_draw` | HFS1/HFL1 contra el 6502 (make test_planet); STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia |
-| TT14 | Draw a circle with crosshairs on a chart | sin-verificar | `tt14` |  |
+| TT14 | Draw a circle with crosshairs on a chart | verificada | `tt14` | make test_charts (TT126 en la local; cruz, K de SCALEY/SCALEY2 y TT128) |
 | TT128 | Draw a circle on a chart | verificada | `tt14` | make test_planet (circulo de las cartas con CIRCLE2) |
 | CIRCLE | Draw a circle for the planet | verificada | `circle_draw` | make test_planet (secuencias de PLANET contra el 6502) |
 | CIRCLE2 | Draw a circle (for the planet or chart) | verificada | `circle2_draw` | make test_planet (secuencias de PLANET contra el 6502) |
@@ -121,43 +121,43 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | BOMBOFF | Draw the zig-zag lightning bolt for the energy bomb | verificada | `bomb_off` | make test_equip (lineas del rayo) |
-| BOMBEFF2 | Erase the energy bomb zig-zag lightning bolt, make the sound of | sin-verificar | `bomb_eff2`, `bomb_eff`, `bomb_frame` | cuatro BOMBEFF por fotograma y el tramo MA18 de la parte 16; tecla con la comprobacion de la version publicada (IB disk) |
+| BOMBEFF2 | Erase the energy bomb zig-zag lightning bolt, make the sound of | verificada | `bomb_eff2`, `bomb_eff`, `bomb_frame` | make test_draw (con SOBOMB, CLICK y DORND reales; QQ11 y DNOIZ al azar); bomb_frame (parte 16) y la tecla con la comprobacion de la version publicada (IB disk) sin verificar |
 | BOMBON | Randomise and draw the energy bomb's zig-zag lightning bolt lines | verificada | `bomb_on` | make test_equip |
 | BOMBPOS | A set of x-coordinates that are used as the basis for the energy | verificada | `bombpos` | tabla |
 | BOMBTBX | This is where we store the x-coordinates for the energy bomb's | verificada | `bombtbx` |  |
 | BOMBTBY | This is where we store the y-coordinates for the energy bomb's | verificada | `bombtby` |  |
-| NLI4 | Draw a line of dashes underneath a title on the text screen | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
-| NLIN3 | Print a title and draw a horizontal line at row 19 to box it in | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
-| NLIN4 | Draw a horizontal line at pixel row 19 to box in a title | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
-| NLIN | Draw a horizontal line at pixel row 23 to box in a title | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
-| NLIN2 | Draw a screen-wide horizontal line at the pixel row in A | propia | `ui_title` | titulo con la linea que lo subraya (menu.c) |
+| NLI4 | Draw a line of dashes underneath a title on the text screen | no-verificable | `nlin4` | guiones bajo la fila 1 en el modo texto del Apple II; el QL no tiene modo texto y NLIN4 dibuja siempre la linea de NLIN2 en y = 19 (en medio de la fila 2) |
+| NLIN3 | Print a title and draw a horizontal line at row 19 to box it in | no-verificable | `ui_title` | titulo con la linea que lo subraya (menu.c); en las pantallas de misiones, TT27 + nlin4 (dt_nlin4_hook) |
+| NLIN4 | Draw a horizontal line at pixel row 19 to box in a title | verificada | `nlin4` | make test_draw (modo grafico: NLIN2 con y = 19) |
+| NLIN | Draw a horizontal line at pixel row 23 to box in a title | no-verificable | `ui_title` | titulo con la linea que lo subraya (menu.c); NLIN = INCYC + NLIN2(23) |
+| NLIN2 | Draw a screen-wide horizontal line at the pixel row in A | verificada | `nlin2` | make test_draw (HLOIN de 0 a 255 en azul) |
 | HLOIN2 | Remove a line from the sun line heap and draw it on-screen | verificada | `hloin2` | make test_planet (secuencias de PLANET contra el 6502) |
 | LASLI | Draw the laser lines for when we fire our lasers | verificada | `lasli`, `lasli2` | vertice, calor, DENGY y las cuatro lineas (LL30); LASLI2 borra en XOR |
-| DVLOIN | Draw a vertical line from (A, GCYT) to (A, GCYB) | propia | `dvloin` | linea vertical de las cartas (chart.c) |
-| TT15 | Draw a set of crosshairs | sin-verificar | `tt15` |  |
+| DVLOIN | Draw a vertical line from (A, GCYT) to (A, GCYB) | verificada | `dvloin` | por inspeccion: VLOIN de (A, GCYT) a (A, GCYB), y VLOIN esta verificada con make test_lines |
+| TT15 | Draw a set of crosshairs | verificada | `tt15`, `chart_tt15` | make test_draw (HLOIN y VLOIN con sus argumentos y COL) |
 | EDGES | Draw a horizontal line given a centre and a half-width | verificada | `edges` | make test_planet (secuencias de PLANET contra el 6502) |
 | LL118 | Move a point along a line until it is on-screen | verificada | `ship_clip` | dentro de ship3d.c (verificada con el 6502) |
 | LL145 | Clip line: Work out which end-points are on-screen, if any | verificada | `ship_clip` | recorte de linea (verificada con el 6502) |
 | LSPUT | Draw a ship line using flicker-free animation | verificada | `ship_lsput` | linea de nave en el monton con animacion sin parpadeo (dentro de LL9, verificada) |
-| sightcol | Colours for the crosshair sights on the different laser types | propia | `chart_sight` | colores de la mira segun el laser: dentro de chart_sight (sin verificar) |
+| sightcol | Colours for the crosshair sights on the different laser types | verificada | `chart_sight` | make test_draw (azul, rojo, blanco, blanco) |
 | beamcol | An unused table of laser colours | no-necesaria |  | tabla sin uso en el original |
 | TWFL | Ready-made pixel bytes for the left end of a horizontal line | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | TWFR | Ready-made character rows for the right end of a horizontal line | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
-| LOIN | Draw a line: Calculate the line gradient in the form of deltas | propia | `gfx_line`, `loin` | linea en XOR; en sun.c, loin() reproduce los efectos en memoria del original (SWAP, orden de los extremos, P, Q, S), verificados con make test_planet |
-| HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) | propia | `gfx_hloin`, `hloin` | pares de puntos de X1 a X2-1; hloin() de sun.c redondea X1/X2 a pares y deja X2 como el original (verificado con make test_planet) |
+| LOIN | Draw a line: Calculate the line gradient in the form of deltas | verificada | `loin_draw` | make test_lines punto a punto (pendiente con log/alogh, un extremo sin dibujar segun SWAP); en sun.c, loin() reproduce ademas los efectos en memoria (SWAP, X1..Y2, P, Q, S) de make test_planet |
+| HLOIN | Draw a horizontal line from (X1, Y1) to (X2, Y1) | verificada | `gfx_hloin`, `hloin`, `lines_hloin` | make test_lines punto a punto en blanco (pares de puntos de X1 a X2-1); los colores del Apple II son patrones de bits (MASKT): en el QL, color liso; hloin() de sun.c deja X1/X2 como el original (make test_planet) |
 | MASKT | High-resolution pixel bytes for drawing continuous lines of solid | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
-| VLOIN | Draw a vertical line from (X1, Y1) to (X1, Y2) | sin-verificar | `gfx_vloin` | 2 puntos de ancho, extremos incluidos |
+| VLOIN | Draw a vertical line from (X1, Y1) to (X1, Y2) | verificada | `gfx_vloin` | make test_lines punto a punto (CPIX de Y1 a Y2, ambos incluidos) |
 
-## Drawing pixels (6 portadas de 6)
+## Drawing pixels (3 portadas de 6, 3 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| PIXEL2 | Draw a stardust particle relative to the screen centre | sin-verificar | `pixel2` |  |
-| PIXEL | Draw a two-pixel dash, three-pixel dash or double-height | sin-verificar | `gfx_dust` | ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II |
-| TWOS3 | Ready-made two-pixel and three-pixel bytes in white, with an extra | propia |  | tablas de bytes del Apple II: aqui gfx_xor_pixel |
-| TWOS | Ready-made bytes for drawing one-pixel dots in the space view | propia |  |  |
-| TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels | propia |  |  |
-| CPIX | Draw a colour pixel | sin-verificar | `gfx_cpix` | 2 puntos de ancho (x, x+1) en XOR; sin las tablas de bytes del Apple II |
+| PIXEL2 | Draw a stardust particle relative to the screen centre | verificada | `pixel2` | make test_stars (con el acarreo con que vuelve PIXEL) |
+| PIXEL | Draw a two-pixel dash, three-pixel dash or double-height | verificada | `gfx_dust` | make test_lines punto a punto (2 o 3 puntos segun ZZ y dos filas si ZZ < 80; el QL no muestra x >= 256) |
+| TWOS3 | Ready-made two-pixel and three-pixel bytes in white, with an extra | no-necesaria |  | tabla de bytes de 2 y 3 puntos del modo hires del Apple II; gfx_dust pone los puntos directamente (make test_lines) |
+| TWOS | Ready-made bytes for drawing one-pixel dots in the space view | no-necesaria |  | tabla de un punto del modo hires del Apple II; loin_draw pone el punto directamente (make test_lines) |
+| TWOS2 | Ready-made two-bit pixel bytes for plotting colour pixels | no-necesaria |  | tabla de dos puntos del modo hires del Apple II (CPIX); gfx_cpix pone los puntos directamente (make test_lines) |
+| CPIX | Draw a colour pixel | verificada | `gfx_cpix` | a traves de VLOIN en make test_lines (2 puntos de ancho en XOR); sin los patrones de color del Apple II |
 
 ## Drawing planets (7 portadas de 7)
 
@@ -169,14 +169,14 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | WPLS2 | Remove the planet from the screen | verificada | `circle_wpls2` | make test_planet; depende de que LOIN deje SWAP como el original (loin() de sun.c) |
 | WP1 | Reset the ball line heap | verificada | `circle_wpls2` | make test_planet; RES2 pone LSX2 y LSY2 a $FF |
 | PL21 | Return from a planet/sun-drawing routine with a failure flag | verificada | `planet` | make test_planet (SEC; RTS) |
-| PLS6 | Calculate (X K) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `sm_pls6` |  |
+| PLS6 | Calculate (X K) = (A P+1 P) / (z_sign z_hi z_lo) | verificada | `sm_pls6` | make test_geom (codigo original en el emulador) |
 
 ## Drawing ships (4 portadas de 5, 1 no necesarias)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| scacol | Ship colours on the scanner | sin-verificar | `scacol` | cadena con el color de cada tipo |
-| DOEXP | Draw an exploding ship | sin-verificar | `doexp` | nube de la nave que explota; el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco |
+| scacol | Ship colours on the scanner | verificada | `scacol`, `space_scacol` | make test_draw (tabla); CYAN y MAG son WHITE en el Apple II: el QL los muestra en cian y magenta |
+| DOEXP | Draw an exploding ship | verificada | `doexp` | make test_draw (CPIX con X, Y y COL; monton, INWK+31 y RAND); el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco |
 | exlook | A table to shift X left by one place when X is 0 or 1 | no-necesaria |  | tabla de EXNO (sonido de explosion): el sonido ya esta en sound.c |
 | SHPPT | Draw a distant ship as a point rather than a full wireframe | verificada | `ship_shppt` |  |
 | LL9 | Draw ship: Check if ship is exploding, check if ship is in front | verificada | `ship_ll9` |  |
@@ -195,20 +195,20 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 |---|---|---|---|---|
 | SCTBX1 | Lookup table for converting a pixel x-coordinate to the bit number | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | SCTBX2 | Lookup table for converting a pixel x-coordinate to the byte | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
-| TRADEMODE | Clear the screen and set up a trading screen | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
+| TRADEMODE | Clear the screen and set up a trading screen | no-verificable | `ui_clear`, `gfx_clear` | TT66 + FLKB de las pantallas de comercio, que en el port son propias (menu.c) |
 | DET1 | Show or hide the dashboard (for when we die) | no-necesaria |  | en el Apple II es un RTS |
-| TT66 | Clear the screen and set the current view type | propia | `gfx_fill_lines` | borrado rapido de la vista y de la pantalla |
-| TTX66 | Clear the top part of the screen, draw a border box if required | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
+| TT66 | Clear the screen and set the current view type | verificada | `tt66` | make test_screen |
+| TTX66 | Clear the top part of the screen, draw a border box if required | verificada | `tt66` | make test_screen (MT2, LSP = 0, QQ17, DTW2, XC/YC, FLFLLS, LAS2, DLY, de, ee3 y el nombre de la vista con TT27) |
 | cellocl | Lookup table for converting a text row number to the address of | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | SCTBL | Lookup table for converting a character row number to the address | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | SCTBH | Lookup table for converting a character row number to the address | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | SCTBH2 | Lookup table for converting a character row number to the address | no-necesaria |  | tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL |
 | WSCAN | Wait for 15 * 256 loop iterations | no-necesaria |  | retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick) |
-| clss | Clear the screen, move the text cursor to the top-left corner and | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
-| TTX66K | Clear the whole screen or just the space view (as appropriate), | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
-| cleargrap | Clear screen memory for the top part of the graphics screen mode | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
-| CLYNS | Clear two character rows near the bottom of the screen | propia | `txt_clear_rows` | borrado de filas de texto con el relleno rapido |
-| clearrow | Clear a character row of screen memory, drawing blue borders along | propia | `ui_clear`, `gfx_clear` | borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view) |
+| clss | Clear the screen, move the text cursor to the top-left corner and | verificada | `dt_clss_hook` | a traves de CHPR en make test_missions (pasar de la fila 23 borra y vuelve a (0, 0)) |
+| TTX66K | Clear the whole screen or just the space view (as appropriate), | verificada | `ttx66k` | make test_screen (vistas graficas: cleargrap y BOX; de texto: cleartext; el QL no tiene modo texto) |
+| cleargrap | Clear screen memory for the top part of the graphics screen mode | verificada | `tt66`, `clear_view` | make test_lines (puntos apagados: filas 0..135; los bordes azules del Apple quedan fuera de los 256 puntos) |
+| CLYNS | Clear two character rows near the bottom of the screen | verificada | `clyns` | make test_screen (DLY, de, XC/YC, DTW2, QQ17; 64 espacios en las vistas de texto o clearrow 15 y 16 en las graficas) |
+| clearrow | Clear a character row of screen memory, drawing blue borders along | verificada | `clyns` | make test_lines (filas 15 y 16 de CLYNS: y = 120..135) |
 | HGR | Switch to the high-resolution graphics screen mode | no-necesaria |  | cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8) |
 | TEXT | Switch to the text screen mode | no-necesaria |  | cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8) |
 
@@ -255,7 +255,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | ou3 | Display "FUEL SCOOPS DESTROYED" as an in-flight message | verificada | `ouch` |  |
 | PLUT | Flip the coordinate axes for the four different views | sin-verificar | `plut` | ejes de INWK para las vistas trasera, izquierda y derecha |
 | LOOK1 | Initialise the space view | propia | `change_view` | cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto |
-| SIGHT | Draw the laser crosshairs | sin-verificar | `chart_sight` | dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco) |
+| SIGHT | Draw the laser crosshairs | verificada | `chart_sight` | make test_draw (con sightcol) |
 
 ## Keyboard (15 portadas de 19, 4 no necesarias)
 
@@ -329,10 +329,10 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | logL | Binary logarithm table (low byte) | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
 | alogh | Binary antilogarithm table | verificada | `em_logL`, `em_alogh` | tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4 |
 | PIX1 | Calculate (YY+1 SYL+Y) = (A P) + (S R) and draw stardust particle | propia | `pixel2` | dibujo del polvo estelar (stars.c) |
-| MAS3 | Calculate A = x_hi^2 + y_hi^2 + z_hi^2 in the K% block | transcripcion | `sm_mas3` |  |
+| MAS3 | Calculate A = x_hi^2 + y_hi^2 + z_hi^2 in the K% block | verificada | `sm_mas3` | make test_geom (codigo original en el emulador) |
 | VCSU1 | Calculate vector K3(8 0) = [x y z] - coordinates of the sun or | transcripcion | `sm_vcsu1` |  |
-| VCSUB | Calculate vector K3(8 0) = [x y z] - coordinates in (A V) | transcripcion | `sm_vcsub` |  |
-| TAS1 | Calculate K3 = (x_sign x_hi x_lo) - V(1 0) | transcripcion | `sm_tas1` |  |
+| VCSUB | Calculate vector K3(8 0) = [x y z] - coordinates in (A V) | verificada | `sm_vcsub` | make test_geom (codigo original en el emulador) |
+| TAS1 | Calculate K3 = (x_sign x_hi x_lo) - V(1 0) | verificada | `sm_tas1` | make test_geom (codigo original en el emulador) |
 | MU5 | Set K(3 2 1 0) = (A A A A) and clear the C flag | propia | `emath.c` | entradas internas de MULTU, MU11 y compañia: en C van dentro de cada funcion |
 | MULT3 | Calculate K(3 2 1 0) = (A P+1 P) * Q | transcripcion | `em_mult3` |  |
 | MLS2 | Calculate (S R) = XX(1 0) and (A P) = A * ALP1 | propia | `mls1`, `mls2` | envoltorios de la multiplicacion con signo (stars.c) |
@@ -360,15 +360,15 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | DV41 | Calculate (P R) = 256 * DELTA / A | transcripcion | `em_dv41` |  |
 | DVID4 | Calculate (P R) = 256 * A / Q | transcripcion | `em_dvid4` |  |
 | DVID3B2 | Calculate K(3 2 1 0) = (A P+1 P) / (z_sign z_hi z_lo) | propia | `em_dvid3b` | la entrada con INWK se hace en ship_math.c y en planet() |
-| LCASH | Subtract an amount of cash from the cash pot | transcripcion | `sm_lcash` |  |
-| MCASH | Add an amount of cash to the cash pot | transcripcion | `sm_mcash` |  |
-| GCASH | Calculate (Y X) = P * Q * 4 | transcripcion | `sm_gcash` |  |
+| LCASH | Subtract an amount of cash from the cash pot | verificada | `sm_lcash` | make test_geom (codigo original en el emulador) |
+| MCASH | Add an amount of cash to the cash pot | verificada | `sm_mcash` | make test_geom (codigo original en el emulador) |
+| GCASH | Calculate (Y X) = P * Q * 4 | verificada | `sm_gcash` | make test_geom (codigo original en el emulador) |
 | GC2 | Calculate (Y X) = (A P) * 4 | propia | `tt22`, `tt23` | la multiplicacion por 4 va en linea en las cartas |
-| SPS2 | Calculate (Y X) = A / 10 | transcripcion | `sm_sps2` |  |
+| SPS2 | Calculate (Y X) = A / 10 | verificada | `sm_sps2` | make test_geom (codigo original en el emulador) |
 | DORND | Generate random numbers | verificada | `em_dornd` |  |
 | TIS2 | Calculate A = A / Q | transcripcion | `em_tis2` |  |
-| TIS3 | Calculate -(nosev_1 * roofv_1 + nosev_2 * roofv_2) / nosev_3 | transcripcion | `sm_tis3` |  |
-| DVIDT | Calculate (P+1 A) = (A P) / Q | transcripcion | `em_dvidt` |  |
+| TIS3 | Calculate -(nosev_1 * roofv_1 + nosev_2 * roofv_2) / nosev_3 | verificada | `sm_tis3` | make test_geom (codigo original en el emulador) |
+| DVIDT | Calculate (P+1 A) = (A P) / Q | verificada | `em_dvidt` | a traves de TIS3 en make test_geom; el bit que sale de P+1 al principio se pierde (estaba mal hasta la 16.a ronda) |
 | LL5 | Calculate Q = SQRT(R Q) | verificada | `em_ll5` | transcripcion literal con el acarreo de salida (lo usa SUN); a traves de SUN en make test_planet |
 | LL28 | Calculate R = 256 * A / Q | verificada | `em_ll28` |  |
 | LL38 | Calculate (S A) = (S R) + (A Q) | transcripcion | `em_ll38` |  |
@@ -382,24 +382,24 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| MAS1 | Add an orientation vector coordinate to an INWK coordinate | transcripcion | `sm_mas1` |  |
-| MAS2 | Calculate a cap on the maximum distance to the planet or sun | transcripcion | `sm_mas2` |  |
-| TAS4 | Calculate the dot product of XX15 and one of the space station's | transcripcion | `sm_tas4` |  |
-| TAS6 | Negate the vector in XX15 so it points in the opposite direction | transcripcion | `sm_tas6` |  |
-| TAS3 | Calculate the dot product of XX15 and an orientation vector | transcripcion | `sm_tas3` |  |
-| SCALEY | Scale the y-coordinate in A to 0.375 * A | transcripcion | `sm_scaley` |  |
-| SCALEY2 | Scale the y-coordinate in A to 0.75 * A | transcripcion | `sm_scaley2` |  |
-| SCALEX | Scale the x-coordinate in A to 32 + 0.75 * A | transcripcion | `sm_scalex` |  |
-| SPS4 | Calculate the vector to the space station | transcripcion | `sm_sps4` |  |
-| SPS3 | Copy a space coordinate from the K% block into K3 | transcripcion | `sm_sps3` |  |
-| PROJ | Project the current ship or planet onto the screen | verificada | `sm_proj` |  |
-| FAROF | Compare x_hi, y_hi and z_hi with 224 | sin-verificar | `farof` |  |
-| FAROF2 | Compare x_hi, y_hi and z_hi with A | transcripcion | `ships_part14`, `farof` | FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves |
-| MAS4 | Calculate a cap on the maximum distance to a ship | transcripcion | `sm_mas4` |  |
-| SPS1 | Calculate the vector to the planet and store it in XX15 | transcripcion | `sm_sps1` |  |
-| TAS2 | Normalise the three-coordinate vector in K3 | transcripcion | `sm_tas2` |  |
-| NORM | Normalise the three-coordinate vector in XX15 | transcripcion | `sm_norm` |  |
-| TIDY | Orthonormalise the orientation vectors for a ship | transcripcion | `sm_tidy` |  |
+| MAS1 | Add an orientation vector coordinate to an INWK coordinate | verificada | `sm_mas1` | make test_geom (codigo original en el emulador) |
+| MAS2 | Calculate a cap on the maximum distance to the planet or sun | verificada | `sm_mas2` | make test_geom (codigo original en el emulador) |
+| TAS4 | Calculate the dot product of XX15 and one of the space station's | verificada | `sm_tas4` | make test_geom (codigo original en el emulador) |
+| TAS6 | Negate the vector in XX15 so it points in the opposite direction | verificada | `sm_tas6` | make test_geom (codigo original en el emulador) |
+| TAS3 | Calculate the dot product of XX15 and an orientation vector | verificada | `sm_tas3` | make test_geom (codigo original en el emulador) |
+| SCALEY | Scale the y-coordinate in A to 0.375 * A | verificada | `sm_scaley` | make test_geom (codigo original en el emulador) |
+| SCALEY2 | Scale the y-coordinate in A to 0.75 * A | verificada | `sm_scaley2` | make test_geom (codigo original en el emulador) |
+| SCALEX | Scale the x-coordinate in A to 32 + 0.75 * A | verificada | `sm_scalex` | make test_geom (codigo original en el emulador) |
+| SPS4 | Calculate the vector to the space station | verificada | `sm_sps4` | make test_geom (codigo original en el emulador) |
+| SPS3 | Copy a space coordinate from the K% block into K3 | verificada | `sm_sps3` | make test_geom (codigo original en el emulador) |
+| PROJ | Project the current ship or planet onto the screen | verificada | `sm_proj` | make test_geom (codigo original en el emulador) |
+| FAROF | Compare x_hi, y_hi and z_hi with 224 | verificada | `farof`, `sm_farof2` | make test_geom |
+| FAROF2 | Compare x_hi, y_hi and z_hi with A | verificada | `sm_farof2`, `ships_part14`, `farof` | make test_geom; FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves |
+| MAS4 | Calculate a cap on the maximum distance to a ship | verificada | `sm_mas4` | make test_geom (codigo original en el emulador) |
+| SPS1 | Calculate the vector to the planet and store it in XX15 | verificada | `sm_sps1` | make test_geom (codigo original en el emulador) |
+| TAS2 | Normalise the three-coordinate vector in K3 | verificada | `sm_tas2` | make test_geom (codigo original en el emulador) |
+| NORM | Normalise the three-coordinate vector in XX15 | verificada | `sm_norm` | make test_geom (codigo original en el emulador) |
+| TIDY | Orthonormalise the orientation vectors for a ship | verificada | `sm_tidy` | make test_geom (codigo original en el emulador) |
 | LL51 | Calculate the dot product of XX15 and XX16 | verificada | `ship_ll51` |  |
 
 ## Missions (10 portadas de 16, 6 no necesarias)
@@ -427,7 +427,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| MVT3 | Calculate K(3 2 1) = (x_sign x_hi x_lo) + K(3 2 1) | transcripcion | `sm_mvt3` |  |
+| MVT3 | Calculate K(3 2 1) = (x_sign x_hi x_lo) + K(3 2 1) | verificada | `sm_mvt3` | make test_geom (codigo original en el emulador) |
 | MVS5 | Apply a 3.6 degree pitch or roll to an orientation vector | sin-verificar | `mvs5` |  |
 | SFS2 | Move a ship in space along one of the coordinate axes | verificada | `sfs2` | dentro de SFS1 (make test_laser, nave madre = estacion) |
 | MVEIT | Move current ship: Tidy the orientation vectors | sin-verificar | `mveit` | partes 1 a 9; TACTICS es un gancho (move_tactics_hook) hasta el paso 3; los acarreos de MLTU2 salen del bit bajo del producto |
@@ -509,28 +509,28 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | BELL | Make a standard system beep | propia | `snd_bell` |  |
 | EXNO | Make the sound of a laser strike on another ship | propia | `snd_exno` |  |
 | BOOP | Make a long, low beep | propia | `snd_boop` |  |
-| SOHISS | Make the sound of a launch from the station, hyperspace or missile | propia | `snd_sohiss` |  |
+| SOHISS | Make the sound of a launch from the station, hyperspace or missile | propia | `snd_sohiss` | el sonido es propio; los Y DORND del retardo aleatorio si se hacen (snd_dornd_hook), porque cambian la secuencia al azar |
 | EXNO3 | Make the sound of a collision, or an exploding cargo canister or | propia | `snd_exno3` |  |
-| SOEXPL | Make an explosion sound | propia | `snd_soexpl` |  |
+| SOEXPL | Make an explosion sound | propia | `snd_soexpl` | el sonido es propio; los Y DORND del retardo aleatorio (Y = 0: 256) si se hacen (snd_dornd_hook) |
 | BEEP | Make a short, high beep | propia | `snd_beep` |  |
 | SOBEEP | Make a beep | propia | `snd_sobeep` |  |
 | SOBLIP | Make the sound of the hyperspace drive being engaged, or the sound | propia | `snd_soblip` |  |
 | LASNOISE | Make the sound of our laser firing or the sound of us being hit by | propia | `snd_lasnoise` |  |
 | LASNOISE2 | An unused routine that makes a different laser sound | no-necesaria |  | sin uso en el original |
-| SOBOMB | Make the sound of an energy bomb going off | propia | `snd_sobomb` |  |
+| SOBOMB | Make the sound of an energy bomb going off | verificada | `snd_sobomb` | make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio |
 | CLICK | Toggle the state of the speaker (i.e. move it in or out) to make a | no-necesaria |  | conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c) |
 
 ## Stardust (7 portadas de 7)
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| FLIP | Reflect the stardust particles in the screen diagonal and redraw | sin-verificar | `stars_flip` |  |
-| STARS | The main routine for processing the stardust | sin-verificar | `stars_update` | vistas 0 (STARS1), 1 (STARS6), 2 y 3 (STARS2) |
-| STARS1 | Process the stardust for the front view | sin-verificar | `stars1` | los acarreos del 6502 se siguen con una variable c (LSR/ROR/SBC/ADC) |
-| STARS6 | Process the stardust for the rear view | sin-verificar | `stars6` |  |
-| STARS2 | Process the stardust for the left or right view | sin-verificar | `stars2` | con ST2 al entrar y al salir |
-| NWSTARS | Initialise the stardust field | sin-verificar | `stars_new` | el original no crea el polvo si QQ11 != 0; aqui solo se llama en la vista espacial |
-| nWq | Create a random cloud of stardust | sin-verificar | `stars_new` |  |
+| FLIP | Reflect the stardust particles in the screen diagonal and redraw | verificada | `stars_flip` | make test_stars |
+| STARS | The main routine for processing the stardust | verificada | `stars_update` | make test_stars (las 4 vistas) |
+| STARS1 | Process the stardust for the front view | verificada | `stars1` | make test_stars (con los acarreos de KILL1: C = 1 tras CMP |
+| STARS6 | Process the stardust for the rear view | verificada | `stars6` | make test_stars |
+| STARS2 | Process the stardust for the left or right view | verificada | `stars2` | make test_stars (con ST2; KILL2 con C = 0 o 1 segun BCC/BEQ) |
+| NWSTARS | Initialise the stardust field | verificada | `stars_new` | a traves de nWq (make test_stars); el original no crea el polvo si QQ11 != 0 (va a WPSHPS): aqui solo se llama en la vista espacial |
+| nWq | Create a random cloud of stardust | verificada | `stars_new` | make test_stars (el primer DORND con el acarreo de entrada; cae en WPSHPS, que el port hace aparte) |
 
 ## Start and end (8 portadas de 8)
 
@@ -626,7 +626,7 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | pr5 | Print a 16-bit number, left-padded to 5 digits, and optional point | verificada | `dt_pr5` | impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num |
 | prq | Print a text token followed by a question mark | verificada | `dt_prq` | detok.c, make test_missions |
 | TT162 | Print a space | verificada | `dt_tt162` | detok.c, make test_missions |
-| dn2 | Make a low, long beep and delay for 0.5 seconds | propia | `snd_boop` | pitido largo y espera |
+| dn2 | Make a low, long beep and delay for 0.5 seconds | no-verificable | `snd_boop` | pitido largo y espera (teclado/altavoz del Apple II) |
 | plf | Print a text token followed by a newline | verificada | `dt_plf` | detok.c, make test_missions |
 | TT68 | Print a text token followed by a colon | verificada | `dt_tt68` | detok.c, make test_missions |
 | TT73 | Print a colon | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
@@ -640,8 +640,8 @@ Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equiva
 | TT74 | Print a character | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
 | TT43 | Print a two-letter token or recursive token 0-95 | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
 | ex | Print a recursive token | verificada | `dt_tt27` | fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions |
-| MT26 | Fetch a line of text from the keyboard | propia | `edit_text` | lectura de una linea del teclado |
-| RLINE | The OSWORD configuration block used to fetch a line of text from | propia | `edit_text` | lectura de una linea del teclado |
+| MT26 | Fetch a line of text from the keyboard | no-verificable | `edit_text` | lectura de una linea del teclado (teclado/altavoz del Apple II) |
+| RLINE | The OSWORD configuration block used to fetch a line of text from | no-verificable | `edit_text` | lectura de una linea del teclado (teclado/altavoz del Apple II) |
 | CHPR2 | Character print vector handler | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | R5 | Make a beep and jump back into the character-printing routine at | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | RR5 | Print a character in the text screen mode | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |

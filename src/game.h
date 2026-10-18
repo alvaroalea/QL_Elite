@@ -24,7 +24,8 @@ void cash_earn(unsigned long v);         /* suma con saturacion a 0xFFFFFFFF */
 void game_new(void);                     /* state_clear + comandante por defecto + galaxia 1, sistema de partida (Lave) */
 void game_after_load(void);              /* tras cargar un fichero: reconstruye galaxia, sistema actual, mercado (con avl guardado) */
 void game_enter_system(int idx, int fresh);   /* pone qq0..qq8 del sistema; fresh = visita nueva: qq26 aleatorio, mercado nuevo */
-void game_set_target(int idx);           /* qq9/qq10/qq8 del objetivo */
+void game_set_target(int idx);
+void game_target_only(int idx);          /* objetivo y qq8 sin mover la mira (qq9/qq10): la mira de las cartas va libre (TT16) */           /* qq9/qq10/qq8 del objetivo */
 
 /* ---- comercio (indice de mercancia 0..16) ---- */
 #define TR_OK       0

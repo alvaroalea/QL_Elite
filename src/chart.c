@@ -1,4 +1,5 @@
 #include "chart.h"
+#include "lines.h"
 #include "sun.h"
 #include "state.h"
 #include "emath.h"
@@ -13,10 +14,13 @@
 
 static u8 q19[6];                                 /* QQ19..QQ19+5 */
 
-static void hloin(u8 x1, u8 x2, u8 y) { gfx_hloin(x1, x2, y, sun_col); }   /* HLOIN del original (gfx.c) */
-static void vloin(u8 x, u8 y1, u8 y2) { gfx_line(x, y1, x, y2, sun_col, 1); }
-/* DVLOIN: vertical del marco de la galactica, de GCYT a GCYB; dos puntos de ancho como la granularidad de HLOIN */
-static void dvloin(u8 x) { vloin(x, GCYT, GCYB); vloin((u8)(x + 1), GCYT, GCYB); }
+void (*chart_line_hook)(u8 kind, u8 a, u8 b, u8 c) = 0;
+void (*chart_event_hook)(char kind, u8 a, u8 b, u8 c) = 0;   /* pruebas: PIXEL (p), TT128 (c), SUN (s), cpl (n) */
+#define EV(k, a, b, c) do { if (chart_event_hook) chart_event_hook(k, (u8)(a), (u8)(b), (u8)(c)); } while (0)
+static void hloin(u8 x1, u8 x2, u8 y) { if (chart_line_hook) chart_line_hook(0, x1, x2, y); gfx_hloin(x1, x2, y, sun_col); }   /* HLOIN del original (gfx.c) */
+static void vloin(u8 x, u8 y1, u8 y2) { if (chart_line_hook) chart_line_hook(1, x, y1, y2); gfx_vloin(x, y1, y2, sun_col); }   /* VLOIN (CPIX: 2 de ancho) */
+/* DVLOIN: VLOIN de (A, GCYT) a (A, GCYB) con el color de COL (vertical del marco de la galactica) */
+static void dvloin(u8 x) { vloin(x, GCYT, GCYB); }
 
 /* TT15: cruz de tamano QQ19+2 centrada en (QQ19, QQ19+1); local = QQ11 negativo */
 static void tt15(int local)
@@ -43,6 +47,8 @@ static void tt15(int local)
     y2 = a;
     vloin(q19[0], y1, y2);
 }
+
+void chart_tt15(int local, u8 x, u8 y, u8 size) { q19[0] = x; q19[1] = y; q19[2] = size; tt15(local); }
 
 /* SIGHT: mira del laser de la vista: dos cruces concentricas (tamanos 20 y 10) centradas en (128, Y-24) con el color segun el laser
    (pulsos azul, haz rojo, militar blanco, otros blanco). Si no hay laser en esa vista no dibuja nada. Es TT15 de la vista espacial
@@ -81,6 +87,7 @@ static void tt14(int local)
     zk3[0] = q19[0]; zk4[0] = q19[1];              /* TT128 */
     zk4[1] = 0; zk3[1] = 0;
     circ_lsp = 1; circ_stp = 2;
+    EV('c', zk3[0], zk4[0], zK[0]);
     circle2_draw();
 }
 
@@ -132,11 +139,12 @@ static void put_name(int col, int row, const char *s)
 /* TT23: carta local */
 static void tt23(void)
 {
-    u8 rows[26];
+    u8 rows[256];                                  /* INWK+Y; con Y = 255 el original lee la pagina cero en INWK-1 = SC+1 (nunca 0) */
     int i;
     u8 a, d, c, xx12, k4, y, row, col;
     unsigned s, dist;
-    for (i = 0; i < 26; i++) rows[i] = 0;
+    for (i = 0; i < 256; i++) rows[i] = 0;
+    rows[255] = 0x20;
     for (i = 0; i < UNI_NSYS; i++) {
         const uni_system *p = &uni_galaxy[i];
         a = (u8)(p->x - qq0);
@@ -168,6 +176,7 @@ ee4:
         dist = uni_distance(&uni_galaxy[cur_sys], p);   /* readdistnce -> QQ8 */
         if (dist >= 70) continue;                  /* QQ8+1 != 0 o QQ8 >= 70 */
         rows[y] = 255;
+        EV('n', col, y, i);
         put_name(col, y, p->name);
         c = cpl_carry(p);
 ee1:
@@ -175,6 +184,7 @@ ee1:
         zk3[0] = xx12; zk4[0] = k4;
         zK[0] = (u8)((p->goatsoupseed.d & 1) + 2 + c);       /* LDA QQ15+5; AND #1; ADC #2 */
         (void)row;
+        EV('s', zk3[0], zk4[0], zK[0]);
         sun_flflls(); sun_draw(); sun_flflls();
     }
 }
@@ -197,9 +207,29 @@ static void tt22(void)
     for (i = 0; i < UNI_NSYS; i++) {
         x = sm_scalex(uni_galaxy[i].x);
         y = (u8)(sm_scaley(uni_galaxy[i].y) + GCYT);
-        gfx_pixel(x, y, C_WHITE);                  /* PIXEL con ZZ = 255 */
+        EV('p', x, y, 255);
+        gfx_dust(x, y, 255);                       /* PIXEL con ZZ = 255: dos puntos */
     }
     chart_cursor(0);
+}
+
+/* TT123: QQ19+4 = coordenada + delta (con signo), sin moverla si da la vuelta por arriba o por abajo */
+static u8 tt123(u8 a, u8 d)
+{
+    unsigned s = (unsigned)a + d;
+    if (!(d & 0x80)) return (u8)(s > 255 ? a : s);            /* BCC TT125; RTS (C = 1: se pasaria de 255) */
+    return (u8)(s > 255 ? s : a);                             /* TT124: delta negativo, C = 0 -> bajaria de 0 */
+}
+
+/* TT16: mueve la mira de las cartas (X = delta x, Y = delta y hacia arriba): borra la cruz (TT103), mueve QQ10 con -Y y QQ9 con
+   X (TT123) y la vuelve a dibujar (cae en TT103) */
+void chart_tt16(int local, u8 x, u8 y)
+{
+    u8 dy = (u8)((u8)(y - 1) ^ 0xFF);              /* DEY; TYA; EOR #$FF */
+    chart_cursor(local);
+    qq10 = tt123(qq10, dy);
+    qq9 = tt123(qq9, x);
+    chart_cursor(local);
 }
 
 /* ping: el cursor vuelve al sistema actual (QQ9, QQ10 = QQ0, QQ1) */
@@ -241,6 +271,7 @@ int chart_find_system(const char *name)
 void chart_draw(int local)
 {
     if (!local) { tt22(); return; }
+    nlin4();                                       /* NLIN3: titulo (lo pone menu.c) y la linea de NLIN4 en y = 19 */
     sun_flflls();
     tt14(1);                                       /* TT14 -> TT126 */
     chart_cursor(1);                               /* TT103 -> TT105 */

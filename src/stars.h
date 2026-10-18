@@ -13,6 +13,7 @@ extern u8 sx[NOST + 1], sy[NOST + 1], sz[NOST + 1];       /* indices 1..NOSTM */
 extern u8 sxl[NOST + 1], syl[NOST + 1], szl[NOST + 1];
 extern u8 delt4[2];                      /* DELT4 (16 bits, byte bajo primero) = velocidad * 64 */
 
+extern void (*stars_pixel_hook)(u8 x, u8 y, u8 zz);
 void stars_set_speed(u8 delta);          /* DELT4 = DELTA * 64 (bucle principal, MA68) */
 void stars_update(u8 view);              /* STARS: mueve, borra y dibuja el polvo segun la vista (0 delante, 1 atras, 2 izq., 3 der.) */
 void stars_new(void);                    /* nWq: nube aleatoria nueva dibujada en la pantalla */

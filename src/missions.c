@@ -1,4 +1,5 @@
 #include "missions.h"
+#include "lines.h"
 #include "detok.h"
 #include "state.h"
 #include "emath.h"
@@ -61,23 +62,98 @@ static void name(u8 which)
     }
 }
 
-/* TT66: borra la pantalla y pone la vista A (13 = el Constrictor girando; 1 = texto de la mision) */
-void mis_tt66(u8 view)
+/* ---------------------------------------------------------------- Drawing the screen: TT66, TTX66, TTX66K, BOX, CLYNS */
+
+u8 scr_text = 0;                                 /* text: bit 7 = vista de texto (modo texto del Apple II) */
+u8 scr_viewdir = 0;                              /* VIEW: vista del espacio (0 delante, 1 atras, 2 izq., 3 der.) para TTX66 */
+void (*scr_clear_hook)(int graphics) = 0;        /* borrar la pantalla (cleargrap o cleartext); 0 = el borrado por defecto */
+void (*scr_tt27)(u8 a) = dt_tt27;                /* pruebas: las fichas que imprime TTX66 */
+void (*scr_clearrow_hook)(u8 row) = 0;           /* pruebas: cada clearrow de CLYNS */
+void (*scr_chpr)(u8 a) = dt_chpr;                /* pruebas: los espacios de CLYNS */
+void (*scr_trace)(char k, u8 a) = 0;             /* pruebas: MT2 (m), FLFLLS (f) y ee3 (e) de TTX66 */
+
+/* BOX: linea azul de 0 a 255 en la fila 0 (HLOIN: cubre 0..253) y las esquinas (bytes 1 y 37 de la fila, %10101010: el
+   punto 254 tambien queda encendido) */
+void scr_box(void)
+{
+    lines_hloin(0, 255, 0, C_BLUE);
+    gfx_pixel(254, 0, C_BLUE);
+}
+
+/* TTX66K: las vistas graficas (espacio, QQ11 = 13 y las cartas) borran la parte de arriba (cleargrap, 17 filas de texto) y
+   dibujan BOX; las de texto borran la pantalla de texto (el QL no tiene modo texto: se borra la pantalla entera) */
+static void ttx66k(void)
+{
+    int graphics = (qq11 == 0 || qq11 == 13 || (qq11 & 0xC0));
+    if (scr_clear_hook) scr_clear_hook(graphics);
+    else if (!graphics) gfx_clear(C_BLACK);
+    else {
+        if (qq11 == 13) gfx_clear(C_BLACK);      /* el titulo y la mision 1 del port ocupan toda la pantalla */
+        else gfx_fill_lines(0, 136, C_BLACK);
+        scr_box();
+    }
+    if (graphics) { dt_xc = 0; dt_yc = 0; scr_text = 0; }       /* cleargrap: XC = YC = 0; HGR */
+    else scr_text = 0x80;                                       /* TEXT */
+}
+
+/* TT66 / TTX66: vista A; borra, reinicia el texto (MT2, Sentence Case, XC = YC = 1), FLFLLS en las graficas, LAS2, DLY y de a 0,
+   el contador del hiperespacio en (1, 1) si esta contando, y en la vista del espacio el nombre ("FRONT VIEW") en la columna 11 */
+void tt66(u8 view)
 {
     qq11 = view;
     dt_mt2();
+    if (scr_trace) scr_trace('m', 0);
+    circ_lsp = 0;                                /* LSP = 0 */
     qq17 = 0x80;
     dtw2 = 0x80;
     dt_xc = 1; dt_yc = 1;
-    gfx_clear(C_BLACK);                          /* TTX66K: texto (cleartext) o grafico (cleargrap; BOX no se dibuja) */
-    if (view == 13) { sun_forget(); ships_forget_lines(); }       /* FLFLLS */
+    ttx66k();
+    if (!(scr_text & 0x80)) {                    /* FLFLLS (y el port olvida lo dibujado) */
+        if (scr_trace) scr_trace('f', 0);
+        sun_flflls(); ships_forget_lines(); sun_forget();
+        circ_lsp = 0;                            /* sun_forget pone LSP = 1; TTX66 lo deja a 0 */
+    }
     laser_forget();                              /* LAS2 = 0 */
     dly = 0;
     mess_de = 0;
-    dt_yc = 1;
+    if (qq22[1]) {                               /* ee3: el contador con 3 cifras en (1, 1) */
+        if (scr_trace) scr_trace('e', qq22[1]);
+        else { dt_xc = 1; dt_yc = 1; dt_tt11(3, qq22[1], 0, 0); }
+    }
+    dt_yc = 1;                                   /* OLDBOX */
+    if (qq11 == 0) {
+        dt_xc = 11;
+        scr_tt27((u8)(scr_viewdir | 0x60));      /* FRONT, REAR, LEFT o RIGHT */
+        scr_tt27(' ');                           /* TT162 */
+        scr_tt27(175);                           /* VIEW */
+    }
+    dt_xc = 1; dt_yc = 1;                        /* tt66 */
+    qq17 = 0;
 }
 
-static void nlin4(void) { gfx_hline(0, 255, 19, C_BLUE); }   /* NLIN4 (NLIN2 en la linea 19) */
+void mis_tt66(u8 view) { tt66(view); }
+
+/* CLYNS: DLY = de = 0; en las vistas de texto, 64 espacios desde (1, 21); en las graficas se borran las filas de texto 15 y 16
+   (y = 120..135) y el cursor queda en (1, 15). DTW2 = $FF y QQ17 = $80 */
+void clyns(void)
+{
+    u8 x;
+    dly = 0;
+    mess_de = 0;
+    dt_yc = 21; dt_xc = 1;                       /* CLYS1 */
+    dtw2 = 0xFF;
+    qq17 = 0x80;
+    if (scr_text & 0x80) {
+        for (x = 64; x != 0; x--) scr_chpr(' ');
+        dt_yc = 21; dt_xc = 1;
+        return;
+    }
+    dt_yc = 15; dt_xc = 1;                       /* CLY1 */
+    if (scr_clearrow_hook) { scr_clearrow_hook(15); scr_clearrow_hook(16); }
+    else gfx_fill_lines(120, 16, C_BLACK);
+}
+
+static void nlin4_h(void) { nlin4(); }                         /* NLIN4 (lines.c) */
 
 void missions_hooks(void)
 {
@@ -88,7 +164,8 @@ void missions_hooks(void)
     dt_pause2_hook = pause2;
     dt_delay_hook = delay;
     dt_name_hook = name;
-    dt_nlin4_hook = nlin4;
+    dt_nlin4_hook = nlin4_h;
+    dt_clyns_hook = clyns;
 }
 
 /* ---------------------------------------------------------------- rutinas de las misiones */

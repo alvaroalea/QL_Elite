@@ -10,6 +10,7 @@
 #include "sound.h"
 #include "damage.h"
 #include "tactics.h"
+#include "lines.h"
 #include "move.h"
 
 u8 las, las2, lasct, lasx, lasy, dly;
@@ -64,8 +65,8 @@ u8 shd(u8 x)
 /* las: dos lineas desde (LASX, LASY) a (a, 2Y-1) y a (y, 2Y-1) con LL30 (= LOIN, XOR) */
 static void las_pair(u8 a, u8 y)
 {
-    gfx_line(lasx, lasy, a, 2 * VIEW_Y - 1, LASER_COL, 1);
-    gfx_line(lasx, lasy, y, 2 * VIEW_Y - 1, LASER_COL, 1);
+    loin_draw(lasx, lasy, a, 2 * VIEW_Y - 1, LASER_COL);
+    loin_draw(lasx, lasy, y, 2 * VIEW_Y - 1, LASER_COL);
 }
 
 void lasli2(void)

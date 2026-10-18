@@ -27,41 +27,41 @@ LL38 em_ll38 transcripcion
 DVID4 em_dvid4 transcripcion
 DV41 em_dv41 transcripcion
 DV42 em_dv42 transcripcion
-DVIDT em_dvidt transcripcion
+DVIDT em_dvidt verificada a traves de TIS3 en make test_geom; el bit que sale de P+1 al principio se pierde (estaba mal hasta la 16.a ronda)
 DVID3B em_dvid3b verificada
 LL9 ship_ll9 verificada
 LL51 ship_ll51 verificada
 SHPPT ship_shppt verificada
 CLIP ship_clip verificada
 CLIP2 ship_clip2 verificada
-PROJ sm_proj verificada
+PROJ sm_proj verificada make test_geom (codigo original en el emulador)
 # --- ship_math.c (transcripcion literal propia)
-PLS6 sm_pls6 verificada
-MVT3 sm_mvt3 transcripcion
-MAS1 sm_mas1 transcripcion
-MAS2 sm_mas2 transcripcion
-MAS3 sm_mas3 transcripcion
-MAS4 sm_mas4 transcripcion
-TAS1 sm_tas1 transcripcion
-VCSUB sm_vcsub transcripcion
+PLS6 sm_pls6 verificada make test_geom (codigo original en el emulador)
+MVT3 sm_mvt3 verificada make test_geom (codigo original en el emulador)
+MAS1 sm_mas1 verificada make test_geom (codigo original en el emulador)
+MAS2 sm_mas2 verificada make test_geom (codigo original en el emulador)
+MAS3 sm_mas3 verificada make test_geom (codigo original en el emulador)
+MAS4 sm_mas4 verificada make test_geom (codigo original en el emulador)
+TAS1 sm_tas1 verificada make test_geom (codigo original en el emulador)
+VCSUB sm_vcsub verificada make test_geom (codigo original en el emulador)
 VCSU1 sm_vcsu1 transcripcion
-TAS2 sm_tas2 transcripcion
-TAS3 sm_tas3 transcripcion
-TAS4 sm_tas4 transcripcion
-TAS6 sm_tas6 transcripcion
-NORM sm_norm transcripcion
-TIS3 sm_tis3 transcripcion
-TIDY sm_tidy transcripcion
-SPS1 sm_sps1 transcripcion
-SPS2 sm_sps2 transcripcion
-SPS3 sm_sps3 transcripcion
-SPS4 sm_sps4 transcripcion
-LCASH sm_lcash transcripcion
-MCASH sm_mcash transcripcion
-GCASH sm_gcash transcripcion
-SCALEX sm_scalex transcripcion
-SCALEY sm_scaley transcripcion
-SCALEY2 sm_scaley2 transcripcion
+TAS2 sm_tas2 verificada make test_geom (codigo original en el emulador)
+TAS3 sm_tas3 verificada make test_geom (codigo original en el emulador)
+TAS4 sm_tas4 verificada make test_geom (codigo original en el emulador)
+TAS6 sm_tas6 verificada make test_geom (codigo original en el emulador)
+NORM sm_norm verificada make test_geom (codigo original en el emulador)
+TIS3 sm_tis3 verificada make test_geom (codigo original en el emulador)
+TIDY sm_tidy verificada make test_geom (codigo original en el emulador)
+SPS1 sm_sps1 verificada make test_geom (codigo original en el emulador)
+SPS2 sm_sps2 verificada make test_geom (codigo original en el emulador)
+SPS3 sm_sps3 verificada make test_geom (codigo original en el emulador)
+SPS4 sm_sps4 verificada make test_geom (codigo original en el emulador)
+LCASH sm_lcash verificada make test_geom (codigo original en el emulador)
+MCASH sm_mcash verificada make test_geom (codigo original en el emulador)
+GCASH sm_gcash verificada make test_geom (codigo original en el emulador)
+SCALEX sm_scalex verificada make test_geom (codigo original en el emulador)
+SCALEY sm_scaley verificada make test_geom (codigo original en el emulador)
+SCALEY2 sm_scaley2 verificada make test_geom (codigo original en el emulador)
 # --- port sin verificar (estrategia 2026-10-16): ver PENDIENTES.md
 CHECK cmdr_check transcripcion
 CHECK2 cmdr_check2 transcripcion
@@ -90,18 +90,18 @@ CIRCLE circle_draw verificada make test_planet (secuencias de PLANET contra el 6
 CIRCLE2 circle2_draw verificada make test_planet (secuencias de PLANET contra el 6502)
 BLINE bline verificada make test_planet (secuencias de PLANET contra el 6502)
 WPLS2 circle_wpls2 verificada make test_planet; depende de que LOIN deje SWAP como el original (loin() de sun.c)
-TT14 tt14 sin-verificar
-TT15 tt15 sin-verificar
-TT22 chart_draw sin-verificar
-TT23 chart_draw sin-verificar
-TT103 chart_cursor sin-verificar
-TT105 chart_cursor sin-verificar
+TT14 tt14 verificada make test_charts (TT126 en la local; cruz, K de SCALEY/SCALEY2 y TT128)
+TT15 tt15,chart_tt15 verificada make test_draw (HLOIN y VLOIN con sus argumentos y COL)
+TT22 chart_draw,tt22 verificada make test_charts (lineas, marco, cada PIXEL con ZZ = 255 = dos puntos, TT14 y TT103); el titulo es el de menu.c
+TT23 chart_draw,tt23 verificada make test_charts (filas libres de INWK, nombres con XC/YC, SUN con el acarreo de cpl, readdistnce); con Y = 255 lee INWK-1 = SC+1 (nunca 0)
+TT103 chart_cursor verificada make test_charts
+TT105 chart_cursor verificada make test_charts
 # --- cartas: HME2, hm, ping, TT114 y movimiento (2026-10-16)
-HME2 chart_find_system sin-verificar busqueda por nombre completo sin mayusculas; solo atracado (tecla F); la entrada de texto es edit_text en menu.c
-TT114 chart_draw sin-verificar dispatcher galactica/local; el redibujado tras un salto hecho desde una carta no hace falta aun: el salto solo se inicia desde la vista de vuelo
-hm chart_hm sin-verificar tecla D: sistema mas cercano a la cruz, nombre y distancia
-TT16 scr_chart propia movimiento de la mira propio: libre, y el objetivo es el sistema mas cercano (TT111); el original mueve QQ9/QQ10 directamente
-TT123 scr_chart propia suma con saturacion (clampi) en lugar de la rutina
+HME2 chart_find_system verificada make test_charts (busqueda con el motor de texto real: nombre completo, sin mayusculas, misma longitud); la entrada de texto (MT26) es edit_text. El original con QQ17 = $80 no encuentra el sistema 0 y con 0 o $40 ninguno (con $C0, el estado normal, todos)
+TT114 chart_draw verificada make test_charts (galactica o local segun QQ11)
+hm chart_hm verificada make test_charts
+TT16 chart_tt16 verificada make test_charts (borra la cruz, TT123 en y con -Y y en x, y cae en TT103); scr_chart la usa con pasos de 1 (local) o 2 (galactica) por fotograma; el objetivo que se muestra abajo es el de TT111 (propio)
+TT123 tt123 verificada make test_charts (no se mueve si daria la vuelta)
 # --- market y equipment
 tnpr1 combat_collide,trade_fits verificada recogida de cargas (make test_damage)
 gnum trade_screen propia la cantidad se teclea en el propio listado (cursores, cifras, M = maximo)
@@ -140,33 +140,33 @@ BUMP2 space_bump2 sin-verificar
 REDU2 space_redu2 sin-verificar
 MV40 mv40 sin-verificar gira la posicion y sigue por MV45 (orientacion, contadores y radar); K2 byte 0 queda a 0 (en el original es lo que hubiera en K2)
 MVT1 mvt1 sin-verificar
-PIXEL gfx_dust sin-verificar ancho segun ZZ y dos lineas si ZZ < 80; sin la geometria de bytes del Apple II
-HLOIN gfx_hloin,hloin propia pares de puntos de X1 a X2-1; hloin() de sun.c redondea X1/X2 a pares y deja X2 como el original (verificado con make test_planet)
+PIXEL gfx_dust verificada make test_lines punto a punto (2 o 3 puntos segun ZZ y dos filas si ZZ < 80; el QL no muestra x >= 256)
+HLOIN gfx_hloin,hloin,lines_hloin verificada make test_lines punto a punto en blanco (pares de puntos de X1 a X2-1); los colores del Apple II son patrones de bits (MASKT): en el QL, color liso; hloin() de sun.c deja X1/X2 como el original (make test_planet)
 ABORT abort_missile verificada dentro de las teclas de misil (make test_tactics)
 ABORT2 abort2 verificada MSAR = 0 (MSBAR vuelve con Y = 0); make test_tactics
 ECMOF ecm_off verificada dentro de MA16..MA66 (make test_tactics)
 ECBLB2 ecm_on verificada a traves de TACTICS (make test_tactics)
 # --- polvo estelar, radar, mira, tunel, misiles y bombillas (2026-10-17), sin verificar
-STARS stars_update sin-verificar vistas 0 (STARS1), 1 (STARS6), 2 y 3 (STARS2)
-STARS1 stars1 sin-verificar los acarreos del 6502 se siguen con una variable c (LSR/ROR/SBC/ADC)
-STARS6 stars6 sin-verificar
-STARS2 stars2 sin-verificar con ST2 al entrar y al salir
-FLIP stars_flip sin-verificar
-NWSTARS stars_new sin-verificar el original no crea el polvo si QQ11 != 0; aqui solo se llama en la vista espacial
-nWq stars_new sin-verificar
-PIXEL2 pixel2 sin-verificar
-CPIX gfx_cpix sin-verificar 2 puntos de ancho (x, x+1) en XOR; sin las tablas de bytes del Apple II
-VLOIN gfx_vloin sin-verificar 2 puntos de ancho, extremos incluidos
-TWOS3 - propia tablas de bytes del Apple II: aqui gfx_xor_pixel
-TWOS - propia
-TWOS2 - propia
+STARS stars_update verificada make test_stars (las 4 vistas)
+STARS1 stars1 verificada make test_stars (con los acarreos de KILL1: C = 1 tras CMP #120 y C = 0 tras CMP #16)
+STARS6 stars6 verificada make test_stars
+STARS2 stars2 verificada make test_stars (con ST2; KILL2 con C = 0 o 1 segun BCC/BEQ)
+FLIP stars_flip verificada make test_stars
+NWSTARS stars_new verificada a traves de nWq (make test_stars); el original no crea el polvo si QQ11 != 0 (va a WPSHPS): aqui solo se llama en la vista espacial
+nWq stars_new verificada make test_stars (el primer DORND con el acarreo de entrada; cae en WPSHPS, que el port hace aparte)
+PIXEL2 pixel2 verificada make test_stars (con el acarreo con que vuelve PIXEL)
+CPIX gfx_cpix verificada a traves de VLOIN en make test_lines (2 puntos de ancho en XOR); sin los patrones de color del Apple II
+VLOIN gfx_vloin verificada make test_lines punto a punto (CPIX de Y1 a Y2, ambos incluidos)
+TWOS3 - no-necesaria tabla de bytes de 2 y 3 puntos del modo hires del Apple II; gfx_dust pone los puntos directamente (make test_lines)
+TWOS - no-necesaria tabla de un punto del modo hires del Apple II; loin_draw pone el punto directamente (make test_lines)
+TWOS2 - no-necesaria tabla de dos puntos del modo hires del Apple II (CPIX); gfx_cpix pone los puntos directamente (make test_lines)
 SCAN space_scan sin-verificar el bit 4 de INWK+31 (dibujada), colores de scacol y recorte a 146..190 como el original
-scacol scacol sin-verificar cadena con el color de cada tipo
+scacol scacol,space_scacol verificada make test_draw (tabla); CYAN y MAG son WHITE en el Apple II: el QL los muestra en cian y magenta
 WPSHPS space_scanner_reset propia solo la parte del radar: ninguna nave figura como dibujada
-SIGHT chart_sight sin-verificar dos cruces concentricas con TT15 de la vista espacial; color segun el laser (pulsos azul, haz rojo, otros blanco)
+SIGHT chart_sight verificada make test_draw (con sightcol)
 HFS2 tunnel_draw verificada HFS1/HFL1 contra el 6502 (make test_planet); STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia
-LL164 arrive sin-verificar sonido (SOBLIP) y tunel al saltar; el salto en si es propio
-LAUN flight_run sin-verificar sonido (SOHISS) y tunel al despegar
+LL164 tunnel_ll164 verificada make test_draw (nueve SOBLIP, HFS2 con STP = 4, cada SOHISS y CIRCLE2, RAND); el primer SBC #10 depende del acarreo de entrada (solo cambia el tono)
+LAUN tunnel_laun verificada make test_draw (dos SOHISS de 256, HFS2 con STP = 8; RAND); en TT110 los mismos anillos se borran despues con HFS1
 TT128 tt14 verificada make test_planet (circulo de las cartas con CIRCLE2)
 LOOK1 change_view propia cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto
 PLUT - no-necesaria invierte ejes para las 4 vistas: hara falta cuando haya naves dibujadas en vuelo
@@ -180,8 +180,8 @@ SPBT bulb_s sin-verificar
 ECBT bulb_e sin-verificar
 DOKEY ctl_read propia cursores = alabeo y cabeceo, F acelera, D frena, A o espacio disparan; JSTX/JSTY los calcula space_controls
 TT102 ui_nav propia en vuelo: 1-4 vistas, 5-9 pantallas, 0 carta galactica, H y G saltos; atracado: U despega, 0 galactica, 5-9 como en vuelo
-TT66 gfx_fill_lines propia borrado rapido de la vista y de la pantalla
-CLYNS txt_clear_rows propia borrado de filas de texto con el relleno rapido
+TT66 tt66 verificada make test_screen
+CLYNS clyns verificada make test_screen (DLY, de, XC/YC, DTW2, QQ17; 64 espacios en las vistas de texto o clearrow 15 y 16 en las graficas)
 # --- paso 2 (proyeccion 3D) completado el 2026-10-17: movimiento, explosiones, planeta, naves en vuelo; sin verificar
 MVEIT mveit sin-verificar partes 1 a 9; TACTICS es un gancho (move_tactics_hook) hasta el paso 3; los acarreos de MLTU2 salen del bit bajo del producto
 MV45 mv45 sin-verificar z -= DELTA, giro de los tres vectores (MVS4), contadores de alabeo y cabeceo (MVS5) y radar
@@ -189,17 +189,17 @@ MVS4 mvs4 sin-verificar
 MVS5 mvs5 sin-verificar
 MVT6 mvt6 sin-verificar
 PLUT plut sin-verificar ejes de INWK para las vistas trasera, izquierda y derecha
-DOEXP doexp sin-verificar nube de la nave que explota; el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco
-PTCLS ptcls sin-verificar semillas del generador desde el monton y restauracion de RAND+1 y RAND+3
+DOEXP doexp verificada make test_draw (CPIX con X, Y y COL; monton, INWK+31 y RAND); el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco
+PTCLS ptcls verificada a traves de DOEXP en make test_draw
 EX2 ex2 sin-verificar
-EXS1 exs1 sin-verificar el acarreo de FMLTU sale de em_carry
+EXS1 exs1 verificada a traves de DOEXP en make test_draw; FMLTU con A o Q = 0 no toca el acarreo (EX5 resta con C = 1)
 TT48 - sin-verificar simple RTS
 PLANET planet verificada make test_planet (con PL9, PL2, WP1)
 PL9 planet verificada make test_planet
 PL2 planet verificada make test_planet
 PL21 planet verificada make test_planet (SEC; RTS)
 WP1 circle_wpls2 verificada make test_planet; RES2 pone LSX2 y LSY2 a $FF
-FAROF farof sin-verificar
+FAROF farof,sm_farof2 verificada make test_geom
 GINF - no-necesaria el puntero INF no existe en C: se indexa por ranura
 SFS2 sfs2 verificada dentro de SFS1 (make test_laser, nave madre = estacion)
 exlook - no-necesaria tabla de EXNO (sonido de explosion): el sonido ya esta en sound.c
@@ -253,12 +253,12 @@ BEEP snd_beep propia
 BOOP snd_boop propia 
 SOBEEP snd_sobeep propia 
 SOBLIP snd_soblip propia 
-SOHISS snd_sohiss propia 
-SOEXPL snd_soexpl propia 
+SOHISS snd_sohiss propia el sonido es propio; los Y DORND del retardo aleatorio si se hacen (snd_dornd_hook), porque cambian la secuencia al azar
+SOEXPL snd_soexpl propia el sonido es propio; los Y DORND del retardo aleatorio (Y = 0: 256) si se hacen (snd_dornd_hook)
 EXNO snd_exno propia 
 EXNO3 snd_exno3 propia 
 LASNOISE snd_lasnoise propia 
-SOBOMB snd_sobomb propia 
+SOBOMB snd_sobomb verificada make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio
 CLICK - no-necesaria conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c)
 LASNOISE2 - no-necesaria sin uso en el original
 RESET game_new propia reinicia las variables de la partida
@@ -268,13 +268,13 @@ TITLE scr_title propia pantalla de titulo con la nave que gira
 BR1 scr_title,scr_disk propia el titulo ofrece cargar un comandante por el menu de disco
 cmn scr_status propia nombre del comandante en la pantalla de estado
 BAY scr_status propia pantalla de estado al atracar
-NLI4 ui_title propia titulo con la linea que lo subraya (menu.c)
-NLIN3 ui_title propia titulo con la linea que lo subraya (menu.c)
-NLIN4 ui_title propia titulo con la linea que lo subraya (menu.c)
-NLIN ui_title propia titulo con la linea que lo subraya (menu.c)
-NLIN2 ui_title propia titulo con la linea que lo subraya (menu.c)
-DVLOIN dvloin propia linea vertical de las cartas (chart.c)
-LOIN gfx_line,loin propia linea en XOR; en sun.c, loin() reproduce los efectos en memoria del original (SWAP, orden de los extremos, P, Q, S), verificados con make test_planet
+NLI4 nlin4 no-verificable guiones bajo la fila 1 en el modo texto del Apple II; el QL no tiene modo texto y NLIN4 dibuja siempre la linea de NLIN2 en y = 19 (en medio de la fila 2)
+NLIN3 ui_title no-verificable titulo con la linea que lo subraya (menu.c); en las pantallas de misiones, TT27 + nlin4 (dt_nlin4_hook)
+NLIN4 nlin4 verificada make test_draw (modo grafico: NLIN2 con y = 19)
+NLIN ui_title no-verificable titulo con la linea que lo subraya (menu.c); NLIN = INCYC + NLIN2(23)
+NLIN2 nlin2 verificada make test_draw (HLOIN de 0 a 255 en azul)
+DVLOIN dvloin verificada por inspeccion: VLOIN de (A, GCYT) a (A, GCYB), y VLOIN esta verificada con make test_lines
+LOIN loin_draw verificada make test_lines punto a punto (pendiente con log/alogh, un extremo sin dibujar segun SWAP); en sun.c, loin() reproduce ademas los efectos en memoria (SWAP, X1..Y2, P, Q, S) de make test_planet
 LL145 ship_clip verificada recorte de linea (verificada con el 6502)
 LL118 ship_clip verificada dentro de ship3d.c (verificada con el 6502)
 LSPUT ship_lsput verificada linea de nave en el monton con animacion sin parpadeo (dentro de LL9, verificada)
@@ -290,13 +290,13 @@ SCTBH - no-necesaria tablas de la pantalla de alta resolucion del Apple II (dire
 SCTBH2 - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
 HGR - no-necesaria cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8)
 TEXT - no-necesaria cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8)
-TRADEMODE ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
-TTX66 ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
-TTX66K ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
-clss ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
-cleargrap ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
-clearrow ui_clear,gfx_clear propia borrado de pantalla y de zonas (gfx_fill_lines, txt_clear_rows, clear_view)
-sightcol chart_sight propia colores de la mira segun el laser: dentro de chart_sight (sin verificar)
+TRADEMODE ui_clear,gfx_clear no-verificable TT66 + FLKB de las pantallas de comercio, que en el port son propias (menu.c)
+TTX66 tt66 verificada make test_screen (MT2, LSP = 0, QQ17, DTW2, XC/YC, FLFLLS, LAS2, DLY, de, ee3 y el nombre de la vista con TT27)
+TTX66K ttx66k verificada make test_screen (vistas graficas: cleargrap y BOX; de texto: cleartext; el QL no tiene modo texto)
+clss dt_clss_hook verificada a traves de CHPR en make test_missions (pasar de la fila 23 borra y vuelve a (0, 0))
+cleargrap tt66,clear_view verificada make test_lines (puntos apagados: filas 0..135; los bordes azules del Apple quedan fuera de los 256 puntos)
+clearrow clyns verificada make test_lines (filas 15 y 16 de CLYNS: y = 120..135)
+sightcol chart_sight verificada make test_draw (azul, rojo, blanco, blanco)
 hyp start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
 wW start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
 TT18 start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
@@ -387,9 +387,9 @@ WHITETEXT - no-necesaria RTS compartido con VOWEL (VRTS); en C no hace falta
 CHPR2 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
 R5 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
 RR5 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
-MT26 edit_text propia lectura de una linea del teclado
-RLINE edit_text propia lectura de una linea del teclado
-dn2 snd_boop propia pitido largo y espera
+MT26 edit_text no-verificable lectura de una linea del teclado (teclado/altavoz del Apple II)
+RLINE edit_text no-verificable lectura de una linea del teclado (teclado/altavoz del Apple II)
+dn2 snd_boop no-verificable pitido largo y espera (teclado/altavoz del Apple II)
 KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
 
 LL129 ll129 verificada dentro de ship3d.c (pendiente de la linea, verificada con el 6502)
@@ -417,7 +417,7 @@ BOMBOFF bomb_off verificada make test_equip (lineas del rayo)
 BOMBPOS bombpos verificada tabla
 BOMBTBX bombtbx verificada
 BOMBTBY bombtby verificada
-BOMBEFF2 bomb_eff2,bomb_eff,bomb_frame sin-verificar cuatro BOMBEFF por fotograma y el tramo MA18 de la parte 16; tecla con la comprobacion de la version publicada (IB disk)
+BOMBEFF2 bomb_eff2,bomb_eff,bomb_frame verificada make test_draw (con SOBOMB, CLICK y DORND reales; QQ11 y DNOIZ al azar); bomb_frame (parte 16) y la tecla con la comprobacion de la version publicada (IB disk) sin verificar
 WARP warp verificada make test_equip (el repintado de LOOK1 lo hace flight.c)
 DOCKIT dockit verificada make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c)
 DCS1 dcs1 verificada dentro de DOCKIT
@@ -499,7 +499,7 @@ SOLAR ships_arrive verificada FIST a la mitad (su acarreo entra en el ADC #3), T
 NWSPS nwsps verificada estacion en la ranura 1 (STX FRIN+1); Dodo con nivel tecnologico >= 10; make test_missions
 SOS1 sos1 verificada planeta 128/130 con giros 127; make test_missions
 KS4 ks4 verificada la estacion lejana (FAROF) deja en su ranura el sol con y_sign = 6; make test_missions
-FAROF2 ships_part14,farof transcripcion FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves
+FAROF2 sm_farof2,ships_part14,farof verificada make test_geom; FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves
 TT110 space_launch transcripcion RES2, planeta delante (z_sign = 1) y estacion detras (z = -256) con SOS1 y NWSPS, DELTA = 12, FIST |= BAD; make test_space
 BAD space_bad,bad,legal_name verificada carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name
 DEATH flight_death,ships_death_debris sin-verificar D1 verificado (Ze, fq1, restos); SOEXPL, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces con el teclado (DOKEY) y DEATH2

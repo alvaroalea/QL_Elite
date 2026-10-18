@@ -67,7 +67,8 @@ def dvidt(A,P,Q):
     # (P+1 A) = (A P)/Q  signo-magnitud, Q con signo
     P1=A; T=(A^Q)&0x80
     A=0
-    c=P>>7; P=(P<<1)&255; c2=P1>>7; P1=((P1<<1)|c)&255
+    c=P>>7; P=(P<<1)&255; P1=((P1<<1)|c)&255
+    c2=0                       # ASL Q; LSR Q deja C = 0: el bit que sale de P+1 se pierde
     Q=Q&0x7F
     for _ in range(16):
         nc=A>>7; A=((A<<1)|c2)&255; c2=nc

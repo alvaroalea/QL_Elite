@@ -4,6 +4,7 @@
 #include "ship_math.h"
 #include "combat.h"
 #include "sound.h"
+#include "lines.h"
 
 u8 bombtbx[10], bombtby[10];
 u8 bomb_col = C_WHITE;
@@ -20,7 +21,7 @@ void bomb_off(void)
     x1 = bombtbx[0]; y1 = bombtby[0];            /* XX12 */
     for (y = 1; y < 10; y++) {                   /* CLICK: el chasquido del altavoz no se porta */
         if (bomb_line_hook) bomb_line_hook(x1, y1, bombtbx[y], bombtby[y]);
-        gfx_line(x1, y1, bombtbx[y], bombtby[y], bomb_col, 1);
+        loin_draw(x1, y1, bombtbx[y], bombtby[y], bomb_col);
         x1 = bombtbx[y]; y1 = bombtby[y];
     }
 }
@@ -45,9 +46,12 @@ void bomb_on(u8 c)
 /* BOMBEFF: sonido, borra el rayo y dibuja otro */
 void bomb_eff(void)
 {
-    snd_sobomb();
+    u8 c;
+    snd_sobomb();                                /* con sonido: 25 DORND (deja su acarreo en em_rand_c) */
+    c = combat_view_on ? 1 : em_rand_c;          /* BOMBOFF termina con C = 1 (CPY #10); fuera de la vista espacial no lo toca */
     bomb_off();
-    bomb_on(1);                                  /* BOMBOFF termina con C = 1 (CPY #10) */
+    bomb_on(c);
+    em_rand_c = 1;                               /* BOMBON -> BOMBOFF: C = 1 a la vuelta (CPY #10) */
 }
 
 /* BOMBEFF2: JSR P%+3 / JSR BOMBEFF / BOMBEFF: cuatro rayos seguidos */

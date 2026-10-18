@@ -4,6 +4,7 @@
 #include "state.h"
 #include "emath.h"
 #include "ship3d.h"
+#include "lines.h"
 
 u8 sun_col = C_WHITE;
 u8 sun_lso[256];
@@ -44,7 +45,7 @@ static void hloin(void)
    hacia que WPLS2 trazara todas las lineas desde el mismo punto (fallo visto en el QL, 2026-10-17) */
 static void loin(void)
 {
-    u8 dx, dy, t, sw;
+    u8 dx, dy, t, sw, ox1 = X1, oy1 = Y1, ox2 = X2, oy2 = Y2;
     zS = 128;
     zswap = 0;
     dx = (u8)(X2 >= X1 ? X2 - X1 : X1 - X2);
@@ -57,7 +58,7 @@ static void loin(void)
         t = Y1; Y1 = Y2; Y2 = t;
     }
     if (sun_loin_hook) sun_loin_hook();
-    gfx_line(X1, Y1, X2, Y2, sun_col, 1);
+    loin_draw(ox1, oy1, ox2, oy2, sun_col);
 }
 
 /* FLFLLS */
@@ -347,14 +348,19 @@ wp1:
 
 /* ---------------------------------------------------------------- tunel de hiperespacio / lanzamiento (HFS2, HFS1, HFL1) */
 void (*sun_hiss_hook)(int y) = 0;                /* SOHISS(y): sonido de cada anillo (la pone el juego) */
+void (*sun_blip_hook)(int x, int y) = 0;         /* SOBLIP(x, y) de LL164 */
+void (*sun_tt66_hook)(void) = 0;                 /* TT66 de HFS2: borrar la vista */
+void (*sun_circle_hook)(u8 k3, u8 k4, u8 k, u8 stp) = 0;   /* pruebas: cada CIRCLE2 del tunel */
 
 /* HFL1: una serie de circulos concentricos cuyo radio empieza en (XX4 AND 7) + 8 y se duplica mientras sea < 160 */
 static void hfl1(u8 xx4)
 {
     zK[0] = (u8)((xx4 & 7) + 8);
     for (;;) {                                   /* HFL2 */
+        em_rand_c = 0;                           /* acarreo de los DORND del sonido: 0 (CLC; ADC #8 en HFL1 o CMP #160; BCC HFL2) */
         if (sun_hiss_hook) sun_hiss_hook(10);    /* LDY #10; JSR SOHISS */
         circ_lsp = 1;
+        if (sun_circle_hook) sun_circle_hook(zk3[0], zk4[0], zK[0], circ_stp);
         circle2_draw();
         if (zK[0] & 0x80) return;                /* ASL K; BCS HF8 */
         zK[0] = (u8)(zK[0] << 1);
@@ -370,6 +376,29 @@ void tunnel_draw(u8 stp)
     zk3[0] = 128; zk3[1] = 0;                    /* HFS1: K3 = X, K4 = Y */
     zk4[0] = 68;  zk4[1] = 0;
     for (xx4 = 0; xx4 != 8; xx4++) hfl1(xx4);
+}
+
+/* HFS2: TT66 (borrar la vista) y los anillos */
+static void hfs2(u8 stp)
+{
+    if (sun_tt66_hook) sun_tt66_hook();
+    tunnel_draw(stp);
+}
+
+/* LAUN: dos SOHISS de 256 clics y el tunel de lanzamiento (STP = 8) */
+void tunnel_laun(void)
+{
+    if (sun_hiss_hook) { sun_hiss_hook(0); sun_hiss_hook(0); }
+    hfs2(8);
+}
+
+/* LL164: nueve SOBLIP con el periodo bajando de 255 a 175 y el tunel de hiperespacio (STP = 4). El primer SBC #10 lleva el
+   acarreo de entrada (con C = 0 la serie es 255, 244, ..., 174); aqui siempre de 10 en 10 (solo cambia el tono) */
+void tunnel_ll164(void)
+{
+    u8 x = 255;
+    do { if (sun_blip_hook) sun_blip_hook(x, 90); x = (u8)(x - 10); } while (x >= 170);
+    hfs2(4);
 }
 
 /* Pruebas: SUNX */

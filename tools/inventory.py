@@ -37,14 +37,15 @@ def st(n): return ported[n][1] if n in ported else ""
 VERIF = ("verificada",)
 PEND_V = ("transcripcion", "sin-verificar", "propia")
 def count(items):
-    d = dict(total=len(items), ver=0, pv=0, nn=0, pi=0)
+    d = dict(total=len(items), ver=0, pv=0, nn=0, pi=0, nv=0)
     for n in items:
         s = st(n)
         if s in VERIF: d["ver"] += 1
         elif s in PEND_V: d["pv"] += 1
+        elif s == "no-verificable": d["nv"] += 1
         elif s == "no-necesaria": d["nn"] += 1
         else: d["pi"] += 1                       # vacio o parcial
-    d["port"] = d["ver"] + d["pv"]
+    d["port"] = d["ver"] + d["pv"] + d["nv"]
     return d
 bycat = {}
 for n, c, s in out:
@@ -54,23 +55,23 @@ md = ["# Inventario de rutinas (Elite Apple II -> Elite QL)", "",
       "Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxon, Elite Apple II) y de `tools/ported.txt`. No se edita a mano: se cambia `tools/ported.txt` y se ejecuta `python3 tools/inventory.py`.", "",
       "## Resumen", "",
       "- Rutinas de la fuente: **%d**" % allc["total"],
-      "- **Portadas** (con la funcion C que las cubre): **%d**, de ellas verificadas contra el 6502: %d y pendientes de verificar: %d" % (allc["port"], allc["ver"], allc["pv"]),
+      "- **Portadas** (con la funcion C que las cubre): **%d**, de ellas verificadas contra el 6502: %d, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): %d y pendientes de verificar: %d" % (allc["port"], allc["ver"], allc["nv"], allc["pv"]),
       "- **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **%d**" % allc["nn"],
       "- **Sin portar** (pendientes de implementar, incluidas las parciales): **%d**" % allc["pi"],
       "", "Comprobacion: total = portadas + no necesarias + sin portar (%d = %d + %d + %d)." % (allc["total"], allc["port"], allc["nn"], allc["pi"]), "",
-      "| Area | Total | Portadas | De ellas verificadas | No necesarias | Pendientes verificar | Pendientes implementar |",
-      "|---|---:|---:|---:|---:|---:|---:|"]
+      "| Area | Total | Portadas | De ellas verificadas | No verificables | No necesarias | Pendientes verificar | Pendientes implementar |",
+      "|---|---:|---:|---:|---:|---:|---:|---:|"]
 for cat in sorted(bycat):
     c = count([n for n, s in bycat[cat]])
-    md.append("| %s | %d | %d | %d | %d | %d | %d |" % (cat, c["total"], c["port"], c["ver"], c["nn"], c["pv"], c["pi"]))
-md.append("| **Total** | **%d** | **%d** | **%d** | **%d** | **%d** | **%d** |" % (allc["total"], allc["port"], allc["ver"], allc["nn"], allc["pv"], allc["pi"]))
-md += ["", "Columnas: *Portadas* = verificadas + pendientes de verificar (incluye los equivalentes propios); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.", "",
+    md.append("| %s | %d | %d | %d | %d | %d | %d | %d |" % (cat, c["total"], c["port"], c["ver"], c["nv"], c["nn"], c["pv"], c["pi"]))
+md.append("| **Total** | **%d** | **%d** | **%d** | **%d** | **%d** | **%d** | **%d** |" % (allc["total"], allc["port"], allc["ver"], allc["nv"], allc["nn"], allc["pv"], allc["pi"]))
+md += ["", "Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.", "",
        "## Rutinas sin portar, por area", ""]
 for cat in sorted(bycat):
     pend = [n + (" (parcial)" if st(n) == "parcial" else "") for n, s in bycat[cat] if st(n) in ("", "parcial")]
     if pend: md.append("- **%s** (%d): %s" % (cat, len(pend), ", ".join("`%s`" % p if "(" not in p else "`%s` (parcial)" % p.split(" ")[0] for p in pend)))
 md += ["", "## Estados", "",
-       "**verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, anotada en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **parcial** = existe una version reducida y falta parte (cuenta como pendiente de implementar); **no-necesaria** = no hace falta en la version QL (la nota dice por que); vacio = sin portar.", ""]
+       "**verificada** = comparada con el 6502 original (emulador); **transcripcion** = comparada con una transcripcion literal propia del 6502 (falta el emulador); **sin-verificar** = portada, anotada en PENDIENTES.md; **propia** = sustituto o equivalente propio (la funcion C cubre lo que hacia la rutina, con otra forma); **parcial** = existe una version reducida y falta parte (cuenta como pendiente de implementar); **no-verificable** = portada, pero no se puede comparar con el 6502 (depende del hardware del Apple II, como el modo texto, o de pantallas propias del port): queda fuera de los pendientes de verificar; **no-necesaria** = no hace falta en la version QL (la nota dice por que); vacio = sin portar.", ""]
 for cat in sorted(bycat):
     items = bycat[cat]
     c = count([n for n, s in items])

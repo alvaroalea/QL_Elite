@@ -13,6 +13,7 @@ u8 delt4[2];
 #define YHALF 68                          /* Y: mitad de la altura de la vista (136 / 2) */
 
 static u8 c;                              /* acarreo del 6502 */
+void (*stars_pixel_hook)(u8 x, u8 y, u8 zz) = 0;   /* pruebas: cada PIXEL de PIXEL2 (X, A, ZZ) */
 static u8 xx[2], yy[2];                   /* XX, YY (16 bits, byte bajo primero) */
 static u8 zz;                             /* ZZ */
 static u8 rat, rat2, newzp;               /* RAT, RAT2 y newzp de STARS2 */
@@ -50,13 +51,17 @@ static void pixel2(void)
     if (a & 0x80) { a = (u8)(a ^ 0x7F); a = (u8)(a + 1); }
     x = (u8)(a ^ 0x80);
     a = (u8)(Y1 & 0x7F);
-    if (a >= YHALF) return;                /* CMP #Y; BCS PXR1 */
+    if (a >= YHALF) { c = 1; return; }     /* CMP #Y; BCS PXR1 (C = 1) */
     a = Y1;
     c = 0;                                 /* el CMP deja el acarreo limpio */
     if (a & 0x80) { a = (u8)(a ^ 0x7F); a = adcc(a, 1); }
     t = a;
     a = sbcc(YHALF + 1, t);
+    if (stars_pixel_hook) stars_pixel_hook(x, a, zz);
     gfx_dust(x, a, zz);
+    /* acarreo con que vuelve PIXEL: ZZ >= 80 -> CPY #80 deja C = 1 (PX4 no lo toca); si no, dos filas: con y mod 8 != 0 el
+       SBC #3 del byte alto de la direccion no pide prestado (C = 1); con y mod 8 = 0 va por PX6 y queda el C = 0 del CPY */
+    c = (u8)(zz >= 80 || (a & 7) != 0);
 }
 
 /* MLS1 / MLS2 / MUT1 / MUT2 / MULTS-2: envoltorios de la multiplicacion con signo */
@@ -110,11 +115,11 @@ static void stars1(void)
         a = em_add(a); x = em_x; yy[1] = a; syl[y] = x;                    /* PIX1 */
         pixel2();                                      /* borra la particula vieja (X1, Y1, ZZ siguen siendo los viejos) */
         a = xx[1]; X1 = a; sx[y] = a;
-        if ((u8)(a & 0x7F) >= 120) goto kill1;
+        if ((u8)(a & 0x7F) >= 120) { c = 1; goto kill1; }     /* CMP #120; BCS: C = 1 para el DORND */
         a = yy[1]; sy[y] = a; Y1 = a;
-        if ((u8)(a & 0x7F) >= 120) goto kill1;
+        if ((u8)(a & 0x7F) >= 120) { c = 1; goto kill1; }     /* CMP #120; BCS: C = 1 para el DORND */
         a = sz[y];
-        if (a < 16) goto kill1;
+        if (a < 16) { c = 0; goto kill1; }                /* CMP #16; BCC: C = 0 */
         zz = a;
 stc1:
         pixel2();
@@ -175,9 +180,9 @@ static void stars6(void)
         pixel2();
         a = xx[1]; X1 = a; sx[y] = a;
         a = yy[1]; sy[y] = a; Y1 = a;
-        if ((u8)(a & 0x7F) >= 110) goto kill6;
+        if ((u8)(a & 0x7F) >= 110) { c = 1; goto kill6; }
         a = sz[y];
-        if (a >= 160) goto kill6;
+        if (a >= 160) { c = 1; goto kill6; }
         zz = a;
 stc6:
         pixel2();
@@ -260,10 +265,10 @@ static void stars2(u8 xreg)
         pixel2();
         a = xx[1]; X1 = a; sx[y] = a;
         a = (u8)((a & 0x7F) ^ 0x7F);
-        if (a <= newzp) goto kill2;
+        if (a <= newzp) { c = (u8)(a == newzp); goto kill2; }   /* BCC (C = 0) o BEQ (C = 1) */
         a = yy[1]; sy[y] = a; Y1 = a;
         a = (u8)(a & 0x7F);
-        if (a >= 116) goto st5;
+        if (a >= 116) { c = 1; goto st5; }
 stc2:
         pixel2();
         y--;
@@ -292,6 +297,7 @@ void stars_update(u8 view)
 void stars_new(void)
 {
     u8 y = stars_nostm, a;
+    c = em_rand_c;                                     /* el primer DORND usa el acarreo de entrada */
     do {                                               /* SAL4 */
         a = dornd(); a |= 8; sz[y] = a; zz = a;
         a = dornd(); sx[y] = a; X1 = a;
@@ -299,6 +305,7 @@ void stars_new(void)
         pixel2();
         y--;
     } while (y != 0);
+    em_rand_c = c;
 }
 
 void stars_flip(void)

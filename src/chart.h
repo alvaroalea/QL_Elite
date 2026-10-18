@@ -10,6 +10,10 @@
 
 #define CHART_TOP_FULLWIDTH 1         /* 1 = linea bajo el titulo de 0 a 255 como el original (NLIN5); 0 = solo cierra el marco (x 30..227) */
 
+extern void (*chart_line_hook)(u8 kind, u8 a, u8 b, u8 c);   /* pruebas: HLOIN (0: x1, x2, y) y VLOIN (1: x, y1, y2) */
+void chart_tt15(int local, u8 x, u8 y, u8 size);   /* TT15 con QQ19 = (x, y, size); local = QQ11 negativo */
+extern void (*chart_event_hook)(char kind, u8 a, u8 b, u8 c);
+void chart_tt16(int local, u8 x, u8 y);  /* TT16: mueve la mira (X a la derecha, Y hacia arriba) con TT123 y la redibuja */
 void chart_draw(int local);           /* dibuja la carta completa (sobre pantalla ya borrada) */
 void chart_sight(u8 view);            /* SIGHT: mira del laser de la vista (0..3) en la vista espacial */
 void chart_cursor(int local);         /* TT103: cruz del sistema objetivo (XOR: dos llamadas la borran) */

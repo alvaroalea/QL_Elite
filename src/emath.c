@@ -126,11 +126,10 @@ u8 em_mults(u8 a)
 u8 em_fmltu(u8 a)
 {
     unsigned lo, hi;
-    em_carry = 0;
-    if (a == 0 || zQ == 0) return 0;
+    if (a == 0 || zQ == 0) return 0;             /* BEQ MU3 / BEQ MU3again: el acarreo no cambia (em_carry = el de entrada) */
     lo = (unsigned)em_logL[a] + em_logL[zQ];
     hi = (unsigned)em_log[zQ] + em_log[a] + (lo >> 8);
-    if (hi < 256) return 0;
+    if (hi < 256) { em_carry = 0; return 0; }
     em_carry = 1;
     return em_alogh[(u8)hi];
 }
@@ -218,6 +217,15 @@ ll7:
     zQ = q; zS = s; zT = 0;
     em_carry = c;
     return q;
+}
+
+u8 em_logdiv(u8 a, u8 b)
+{
+    unsigned lo, hi;
+    lo = (unsigned)em_logL[a] - em_logL[b];
+    hi = (unsigned)em_log[a] - em_log[b] - ((lo >> 8) & 1);
+    if (!(hi & 0x100)) return 255;                 /* BCC P%+6 no salta: LDA #255 */
+    return em_alogh[(u8)hi];
 }
 
 u8 em_ll28_nocheck(u8 a)
@@ -315,8 +323,8 @@ u8 em_dvidt(u8 a)
     zT = (u8)((a ^ zQ) & 0x80);
     c = (u8)(zP >> 7);
     zP = (u8)(zP << 1);
-    c2 = (u8)(zP1 >> 7);
-    zP1 = (u8)((zP1 << 1) | c);
+    zP1 = (u8)((zP1 << 1) | c);                  /* el bit que sale de P+1 se pierde: ASL Q; LSR Q deja C = 0 */
+    c2 = 0;
     q = (u8)(zQ & 0x7F);
     zQ = q;
     for (i = 0; i < 16; i++) {

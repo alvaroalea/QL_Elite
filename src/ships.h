@@ -39,4 +39,5 @@ void ships_escape(void);                         /* ESCAPE: nuestra Cobra se ale
 void sescp(void);                                /* SESCP: la nave actual lanza una capsula */
 void doexp(void);                                /* DOEXP: nube de la nave que explota */
 void planet(void);                               /* PLANET: dibuja o borra el planeta o el sol de INWK */
+extern void (*ships_cpix_hook)(u8 x, u8 y, u8 col);
 #endif

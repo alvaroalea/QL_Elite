@@ -415,7 +415,6 @@ int scr_data(void)
 
 /* ---------------------------------------------------------------- cartas */
 
-static int clampi(int v, int lo, int hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
 static void chart_info(int local)
 {
@@ -435,11 +434,11 @@ static void chart_info(int local)
     txt_color(C_WHITE, C_BLACK);
 }
 
-/* El dibujo de las cartas esta en chart.c (TT22/TT23/TT14/TT103/TT105 con SUN y CIRCLE). Aqui, el teclado:
-   la mira se mueve libre (cx, cy) y el objetivo es el sistema mas cercano (TT111); la cruz del objetivo se dibuja en XOR. */
+/* El dibujo de las cartas esta en chart.c (TT22/TT23/TT14/TT103/TT105 con SUN y CIRCLE). Aqui, el teclado: la mira se mueve con
+   TT16/TT123 (QQ9, QQ10 libres, como el original) y el objetivo que se muestra abajo es el sistema mas cercano (TT111; propio). */
 int scr_chart(int local)
 {
-    int cx = qq9, cy = qq10, ch, dx, dy, sc, step = local ? 1 : 2, idx;
+    int ch, dx, dy, sc, step = local ? 1 : 2, idx;
     ui_clear();
     ui_title(local ? "SHORT RANGE CHART" : "GALACTIC CHART");
     chart_draw(local);
@@ -457,12 +456,10 @@ int scr_chart(int local)
             if (in_held(KC_UP)) dy = -step; else if (in_held(KC_DOWN)) dy = step;
         } else if (in_up(ch) == 'o') {                          /* O: ping, el cursor vuelve al sistema actual */
             chart_ping(local);
-            cx = qq9; cy = qq10;
             chart_info(local);
             continue;
         } else if (in_up(ch) == 'd') {                          /* D: hm, sistema mas cercano a la cruz, con nombre y distancia */
             chart_hm(local);
-            cx = qq9; cy = qq10;
             chart_info(local);
             continue;
         } else if (in_up(ch) == 'f' && qq12) {                  /* F: HME2, buscar un sistema por nombre (solo atracado) */
@@ -477,7 +474,6 @@ int scr_chart(int local)
                     chart_cursor(local);
                     game_set_target(found);
                     chart_cursor(local);
-                    cx = qq9; cy = qq10;
                     chart_info(local);
                     ui_msg("FOUND", 0);
                 } else {
@@ -492,16 +488,10 @@ int scr_chart(int local)
             if (sc >= 0) return sc;
         }
         if (dx || dy) {
-            cx = clampi(cx + dx, 0, 255); cy = clampi(cy + dy, 0, 255);
-            if (local) {                                        /* la mira no sale de la parte visible de la carta local */
-                cx = clampi(cx, clampi((int)qq0 - 27, 0, 255), clampi((int)qq0 + 27, 0, 255));
-                cy = clampi(cy, clampi((int)qq1 - 38, 0, 255), clampi((int)qq1 + 38, 0, 255));
-            }
-            idx = uni_nearest((u8)cx, (u8)cy);
+            chart_tt16(local, (u8)dx, (u8)(-dy));               /* TT16: la mira se mueve sola (QQ9, QQ10), sin pegarse a un sistema */
+            idx = uni_nearest(qq9, qq10);                       /* propio: el objetivo que daria TT111, para la informacion de abajo */
             if (idx != tgt_sys) {
-                chart_cursor(local);                            /* borra la cruz anterior */
-                game_set_target(idx);
-                chart_cursor(local);
+                game_target_only(idx);
                 chart_info(local);
             }
         }

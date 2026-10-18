@@ -34,6 +34,7 @@ extern u8 zU, zDELTA;                       /* U (alto de LL61) y DELTA (velocid
 
 u8 em_ll5(void);                            /* Q = SQRT(R Q), (R Q) de 16 bits; devuelve Q */
 u8 em_ll28(u8 a);                           /* R = 256 * A / Q (A < Q) con logaritmos; C en em_carry (1 = desbordado, R = 255) */
+u8 em_logdiv(u8 a, u8 b);                    /* division de LOIN por logaritmos: 255 si log(a) >= log(b), si no alogh[log(a) - log(b)] (a, b > 0) */
 u8 em_ll28_nocheck(u8 a);                   /* LL28+4: sin la comprobacion A >= Q */
 u8 em_ll61(u8 a);                           /* (U R) = 256 * A / Q para A >= Q; el llamante pone U = 0; error: U = R = 50 */
 u8 em_ll38(u8 a);                           /* (S A) = (S R) + (A Q), signos solo en bit 7; C en em_carry */

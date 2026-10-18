@@ -1,4 +1,5 @@
 #include "flight.h"
+#include "missions.h"
 #include "input.h"
 #include "keys.h"
 #include "text.h"
@@ -93,20 +94,27 @@ static void view_extras(void)
     if (bomb & 0x80) bomb_off();
 }
 
+/* TT66 con la vista del espacio (QQ11 = 0): borra la vista, BOX y el nombre de la vista ("FRONT VIEW") arriba */
+static void space_tt66(void)
+{
+    scr_viewdir = (u8)view;
+    tt66(0);
+}
+
 /* LOOK1 al cambiar de vista estando en el espacio: el polvo se refleja en la diagonal (FLIP) y se vuelve a poner la mira */
 static void change_view(int v)
 {
     if (v == view) return;
     view = v;
     space_view = (u8)view;                  /* las naves se redibujan en los ejes de la vista nueva (PLUT) */
-    clear_view();
+    space_tt66();
     stars_flip();
     view_extras();
     panel_update();
 }
 
 /* Pantalla de vuelo completa (al despegar y al volver de una pantalla de texto): panel, texto, radar, mira y polvo nuevo (NWSTARS) */
-static void redraw_all(void)
+static void redraw_panel(void)
 {
     gfx_clear(C_BLACK);
     ships_forget_lines();                  /* la pantalla se ha borrado: ninguna nave figura como dibujada */
@@ -118,8 +126,13 @@ static void redraw_all(void)
     if (sspr) dash_spblb();
     panel_static();
     panel_update();
-    view_extras();
     if (ecma) dash_ecblb();                /* la bombilla E sigue encendida */
+}
+
+static void redraw_all(void)
+{
+    redraw_panel();
+    view_extras();
     stars_new();
 }
 
@@ -180,13 +193,19 @@ static void start_hyper(int galactic)
     say_hyper();
 }
 
-/* tunel (HFS2): se borra la vista, se dibujan los anillos con su sonido, se deja ver un momento y se borra */
-static void do_tunnel(u8 stp)
+static void blip(int x, int y) { snd_soblip(x, y); }
+
+static void tunnel_hooks(void)
 {
-    sun_hiss_hook = hiss;
-    clear_view();
+    sun_hiss_hook = hiss; sun_blip_hook = blip; sun_tt66_hook = space_tt66;
     sun_col = C_WHITE;
-    tunnel_draw(stp);
+}
+
+/* LL164: sonido de hiperespacio y tunel (HFS2 con STP = 4); se deja ver un momento y se borra la vista */
+static void hyper_tunnel(void)
+{
+    tunnel_hooks();
+    tunnel_ll164();
     wait_frames(TUNNEL_FRAMES);
     clear_view();
 }
@@ -195,7 +214,7 @@ static void do_tunnel(u8 stp)
    sus Thargons, MJ = $FF, polvo con 2 particulas y la coordenada y de la galaxia con los 5 bits bajos invertidos */
 static void misjump(void)
 {
-    do_tunnel(4);                                           /* TT66 + LL164 */
+    hyper_tunnel();                                         /* TT66 + LL164 */
     space_reset();                                          /* RES2 */
     if (ecma) ecm_off();
     mstg = 0xFF;
@@ -205,7 +224,7 @@ static void misjump(void)
     do gthg(); while (many[SHIPT_THARGOID] <= 2);           /* MJP1: hasta tener tres */
     stars_nostm = 2;                                        /* STA NOSTM con A = 2 */
     view = 0; space_view = 0;                               /* LDX #0; JSR LOOK1 */
-    clear_view();
+    space_tt66();
     stars_new();
     view_extras();
     qq1 = (u8)(qq1 ^ 0x1F);                                 /* QQ1 EOR #%00011111 */
@@ -218,11 +237,7 @@ static void arrive(void)
     char b[32];
     int i = 0, ok;
     const char *p = "ARRIVED AT ";
-    u8 x;
-    /* LL164: sonido de hiperespacio y tunel */
-    x = 255;
-    do { snd_soblip(x, 90); x = (u8)(x - 10); } while (x >= 170);
-    do_tunnel(4);
+    hyper_tunnel();                        /* LL164: sonido de hiperespacio y tunel */
     space_scanner_clear();                 /* quita del radar lo que hubiera */
     if (sspr) dash_spblb();                /* se apaga la S */
     if (!hyper_gal && jump_possible(tgt_sys)) {             /* TT18: el combustible se gasta antes de saber si llegamos */
@@ -299,7 +314,7 @@ static void flight_death(void)
     space_reset();                                          /* RES2 */
     ships_clear();
     zDELTA = (u8)(zDELTA << 2);                             /* ASL DELTA dos veces */
-    clear_view();                                           /* TT66 con la vista 0 */
+    space_tt66();                                           /* TT66 con la vista 0 (VIEW no cambia) */
     qq17 = 0x80; dt_mt2(); dtw2 = 0x80;
     stars_new();                                            /* nWq */
     dt_xc = 12; dt_yc = 12;
@@ -336,13 +351,16 @@ int flight_run(void)
     combat_reset();                                         /* DOENTRY: energia, escudos y laser como al atracar */
     combat_mess_hook = flight_mess;
     combat_mess_off_hook = flight_mess_off;
-    space_launch();
+    redraw_panel();                                         /* el panel (el original lo tiene siempre en pantalla) */
+    tunnel_hooks();
+    tunnel_laun();                                          /* TT110: LAUN (dos SOHISS y el tunel, STP = 8) */
+    wait_frames(TUNNEL_FRAMES);
+    space_launch();                                         /* RES2, TT111, SOS1, NWSPS, DELTA = 12, FIST */
     enc_ev = 0;
-    redraw_all();
-    snd_sohiss(0); snd_sohiss(0);                           /* LAUN */
-    do_tunnel(8);                                           /* tunel de lanzamiento (STP = 8) */
-    stars_new();                                            /* el tunel borro la vista: polvo y mira nuevos */
-    chart_sight((u8)view);
+    tunnel_draw(8);                                         /* HFS1 con QQ11 = 255: los mismos anillos (y sonidos) los borran */
+    space_tt66();                                           /* LOOK1 -> LQ: TT66, SIGHT, BOMBOFF, NWSTARS */
+    view_extras();
+    stars_new();
     say(dash_loaded() ? "LAUNCHED" : "LAUNCHED (NO ELITE_DASH FILE)", 0);
     for (;;) {
         ch = in_poll();

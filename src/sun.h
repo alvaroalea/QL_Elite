@@ -27,5 +27,10 @@ void sun_set_sunx(u8 lo, u8 hi);
 extern void (*sun_loin_hook)(void);       /* pruebas: cada LOIN del circulo (X1..Y2 en zx15 ya ordenados, zswap) */
 extern void (*sun_hloin_hook)(u8 l, u8 r, u8 y);   /* pruebas: cada HLOIN del sol que dibuja */
 void sun_forget(void);                    /* tras borrar la vista: ni el sol ni el planeta figuran como dibujados */
+extern void (*sun_blip_hook)(int x, int y);  /* SOBLIP de LL164 */
+extern void (*sun_tt66_hook)(void);          /* TT66 de HFS2 */
+extern void (*sun_circle_hook)(u8 k3, u8 k4, u8 k, u8 stp);
+void tunnel_laun(void);                      /* LAUN */
+void tunnel_ll164(void);                     /* LL164 */
 void tunnel_draw(u8 stp);                 /* HFS2/HFS1: tunel de hiperespacio (STP = 4) o de lanzamiento (STP = 8) con el color sun_col */
 #endif

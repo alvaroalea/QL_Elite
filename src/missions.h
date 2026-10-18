@@ -22,7 +22,16 @@ int  debrief2(void);               /* DEBRIEF2: planos entregados en Birera, uni
 void bris(void);                   /* BRIS */
 void pas1(void);                   /* PAS1 */
 void mis_pause(void);              /* PAUSE */
-void mis_tt66(u8 view);            /* TT66 de las pantallas de las misiones */
+void mis_tt66(u8 view);            /* TT66 de las pantallas de las misiones (= tt66) */
+extern u8 scr_text, scr_viewdir;
+extern void (*scr_clear_hook)(int graphics);
+extern void (*scr_tt27)(u8 a);
+extern void (*scr_clearrow_hook)(u8 row);
+extern void (*scr_chpr)(u8 a);
+extern void (*scr_trace)(char k, u8 a);
+void tt66(u8 view);                 /* TT66/TTX66/TTX66K (y BOX en las vistas graficas) */
+void scr_box(void);                 /* BOX */
+void clyns(void);                   /* CLYNS */
 int  pdesc(u8 zz, const u8 *q15);  /* PDESC: descripcion especial del sistema zz (1) o, con q15 (QQ15), la normal (0) */
 void tt25_raw(const u8 *q15, u8 q3, u8 q4, u8 q5, u8 q6, u8 p7lo, u8 p7hi, u8 d8lo, u8 d8hi, u8 zz);  /* TT25 */
 void tt25(int n);                  /* TT25: datos del sistema n (QQ8 = distancia) */

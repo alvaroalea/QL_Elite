@@ -35,4 +35,5 @@ u8   space_bump2(u8 x, u8 a);        /* BUMP2 */
 u8   space_redu2(u8 x, u8 a);        /* REDU2 */
 u8   space_cntr(u8 x);               /* cntr: un paso de amortiguacion hacia 128 */
 int  space_signed(u8 v);             /* signo-magnitud -> entero */
+u8 space_scacol(u8 type);                 /* scacol: COL del original para el tipo de nave (pruebas) */
 #endif

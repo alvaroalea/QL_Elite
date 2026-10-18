@@ -27,7 +27,7 @@ int main(int argc, char **argv)
         else if (!strcmp(op, "dvid96")) { fscanf(f, "%d %d", &a,&b);
             { u8 r = em_dvid96(a); CHECK(r==b, "dvid96 %d -> %d esperado %d", a,r,b); } }
         else if (!strcmp(op, "fmltu")) { fscanf(f, "%d %d %d %d", &a,&b,&c,&d);
-            zQ=b; { u8 r = em_fmltu(a); CHECK(r==c && em_carry==d, "fmltu %d %d -> %d,%d esperado %d,%d", a,b,r,em_carry,c,d); } }
+            zQ=b; em_carry = 0; { u8 r = em_fmltu(a); CHECK(r==c && em_carry==d, "fmltu %d %d -> %d,%d esperado %d,%d", a,b,r,em_carry,c,d); } }
         else if (!strcmp(op, "mltu2")) { fscanf(f, "%d %d %d %d %d %d", &a,&b,&c,&d,&e,&g);
             zP=b; zQ=c; { u8 r = em_mltu2(a); CHECK(r==d && zP1==e && zP==g, "mltu2 %d %d %d", a,b,c); } }
         else if (!strcmp(op, "rand")) { fscanf(f, "%d %d %d %d %d", &a,&b,&c,&d,&e);

@@ -119,6 +119,19 @@ void space_controls(const struct controls *c)
 /* scacol: color de cada tipo de nave en el radar (B azul, R rojo, C cian, M magenta, F "fuzzy", 0 no se dibuja) */
 static const char scacol[] = "0BBRRRRRRCCCMMMRCCCCCCCBCCMCCFCC0C";
 
+/* el COL del original para el tipo (BLUE 16, RED 20, FUZZY 24; CYAN y MAG son WHITE, 12, en el Apple II): para las pruebas */
+u8 space_scacol(u8 type)
+{
+    if (type >= sizeof scacol - 1) return 0xFF;
+    switch (scacol[type]) {
+    case 'B': return 16;
+    case 'R': return 20;
+    case 'F': return 24;
+    case 'C': case 'M': return 12;
+    }
+    return 0;
+}
+
 static u8 scan_ql(char k)
 {
     switch (k) {

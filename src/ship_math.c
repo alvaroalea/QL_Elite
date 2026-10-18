@@ -66,6 +66,7 @@ u8 sm_mas3(u8 y)
     return (u8)s;
 }
 
+u8 sm_farof2(u8 a) { return (u8)(a >= inwk[1] && a >= inwk[4] && a >= inwk[7]); }
 u8 sm_mas4(u8 a) { return (u8)(a | inwk[1] | inwk[4] | inwk[7]); }
 
 /* ---------- VCSUB / TAS1: K3 = INWK - vector de otra nave ---------- */

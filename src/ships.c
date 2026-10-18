@@ -5,6 +5,7 @@
 #include "state.h"
 #include "emath.h"
 #include "ship_math.h"
+#include "sound.h"
 #include "universe.h"
 #include "game.h"
 #include "sun.h"
@@ -255,7 +256,7 @@ int ships_part14(u8 mc)
     if (sm_mas1(9, 0)) return 0;                         /* x += nosev_x * 2 */
     if (sm_mas1(11, 3)) return 0;
     if (sm_mas1(13, 6)) return 0;
-    if (inwk[1] > 192 || inwk[4] > 192 || inwk[7] > 192) return 0;    /* FAROF2 con 192 */
+    if (!sm_farof2(192)) return 0;                                    /* FAROF2 con 192 */
     sun_wpls();                                          /* WPLS: se borra el sol */
     nwsps();
     return 1;
@@ -489,7 +490,8 @@ pl2:
 /* ---------------------------------------------------------------- DOEXP */
 
 static u8 e_u, e_tgt;
-static u8 e_col;
+static u8 e_col, e_colv;
+void (*ships_cpix_hook)(u8 x, u8 y, u8 col) = 0;     /* pruebas: cada CPIX de DOEXP con el COL del original (16, 20, 24, 28) */
 
 static u8 dornd0(void)                                  /* paso del generador con CLC delante (acarreo de entrada 0) */
 {
@@ -521,6 +523,7 @@ static u8 exs1(u8 s_in, u8 *xout)
     a = (u8)((a << 1) | c);                              /* ROL A */
     c = hi;
     if (!c) {
+        em_carry = 0;                                    /* BCS EX5 no salta: C = 0 */
         a = em_fmltu(a);
         c = em_carry;
         s = (unsigned)a + zR + c;                        /* ADC R */
@@ -528,7 +531,8 @@ static u8 exs1(u8 s_in, u8 *xout)
         c = (u8)(s >> 8);
         return (u8)(zS + c);                             /* LDA S; ADC #0 */
     }
-    a = em_fmltu(a);                                     /* EX5 */
+    em_carry = 1;                                        /* EX5: C = 1 (si A o Q son 0, FMLTU no lo toca) */
+    a = em_fmltu(a);
     t = a;
     d = (int)zR - t - (1 - (int)em_carry); cc = (d >= 0);
     *xout = (u8)d;
@@ -555,13 +559,17 @@ static void ptcls(void)
         for (;;) {                                       /* EXL4 */
             a = dornd0();
             e_col = expl_col(a);
+            e_colv = (u8)((a & 0x0C) | 16);              /* AND #%00001100; ORA #16; STA COL */
             zR = zk3[1];
             hi = exs1(zk3[0], &xr);
             if (hi == 0 && xr < 2 * 68 - 1) {            /* BNE EX11; CPX #2*Y-1; BCS EX11 */
                 y1 = xr;
                 zR = zk3[3];
                 hi = exs1(zk3[2], &xr);
-                if (hi == 0) gfx_cpix(xr, y1, e_col);    /* LDA Y1; JSR CPIX */
+                if (hi == 0) {                           /* LDA Y1; JSR CPIX */
+                    if (ships_cpix_hook) ships_cpix_hook(xr, y1, e_colv);
+                    gfx_cpix(xr, y1, e_col);
+                }
             } else {
                 dornd0();                                /* EX11: un paso mas del generador */
             }
@@ -615,15 +623,18 @@ void doexp(void)
     ptcls();
 }
 
+static void snd_dornd(void) { em_dornd(); }      /* JSR DORND dentro de un sonido: el acarreo sigue la cadena de em_rand_c */
+
 void ships_hooks(void)
 {
+    snd_dornd_hook = snd_dornd;
     ship_doexp_hook = doexp;
     ship_planet_hook = planet;
     move_tactics_hook = tactics;
 }
 
 /* FAROF: 1 si alguna coordenada alta pasa de 224 */
-static int farof(void) { return inwk[1] > 224 || inwk[4] > 224 || inwk[7] > 224; }
+static int farof(void) { return !sm_farof2(224); }                    /* FAROF: C = 0 (lejos) */
 
 /* ---------------------------------------------------------------- bucle por nave (MAIN LOOP: MVEIT, PLUT, LL9, KILLSHP) */
 

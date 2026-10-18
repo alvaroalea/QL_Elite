@@ -58,6 +58,12 @@ void game_set_target(int idx)
     qq8[1] = (u8)(jump_distance(idx) >> 8); qq8[0] = (u8)jump_distance(idx);
 }
 
+void game_target_only(int idx)
+{
+    tgt_sys = idx;
+    qq8[1] = (u8)(jump_distance(idx) >> 8); qq8[0] = (u8)jump_distance(idx);
+}
+
 void game_enter_system(int idx, int fresh)
 {
     const uni_system *s = &uni_galaxy[idx];
