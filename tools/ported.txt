@@ -123,21 +123,21 @@ YESNO scr_disk no-verificable confirmacion Y/N propia del menu de disco
 TT214 scr_disk no-verificable pregunta Y/N propia del menu de disco
 FLKB plat_flush_input no-verificable vaciar el buffer de teclado: propio de la consola del QL
 # --- panel de instrumentos (2026-10-16), sin verificar
-DIALS dash_update sin-verificar velocidad, alabeo, cabeceo, 4 bancos de energia, escudos, combustible, altitud y temperaturas
-DIS1 dis1 sin-verificar
-DIS5 dis5 sin-verificar marcador de alabeo o cabeceo (2 puntos de ancho)
-dialY dialY sin-verificar
-dialle dialle sin-verificar
-dialc1 dialc1 sin-verificar
-dialc2 dialc2 sin-verificar
-MSBARS msbars sin-verificar cuatro lineas bajo Y1 con gfx_hloin
-COMPAS compas sin-verificar el acarreo de ADC #195 y SBC viene de em_carry (el que deja DVID4/LL28)
-SP1 compas sin-verificar estacion si SSPR
-SP2 compas sin-verificar
-DOT dot sin-verificar
-cntr space_cntr sin-verificar
-BUMP2 space_bump2 sin-verificar
-REDU2 space_redu2 sin-verificar
+DIALS dash_update verificada indicadores, barras de aviso parpadeantes, DIS2 con su cache (dials/dialc) y COMPAS; make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+DIS1 dis1 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+DIS5 dis5 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+dialY dialY verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+dialle dialle verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+dialc1 dialc1 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+dialc2 dialc2 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+MSBARS msbars verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+COMPAS compas verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+SP1 compas verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+SP2 compas verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+DOT dot verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+cntr space_cntr verificada amortiguacion con DAMP y el ordenador de atraque (auto = dock_auto); make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos). Encontro que cntr no miraba auto
+BUMP2 space_bump2 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+REDU2 space_redu2 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
 MV40 mv40,mv40_pre,mv45 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) (MV40 hasta MV45 y MV45 por separado); K2 byte 0 vale 0 como en el original (nadie lo escribe)
 MVT1 mvt1 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
 PIXEL gfx_dust verificada make test_lines punto a punto (2 o 3 puntos segun ZZ y dos filas si ZZ < 80; el QL no muestra x >= 256)
@@ -160,24 +160,24 @@ VLOIN gfx_vloin verificada make test_lines punto a punto (CPIX de Y1 a Y2, ambos
 TWOS3 - no-necesaria tabla de bytes de 2 y 3 puntos del modo hires del Apple II; gfx_dust pone los puntos directamente (make test_lines)
 TWOS - no-necesaria tabla de un punto del modo hires del Apple II; loin_draw pone el punto directamente (make test_lines)
 TWOS2 - no-necesaria tabla de dos puntos del modo hires del Apple II (CPIX); gfx_cpix pone los puntos directamente (make test_lines)
-SCAN space_scan sin-verificar el bit 4 de INWK+31 (dibujada), colores de scacol y recorte a 146..190 como el original
+SCAN space_scan verificada CPIX (cabeza) y VLOIN (palo) con scacol y recorte a 146..190; make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos); la llamada con color 0 no se dibuja en el port
 scacol scacol,space_scacol verificada make test_draw (tabla); CYAN y MAG son WHITE en el Apple II: el QL los muestra en cian y magenta
-WPSHPS space_scanner_reset propia solo la parte del radar: ninguna nave figura como dibujada
+WPSHPS space_scanner_reset no-verificable limpia el radar, los montones de lineas y los puntos del sol: en el port lo hacen clear_view, ships_forget_lines y space_scanner_reset (pantalla y montones propios)
 SIGHT chart_sight verificada make test_draw (con sightcol)
 HFS2 tunnel_draw verificada HFS1/HFL1 contra el 6502 (make test_planet); STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia
 LL164 tunnel_ll164 verificada make test_draw (nueve SOBLIP, HFS2 con STP = 4, cada SOHISS y CIRCLE2, RAND); el primer SBC #10 depende del acarreo de entrada (solo cambia el tono)
 LAUN tunnel_laun verificada make test_draw (dos SOHISS de 256, HFS2 con STP = 8; RAND); en TT110 los mismos anillos se borran despues con HFS1
 TT128 tt14 verificada make test_planet (circulo de las cartas con CIRCLE2)
-LOOK1 change_view propia cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto
+LOOK1 change_view no-verificable cambio de vista con la pantalla del port (TT66, FLIP, NWSTARS y SIGHT verificadas)
 PLUT - no-necesaria invierte ejes para las 4 vistas: hara falta cuando haya naves dibujadas en vuelo
-msblob dash_msblob sin-verificar NOMSL indicadores en verde y el resto apagados
-MSBAR msbar sin-verificar borra el color anterior y dibuja el nuevo (XOR)
-msloc msloc sin-verificar x = 40, 32, 24, 16
-SPBLB dash_spblb sin-verificar bombilla S (estacion cerca)
-ECBLB dash_ecblb sin-verificar bombilla E (XOR); la enciende y apaga el ECM
-BULB bulb sin-verificar 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E
-SPBT bulb_s sin-verificar
-ECBT bulb_e sin-verificar
+msblob dash_msblob verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+MSBAR msbar verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+msloc msloc verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
+SPBLB dash_spblb verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
+ECBLB dash_ecblb verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
+BULB bulb verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
+SPBT bulb_s verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
+ECBT bulb_e verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
 DOKEY ctl_read no-verificable lectura de las teclas de vuelo con la disposicion del QL; el tramo del ordenador de atraque esta verificado en make test_equip
 TT102 ui_nav no-verificable despacho de teclas a pantallas con la disposicion de teclas del QL
 TT66 tt66 verificada make test_screen
@@ -188,7 +188,7 @@ MV45 mv45 sin-verificar z -= DELTA, giro de los tres vectores (MVS4), contadores
 MVS4 mvs4 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
 MVS5 mvs5 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
 MVT6 mvt6 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
-PLUT plut sin-verificar ejes de INWK para las vistas trasera, izquierda y derecha
+PLUT plut verificada ejes de INWK por vista (1.000 casos con PLUT real); make test_flight
 DOEXP doexp verificada make test_draw (CPIX con X, Y y COL; monton, INWK+31 y RAND); el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco
 PTCLS ptcls verificada a traves de DOEXP en make test_draw
 EX2 ex2 sin-verificar
@@ -297,16 +297,16 @@ clss dt_clss_hook verificada a traves de CHPR en make test_missions (pasar de la
 cleargrap tt66,clear_view verificada make test_lines (puntos apagados: filas 0..135; los bordes azules del Apple quedan fuera de los 256 puntos)
 clearrow clyns verificada make test_lines (filas 15 y 16 de CLYNS: y = 120..135)
 sightcol chart_sight verificada make test_draw (azul, rojo, blanco, blanco)
-hyp start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
-wW start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
-TT18 start_hyper propia inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do
-TTX110 find_system propia sistema mas cercano a la mira
-Ghy jump_galactic propia salto galactico
-ee3 say_hyper propia cuenta atras del hiperespacio en pantalla
-TT147 start_hyper propia mensaje de fuera de alcance
-me1 say propia mensaje en vuelo: borra el anterior y muestra el nuevo
-me2 dly_tick,flight_mess_off propia el mensaje se borra a los 20 fotogramas (DLY)
-MESS mess,say propia mensaje en vuelo en la fila 24 (no en la vista) durante DLY = 20 fotogramas; los avisos propios del port usan say
+hyp start_hyper no-verificable inicio del hiperespacio con la pantalla y las teclas del port (TT111 y jmp ya verificadas)
+wW start_hyper no-verificable cuenta atras del hiperespacio con la pantalla del port
+TT18 start_hyper no-verificable cuenta atras y salto con la pantalla del port; MJP (verificada) y el combustible; DORND entra con C = 0 (sin tecla)
+TTX110 find_system no-verificable seleccion del sistema mas cercano con la pantalla del port (TT111 verificada)
+Ghy jump_galactic no-verificable salto galactico: la rotacion de semillas esta verificada en make test_univ6502; el resto es pantalla y teclas
+ee3 say_hyper no-verificable cuenta atras impresa en la pantalla del port (TTX66 verificada)
+TT147 start_hyper no-verificable mensaje de fuera de alcance en la pantalla del port
+me1 say no-verificable mensaje en vuelo en la fila 24 del port
+me2 dly_tick,flight_mess_off no-verificable mensaje en vuelo en la fila 24 del port
+MESS mess,say no-verificable mensaje en vuelo en la fila 24 del port
 log em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
 logL em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
 alogh em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
@@ -407,7 +407,7 @@ OOPS oops verificada escudo segun el signo de z de la nave (K%); el SBC usa el a
 OUCH ouch verificada QQ20+X con X = 0..21 (mercancias, ECM, BST, BOMB, ENGY, DKCMP)
 ou2 ouch verificada
 ou3 ouch verificada
-mes9 flight_mess,mess_de propia " DESTROYED" con la bandera de (vale para un mensaje)
+mes9 flight_mess,mess_de no-verificable mensaje en vuelo en la fila 24 del port
 DEATH2 game_run no-verificable vuelta al titulo (RES2 verificado); el flujo del titulo es propio del port
 DET1 - no-necesaria en el Apple II es un RTS
 Ze ze verificada dentro de D1
@@ -421,10 +421,10 @@ BOMBEFF2 bomb_eff2,bomb_eff,bomb_frame verificada make test_draw (con SOBOMB, CL
 WARP warp verificada make test_equip (el repintado de LOOK1 lo hace flight.c)
 DOCKIT dockit verificada make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c)
 DCS1 dcs1 verificada dentro de DOCKIT
-dockEd ui_nav propia mensaje DOCKED al pulsar H o G atracado
-ESCAPE flight_escape,ships_escape sin-verificar la Cobra se aleja 97 fotogramas (MVEIT + LL9), carga, FIST y capsula a cero, 70 de combustible, atraque
+dockEd ui_nav no-verificable mensaje DOCKED en la pantalla del port
+ESCAPE flight_escape,ships_escape no-verificable orquestacion de FRS1 (verificada), 97 vueltas de MVEIT (verificada) y LL9 (verificada), SCAN y GOIN con la pantalla del port; lo propio (QQ20 = 0, FIST, ESCP = 0, QQ14 = 70) es trivial
 SESCP sescp verificada a traves de TACTICS (la capsula de una nave casi sin energia; make test_tactics)
-MJP misjump sin-verificar salto fallido: tunel, MJ = $FF, tres Thargoides (GTHG), polvo de 2, QQ1 EOR 31; la distancia en el hiperespacio se mide desde (QQ0, QQ1)
+MJP misjump verificada salto fallido: RES2 (SPBLB, ECMOF), MJ = $FF, tres Thargoides (version IB), NOSTM = 2, QQ1 EOR 31, vista 0; make test_flight (250 casos con RES2, ZERO, ZINF y ECMOF reales; TT66, LL164, GTHG y LOOK1 registran)
 GTHG gthg verificada make test_equip
 FRS1 frs1 verificada make test_equip
 # --- 2026-10-17 duodecima ronda: TACTICS y misiles (make test_tactics contra el 6502)
@@ -500,7 +500,7 @@ NWSPS nwsps verificada estacion en la ranura 1 (STX FRIN+1); Dodo con nivel tecn
 SOS1 sos1 verificada planeta 128/130 con giros 127; make test_missions
 KS4 ks4 verificada la estacion lejana (FAROF) deja en su ranura el sol con y_sign = 6; make test_missions
 FAROF2 sm_farof2,ships_part14,farof verificada make test_geom; FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves
-TT110 space_launch transcripcion RES2, planeta delante (z_sign = 1) y estacion detras (z = -256) con SOS1 y NWSPS, DELTA = 12, FIST |= BAD; make test_space
+TT110 space_launch verificada despegue: RES2, SOS1 (INC INWK+8) y NWSPS (INWK+8 = 128, INC INWK+7), DELTA = 12, FIST |= BAD, RAND y acarreos; make test_flight (500 casos; NWSHP registra el planeta y la estacion; LAUN, TT111, HFS1 y LOOK1 registran)
 BAD space_bad,bad,legal_name verificada carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name
 DEATH flight_death,ships_death_debris no-verificable D1 (Ze, fq1, restos) verificado en make test_damage; el resto es orquestacion: SOEXPL con Y = 210, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces (el bucle principal completo y el sonido son propios del port)
 Main ships_step,flight_run,encounters_tick,ships_part14,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock verificada bucle de vuelo (partes 1-16) y bucle principal (partes 1-6): naves, laser, choques, recogida, atraque, partes 14 (estacion) y 15, bomba, ECM, misiles y aparicion de naves; verificados por partes con make test_laser, test_damage, test_equip, test_tactics y test_missions (MCNT baja como en el original)

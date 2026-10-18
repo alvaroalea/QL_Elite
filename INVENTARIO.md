@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 298, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 57 y pendientes de verificar: 71
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 325, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 72 y pendientes de verificar: 29
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -14,7 +14,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Area | Total | Portadas | De ellas verificadas | No verificables | No necesarias | Pendientes verificar | Pendientes implementar |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Charts | 9 | 9 | 9 | 0 | 0 | 0 | 0 |
-| Dashboard | 29 | 29 | 4 | 0 | 0 | 25 | 0 |
+| Dashboard | 29 | 29 | 28 | 1 | 0 | 0 | 0 |
 | Drawing circles | 9 | 9 | 9 | 0 | 0 | 0 | 0 |
 | Drawing lines | 27 | 23 | 20 | 3 | 4 | 0 | 0 |
 | Drawing pixels | 6 | 3 | 3 | 0 | 3 | 0 | 0 |
@@ -23,7 +23,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Drawing suns | 3 | 3 | 3 | 0 | 0 | 0 | 0 |
 | Drawing the screen | 18 | 8 | 7 | 1 | 10 | 0 | 0 |
 | Equipment | 6 | 6 | 5 | 1 | 0 | 0 | 0 |
-| Flight | 29 | 29 | 12 | 0 | 0 | 17 | 0 |
+| Flight | 29 | 29 | 15 | 14 | 0 | 0 | 0 |
 | Keyboard | 19 | 15 | 3 | 12 | 4 | 0 | 0 |
 | Loader | 5 | 0 | 0 | 0 | 5 | 0 | 0 |
 | Main loop | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
@@ -43,7 +43,7 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Universe | 34 | 32 | 32 | 0 | 2 | 0 | 0 |
 | Utility routines | 18 | 1 | 1 | 0 | 17 | 0 | 0 |
 | Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **426** | **298** | **57** | **102** | **71** | **0** |
+| **Total** | **528** | **426** | **325** | **72** | **102** | **29** | **0** |
 
 Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -72,35 +72,35 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| DIALS | Update the dashboard: speed indicator | sin-verificar | `dash_update` | velocidad, alabeo, cabeceo, 4 bancos de energia, escudos, combustible, altitud y temperaturas |
-| DIS1 | Update a bar-based indicator on the dashboard | sin-verificar | `dis1` |  |
-| DIS5 | Update the roll or pitch indicator on the dashboard | sin-verificar | `dis5` | marcador de alabeo o cabeceo (2 puntos de ancho) |
-| dialY | The screen y-coordinate of the top-left corner of each indicator | sin-verificar | `dialY` |  |
-| dialle | The threshold value for each indicator that defines low and high | sin-verificar | `dialle` |  |
-| dialc1 | The colour for each indicator for values that are below the | sin-verificar | `dialc1` |  |
-| dialc2 | The colour for each indicator for values that are on or above the | sin-verificar | `dialc2` |  |
-| cntr | Apply damping to the pitch or roll dashboard indicator | sin-verificar | `space_cntr` |  |
-| BUMP2 | Bump up the value of the pitch or roll dashboard indicator | sin-verificar | `space_bump2` |  |
-| REDU2 | Reduce the value of the pitch or roll dashboard indicator | sin-verificar | `space_redu2` |  |
-| WPSHPS | Clear the scanner, reset the ball line and sun line heaps | propia | `space_scanner_reset` | solo la parte del radar: ninguna nave figura como dibujada |
-| COMPAS | Update the compass | sin-verificar | `compas` | el acarreo de ADC |
-| SP1 | Draw the space station on the compass | sin-verificar | `compas` | estacion si SSPR |
-| SP2 | Draw a dot on the compass, given the planet/station vector | sin-verificar | `compas` |  |
-| DOT | Draw a dash on the compass | sin-verificar | `dot` |  |
+| DIALS | Update the dashboard: speed indicator | verificada | `dash_update` | indicadores, barras de aviso parpadeantes, DIS2 con su cache (dials/dialc) y COMPAS; make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| DIS1 | Update a bar-based indicator on the dashboard | verificada | `dis1` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| DIS5 | Update the roll or pitch indicator on the dashboard | verificada | `dis5` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| dialY | The screen y-coordinate of the top-left corner of each indicator | verificada | `dialY` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| dialle | The threshold value for each indicator that defines low and high | verificada | `dialle` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| dialc1 | The colour for each indicator for values that are below the | verificada | `dialc1` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| dialc2 | The colour for each indicator for values that are on or above the | verificada | `dialc2` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| cntr | Apply damping to the pitch or roll dashboard indicator | verificada | `space_cntr` | amortiguacion con DAMP y el ordenador de atraque (auto = dock_auto); make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos). Encontro que cntr no miraba auto |
+| BUMP2 | Bump up the value of the pitch or roll dashboard indicator | verificada | `space_bump2` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| REDU2 | Reduce the value of the pitch or roll dashboard indicator | verificada | `space_redu2` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| WPSHPS | Clear the scanner, reset the ball line and sun line heaps | no-verificable | `space_scanner_reset` | limpia el radar, los montones de lineas y los puntos del sol: en el port lo hacen clear_view, ships_forget_lines y space_scanner_reset (pantalla y montones propios) |
+| COMPAS | Update the compass | verificada | `compas` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| SP1 | Draw the space station on the compass | verificada | `compas` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| SP2 | Draw a dot on the compass, given the planet/station vector | verificada | `compas` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| DOT | Draw a dash on the compass | verificada | `dot` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
 | ABORT | Unarm missiles and update the dashboard indicators | verificada | `abort_missile` | dentro de las teclas de misil (make test_tactics) |
 | ABORT2 | Set/unset the lock target for a missile and update the dashboard | verificada | `abort2` | MSAR = 0 (MSBAR vuelve con Y = 0); make test_tactics |
-| msblob | Display the dashboard's missile indicators in green | sin-verificar | `dash_msblob` | NOMSL indicadores en verde y el resto apagados |
+| msblob | Display the dashboard's missile indicators in green | verificada | `dash_msblob` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
 | ECMOF | Switch off the E.C.M. and turn off the dashboard bulb | verificada | `ecm_off` | dentro de MA16..MA66 (make test_tactics) |
-| MSBARS | Draw two horizontal lines as part of an indicator bar, from | sin-verificar | `msbars` | cuatro lineas bajo Y1 con gfx_hloin |
+| MSBARS | Draw two horizontal lines as part of an indicator bar, from | verificada | `msbars` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
 | ECBLB2 | Start up the E.C.M. (light up the indicator, start the countdown | verificada | `ecm_on` | a traves de TACTICS (make test_tactics) |
-| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard | sin-verificar | `dash_ecblb` | bombilla E (XOR); la enciende y apaga el ECM |
-| SPBLB | Light up the space station indicator ("S") on the dashboard | sin-verificar | `dash_spblb` | bombilla S (estacion cerca) |
-| BULB | Draw an indicator bulb on the dashboard | sin-verificar | `bulb` | 7 x 8 puntos en XOR; posicion (192, 176) la S y (56, 176) la E |
-| ECBT | The character bitmap for the E.C.M. indicator bulb | sin-verificar | `bulb_e` |  |
-| SPBT | The bitmap definition for the space station indicator bulb | sin-verificar | `bulb_s` |  |
-| MSBAR | Draw a specific indicator in the dashboard's missile bar | sin-verificar | `msbar` | borra el color anterior y dibuja el nuevo (XOR) |
-| msloc | The screen x-coordinates of the four missile indicators on the | sin-verificar | `msloc` | x = 40, 32, 24, 16 |
-| SCAN | Display the current ship on the scanner | sin-verificar | `space_scan` | el bit 4 de INWK+31 (dibujada), colores de scacol y recorte a 146..190 como el original |
+| ECBLB | Light up the E.C.M. indicator bulb ("E") on the dashboard | verificada | `dash_ecblb` | pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P) |
+| SPBLB | Light up the space station indicator ("S") on the dashboard | verificada | `dash_spblb` | pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P) |
+| BULB | Draw an indicator bulb on the dashboard | verificada | `bulb` | pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P) |
+| ECBT | The character bitmap for the E.C.M. indicator bulb | verificada | `bulb_e` | pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P) |
+| SPBT | The bitmap definition for the space station indicator bulb | verificada | `bulb_s` | pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P) |
+| MSBAR | Draw a specific indicator in the dashboard's missile bar | verificada | `msbar` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| msloc | The screen x-coordinates of the four missile indicators on the | verificada | `msloc` | make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos) |
+| SCAN | Display the current ship on the scanner | verificada | `space_scan` | CPIX (cabeza) y VLOIN (palo) con scacol y recorte a 146..190; make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos); la llamada con color 0 no se dibuja en el port |
 
 ## Drawing circles (9 portadas de 9)
 
@@ -228,33 +228,33 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
 | DOENTRY | Dock at the space station and work out any mission progression | verificada | `missions_doentry`, `missions_choose`, `flight_run`, `combat_collide` | la decision de las sesiones informativas (EN1..EN5) verificada con make test_missions; se atraca por la ranura (ISDK), con el ordenador de atraque o, sin el, con C (provisional); energia y escudos se reponen al despegar |
-| ESCAPE | Launch our escape pod | sin-verificar | `flight_escape`, `ships_escape` | la Cobra se aleja 97 fotogramas (MVEIT + LL9), carga, FIST y capsula a cero, 70 de combustible, atraque |
+| ESCAPE | Launch our escape pod | no-verificable | `flight_escape`, `ships_escape` | orquestacion de FRS1 (verificada), 97 vueltas de MVEIT (verificada) y LL9 (verificada), SCAN y GOIN con la pantalla del port; lo propio (QQ20 = 0, FIST, ESCP = 0, QQ14 = 70) es trivial |
 | DOCKIT | Apply docking manoeuvres to the ship in INWK | verificada | `dockit` | make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c) |
 | DCS1 | Calculate the vector from the ideal docking position to the ship | verificada | `dcs1` | dentro de DOCKIT |
 | SESCP | Spawn an escape pod from the current (parent) ship | verificada | `sescp` | a traves de TACTICS (la capsula de una nave casi sin energia; make test_tactics) |
-| dockEd | Print a message to say there is no hyperspacing allowed inside the | propia | `ui_nav` | mensaje DOCKED al pulsar H o G atracado |
-| hyp | Start the hyperspace process | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
-| wW | Start a hyperspace countdown | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
-| TTX110 | Set the current system to the nearest system and return to hyp | propia | `find_system` | sistema mas cercano a la mira |
-| Ghy | Perform a galactic hyperspace jump | propia | `jump_galactic` | salto galactico |
-| ee3 | Print the hyperspace countdown in the top-left of the screen | propia | `say_hyper` | cuenta atras del hiperespacio en pantalla |
-| TT147 | Print an error when a system is out of hyperspace range | propia | `start_hyper` | mensaje de fuera de alcance |
-| MJP | Process a mis-jump into witchspace | sin-verificar | `misjump` | salto fallido: tunel, MJ = $FF, tres Thargoides (GTHG), polvo de 2, QQ1 EOR 31; la distancia en el hiperespacio se mide desde (QQ0, QQ1) |
-| TT18 | Try to initiate a jump into hyperspace | propia | `start_hyper` | inicio y cuenta atras del hiperespacio (flight.c), con jump_possible y jump_do |
-| TT110 | Launch from a station or show the front space view | transcripcion | `space_launch` | RES2, planeta delante (z_sign = 1) y estacion detras (z = -256) con SOS1 y NWSPS, DELTA = 12, FIST |= BAD; make test_space |
+| dockEd | Print a message to say there is no hyperspacing allowed inside the | no-verificable | `ui_nav` | mensaje DOCKED en la pantalla del port |
+| hyp | Start the hyperspace process | no-verificable | `start_hyper` | inicio del hiperespacio con la pantalla y las teclas del port (TT111 y jmp ya verificadas) |
+| wW | Start a hyperspace countdown | no-verificable | `start_hyper` | cuenta atras del hiperespacio con la pantalla del port |
+| TTX110 | Set the current system to the nearest system and return to hyp | no-verificable | `find_system` | seleccion del sistema mas cercano con la pantalla del port (TT111 verificada) |
+| Ghy | Perform a galactic hyperspace jump | no-verificable | `jump_galactic` | salto galactico: la rotacion de semillas esta verificada en make test_univ6502; el resto es pantalla y teclas |
+| ee3 | Print the hyperspace countdown in the top-left of the screen | no-verificable | `say_hyper` | cuenta atras impresa en la pantalla del port (TTX66 verificada) |
+| TT147 | Print an error when a system is out of hyperspace range | no-verificable | `start_hyper` | mensaje de fuera de alcance en la pantalla del port |
+| MJP | Process a mis-jump into witchspace | verificada | `misjump` | salto fallido: RES2 (SPBLB, ECMOF), MJ = $FF, tres Thargoides (version IB), NOSTM = 2, QQ1 EOR 31, vista 0; make test_flight (250 casos con RES2, ZERO, ZINF y ECMOF reales; TT66, LL164, GTHG y LOOK1 registran) |
+| TT18 | Try to initiate a jump into hyperspace | no-verificable | `start_hyper` | cuenta atras y salto con la pantalla del port; MJP (verificada) y el combustible; DORND entra con C = 0 (sin tecla) |
+| TT110 | Launch from a station or show the front space view | verificada | `space_launch` | despegue: RES2, SOS1 (INC INWK+8) y NWSPS (INWK+8 = 128, INC INWK+7), DELTA = 12, FIST |= BAD, RAND y acarreos; make test_flight (500 casos; NWSHP registra el planeta y la estacion; LAUN, TT111, HFS1 y LOOK1 registran) |
 | SHD | Charge a shield and drain some energy from the energy banks | verificada | `shd` | cae en DENGY: cargar un escudo gasta 1 de energia |
 | DENGY | Drain some energy from the energy banks | verificada | `dengy` |  |
 | OOPS | Take some damage | verificada | `oops` | escudo segun el signo de z de la nave (K%); el SBC usa el acarreo de quien llama |
-| me2 | Remove an in-flight message from the space view | propia | `dly_tick`, `flight_mess_off` | el mensaje se borra a los 20 fotogramas (DLY) |
+| me2 | Remove an in-flight message from the space view | no-verificable | `dly_tick`, `flight_mess_off` | mensaje en vuelo en la fila 24 del port |
 | WARP | Perform an in-system jump | verificada | `warp` | make test_equip (el repintado de LOOK1 lo hace flight.c) |
-| me1 | Erase an old in-flight message and display a new one | propia | `say` | mensaje en vuelo: borra el anterior y muestra el nuevo |
-| MESS | Display an in-flight message | propia | `mess`, `say` | mensaje en vuelo en la fila 24 (no en la vista) durante DLY = 20 fotogramas; los avisos propios del port usan say |
-| mes9 | Print a text token, possibly followed by " DESTROYED" | propia | `flight_mess`, `mess_de` | " DESTROYED" con la bandera de (vale para un mensaje) |
+| me1 | Erase an old in-flight message and display a new one | no-verificable | `say` | mensaje en vuelo en la fila 24 del port |
+| MESS | Display an in-flight message | no-verificable | `mess`, `say` | mensaje en vuelo en la fila 24 del port |
+| mes9 | Print a text token, possibly followed by " DESTROYED" | no-verificable | `flight_mess`, `mess_de` | mensaje en vuelo en la fila 24 del port |
 | OUCH | Potentially lose cargo or equipment following damage | verificada | `ouch` | QQ20+X con X = 0..21 (mercancias, ECM, BST, BOMB, ENGY, DKCMP) |
 | ou2 | Display "E.C.M.SYSTEM DESTROYED" as an in-flight message | verificada | `ouch` |  |
 | ou3 | Display "FUEL SCOOPS DESTROYED" as an in-flight message | verificada | `ouch` |  |
-| PLUT | Flip the coordinate axes for the four different views | sin-verificar | `plut` | ejes de INWK para las vistas trasera, izquierda y derecha |
-| LOOK1 | Initialise the space view | propia | `change_view` | cambio de vista (FLIP + mira) y redraw_all (NWSTARS + mira) al volver de una pantalla de texto |
+| PLUT | Flip the coordinate axes for the four different views | verificada | `plut` | ejes de INWK por vista (1.000 casos con PLUT real); make test_flight |
+| LOOK1 | Initialise the space view | no-verificable | `change_view` | cambio de vista con la pantalla del port (TT66, FLIP, NWSTARS y SIGHT verificadas) |
 | SIGHT | Draw the laser crosshairs | verificada | `chart_sight` | make test_draw (con sightcol) |
 
 ## Keyboard (15 portadas de 19, 4 no necesarias)

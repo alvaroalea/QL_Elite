@@ -8,4 +8,5 @@
 #define FL_DEATH 3                   /* hemos muerto (DEATH): se vuelve al titulo (DEATH2) */
 extern int flight_testkeys;          /* pruebas: N (nave), K (explotar) y C (atraque sin ordenador) */
 int flight_run(void);
+void misjump(void);                  /* MJP: salto fallido al espacio entre sistemas (para las pruebas) */
 #endif

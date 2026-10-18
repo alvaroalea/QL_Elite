@@ -213,7 +213,7 @@ static void hyper_tunnel(void)
 
 /* MJP: salto fallido al espacio entre sistemas (witchspace): otro tunel, sin planeta ni sol ni estacion, tres Thargoides con
    sus Thargons, MJ = $FF, polvo con 2 particulas y la coordenada y de la galaxia con los 5 bits bajos invertidos */
-static void misjump(void)
+void misjump(void)
 {
     hyper_tunnel();                                         /* TT66 + LL164 */
     space_reset();                                          /* RES2 */
@@ -241,7 +241,7 @@ static void arrive(void)
     hyper_tunnel();                        /* LL164: sonido de hiperespacio y tunel */
     space_scanner_clear();                 /* quita del radar lo que hubiera */
     if (!hyper_gal && jump_possible(tgt_sys)) {             /* TT18: el combustible se gasta antes de saber si llegamos */
-        if (((patg & 0x80) && key_down(K_TAB)) || em_dornd() >= 253) {   /* ee5: TAB con PATG (ptg) o 0,78 %: MJP */
+        if (((patg & 0x80) && key_down(K_TAB)) || (em_rand_c = 0, em_dornd() >= 253)) {   /* ee5: TAB con PATG (ptg) o 0,78 %: MJP (DORND entra con el C de CMP #9: 0 sin tecla) */
             unsigned d = jump_distance(tgt_sys);
             if ((patg & 0x80) && key_down(K_TAB)) cok = (u8)(cok | 1);         /* ptg: COK bit 0 */
             qq14 = (u8)(qq14 >= d ? qq14 - d : 0);

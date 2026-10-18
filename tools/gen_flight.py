@@ -52,5 +52,27 @@ for _ in range(n // 4):
     del log[:]
     cpu.y = B(); cpu.run(S['MJP'])
     out.append('J %d %d %d %d : %s : %d %d %d %d %d' % (q1, mc, ecma, sspr, ' '.join(log), m[S['MJ']], m[S['NOSTM']], m[S['QQ1']], m[S['MANY'] + S['THG']], m[S['ECMA']]))
+# ---------------------------------------------------------------- L: TT110 (RES2, SOS1, NWSPS, BAD y DORND reales; NWSHP registra INWK)
+def rb(): return random.randrange(256)
+dornd_ = routine('DORND')
+src = routine('TT110') + routine('SOS1') + routine('NWSPS') + ['.NWSHP', ' RTS'] + routine('NwS1') + routine('RES2') + routine('ZINF') + routine('ZERO') + routine('ECMOF') + routine('BAD') + dornd_
+src = [l for l in src if code(l) != 'SKIP 0']
+cpu, S = build(src, None, {'XX21': 0x2800, 'spasto': 0x2900, 'LSO': 0x2A00})
+print('stubs TT110:', sorted(k for k, v in S.items() if 0x3E00 <= v < 0x3F00), file=sys.stderr)
+m = cpu.mem; NI_ = S['NI%']
+got = []
+cpu.hooks[S['NWSHP']] = lambda c: got.append('%d:%s' % (c.a, hx(m[S['INWK']:S['INWK'] + NI_])))
+for _ in range(n // 2):
+    for k in range(0x100): m[k] = 0
+    tek, fist = rb() & 15, random.choice([0, 1, 40, 81, rb()])
+    cargo = [random.choice([0, 0, 1, 5]) for _k in range(3)]; rnd = [rb() for _k in range(4)]; c0 = rb() & 1
+    m[S['tek']] = tek; m[S['FIST']] = fist; m[S['QQ12']] = 0xFF; m[S['QQ20'] + 3], m[S['QQ20'] + 6], m[S['QQ20'] + 10] = cargo
+    m[S['RAND']:S['RAND'] + 4] = bytes(rnd); m[S['DELTA']] = rb()
+    m[S['K%']:S['K%'] + 2 * NI_] = bytes(2 * NI_); m[0x2900] = 0x11; m[0x2901] = 0x11
+    m[0x2800 + 2 * 32 - 2] = 0x22; m[0x2800 + 2 * 32 - 1] = 0x22; m[0x2802] = 0; m[0x2803] = 0
+    del got[:]; cpu.log = []; cpu.c = c0
+    cpu.run(S['TT110'])
+    dodo = {0x2222: 1, 0x1111: 0}.get(m[0x2802] | (m[0x2803] << 8), -1)
+    out.append('L %d %d %s %s %d : %d %d %d %s %d : %s' % (tek, fist, ''.join('%02x' % v for v in cargo), hx(rnd), c0, m[S['FIST']], m[S['DELTA']], m[S['QQ12']], hx(m[S['RAND']:S['RAND'] + 4]), dodo, ' '.join(got)))
 open('tests/vectors_flight.txt', 'w').write('\n'.join(out) + '\n')
 print(len(out), 'vectores')
