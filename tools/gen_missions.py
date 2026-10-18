@@ -232,6 +232,73 @@ for _ in range(20):
     tok = [x[1] for x in cpu.log if x[0] in ('DETOK', 'BRP', 'BRPS')]
     out.append('B %d | %d %d %d %d %s' % (tp, cpu.mem[S['TP']], nw[0][1], tok[-1], len(lg), ';'.join(lg)))
 
+
+# ---------------------------------------------------------------- Q: ZERO (variables que pone a 0, de FRIN a de)
+cpu, S = build(routine('ZERO'), None)
+names = ['FRIN', 'MANY', 'JUNK', 'auto', 'ECMP', 'MJ', 'CABTMP', 'LAS2', 'MSAR', 'VIEW', 'LASCT', 'GNTMP', 'HFX', 'EV', 'DLY', 'de']
+lo, hi = S['FRIN'], S['de']
+for k in range(lo - 4, hi + 5): cpu.mem[k] = 1 + random.randrange(255)
+before = bytes(cpu.mem[lo - 4:hi + 5])
+cpu.run(S['ZERO'])
+after = bytes(cpu.mem[lo - 4:hi + 5])
+assert before[:4] == after[:4] and before[-4:] == after[-4:]               # fuera del rango no toca nada
+res = []
+for i, nm in enumerate(names):
+    a0 = S[nm]; a1 = S[names[i + 1]] if i + 1 < len(names) else hi + 1
+    res.append('%s=%d' % (nm, int(all(cpu.mem[k] == 0 for k in range(a0, a1)))))
+out.append('Q %s' % ' '.join(res))
+
+
+# ---------------------------------------------------------------- U: STATUS (pantalla de estado) y A: BAY
+cpu, S = build(fix(routine('STATUS')) + ['.TT67K', ' LDA #12', ' JMP TT27'] + text, None)
+load_tables(cpu)
+text_hooks(cpu, S)
+cpu.hooks[S['TT111']] = lambda c: logev('J')
+LAS_V = [0, 0, 15, 143, 151, 50]
+for _ in range(n):
+    st = {'QQ17': pick(0, 0x80, 0xC0, 0x40, 0x80, 0), 'DTW1': pick(0, 0x20), 'DTW2': pick(0, 0xFF, 0x80),
+          'DTW3': 0, 'DTW4': pick(0, 0, 0, 0x40), 'DTW5': 0,
+          'DTW6': pick(0, 0x80), 'DTW8': pick(0xFF, 0xFF, 0xDF), 'XC': random.randrange(32), 'YC': random.randrange(24)}
+    ex = [pick(0, 0xFF, 0xFF), pick(0, 0, 1, 2, 3), pick(0, 0, rb()), pick(0, rb(), rb() | 128, rb() & 127), pick(0, 0, 1, 49, 50, 51, rb()),
+          pick(0, 0, 1, 2, 9, 10, 24, 25, 26, rb()), pick(0, 0, 0, 1, 2, 3, 4, 9, 10, 24, 25, 26, rb())]
+    ex += [pick(0, 0xFF) for _ in range(7)] + [pick(*LAS_V, rb()) for _ in range(4)]       # ESCP BST ECM BOMB ENGY DKCMP GHYP, LASER 0..3
+    qq12, junk, frinx, energy, fist, t0, t1, escp, bst, ecm, bomb, engy, dkcmp, ghyp, l0, l1, l2, l3 = ex[:5] + [ex[5], ex[6]] + ex[7:]
+    for k, v in st.items(): cpu.mem[S[k]] = v
+    gc, mj = pick(0, 1, 2, rb() & 7), pick(0, 0, 0, 0xFF)
+    rnd = [rb() for _ in range(4)]
+    sel, cur = [rb() for _ in range(6)], [rb() for _ in range(6)]
+    nm = ''.join(chr(random.randrange(65, 91)) for _ in range(random.randrange(1, 8)))
+    cpu.mem[S['GCNT']] = gc; cpu.mem[S['MJ']] = mj; cpu.mem[S['text']] = 0
+    cpu.mem[S['RAND']:S['RAND'] + 4] = bytes(rnd)
+    cpu.mem[S['QQ15']:S['QQ15'] + 6] = bytes(sel); cpu.mem[S['QQ2']:S['QQ2'] + 6] = bytes(cur)
+    cpu.mem[S['NAME']:S['NAME'] + 8] = bytes([ord(c) for c in nm] + [13] * (8 - len(nm)))
+    iw = [rb() for _ in range(37)]; k3 = [rb() for _ in range(14)]
+    cpu.mem[S['INWK']:S['INWK'] + 37] = bytes(iw); cpu.mem[S['K3']:S['K3'] + 14] = bytes(k3)
+    cash = [pick(0, 0, rb()), rb(), rb(), rb()]; q14 = pick(70, 0, rb() & 127)
+    cpu.mem[S['CASH']:S['CASH'] + 4] = bytes(cash); cpu.mem[S['QQ14']] = q14
+    cpu.mem[S['QQ12']] = qq12; cpu.mem[S['JUNK']] = junk; cpu.mem[S['ENERGY']] = energy; cpu.mem[S['FIST']] = fist
+    cpu.mem[S['FRIN'] + 2 + junk] = frinx
+    cpu.mem[S['TALLY']] = t0; cpu.mem[S['TALLY'] + 1] = t1
+    cpu.mem[S['ESCP']] = escp; cpu.mem[S['BST']] = bst; cpu.mem[S['ECM']] = ecm
+    cpu.mem[S['BOMB']] = bomb; cpu.mem[S['BOMB'] + 1] = engy; cpu.mem[S['BOMB'] + 2] = dkcmp; cpu.mem[S['BOMB'] + 3] = ghyp
+    cpu.mem[S['LASER']:S['LASER'] + 4] = bytes([l0, l1, l2, l3])
+    del ev[:]
+    cpu.c = rb() & 1
+    cpu.run(S['STATUS'], maxsteps=3000000)
+    fin = [cpu.mem[S[k]] for k in VARS]
+    out.append('U %s %s %d %d %s %s %s %s %s %s %s %d %s | %s %s' % (' '.join(str(v) for v in ex), ' '.join(str(st[k]) for k in VARS), gc, mj, hx(rnd), hx(iw), hx(k3),
+               name_of(sel) or '-', (name_of(cur) or '-') if not mj else '-', nm, hx(cash), q14, ';'.join(ev) or '-', ' '.join(map(str, fin + [cpu.mem[S['K3']]])),
+               hx(cpu.mem[S['RAND']:S['RAND'] + 4])))
+
+# BAY: QQ12 = $FF y FRCE con A = f8 (la pantalla de estado)
+cpu, S = build(routine('BAY'), None)
+frce = []
+cpu.hooks[S['FRCE']] = lambda c: frce.append(c.a)
+for _ in range(8):
+    q = rb(); cpu.mem[S['QQ12']] = q; del frce[:]
+    cpu.run(S['BAY'])
+    out.append('A %d | %d %d %d' % (q, cpu.mem[S['QQ12']], frce[0], S['f8']))
+
 # ---------------------------------------------------------------- E: aparicion de naves (partes 1 a 4)
 i2 = [k for k in range(lab('ytq'), lab('MTT1')) if code(L[k]) == 'LDA MJ'][0]
 enc = rng(lab('MTT4'), lab('TT100')) + ['.TT100', ' RTS', '.ytq', ' JMP MLOOP', '.ENC'] + rng(i2, lab('MLOOP')) + ['.MLOOP', ' RTS'] + \

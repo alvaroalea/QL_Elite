@@ -191,6 +191,7 @@ void space_launch(void)
 {
     space_reset();                               /* RES2 */
     ships_launch();                              /* SOS1 y NWSPS */
+    game_tt111();                                /* TT110: TT111 al despegar */
     zDELTA = 12;                                 /* velocidad de lanzamiento */
     fist = (u8)(fist | space_bad());             /* JSR BAD; ORA FIST */
 }

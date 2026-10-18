@@ -153,42 +153,9 @@ static int wait_nav(void)
 
 int scr_status(void)
 {
-    int row, i;
-    static const char *vname[4] = { "Front", "Rear", "Left", "Right" };
-    char title[24];
-    int n = 0;
-    const char *p = "COMMANDER ";
-    while (*p) title[n++] = *p++;
-    for (p = cmdr_name; *p && n < 22; p++) title[n++] = *p;
-    title[n] = 0;
-
-    ui_clear();
-    ui_title(title);
-    lbl(2, "Present System:");   val(19, 2); txt_puts(uni_galaxy[cur_sys].name);
-    lbl(3, "Hyperspace System:"); val(19, 3); txt_puts(uni_galaxy[tgt_sys].name);
-    lbl(4, "Condition:");        val(19, 4); txt_puts(qq12 ? "Docked" : "Green");
-    lbl(5, "Fuel:");             val(19, 5); ui_tenths(qq14); txt_puts(" LY");
-    lbl(6, "Cash:");             val(19, 6); ui_tenths(cash_get()); txt_puts(" Cr");
-    lbl(7, "Legal Status:");     val(19, 7); txt_puts(legal_name());
-    lbl(8, "Rating:");           val(19, 8); txt_puts(rating_name());
-    txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 10, "EQUIPMENT:");
+    missions_set_ink(C_WHITE);
+    status_mode();                                     /* STATUS del original con el motor de fichas */
     txt_color(C_WHITE, C_BLACK);
-    row = 11;
-    if (nomsl) { txt_at(1, row); txt_puts("Missiles: "); ui_num(nomsl, 0); row++; }
-    if (crgo > 22) { txt_print_at(1, row++, "Large Cargo Bay"); }
-    if (escp) { txt_print_at(1, row++, "Escape Pod"); }
-    if (bst) { txt_print_at(1, row++, "Fuel Scoops"); }
-    if (ecm_fitted) { txt_print_at(1, row++, "E.C.M.System"); }
-    if (bomb) { txt_print_at(1, row++, "Energy Bomb"); }
-    if (engy) { txt_print_at(1, row++, "Energy Unit"); }
-    if (dkcmp) { txt_print_at(1, row++, "Docking Computer"); }
-    if (ghyp) { txt_print_at(1, row++, "Galactic Hyperdrive"); }
-    for (i = 0; i < 4; i++) {
-        if (!laser[i]) continue;
-        txt_at(1, row++);
-        txt_puts(vname[i]); txt_puts(": "); txt_puts(laser_name(laser[i]));
-    }
     ui_footer();
     return wait_nav();
 }
@@ -404,7 +371,9 @@ int scr_equip(void)
 
 int scr_data(void)
 {
-    unsigned d = jump_distance(tgt_sys);
+    unsigned d;
+    game_tt111();                                      /* TT102 (f6): TT111 y TT25 */
+    d = jump_distance(tgt_sys);
     qq8[0] = (u8)d; qq8[1] = (u8)(d >> 8);
     missions_set_ink(C_WHITE);
     tt25(tgt_sys);                                     /* TT25 del original con el motor de fichas (y PDESC) */
@@ -472,7 +441,8 @@ int scr_chart(int local)
                 found = chart_find_system(name);
                 if (found >= 0) {
                     chart_cursor(local);
-                    game_set_target(found);
+                    game_set_target(found);              /* HME5: QQ9/QQ10 del encontrado */
+                    game_tt111();                        /* y TT111 */
                     chart_cursor(local);
                     chart_info(local);
                     ui_msg("FOUND", 0);

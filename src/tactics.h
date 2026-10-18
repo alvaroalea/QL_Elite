@@ -14,6 +14,7 @@
 #define MESS_JAMMED 201                  /* "MISSILE JAMMED" */
 
 extern u8 ecma;                          /* ECMA: cuenta del ECM que esta sonando */
+extern void (*tac_msbar_hook)(u8 x, u8 col);   /* pruebas: cada MSBAR de ABORT/ABORT2 */
 extern u8 msar;                          /* MSAR: el misil armado busca blanco */
 
 void tactics(void);                      /* TACTICS sobre INWK (X = TYPE) */

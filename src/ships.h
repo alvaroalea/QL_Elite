@@ -16,6 +16,7 @@ void ship_zinf(void);                            /* ZINF: INWK a cero con la ori
 int  ship_new(u8 type);                          /* NWSHP: anade la nave de INWK a la primera ranura libre; -1 si no cabe */
 void ship_kill(int slot);                        /* KILLSHP: quita la nave y desplaza las demas */
 void ks2(int slot);                              /* KS2: reajusta los blancos de los misiles tras quitar la ranura */
+void ships_zero(void);                           /* ZERO: FRIN..de a 0 (ver ships.c) */
 void ships_clear(void);                          /* ninguna nave */
 void ships_launch(void);                         /* planeta (ranura 0) y estacion (ranura 1) al despegar (SOLAR y NWSPS) */
 void ships_arrive(void);

@@ -58,7 +58,8 @@ void ecm_frame(void)
 
 /* ---------------------------------------------------------------- nuestros misiles */
 
-void missile_bar(u8 col) { dash_msbar(nomsl, col); }
+void (*tac_msbar_hook)(u8 x, u8 col) = 0;        /* pruebas: cada MSBAR (indicador, color) */
+void missile_bar(u8 col) { if (tac_msbar_hook) tac_msbar_hook(nomsl, col); dash_msbar(nomsl, col); }
 
 /* ABORT2: blanco del misil = slot (o $FF), indicador del misil con color col, MSAR = 0 */
 void abort2(u8 slot, u8 col)

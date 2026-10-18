@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "equip.h"
+#include "tactics.h"
 #include "dockit.h"
 #include "combat.h"
 #include "state.h"
@@ -28,13 +29,16 @@ static int hexb(const char *s, u8 *out, int n)
     return 1;
 }
 static void bl(u8 a, u8 b, u8 c, u8 d) { char t[32]; sprintf(t, "%s%d,%d,%d,%d", got[0] ? " " : "", a, b, c, d); strcat(got, t); }
+static char evb[400]; static int evn;
+static void ev_msbar(u8 x, u8 col) { char b[24]; sprintf(b, "%sB%d.%d", evn++ ? ";" : "", x, col); strcat(evb, b); }
+static void ev_mess(u8 t) { char b[24]; sprintf(b, "%sM%d", evn++ ? ";" : "", t); strcat(evb, b); }
 static int same_but(const u8 *a, const u8 *b) { int i; for (i = 0; i < NI; i++) if (i != 31 && i != 33 && i != 34 && i != 35 && i != 36 && a[i] != b[i]) return 0; return 1; }
 
 int main(void)
 {
     FILE *f = fopen("tests/vectors_equip.txt", "r");
-    char a[24][300];
-    int cnt[6] = { 0, 0, 0, 0, 0, 0 };
+    static char a[24][800];
+    int cnt[7] = { 0, 0, 0, 0, 0, 0, 0 };
     if (!f) { printf("falta tests/vectors_equip.txt (make test_equip con ELITE_SRC)\n"); return 1; }
     plat_init();
     state_clear();
@@ -42,7 +46,7 @@ int main(void)
     while (fgets(cur, sizeof cur, f)) {
         int na = 0; char *pp = cur, *e;
         if ((e = strchr(cur, '\n')) != 0) *e = 0;
-        while (na < 24 && sscanf(pp, "%299s", a[na]) == 1) { pp = strstr(pp, a[na]) + strlen(a[na]); na++; }
+        while (na < 24 && sscanf(pp, "%799s", a[na]) == 1) { pp = strstr(pp, a[na]) + strlen(a[na]); na++; }
         if (na == 0) continue;
         got[0] = 0;
         switch (a[0][0]) {
@@ -116,10 +120,38 @@ int main(void)
             mstg = 0xFF;
             cnt[5]++;
             break; }
+        case 'R': {            /* R ok nomsl delta mstg type msar fr0 k0 | ev nomsl fr slots */
+            u8 fr0[9], k0[9 * NI], fr1[9], sl1[9 * NI];
+            int i, ok_, k, nf = 0;
+            char *ex = a[10];
+            hexb(a[7], fr0, 9); hexb(a[8], k0, 9 * NI); hexb(a[12], fr1, 9); for (i = 0; i < 9; i++) hexb(a[13] + i * (2 * NI + 1), sl1 + i * NI, NI);
+            ships_clear();
+            for (i = 0; i < 9; i++) { frin[i] = fr0[i]; memcpy(state_slot(i), k0 + i * NI, NI); }
+            if (!atoi(a[1])) for (i = 3; i < NOSH; i++) if (!frin[i]) frin[i] = 7;       /* sin ranura libre: FRS1 falla */
+            nomsl = (u8)atoi(a[2]); zDELTA = (u8)atoi(a[3]); mstg = (u8)atoi(a[4]); ztype = (u8)atoi(a[5]); msar = (u8)atoi(a[6]);
+            evn = 0; evb[0] = 0;
+            tac_msbar_hook = ev_msbar; combat_mess_hook = ev_mess;
+            frmis();
+            tac_msbar_hook = 0; combat_mess_hook = 0;
+            (void)k; (void)nf;
+            /* orden de los eventos del 6502: N (NWSHP), luego M (MESS) o B (MSBAR) y S (SOHISS) */
+            sprintf(got, "N%d;%s%s", SHIPT_MISSILE, evb, atoi(a[1]) ? ";S120" : "");
+            ok_ = strcmp(got, ex) == 0 && nomsl == atoi(a[11]);
+            if (atoi(a[1])) {                    /* el blanco: bytes 28, 30, 32 y 36 de su bloque; la estacion (ranura 1): byte 36 */
+                int t = atoi(a[4]);
+                u8 *e = sl1 + t * NI, *g = state_slot(t);
+                ok_ = ok_ && g[28] == e[28] && g[30] == e[30] && g[32] == e[32] && g[36] == e[36] && state_slot(1)[36] == sl1[NI + 36];
+                ok_ = ok_ && msar == 0 && mstg == 0xFF;
+            }
+            sprintf(got + strlen(got), " nomsl %d msar %d mstg %d", nomsl, msar, mstg);
+            check(ok_, "FRMIS");
+            mstg = 0xFF;
+            cnt[6]++;
+            break; }
         }
     }
     fclose(f);
-    printf("6502: bomba %d, WARP %d, DOCKIT %d, DOKEY %d, GTHG %d, FRS1 %d\n", cnt[0], cnt[1], cnt[2], cnt[3], cnt[4], cnt[5]);
+    printf("6502: bomba %d, WARP %d, DOCKIT %d, DOKEY %d, GTHG %d, FRS1 %d, FRMIS %d\n", cnt[0], cnt[1], cnt[2], cnt[3], cnt[4], cnt[5], cnt[6]);
     /* ---- propias: la bomba en el bucle por nave (parte 4), su ciclo (partes 3 y 16), ESCAPE y GTHG en MJP */
     {
         int k, nv, nsst, nthg, ncon, nbomb = 0;

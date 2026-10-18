@@ -13,6 +13,7 @@ extern void (*mis_ll9_hook)(void);     /* LL9 y MVEIT del Constrictor de BRIEF (
 extern void (*mis_mveit_hook)(void);
 int  missions_choose(void);        /* la parte de DOENTRY que decide la sesion informativa (MIS_*) */
 void missions_hooks(void);         /* conecta el motor de fichas con la pantalla, el teclado y los nombres */
+int  bay(void);                    /* BAY: QQ12 = $FF y pantalla de estado */
 int  missions_doentry(void);       /* DOENTRY tras atracar: RES2 y la sesion informativa que toque; devuelve SC_STATUS (BAY) */
 int  brief(void);                  /* BRIEF: mision 1, con el Constrictor girando */
 int  brief2(void);                 /* BRIEF2: mision 2, ir a Ceerdi */
@@ -35,5 +36,7 @@ void clyns(void);                   /* CLYNS */
 int  pdesc(u8 zz, const u8 *q15);  /* PDESC: descripcion especial del sistema zz (1) o, con q15 (QQ15), la normal (0) */
 void tt25_raw(const u8 *q15, u8 q3, u8 q4, u8 q5, u8 q6, u8 p7lo, u8 p7hi, u8 d8lo, u8 d8hi, u8 zz);  /* TT25 */
 void tt25(int n);                  /* TT25: datos del sistema n (QQ8 = distancia) */
+void status_mode(void);            /* STATUS: pantalla de estado (fichas del original) */
+extern void (*mis_tt111_hook)(void);  /* TT111 de STATUS (las pruebas lo sustituyen) */
 void missions_set_ink(u8 c);       /* color de las letras del motor de fichas */
 #endif

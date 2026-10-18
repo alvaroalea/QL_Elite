@@ -58,3 +58,4 @@ void state_clear(void)
     zero(tribble, 2); tallyl = nomsl = fist = 0; zero(avl, 17); zero(tally, 2); tp = cok = svc = 0;
     for (i = 0; i <= NOSH; i++) univ[i] = state_slot(i);
 }
+u8  enc_ev;                   /* EV: retraso de las naves extra (encounters.c; ZERO lo pone a 0) */

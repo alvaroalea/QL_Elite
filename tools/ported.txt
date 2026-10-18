@@ -73,7 +73,7 @@ TT208 trade_sell verificada
 EQSHP equip_buy sin-verificar la pantalla es scr_equip (propia); equip_buy lleva las reglas, el cobro y el reembolso
 refund laser_refund sin-verificar
 PRXS equip_price sin-verificar
-STATUS scr_status sin-verificar maquetacion propia; rango y estado legal en rating_name / legal_name
+STATUS status_mode,scr_status,rating_name,legal_name verificada transcripcion literal con el motor de fichas (titulo, estado, rango, equipo y lasers, letra a letra con columna y fila, TRADEMODE y TT111 registran); 800 casos, make test_missions
 TT213 scr_inventory sin-verificar maquetacion propia
 TT167 scr_market sin-verificar maquetacion propia
 SVE scr_disk propia
@@ -230,7 +230,7 @@ DELAY - no-necesaria retardo por bucles de instrucciones; el port espera por fot
 CLDELAY - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
 WSCAN - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
 backtonormal - no-necesaria desactiva el teclado del BBC y vuelve con A = 0; no aplica
-ZERO ships_clear propia reinicio de la burbuja local: ranuras, contadores y montones de lineas
+ZERO ships_zero,ships_clear verificada pone a 0 FRIN..de (FRIN, MANY, JUNK, auto, ECMP, MJ, CABTMP, LAS2, MSAR, VIEW, LASCT, GNTMP, HFX, EV, DLY y de): el 6502 los limpia y no toca nada fuera; ships_zero limpia todos los del C (HFX no existe en el port), make test_missions
 Disk - no-necesaria variables de las operaciones de disco y de la RWTS del DOS 3.3: el QL usa QDOS
 UP - no-necesaria variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3
 Option - no-necesaria variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3
@@ -266,8 +266,8 @@ RES2 space_reset,ships_clear propia reinicia las variables de vuelo
 TT170 game_run propia punto de entrada del juego (app.c)
 TITLE scr_title propia pantalla de titulo con la nave que gira
 BR1 scr_title,scr_disk propia el titulo ofrece cargar un comandante por el menu de disco
-cmn scr_status propia nombre del comandante en la pantalla de estado
-BAY scr_status propia pantalla de estado al atracar
+cmn cmn verificada nombre del comandante con TT26 (ficha 4 de TT27 y titulo de STATUS), make test_missions
+BAY bay verificada QQ12 = $FF y FRCE con f8 (pantalla de estado), make test_missions; brp y DOENTRY acaban en bay
 NLI4 nlin4 no-verificable guiones bajo la fila 1 en el modo texto del Apple II; el QL no tiene modo texto y NLIN4 dibuja siempre la linea de NLIN2 en y = 19 (en medio de la fila 2)
 NLIN3 ui_title no-verificable titulo con la linea que lo subraya (menu.c); en las pantallas de misiones, TT27 + nlin4 (dt_nlin4_hook)
 NLIN4 nlin4 verificada make test_draw (modo grafico: NLIN2 con y = 19)
@@ -429,8 +429,8 @@ GTHG gthg verificada make test_equip
 FRS1 frs1 verificada make test_equip
 # --- 2026-10-17 duodecima ronda: TACTICS y misiles (make test_tactics contra el 6502)
 TACTICS tactics verificada las 7 partes (la 7 en dockit.c); 20.000 casos con nave hija, misiles, laser, ECM, capsula
-FRMIS frmis,missile_fire sin-verificar FRS1 (verificada) + ANGRY + ABORT; cae en ANGRY con la A que deja SOHISS (sonido desactivado: 0)
-FR1 fr1 propia MISSILE JAMMED (mensaje)
+FRMIS frmis,missile_fire verificada FRS1, GINF, ANGRY y ABORT reales: eventos de NWSHP, MESS, MSBAR (indicador y color) y SOHISS, NOMSL y el blanco; 1.500 casos (MSBAR con color BLACK deja A = 0 y FRMIS cae en ANGRY con ella), make test_equip; el argumento 120 de SOHISS no se captura desde el C
+FR1 fr1 verificada MISSILE JAMMED (ficha 201 de MESS) cuando FRS1 no cabe, dentro de FRMIS en make test_equip
 SFRMIS sfrmis verificada a traves de TACTICS
 KS2 ks2 verificada make test_tactics
 # --- misiones y motor de fichas (2026-10-17)
@@ -543,9 +543,9 @@ TT24 uni_make_system verificada las 8 galaxias x 256 sistemas (semillas, economi
 TT81 uni_build_galaxy verificada las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502
 cpl uni_make_system,name verificada las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502
 ypl name verificada nombre del sistema actual (cpl sobre QQ2), make test_univ6502 y make test_missions
-TT111 uni_nearest,uni_distance verificada sistema mas cercano y distancia QQ8 para 2.000 puntos de las 8 galaxias, make test_univ6502
+TT111 uni_nearest,uni_distance,game_tt111 verificada sistema mas cercano y distancia QQ8 para 2.000 puntos de las 8 galaxias, make test_univ6502; TT111 desde las coordenadas del elegido (re-seleccion: hyp, TT110, STATUS, f6, HME5, QU5) con game_tt111, comparado en el caso N (gemelos de menor indice)
 jmp game_enter_system,jump_do verificada QQ0/QQ1 = QQ9/QQ10, make test_univ6502
-hyp1 jump_do,game_enter_system transcripcion TT111 y jmp verificados (make test_univ6502); copia de semillas, EV = 0, economia, nivel y gobierno del sistema nuevo
+hyp1 jump_do,game_enter_system verificada la entrada que usa el juego (hyp1+3, desde TT18): jmp, safehouse en QQ2, EV = 0, QQ28/tek/gov; 1.000 casos con make test_univ6502. El JSR TT111 de hyp1 no lo usa ningun camino del juego; la re-seleccion por TT111 (gemelos) esta en game_tt111
 GVL uni_gen_market,game_enter_system verificada QQ26 con DORND y disponibilidad AVL, make test_univ6502
 TT151 uni_gen_market verificada precio de cada articulo (QQ24 * 4 con GC2), make test_univ6502; la pantalla del mercado es propia
 var uni_gen_market verificada economia * factor, dentro de GVL y TT151 (make test_univ6502)
@@ -558,4 +558,4 @@ ZINF ship_zinf verificada make test_univ6502
 UNIV state_slot verificada K% + n * NI%, comprobado en las secuencias de NWSHP/KILLSHP (make test_univ6502)
 NwS1 nwsps verificada dentro de NWSPS (make test_missions)
 spasto ship_bp_for verificada plano de la estacion: Dodo con nivel tecnologico >= 10 (NWSPS, make test_missions)
-ping chart_ping transcripcion QQ9/QQ10 = QQ0/QQ1
+ping chart_ping_set,chart_ping verificada QQ9/QQ10 = QQ0/QQ1, 250 casos con make test_univ6502

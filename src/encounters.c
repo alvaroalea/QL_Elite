@@ -6,7 +6,7 @@
 #include "game.h"
 #include "universe.h"
 
-u8 enc_ev;                                       /* EV: retraso de las naves extra */
+/* enc_ev (EV) se define en state.c: ZERO (ships_zero) lo pone a 0 */
 u8 enc_c;                                        /* acarreo con que termina (lo usa el siguiente DORND del llamante) */
 
 /* THERE: C = 1 si estamos en el sistema del Constrictor (galaxia 2, la 1 internamente; sistema 144, 33) */

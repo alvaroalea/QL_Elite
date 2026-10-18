@@ -5,7 +5,7 @@ Generado por `tools/inventory.py` a partir de la fuente de referencia (Mark Moxo
 ## Resumen
 
 - Rutinas de la fuente: **528**
-- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 261, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 7 y pendientes de verificar: 158
+- **Portadas** (con la funcion C que las cubre): **426**, de ellas verificadas contra el 6502: 269, **no verificables** (dependen del hardware del Apple II o de pantallas propias; no se vuelven a pedir): 7 y pendientes de verificar: 150
 - **No necesarias** en la version QL (cargador, proteccion anticopia, RWTS del DOS, tablas de HGR, utilidades que da el compilador de C, etc.): **102**
 - **Sin portar** (pendientes de implementar, incluidas las parciales): **0**
 
@@ -36,14 +36,14 @@ Comprobacion: total = portadas + no necesarias + sin portar (528 = 426 + 102 + 0
 | Sound | 13 | 11 | 1 | 0 | 2 | 10 | 0 |
 | Stardust | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
 | Start and end | 8 | 8 | 0 | 0 | 0 | 8 | 0 |
-| Status | 7 | 7 | 4 | 0 | 0 | 3 | 0 |
-| Tactics | 8 | 7 | 5 | 0 | 1 | 2 | 0 |
+| Status | 7 | 7 | 7 | 0 | 0 | 0 | 0 |
+| Tactics | 8 | 7 | 7 | 0 | 1 | 0 | 0 |
 | Text | 77 | 73 | 70 | 3 | 4 | 0 | 0 |
 | Tube | 1 | 0 | 0 | 0 | 1 | 0 | 0 |
-| Universe | 34 | 32 | 30 | 0 | 2 | 2 | 0 |
-| Utility routines | 18 | 1 | 0 | 0 | 17 | 1 | 0 |
+| Universe | 34 | 32 | 32 | 0 | 2 | 0 | 0 |
+| Utility routines | 18 | 1 | 1 | 0 | 17 | 0 | 0 |
 | Workspaces | 7 | 0 | 0 | 0 | 7 | 0 | 0 |
-| **Total** | **528** | **426** | **261** | **7** | **102** | **158** | **0** |
+| **Total** | **528** | **426** | **269** | **7** | **102** | **150** | **0** |
 
 Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (incluye los equivalentes propios); *No verificables* = portadas que no tienen equivalente comparable en el original (estado no-verificable: no se piden en las rondas de verificacion); *Pendientes verificar* = estados transcripcion, sin-verificar y propia; *Pendientes implementar* = sin portar o parciales.
 
@@ -549,12 +549,12 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 
 | Rutina | Resumen | Estado | C | Nota |
 |---|---|---|---|---|
-| STATUS | Show the Status Mode screen | sin-verificar | `scr_status` | maquetacion propia; rango y estado legal en rating_name / legal_name |
-| cmn | Print the commander's name | propia | `scr_status` | nombre del comandante en la pantalla de estado |
+| STATUS | Show the Status Mode screen | verificada | `status_mode`, `scr_status`, `rating_name`, `legal_name` | transcripcion literal con el motor de fichas (titulo, estado, rango, equipo y lasers, letra a letra con columna y fila, TRADEMODE y TT111 registran); 800 casos, make test_missions |
+| cmn | Print the commander's name | verificada | `cmn` | nombre del comandante con TT26 (ficha 4 de TT27 y titulo de STATUS), make test_missions |
 | fwl | Print fuel and cash levels | verificada | `dt_fwl` | combustible y dinero, make test_missions |
 | csh | Print the current amount of cash | verificada | `dt_csh` | dinero con BPRNT (9 cifras y punto), make test_missions |
 | BAD | Calculate how bad we have been | verificada | `space_bad`, `bad`, `legal_name` | carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name |
-| BAY | Go to the docking bay (i.e. show the Status Mode screen) | propia | `scr_status` | pantalla de estado al atracar |
+| BAY | Go to the docking bay (i.e. show the Status Mode screen) | verificada | `bay` | QQ12 = $FF y FRCE con f8 (pantalla de estado), make test_missions; brp y DOENTRY acaban en bay |
 | EXNO2 | Process us making a kill | verificada | `exno2` | TALLY con KWL%/KWH% y mensaje 101; el sonido es snd_exno2 |
 
 ## Tactics (7 portadas de 8, 1 no necesarias)
@@ -564,9 +564,9 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | TACTICS | Apply tactics: Process missiles, both enemy missiles and our own | verificada | `tactics` | las 7 partes (la 7 en dockit.c); 20.000 casos con nave hija, misiles, laser, ECM, capsula |
 | HITCH | Work out if the ship in INWK is in our crosshairs | verificada | `hitch` | incluido el borde del area de impacto |
 | FRS1 | Launch a ship straight ahead of us, below the laser sights | verificada | `frs1` | make test_equip |
-| FRMIS | Fire a missile from our ship | sin-verificar | `frmis`, `missile_fire` | FRS1 (verificada) + ANGRY + ABORT; cae en ANGRY con la A que deja SOHISS (sonido desactivado: 0) |
+| FRMIS | Fire a missile from our ship | verificada | `frmis`, `missile_fire` | FRS1, GINF, ANGRY y ABORT reales: eventos de NWSHP, MESS, MSBAR (indicador y color) y SOHISS, NOMSL y el blanco; 1.500 casos (MSBAR con color BLACK deja A = 0 y FRMIS cae en ANGRY con ella), make test_equip; el argumento 120 de SOHISS no se captura desde el C |
 | ANGRY | Make a ship or station hostile, and if this is a ship then enable | verificada | `angry` | escribe en el bloque K% (INF); la estacion es la ranura 1 |
-| FR1 | Display the "missile jammed" message | propia | `fr1` | MISSILE JAMMED (mensaje) |
+| FR1 | Display the "missile jammed" message | verificada | `fr1` | MISSILE JAMMED (ficha 201 de MESS) cuando FRS1 no cabe, dentro de FRMIS en make test_equip |
 | yetanotherrts | Contains an RTS | no-necesaria |  | contiene solo un RTS |
 | SFRMIS | Add an enemy missile to our local bubble of universe | verificada | `sfrmis` | a traves de TACTICS |
 
@@ -667,7 +667,7 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | SFS1 | Spawn a child ship from the current (parent) ship | verificada | `sfs1` | nave hija desde K%; velocidad de los restos = X de DORND AND 15; acarreos modelados |
 | PDESC | Print the system's extended description or a mission 1 directive | verificada | `pdesc` | descripciones especiales y la normal con la ficha 5 del original (RAND = QQ15+2..5); NRU% = 26; make test_missions |
 | GINF | Fetch the address of a ship's data block into INF | no-necesaria |  | el puntero INF no existe en C: se indexa por ranura |
-| ping | Set the selected system to the current system | transcripcion | `chart_ping` | QQ9/QQ10 = QQ0/QQ1 |
+| ping | Set the selected system to the current system | verificada | `chart_ping_set`, `chart_ping` | QQ9/QQ10 = QQ0/QQ1, 250 casos con make test_univ6502 |
 | TT20 | Twist the selected system's seeds four times | verificada | `uni_make_system`, `tweakseed` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
 | TT54 | Twist the selected system's seeds | verificada | `uni_make_system`, `tweakseed` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
 | TT146 | Print the distance to the selected system in light years | verificada | `tt25_raw` | distancia con pr5 y LIGHT YEARS, make test_missions |
@@ -675,9 +675,9 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | TT25 | Show the Data on System screen | verificada | `tt25`, `tt25_raw`, `scr_data` | pantalla de datos del sistema del original con el motor de fichas (missions.c), make test_missions (letra a letra, con TT24 y PDESC reales) |
 | TT24 | Calculate system data from the system seeds | verificada | `uni_make_system` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
 | TT81 | Set the selected system's seeds to those of system 0 | verificada | `uni_build_galaxy` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
-| TT111 | Set the current system to the nearest system to a point | verificada | `uni_nearest`, `uni_distance` | sistema mas cercano y distancia QQ8 para 2.000 puntos de las 8 galaxias, make test_univ6502 |
+| TT111 | Set the current system to the nearest system to a point | verificada | `uni_nearest`, `uni_distance`, `game_tt111` | sistema mas cercano y distancia QQ8 para 2.000 puntos de las 8 galaxias, make test_univ6502; TT111 desde las coordenadas del elegido (re-seleccion: hyp, TT110, STATUS, f6, HME5, QU5) con game_tt111, comparado en el caso N (gemelos de menor indice) |
 | jmp | Set the current system to the selected system | verificada | `game_enter_system`, `jump_do` | QQ0/QQ1 = QQ9/QQ10, make test_univ6502 |
-| hyp1 | Process a jump to the system closest to (QQ9, QQ10) | transcripcion | `jump_do`, `game_enter_system` | TT111 y jmp verificados (make test_univ6502); copia de semillas, EV = 0, economia, nivel y gobierno del sistema nuevo |
+| hyp1 | Process a jump to the system closest to (QQ9, QQ10) | verificada | `jump_do`, `game_enter_system` | la entrada que usa el juego (hyp1+3, desde TT18): jmp, safehouse en QQ2, EV = 0, QQ28/tek/gov; 1.000 casos con make test_univ6502. El JSR TT111 de hyp1 no lo usa ningun camino del juego; la re-seleccion por TT111 (gemelos) esta en game_tt111 |
 | GVL | Calculate the availability of market items | verificada | `uni_gen_market`, `game_enter_system` | QQ26 con DORND y disponibilidad AVL, make test_univ6502 |
 | GTHG | Spawn a Thargoid ship and a Thargon companion | verificada | `gthg` | make test_equip |
 | cpl | Print the selected system name | verificada | `uni_make_system`, `name` | las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502 |
@@ -708,7 +708,7 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | SWAPPZERO | An unused routine that swaps bytes in and out of zero page | no-necesaria |  | sin uso en el original (intercambio de la pagina cero) |
 | brkd | A flag that indicates whether a system error has occurred | no-necesaria |  | manejador de errores BRK del 6502; el runtime de C se ocupa de los errores |
 | BRBR | The standard BRKV handler for the game | no-necesaria |  | manejador de errores BRK del 6502; el runtime de C se ocupa de los errores |
-| ZERO | Reset the local bubble of universe and ship status | propia | `ships_clear` | reinicio de la burbuja local: ranuras, contadores y montones de lineas |
+| ZERO | Reset the local bubble of universe and ship status | verificada | `ships_zero`, `ships_clear` | pone a 0 FRIN..de (FRIN, MANY, JUNK, auto, ECMP, MJ, CABTMP, LAS2, MSAR, VIEW, LASCT, GNTMP, HFX, EV, DLY y de): el 6502 los limpia y no toca nada fuera; ships_zero limpia todos los del C (HFX no existe en el port), make test_missions |
 | ZEBC | Zero-fill pages $B and $C | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
 | ZES1 | Zero-fill the page whose number is in X | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |
 | ZES2 | Zero-fill a specific page | no-necesaria |  | relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas |

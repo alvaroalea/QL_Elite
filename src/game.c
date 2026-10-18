@@ -58,6 +58,11 @@ void game_set_target(int idx)
     qq8[1] = (u8)(jump_distance(idx) >> 8); qq8[0] = (u8)jump_distance(idx);
 }
 
+/* TT111: el sistema mas cercano a (QQ9, QQ10) pasa a ser el elegido (y la mira se coloca en el). Con un sistema elegido, QQ9/QQ10
+   son sus coordenadas: si otro de menor indice esta a distancia 0 (un "gemelo", 38 de los 2.048 sistemas) la seleccion pasa a
+   ese, como en el original. NOTA (futuro): decidir si se hace algo con los gemelos; hoy se deja igual que el original */
+void game_tt111(void) { game_set_target(uni_nearest(qq9, qq10)); }
+
 void game_target_only(int idx)
 {
     tgt_sys = idx;
@@ -94,6 +99,7 @@ void game_new(void)
     make_market();
     for (i = 0; i < NGOODS; i++) mkt.quantity[i] = avl[i];
     qq12 = 0xFF;                                     /* atracado */
+    game_tt111();                                    /* QU5: ping (game_enter_system) y TT111 */
 }
 
 void game_after_load(void)
@@ -106,6 +112,7 @@ void game_after_load(void)
     make_market();
     for (i = 0; i < NGOODS; i++) mkt.quantity[i] = avl[i];     /* existencias tal como se guardaron */
     qq12 = 0xFF;
+    game_tt111();                                    /* QU5: ping y TT111 */
 }
 
 /* ---------------- comercio ---------------- */

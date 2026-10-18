@@ -17,6 +17,7 @@ void chart_tt16(int local, u8 x, u8 y);  /* TT16: mueve la mira (X a la derecha,
 void chart_draw(int local);           /* dibuja la carta completa (sobre pantalla ya borrada) */
 void chart_sight(u8 view);            /* SIGHT: mira del laser de la vista (0..3) en la vista espacial */
 void chart_cursor(int local);         /* TT103: cruz del sistema objetivo (XOR: dos llamadas la borran) */
+void chart_ping_set(void);        /* ping sin dibujar */
 void chart_ping(int local);           /* ping + TT103: el cursor vuelve al sistema actual (tecla O) */
 void chart_hm(int local);             /* hm: sistema mas cercano al cursor + cruz (tecla D) */
 int  chart_find_system(const char *name);   /* HME2: indice del sistema con ese nombre (sin mayusculas), o -1 */

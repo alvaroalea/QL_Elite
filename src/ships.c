@@ -13,6 +13,7 @@
 #include "damage.h"
 #include "tactics.h"
 #include "dash.h"
+#include "encounters.h"
 
 static u8 heaps[NOSH][HEAP_BYTES];
 
@@ -130,9 +131,21 @@ void ship_kill(int n)
     ks2(n);
 }
 
+/* ZERO: pone a 0 desde FRIN hasta "de" (inclusive): FRIN, MANY (con SSPR), JUNK, auto, ECMP, MJ, CABTMP, LAS2, MSAR, VIEW,
+   LASCT, GNTMP, HFX, EV, DLY y de. HFX (efecto del hiperespacio) no existe en el port */
+void ships_zero(void)
+{
+    int n;
+    for (n = 0; n <= NOSH; n++) frin[n] = 0;
+    for (n = 0; n <= NTY; n++) many[n] = 0;
+    junk_count = 0; dock_auto = 0; ecmp = 0; mj = 0; cabtmp = 0; las2 = 0; msar = 0; space_view = 0; lasct = 0; gntmp = 0;
+    enc_ev = 0; dly = 0; mess_de = 0;
+}
+
 void ships_clear(void)
 {
     int n, i;
+    ships_zero();
     for (n = 0; n <= NOSH; n++) { frin[n] = 0; for (i = 0; i < NI; i++) state_slot(n)[i] = 0; }
     for (n = 0; n < NOSH; n++) for (i = 0; i < HEAP_BYTES; i++) heaps[n][i] = 0;
     for (n = 0; n <= NTY; n++) many[n] = 0;

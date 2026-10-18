@@ -6,6 +6,7 @@
    K  DOKEY con el ordenador de atraque (ZINF y DOCKIT reales; desde LDA auto hasta DK15)
    G  GTHG (Ze, DORND reales; NWSHP registra INWK y el tipo)
    F  FRS1 (NWSHP registra)
+   R  FRMIS y FR1 (FRS1, GINF, ANGRY y ABORT reales; NWSHP, MESS, MSBAR y SOHISS registran)
 Requiere ELITE_SRC. Uso: python3 tools/gen_equip.py [n] [semilla]"""
 import sys, random
 sys.path.insert(0, 'tools')
@@ -132,6 +133,46 @@ for _ in range(n // 4):
     cpu.x = typ
     cpu.run(S['FRS1'])
     out.append('F %d %d %d %d %s' % (typ, mstg, delta, got[0][0], hx(got[0][1])))
+
+# ---------------------------------------------------------------- R: FRMIS (con FR1, ANGRY y ABORT)
+frmc = rng(lab('FRMIS'), lab('FR1')) + routine('FR1') + routine('ABORT') + routine('ABORT2') + routine('GINF') + ['.UNIV'] + [' EQUW K%% + %d' % (i * 37) for i in range(9)]
+cpu, S = build(routine('Ze') + dornd + routine('ZINF') + rng(lab('FRS1'), lab('FRMIS')) + frmc, None)
+NI = S['NI%']
+evl = []
+def nw_ok(c):
+    evl.append('N%d' % c.a); c.c = 1 if st_ok[0] else 0
+st_ok = [1]
+cpu.hooks[S['NWSHP']] = nw_ok
+cpu.hooks[S['MESS']] = lambda c: evl.append('M%d' % c.a)
+# MSBAR con color BLACK (0): MSBAR2 sale por coolkey con A = 0 (mscol = 0) y Y = 0; FRMIS cae luego en ANGRY con esa A
+cpu.hooks[S['MSBAR']] = lambda c: (evl.append('B%d.%d' % (c.x, c.y)), setattr(c, 'y', 0), setattr(c, 'a', 0))
+cpu.hooks[S['SOHISS']] = lambda c: evl.append('S%d' % c.y)
+kb = S['K%']
+for _ in range(n // 2):
+    st_ok[0] = pick(1, 1, 1, 0)
+    nomsl, delta, mstg, typ = pick(1, 2, 3, 4), pick(0, 3, 12, 40), pick(1, 2, 3, 4, 5), pick(0, 0, 1)
+    ttype = pick(1, 2, 7, 10, 11, 16, 17, 19, 20, 25, 31, rb() % 33)
+    msar = pick(0, 0xFF)
+    for k in range(37 * 9): cpu.mem[kb + k] = 0
+    fr = S['FRIN']
+    for k in range(S['NOSH'] + 1): cpu.mem[fr + k] = 0
+    cpu.mem[fr] = 128; cpu.mem[fr + 1] = 130; cpu.mem[fr + 2] = pick(2, 2, 1)
+    for k in (3, 4, 5):                                       # naves que ya estaban: el blanco y las demas
+        cpu.mem[fr + k] = pick(0, 1, 7, 10, 16, 17, 25, 2)
+        for j in range(37): cpu.mem[kb + k * 37 + j] = rb()
+    for k in (0, 1, 2):
+        for j in range(37): cpu.mem[kb + k * 37 + j] = rb()
+    mstg = pick(3, 4, 5, 1, 2) if st_ok[0] else pick(3, 4, 5)
+    if cpu.mem[fr + mstg] == 0: cpu.mem[fr + mstg] = pick(7, 10, 16, 17)
+    cpu.mem[S['MSTG']] = mstg; cpu.mem[S['NOMSL']] = nomsl; cpu.mem[S['DELTA']] = delta; cpu.mem[S['TYPE']] = ttype
+    cpu.mem[S['MSAR']] = msar
+    cpu.mem[S['INWK']:S['INWK'] + NI] = bytes(rb() for _ in range(NI))
+    k0 = bytes(cpu.mem[kb:kb + 37 * 9]); fr0 = bytes(cpu.mem[fr:fr + 9])
+    del evl[:]
+    cpu.run(S['FRMIS'])
+    sl = lambda k: hx(cpu.mem[kb + k * 37:kb + (k + 1) * 37])
+    out.append('R %d %d %d %d %d %d %s %s | %s %d %s %s' % (st_ok[0], nomsl, delta, mstg, ttype, msar, hx(fr0), hx(k0), ';'.join(evl) or '-', cpu.mem[S['NOMSL']],
+               hx(cpu.mem[fr:fr + 9]), ','.join(sl(k) for k in range(9))))
 
 open('tests/vectors_equip.txt', 'w').write('\n'.join(out) + '\n')
 print(len(out), 'vectores')

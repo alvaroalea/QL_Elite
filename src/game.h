@@ -25,6 +25,7 @@ void game_new(void);                     /* state_clear + comandante por defecto
 void game_after_load(void);              /* tras cargar un fichero: reconstruye galaxia, sistema actual, mercado (con avl guardado) */
 void game_enter_system(int idx, int fresh);   /* pone qq0..qq8 del sistema; fresh = visita nueva: qq26 aleatorio, mercado nuevo */
 void game_set_target(int idx);
+void game_tt111(void);                   /* TT111 desde (QQ9, QQ10): la seleccion puede pasar al gemelo de menor indice */
 void game_target_only(int idx);          /* objetivo y qq8 sin mover la mira (qq9/qq10): la mira de las cartas va libre (TT16) */           /* qq9/qq10/qq8 del objetivo */
 
 /* ---- comercio (indice de mercancia 0..16) ---- */

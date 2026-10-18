@@ -23,7 +23,7 @@ QQ21_0 = [0x4A, 0x5A, 0x48, 0x02, 0x53, 0xB7]       # semillas de la galaxia 1 (
 # ---------------------------------------------------------------- G: galaxias
 gal = ['.GALX', ' LDX #5'] + rng(lab('G1'), lab('zZ')) + [' RTS']
 math_ = rng(nl('SQUA2') - 1, nx(nl('MU11')) - 1) + rng(nl('LL5') - 1, nx(nl('LL5')) - 1)
-uni = gal + routine('TT81') + routine('TT20') + routine('TT54') + routine('TT24') + routine('cpl') + routine('TT111') + math_ + routine('jmp')
+uni = gal + routine('TT81') + routine('TT20') + routine('TT54') + routine('TT24') + routine('cpl') + routine('TT111') + math_ + routine('jmp') + routine('ping') + rng(lab('hyp1'), lab('GVL')) + ['.GVL', ' RTS']
 cpu, S = build(uni, None)
 names = []
 cpu.hooks[S['TT27']] = lambda c: names.append(c.a)
@@ -66,7 +66,32 @@ for _ in range(n):
     m = cpu.mem
     r = '%d %s %d %d %d %d' % (m[S['ZZ']], hx(m[S['QQ15']:S['QQ15'] + 6]), m[S['QQ9']], m[S['QQ10']], m[S['QQ8']] | (m[S['QQ8'] + 1] << 8), m[S['QQ3']])
     cpu.run(S['jmp'])
-    out.append('N %d %d %d %d %d | %s %d %d' % (g, x, y, x0, y0, r, cpu.mem[S['QQ0']], cpu.mem[S['QQ1']]))
+    j0, j1 = cpu.mem[S['QQ0']], cpu.mem[S['QQ1']]
+    cpu.run(S['TT111'])                                  # otra vez desde las coordenadas del elegido (hyp, TT110, STATUS...): gemelos
+    out.append('N %d %d %d %d %d | %s %d %d %d' % (g, x, y, x0, y0, r, j0, j1, cpu.mem[S['ZZ']]))
+
+
+# ---------------------------------------------------------------- H y P: hyp1+3 (la entrada que usa TT18: jmp, safehouse) y ping
+for _ in range(n // 2):
+    g = random.randrange(8)
+    x, y, x0, y0 = rb(), rb(), rb(), rb()
+    cpu.mem[S['QQ21']:S['QQ21'] + 6] = seeds[g]
+    cpu.mem[S['QQ9']] = x; cpu.mem[S['QQ10']] = y; cpu.mem[S['QQ0']] = x0; cpu.mem[S['QQ1']] = y0
+    cpu.mem[S['ZZ']] = 0xEE; cpu.mem[S['QQ19']:S['QQ19'] + 6] = bytes(6)
+    cpu.run(S['TT111'])                                  # TTX111 deja en safehouse las semillas del sistema elegido
+    cpu.mem[S['safehouse']:S['safehouse'] + 6] = cpu.mem[S['QQ15']:S['QQ15'] + 6]
+    ev0 = rb(); q2 = [rb() for _ in range(6)]
+    cpu.mem[S['EV']] = ev0; cpu.mem[S['QQ2']:S['QQ2'] + 6] = bytes(q2)
+    cpu.mem[S['QQ0']] = x0; cpu.mem[S['QQ1']] = y0
+    cpu.run(S['hyp1'] + 3)                               # TT18 llama a hyp1+3: sin el JSR TT111
+    m = cpu.mem
+    out.append('H %d %d %d %d %d %d | %d %d %s %d %d %d %d' % (g, x, y, x0, y0, ev0, m[S['QQ0']], m[S['QQ1']], hx(m[S['QQ2']:S['QQ2'] + 6]), m[S['EV']],
+               m[S['QQ28']], m[S['tek']], m[S['gov']]))
+for _ in range(n // 8):
+    x0, y0, x, y = rb(), rb(), rb(), rb()
+    cpu.mem[S['QQ0']] = x0; cpu.mem[S['QQ1']] = y0; cpu.mem[S['QQ9']] = x; cpu.mem[S['QQ10']] = y
+    cpu.run(S['ping'])
+    out.append('P %d %d %d %d | %d %d' % (x0, y0, x, y, cpu.mem[S['QQ9']], cpu.mem[S['QQ10']]))
 
 # ---------------------------------------------------------------- V: GVL y TT151
 def items(lines):                                  # macro ITEM price, factor, units, quantity, mask

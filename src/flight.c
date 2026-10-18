@@ -186,6 +186,7 @@ static void start_hyper(int galactic)
     if (galactic) {
         if (!ghyp) { say("NO GALACTIC HYPERDRIVE", 1); snd_boop(); return; }
     } else {
+        game_tt111();                      /* hyp: TTX110 (o hm en las cartas) llama a TT111 antes de TTX111 */
         if (tgt_sys == cur_sys) { say("NO TARGET SELECTED", 1); snd_boop(); return; }
         if (!jump_possible(tgt_sys)) { say("OUT OF RANGE", 1); snd_boop(); return; }
     }

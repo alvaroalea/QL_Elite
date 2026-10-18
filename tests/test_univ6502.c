@@ -13,6 +13,7 @@
 #include "shipdata.h"
 #include "game.h"
 #include "tactics.h"
+#include "chart.h"
 extern u16 orig_slsp;
 #include "font.h"
 
@@ -55,9 +56,10 @@ static void s_case(char **a, const char *l)
     check(!memcmp(q, o, 6), "semilla de la galaxia (Ghy)", l);
 }
 
+static int twins;
 static void n_case(char **a, const char *l)
 {
-    /* N g x y x0 y0 | zz q15 qq9 qq10 qq8 qq3 qq0 qq1 */
+    /* N g x y x0 y0 | zz q15 qq9 qq10 qq8 qq3 qq0 qq1 zz2 (TT111 otra vez desde (qq9, qq10)) */
     int g = atoi(a[1]), idx, zz = atoi(a[7]);
     uni_system cur;
     const uni_system *p;
@@ -68,6 +70,36 @@ static void n_case(char **a, const char *l)
     check(idx == zz && p->x == atoi(a[9]) && p->y == atoi(a[10]), "TT111: sistema mas cercano", l);
     check(uni_distance(&cur, p) == (unsigned)atoi(a[11]) && p->economy == atoi(a[12]), "TT111: distancia QQ8", l);
     check(p->x == atoi(a[13]) && p->y == atoi(a[14]), "jmp", l);
+    check(uni_nearest(p->x, p->y) == atoi(a[15]), "TT111 desde el elegido (gemelo de menor indice)", l);
+    if (uni_nearest(p->x, p->y) != idx) twins++;
+}
+
+
+static void h_case(char **a, const char *l)
+{
+    /* H g x y x0 y0 ev0 | qq0 qq1 qq2 ev qq28 tek gov: hyp1+3 (TT18) tras la seleccion con TT111 y el safehouse de TTX111 */
+    int g = atoi(a[1]), idx;
+    const uni_system *p;
+    u8 q2[6], c2[6];
+    galaxy(g);
+    idx = uni_nearest((u8)atoi(a[2]), (u8)atoi(a[3]));
+    game_enter_system(idx, 1);                           /* jmp + QQ28, tek y gov del sistema nuevo */
+    p = &uni_galaxy[idx];
+    c2[0] = (u8)(p->seed0 & 255); c2[1] = (u8)(p->seed0 >> 8);
+    c2[2] = p->goatsoupseed.a; c2[3] = p->goatsoupseed.b; c2[4] = p->goatsoupseed.c; c2[5] = p->goatsoupseed.d;
+    hexb(a[10], q2, 6);
+    check(qq0 == atoi(a[8]) && qq1 == atoi(a[9]), "hyp1: QQ0 y QQ1", l);
+    check(!memcmp(q2, c2, 6), "hyp1: QQ2 = semillas del sistema (safehouse)", l);
+    check(atoi(a[11]) == 0, "hyp1: EV = 0 (flight.c: enc_ev = 0 al llegar)", l);
+    check(qq3 == atoi(a[12]) && qq5 == atoi(a[13]) && qq4 == atoi(a[14]), "hyp1: QQ28, tek y gov", l);
+}
+
+static void p_case(char **a, const char *l)
+{
+    /* P x0 y0 x y | qq9 qq10 */
+    qq0 = (u8)atoi(a[1]); qq1 = (u8)atoi(a[2]); qq9 = (u8)atoi(a[3]); qq10 = (u8)atoi(a[4]);
+    chart_ping_set();
+    check(qq9 == atoi(a[6]) && qq10 == atoi(a[7]), "ping", l);
 }
 
 static void v_case(char **a, const char *l)
@@ -163,13 +195,16 @@ int main(void)
         case 'G': g_case(a, copy); break;
         case 'N': n_case(a, copy); break;
         case 'V': v_case(a, copy); break;
+        case 'H': h_case(a, copy); break;
+        case 'P': p_case(a, copy); break;
         case 'W': w_case(a, na, copy); break;
         case 'Z': z_case(a, copy); break;
         case 'F': f_case(a, copy); break;
         }
     }
     fclose(f);
-    printf("S %d, G %d, N %d, V %d, W %d, Z %d, F %d casos; %d comprobaciones, %d fallos\n",
-           cnt['S'], cnt['G'], cnt['N'], cnt['V'], cnt['W'], cnt['Z'], cnt['F'], total, fails);
+    printf("TT111 desde el elegido: %d de %d casos pasan al gemelo de menor indice (igual que el original)\n", twins, cnt['N']);
+    printf("S %d, G %d, N %d, H %d, P %d, V %d, W %d, Z %d, F %d casos; %d comprobaciones, %d fallos\n",
+           cnt['S'], cnt['G'], cnt['N'], cnt['H'], cnt['P'], cnt['V'], cnt['W'], cnt['Z'], cnt['F'], total, fails);
     return fails != 0;
 }

@@ -23,6 +23,10 @@
 #include "config.h"
 #include "space.h"
 #include "sound.h"
+#include "menu.h"
+#include "tactics.h"
+#include "combat.h"
+#include "damage.h"
 
 static int total, fails;
 static char line[200000], got[200000], copy[400];
@@ -310,6 +314,75 @@ static void y_case(char **a, const char *l)
     if (fails && fails <= 3 && strcmp(a[15], got)) { int k = 0; while (a[15][k] && a[15][k] == got[k]) k++; printf("  difiere en %d: ...%.120s\n             | ...%.120s\n", k, a[15] + (k > 30 ? k - 30 : 0), got + (k > 30 ? k - 30 : 0)); }
 }
 
+
+static void ev_tt111(void) { add("J"); }
+
+static void u_case(char **a, const char *l)
+{
+    /* U qq12 junk frinx energy fist t0 t1 escp bst ecm bomb engy dkcmp ghyp l0 l1 l2 l3 | VARS(10) gc mj rnd inwk k3 sel cur nm cash q14 ev | fin(10) k3 rnd */
+    u8 *v[10];
+    int i;
+    char fin[200], rs[16], *want;
+    v[0] = &qq17; v[1] = &dtw1; v[2] = &dtw2; v[3] = &dtw3; v[4] = &dtw4; v[5] = &dtw5; v[6] = &dtw6; v[7] = &dtw8; v[8] = &dt_xc; v[9] = &dt_yc;
+    qq12 = (u8)atoi(a[1]); junk_count = (u8)atoi(a[2]); memset(frin, 0, sizeof frin); frin[2 + junk_count] = (u8)atoi(a[3]);
+    energy = (u8)atoi(a[4]); fist = (u8)atoi(a[5]); tally[0] = (u8)atoi(a[6]); tally[1] = (u8)atoi(a[7]);
+    escp = (u8)atoi(a[8]); bst = (u8)atoi(a[9]); ecm_fitted = (u8)atoi(a[10]);
+    bomb = (u8)atoi(a[11]); engy = (u8)atoi(a[12]); dkcmp = (u8)atoi(a[13]); ghyp = (u8)atoi(a[14]);
+    for (i = 0; i < 4; i++) laser[i] = (u8)atoi(a[15 + i]);
+    for (i = 0; i < 10; i++) *v[i] = (u8)atoi(a[19 + i]);
+    gcnt = (u8)atoi(a[29]); mj = (u8)atoi(a[30]);
+    hexb(a[31], em_rand, 4); hexb(a[32], inwk, 37); hexb(a[33], zk3, 14);
+    strcpy(nm_sel, strcmp(a[34], "-") ? a[34] : ""); strcpy(nm_cur, strcmp(a[35], "-") ? a[35] : "");
+    strcpy(cmdr_name, a[36]);
+    hexb(a[37], cash, 4); qq14 = (u8)atoi(a[38]);
+    mis_tt111_hook = ev_tt111;
+    glen = 0; got[0] = 0;
+    status_mode();
+    fin[0] = 0;
+    for (i = 0; i < 10; i++) sprintf(fin + strlen(fin), "%s%d", i ? " " : "", *v[i]);
+    sprintf(fin + strlen(fin), " %d", zk3[0]);
+    sprintf(rs, "%02x%02x%02x%02x", em_rand[0], em_rand[1], em_rand[2], em_rand[3]);
+    want = strcmp(a[39], "-") ? a[39] : "";
+    {
+        char exp[200];
+        exp[0] = 0;
+        for (i = 0; i < 11; i++) sprintf(exp + strlen(exp), "%s%s", i ? " " : "", a[41 + i]);
+        check(!strcmp(want, got) && !strcmp(exp, fin) && !strcmp(a[52], rs), "STATUS", l);
+        if (fails && fails <= 3 && strcmp(want, got)) {
+            int k = 0;
+            while (want[k] && want[k] == got[k]) k++;
+            printf("  difiere en %d: ...%.120s\n             | ...%.120s\n", k, want + (k > 30 ? k - 30 : 0), got + (k > 30 ? k - 30 : 0));
+        }
+    }
+    mis_tt111_hook = 0;
+}
+
+static void q_case(char **a, const char *l)
+{
+    /* Q FRIN=1 MANY=1 JUNK=1 auto=1 ECMP=1 MJ=1 CABTMP=1 LAS2=1 MSAR=1 VIEW=1 LASCT=1 GNTMP=1 HFX=1 EV=1 DLY=1 de=1 */
+    int i, ok = 1, n;
+    extern u8 las2, lasct, dly;
+    for (i = 1; i < 17; i++) ok = ok && strstr(a[i], "=1") != 0;                      /* el 6502 pone a 0 los 16 grupos */
+    for (n = 0; n <= NOSH; n++) frin[n] = (u8)(n + 1);
+    for (n = 0; n <= NTY; n++) many[n] = (u8)(n + 1);
+    junk_count = 1; dock_auto = 2; ecmp = 3; mj = 4; cabtmp = 5; las2 = 6; msar = 7; space_view = 8; lasct = 9; gntmp = 10;
+    enc_ev = 11; dly = 12; mess_de = 13;
+    ships_zero();
+    for (n = 0; n <= NOSH; n++) ok = ok && frin[n] == 0;
+    for (n = 0; n <= NTY; n++) ok = ok && many[n] == 0;
+    ok = ok && !junk_count && !dock_auto && !ecmp && !mj && !cabtmp && !las2 && !msar && !space_view && !lasct && !gntmp && !enc_ev && !dly && !mess_de;
+    check(ok, "ZERO (FRIN..de)", l);
+}
+
+static void a_case(char **a, const char *l)
+{
+    /* A qq12 | qq12 frce f8 */
+    int r;
+    qq12 = (u8)atoi(a[1]);
+    r = bay();
+    check(qq12 == (u8)atoi(a[3]) && r == SC_STATUS && atoi(a[4]) == atoi(a[5]), "BAY: QQ12 = $FF y pantalla de estado (f8)", l);
+}
+
 static void config_checks(void)
 {
     u8 d0 = damp, p0 = patg;
@@ -349,9 +422,12 @@ int main(void)
         else if (a[0][0] == 'Y') y_case(a, copy);
         else if (a[0][0] == 'K') k_case(a, copy);
         else if (a[0][0] == 'O') o_case(a, copy);
+        else if (a[0][0] == 'U') u_case(a, copy);
+        else if (a[0][0] == 'Q') q_case(a, copy);
+        else if (a[0][0] == 'A') a_case(a, copy);
     }
     fclose(f);
-    printf("S %d, K %d, O %d, D %d, Y %d; ", cnt['S'], cnt['K'], cnt['O'], cnt['D'], cnt['Y']);
+    printf("S %d, K %d, O %d, D %d, Y %d, U %d, Q %d, A %d; ", cnt['S'], cnt['K'], cnt['O'], cnt['D'], cnt['Y'], cnt['U'], cnt['Q'], cnt['A']);
     printf("T %d, P %d, M %d, B %d, E %d casos; %d comprobaciones, %d fallos\n", cnt['T'], cnt['P'], cnt['M'], cnt['B'], cnt['E'], total, fails);
     return fails != 0;
 }

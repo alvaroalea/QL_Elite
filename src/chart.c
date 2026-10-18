@@ -233,10 +233,12 @@ void chart_tt16(int local, u8 x, u8 y)
 }
 
 /* ping: el cursor vuelve al sistema actual (QQ9, QQ10 = QQ0, QQ1) */
+void chart_ping_set(void) { qq9 = qq0; qq10 = qq1; }   /* ping: QQ9/QQ10 = QQ0/QQ1 */
+
 void chart_ping(int local)
 {
     chart_cursor(local);                           /* TT103: borra */
-    qq9 = qq0; qq10 = qq1;
+    chart_ping_set();
     game_set_target(cur_sys);
     chart_cursor(local);                           /* TT103: dibuja */
 }
@@ -245,7 +247,7 @@ void chart_ping(int local)
 void chart_hm(int local)
 {
     chart_cursor(local);
-    game_set_target(uni_nearest(qq9, qq10));       /* TT111: tambien coloca la cruz sobre el sistema */
+    game_tt111();                                  /* TT111: tambien coloca la cruz sobre el sistema */
     chart_cursor(local);
 }
 

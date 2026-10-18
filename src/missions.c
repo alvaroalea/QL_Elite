@@ -19,6 +19,7 @@
 #include "sound.h"
 #include "menu.h"
 #include "config.h"
+#include "cmdr.h"
 
 #define CONHIEGHT 80                             /* conhieght: hueco que se deja al Constrictor que gira */
 
@@ -174,7 +175,7 @@ void pas1(void) { mis_tt66(1); }                 /* PAS1 */
 void mis_pause(void) { pause2(); pas1(); }       /* PAUSE */
 void bris(void) { detok(216); delay(100); }      /* BRIS: INCOMING MESSAGE y 2 segundos */
 
-static int brp(u8 a) { detok(a); return SC_STATUS; }      /* BRP: la ficha y BAY (pantalla de estado) */
+static int brp(u8 a) { detok(a); return bay(); }      /* BRP: la ficha y BAY (pantalla de estado) */
 
 int brief2(void) { tp = (u8)(tp | 0x04); return brp(11); }
 int brief3(void) { tp = (u8)((tp & 0xF0) | 0x0A); return brp(222); }
@@ -262,6 +263,8 @@ int missions_choose(void)
     return MIS_NONE;                             /* EN4: BAY */
 }
 
+int bay(void) { qq12 = 0xFF; return SC_STATUS; }       /* BAY: atracados y a la pantalla de estado (FRCE con f8) */
+
 int missions_doentry(void)
 {
     missions_hooks();
@@ -275,7 +278,7 @@ int missions_doentry(void)
     case MIS_BRIEF3:   return brief3();
     case MIS_DEBRIEF2: return debrief2();
     }
-    return SC_STATUS;
+    return bay();
 }
 
 /* PDESC (la parte de RUPLA/RUGAL/RUTOK): descripcion especial del sistema zz si estamos atracados en el. Devuelve 1 si la
@@ -381,3 +384,58 @@ void tt25(int n)
 }
 
 void missions_set_ink(u8 c) { mis_ink = c; }
+
+/* ---------------------------------------------------------------- STATUS (pantalla de estado) */
+
+static void mis_tt111_default(void) { game_tt111(); }
+void (*mis_tt111_hook)(void) = mis_tt111_default;      /* TT111: las pruebas lo sustituyen */
+
+/* STATUS: transcripcion del 6502 con el motor de fichas (cmn, BAY y el titulo "COMMANDER <nombre>" vienen de las fichas) */
+void status_mode(void)
+{
+    u8 a, x, k, y;
+    u8 *eq[4];
+    eq[0] = &bomb; eq[1] = &engy; eq[2] = &dkcmp; eq[3] = &ghyp;      /* BOMB, ENGY, DKCMP, GHYP: contiguos en el original */
+    if (dt_tt66_hook) dt_tt66_hook(8);           /* TRADEMODE con la vista 8 */
+    if (mis_tt111_hook) mis_tt111_hook();        /* TT111 */
+    dt_xc = 7;
+    dt_tt27(126);                                /* NLIN3 */
+    if (dt_nlin4_hook) dt_nlin4_hook();
+    if (qq12) {                                  /* wearedocked */
+        detok(205);
+        dt_tt67();
+    } else {
+        a = 230;                                 /* verde; con naves cerca: amarillo o rojo segun ENERGY */
+        if (frin[2 + junk_count]) a = (u8)(a + 1 + (energy >= 128));
+        dt_plf(a);                               /* st6 */
+    }
+    dt_spc(125);
+    a = 19;                                      /* estado legal */
+    if (fist) a = (u8)(20 + (fist >= 50));
+    dt_plf(a);                                   /* st5 */
+    dt_spc(16);
+    if (tally[1]) {                              /* st4 */
+        x = 9;
+        if (tally[1] < 25) { x = 8; if (tally[1] < 10) { x = 7; if (tally[1] < 2) x = 6; } }
+    } else {
+        x = 0; a = (u8)(tally[0] >> 2);
+        do { x++; a = (u8)(a >> 1); } while (a);
+    }
+    dt_plf((u8)(x + 21));                        /* st3: rango */
+    dt_plf2(18);
+    if (escp) dt_plf2(112);
+    if (bst) dt_plf2(111);
+    if (ecm_fitted) dt_plf2(108);
+    for (k = 0; k < 4; k++) if (*eq[k]) dt_plf2((u8)(113 + k));       /* stqv */
+    for (x = 0; x < 4; x++) {                    /* st */
+        y = laser[x];
+        if (!y) continue;
+        dt_spc((u8)(96 + x));
+        a = 103;
+        if (y == LASER_BEAM) a = 104;
+        if (y == LASER_MIL) a = 117;
+        if (y == LASER_MINING) a = 118;
+        dt_plf2(a);
+    }
+}
+
