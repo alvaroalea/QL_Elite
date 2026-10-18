@@ -53,6 +53,14 @@ Module.symvers
 Mkfile.old
 dkms.conf
 tools/qltools_src/
+tools/__pycache__/
+tests/tmp/
+tests/shots/*.bin
+tests/*.txt
+tests/*.addr
+tests/test_*
+!tests/test_*.c
+screen.bin
 
 # debug information files
 *.dwo
