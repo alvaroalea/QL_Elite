@@ -4,7 +4,7 @@ Lee las cabeceras ';       Name: X' / ';   Category: Y' / ';    Summary: Z' de e
 tools/ported.txt (una linea por rutina portada: NOMBRE  funcion_C  estado, estado = verificada | sin-verificar | propia).
 Genera INVENTARIO.md. La fuente de referencia no se incluye en el proyecto (ver tools/README_ref.txt)."""
 import os, re, sys
-src = os.environ.get("ELITE_SRC", "/tmp/moxon/elite-source-code-apple-ii-main/1-source-files/main-sources")
+src = os.environ.get("ELITE_SRC", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "moxon", "1-source-files", "main-sources"))
 text = open(os.path.join(src, "elite-source.asm"), encoding="latin-1").read().split("\n")
 ported = {}
 for ln in open("tools/ported.txt"):

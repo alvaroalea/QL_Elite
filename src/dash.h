@@ -8,7 +8,7 @@
 #define DASH_H
 #include "platform.h"
 
-#define DASH_Y0     136                 /* primera linea del panel en pantalla (el area de vista ocupa 0..135) */
+#define DASH_Y0     160                 /* primera linea del panel en pantalla (la vista ocupa 0..159; el original lo tiene en 136, ver view_set_native y gfx_yoff_set) */
 #define DASH_LINES  56
 #define DASH_BYTES  (DASH_LINES * 128)  /* 7168 bytes: 56 lineas de 128 bytes (modo 8) */
 

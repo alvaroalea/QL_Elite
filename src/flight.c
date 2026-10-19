@@ -27,7 +27,13 @@
 
 int flight_testkeys = 0;                   /* pruebas (make test_game): N, K y C sin ordenador de atraque */
 
-#define VIEW_H 136
+#define VIEW_H 160                         /* lineas de la vista en pantalla */
+#define ROW_MSG   27                       /* texto bajo el panel (lineas 216..255): mensajes, VIEW, HERE, TARGET y ayuda rotativa */
+#define ROW_VIEW  28
+#define ROW_HERE  29
+#define ROW_TARGET 30
+#define ROW_HELP  31
+#define HELP_FRAMES 100                    /* fotogramas que dura cada linea de ayuda (~2 s a 50 fps; provisional) */
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
 #define TUNNEL_FRAMES 30                   /* cuanto se deja ver el tunel de lanzamiento o de hiperespacio */
 
@@ -46,18 +52,37 @@ static void wait_frames(int n)             /* en el QL deja pasar tiempo real le
     for (i = 0; i < n; i++) in_poll();
 }
 
-/* Texto bajo el panel (lineas 192..255 = filas 24..31) */
+/* Texto bajo el panel (lineas 216..255 = filas 27..31): mensajes, VIEW, HERE, TARGET y una linea de ayuda que cambia sola */
+static const char *const help_lines[3] = { "CURSORS TURN F FAST D SLOW", "1-4 VIEW 5-0 INFO H/G/J JUMPS", "B BOMB C/P DOCK = PAUSE" };
+static int help_i = 0, help_t = 0;
+
+static void help_draw(void)
+{
+    txt_clear_rows(ROW_HELP, 1, C_BLACK);
+    txt_color(C_CYAN, C_BLACK);
+    txt_print_at(0, ROW_HELP, help_lines[help_i]);
+    txt_color(C_WHITE, C_BLACK);
+}
+
+static void help_tick(void)
+{
+    if (++help_t < HELP_FRAMES) return;
+    help_t = 0;
+    help_i = (help_i + 1) % 3;
+    help_draw();
+}
+
+static void panel_invalidate(void);
+
 static void panel_static(void)
 {
+    panel_invalidate();                                     /* el rectangulo de abajo se borra entero: nada de lo anterior sigue pintado */
     gfx_rect(0, DASH_Y0 + DASH_LINES, 256, 256 - (DASH_Y0 + DASH_LINES), C_BLACK);
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, 26, "VIEW");
-    txt_print_at(0, 27, "HERE");
-    txt_print_at(0, 28, "TARGET");
-    txt_print_at(0, 29, "CURSORS TURN F FAST D SLOW");
-    txt_print_at(0, 30, "1-4 VIEW 5-0 INFO H/G/J JUMPS");
-    txt_print_at(0, 31, "B BOMB C/P DOCK = PAUSE");
-    txt_color(C_WHITE, C_BLACK);
+    txt_print_at(0, ROW_VIEW, "VIEW");
+    txt_print_at(0, ROW_HERE, "HERE");
+    txt_print_at(0, ROW_TARGET, "TARGET");
+    help_draw();
 }
 
 /* valor en decimas con un sufijo (por ejemplo 12345 y " Cr" -> "1234.5 Cr"); devuelve la longitud */
@@ -75,33 +100,65 @@ static int tenths_text(char *b, unsigned long tenths, const char *suffix)
     return i;
 }
 
+/* Lo ultimo que se pinto (columnas) en cada texto que cambia de longitud: si el nuevo es mas corto, se calcula el rectangulo de celdas que
+   sobra y se vacia de una vez (gfx_clear_cells: ensamblador); lo demas se sobrescribe celda a celda, sin parpadeo */
+static int len_here = 0, len_tgt = 0, len_cash = 0, len_dist = 0;
+
+static void panel_invalidate(void) { len_here = len_tgt = len_cash = len_dist = 0; }
+
+static int cstr_len(const char *s) { int n = 0; while (s[n]) n++; return n; }
+
+static void panel_name(int row, const char *name, int *oldlen)       /* nombre a la izquierda, en la columna 7 */
+{
+    int n = cstr_len(name);
+    if (*oldlen > n) gfx_clear_cells(7 + n, row, *oldlen - n, 1);
+    txt_print_at(7, row, name);
+    *oldlen = n;
+}
+
+static void panel_right(int row, const char *s, int *oldlen)         /* valor alineado a la derecha (hasta la columna 31) */
+{
+    int n = cstr_len(s);
+    if (*oldlen > n) gfx_clear_cells(32 - *oldlen, row, *oldlen - n, 1);
+    txt_print_at(32 - n, row, s);
+    *oldlen = n;
+}
+
+static void panel_cash(void)                                         /* los creditos de la fila de HERE */
+{
+    char b[24];
+    tenths_text(b, cash_get(), " Cr");
+    txt_color(C_WHITE, C_BLACK);
+    txt_nowrap(1);
+    panel_right(ROW_HERE, b, &len_cash);
+    txt_nowrap(0);
+}
+
 static void panel_update(void)
 {
     char b[24];
-    int n;
     txt_color(C_WHITE, C_BLACK);
-    txt_nowrap(1);                                          /* un nombre largo o mucho dinero no debe saltar a la fila 29 (borraba la C de CURSORS) */
-    txt_print_at(7, 26, vnames[view]);
-    txt_print_at(7, 27, uni_galaxy[cur_sys].name); txt_puts("                         ");
-    n = tenths_text(b, cash_get(), " Cr");                  /* los creditos, alineados a la derecha en la fila de HERE */
-    txt_print_at(32 - n, 27, b);
-    txt_at(7, 28); txt_puts(uni_galaxy[tgt_sys].name); txt_puts("                         ");
-    n = tenths_text(b, (unsigned long)jump_distance(tgt_sys), " LY");   /* y la distancia, a la derecha en la de TARGET */
-    txt_print_at(32 - n, 28, b);
+    txt_nowrap(1);                                          /* un nombre largo o mucho dinero no debe saltar a la fila siguiente */
+    txt_print_at(7, ROW_VIEW, vnames[view]);
+    panel_name(ROW_HERE, uni_galaxy[cur_sys].name, &len_here);
+    panel_name(ROW_TARGET, uni_galaxy[tgt_sys].name, &len_tgt);
+    tenths_text(b, (unsigned long)jump_distance(tgt_sys), " LY");      /* la distancia, a la derecha en la fila de TARGET */
+    panel_right(ROW_TARGET, b, &len_dist);
     txt_nowrap(0);
+    panel_cash();
 }
 
 static void say(const char *s, int error)
 {
-    txt_clear_rows(24, 1, C_BLACK);
+    txt_clear_rows(ROW_MSG, 1, C_BLACK);
     txt_color(error ? C_RED : C_GREEN, C_BLACK);
-    txt_print_at(0, 24, s);
+    txt_print_at(0, ROW_MSG, s);
     txt_color(C_WHITE, C_BLACK);
 }
 
-/* Pausa: "PAUSED" a mitad del hueco entre la mira (hasta y = 64) y el panel (y = 136): fila de texto 12 (y = 96..103), centrado.
+/* Pausa: "PAUSED" a mitad del hueco entre la mira (hasta y = 75) y el panel (y = 160): fila de texto 14 (y = 112..119), centrado.
    Se guarda lo que habia debajo (naves, polvo) y se restaura al reanudar */
-#define PAUSE_ROW 12
+#define PAUSE_ROW 14
 #define PAUSE_COL 13
 static u8 pause_save[8][24];
 
@@ -177,7 +234,7 @@ static void redraw_all(void)
     stars_new();
 }
 
-/* MESS: mensajes en vuelo (fila 24, como los demas avisos del port; el original los pone en la vista). Con mess_de se anade
+/* MESS: mensajes en vuelo (fila 27, como los demas avisos del port; el original los pone en la vista). Con mess_de se anade
    " DESTROYED" (OUCH). Los textos son los de los tokens del original */
 static void flight_mess(u8 token)
 {
@@ -185,9 +242,9 @@ static void flight_mess(u8 token)
     const char *t = 0;
     char b[16];
     int i;
-    txt_clear_rows(24, 1, C_BLACK);
+    txt_clear_rows(ROW_MSG, 1, C_BLACK);
     txt_color(C_GREEN, C_BLACK);
-    txt_at(0, 24);
+    txt_at(0, ROW_MSG);
     if (token == MESS_RIGHT_ON) t = "RIGHT ON COMMANDER!";
     else if (token == MESS_ENERGY_LOW) { t = "ENERGY LOW"; snd_beep(); }
     else if (token == MESS_DOCK_ON) t = "DOCKING COMPUTERS ON";
@@ -205,9 +262,10 @@ static void flight_mess(u8 token)
     else { ui_tenths(cash_get()); txt_puts(" CR"); }
     if (mess_de & 2) txt_puts(" DESTROYED");
     txt_color(C_WHITE, C_BLACK);
+    if (token == MESS_CASH) panel_cash();                   /* el cobro de una recompensa: los creditos de la fila de HERE */
 }
 
-static void flight_mess_off(void) { txt_clear_rows(24, 1, C_BLACK); }
+static void flight_mess_off(void) { txt_clear_rows(ROW_MSG, 1, C_BLACK); }
 
 static void say_hyper(void)
 {
@@ -324,6 +382,7 @@ static int flight_screens(int sc)
 {
     int pending = 0;
     key_ctx_menu();
+    view_set_native(0);                                     /* las pantallas de texto y las cartas usan las coordenadas del original */
     for (;;) {
         sc = scr_dispatch(sc);
         if (sc == SC_QUIT || in_quit) { return FL_QUIT; }
@@ -333,6 +392,7 @@ static int flight_screens(int sc)
         if (sc == SC_GHYPER) { pending = 2; break; }
     }
     key_ctx_flight();
+    view_set_native(1);
     redraw_all();
     if (pending == 1) start_hyper(0);
     else if (pending == 2) start_hyper(1);
@@ -384,7 +444,7 @@ static void flight_death(void)
     say("", 0);
 }
 
-int flight_run(void)
+static int flight_loop(void)
 {
     int ch, sc, r;
     u8 ev;
@@ -481,6 +541,7 @@ int flight_run(void)
         stars_set_speed(zDELTA);                            /* DELT4 */
         stars_update((u8)view);                             /* STARS */
         dly_tick();                                         /* TT100: el mensaje en vuelo caduca */
+        help_tick();                                        /* la linea de ayuda cambia cada ~2 s */
         mcnt--;                                             /* me3: DEC MCNT; a 0, partes 2-4 (aparicion de naves) */
         if (mcnt == 0) encounters_tick(em_rand_c);          /* acarreo: el del ultimo DORND (el del 6502 sale de M%) */
         laser_cool();                                       /* MLOOP: enfriamiento y cuenta del pulso */
@@ -490,6 +551,16 @@ int flight_run(void)
             hyper--;
             if (hyper == 0) arrive(); else say_hyper();
         }
-        if ((mcnt & 31) == 0) panel_update();               /* el dinero y la distancia cambian poco */
     }
+}
+
+/* El vuelo trabaja con la vista nativa de 160 lineas (view_set_native): se activa al entrar y se quita al salir (titulo, atracado y cartas no la usan) */
+int flight_run(void)
+{
+    int r;
+    help_i = 0; help_t = 0;
+    view_set_native(1);
+    r = flight_loop();
+    view_set_native(0);
+    return r;
 }

@@ -35,9 +35,16 @@
 #define SHIP_CON 31
 #define SHIP_DOD 32
 
-/* Centro de la vista espacial de 256x136 (X y Y del original) */
+/* Centro de la vista espacial (X y Y). Original: 256x136, centro (128, 68). Vista nativa del QL en vuelo (view_set_native): 256x160,
+   centro (128, 80) y los desplazamientos verticales proyectados se multiplican por 6/5 (aspecto de los puntos del QL). */
 #define VIEW_CX 128
-#define VIEW_CY 68
+#define VIEW_CY view_cy
+extern int view_native;      /* 1 = vista de 160 lineas */
+extern int view_yscale;      /* 1 = la proyeccion multiplica por 6/5 los desplazamientos verticales */
+extern int view_cy;          /* centro vertical de la proyeccion (68 o 80) */
+extern int clip_h;           /* altura de recorte (136 o 160) */
+void view_set_native(int on);
+int  view_ty(int vy);        /* coordenada y del original (136 lineas, centro 68) a la de pantalla de la vista nativa */
 
 /* ---- Bloque de nave (INWK y cada ranura de K%): desplazamientos ---- */
 #define I_XLO 0           /* posicion x: lo, hi, signo (signo-magnitud, bit 7 = signo) */

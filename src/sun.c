@@ -22,6 +22,9 @@ static u8 sunx[2];                       /* SUNX (16 bits) */
 static u8 yy[2];                         /* YY */
 static u8 chk_p1, chk_p2;                /* P+1, P+2 (los pone CHKON) */
 static u8 k5[4], k6[4];                  /* K5, K6 */
+static void sn_erase(void);              /* sol y elipses de la vista nativa (mas abajo) */
+static void ell_params(int *cx, int *cy, int *rx, int *ry);
+static void ell_erase(void);
 
 /* Transformacion de dibujo de las cartas (solo en pantalla; las rutinas siguen trabajando en las coordenadas del original): la carta
    local se aprieta a 9/10 en x y se estira 6/5 en y y se centra (los puntos del QL son mas anchos que altos: asi los circulos
@@ -40,6 +43,7 @@ int sun_xf_x(int x)
 int sun_xf_y(int y)
 {
     if (xf_mode == 1) { y = 90 + ((y - 75) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }
+    else if (xf_mode == 3) { y = 80 + ((y - 68) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* vista nativa: centro 80, x 6/5 */
     else if (xf_mode == 2) { y = 27 + ((y - 19) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* galactica: baja 8 y se estira 6/5 (aspecto de los puntos) */
     return y;
 }
@@ -61,8 +65,9 @@ void sun_xf_vloin(int x, int y1, int y2, u8 col)
     if (!xf_mode) { gfx_vloin(x, y1, y2, col); return; }
     if (y1 > y2) { t = y1; y1 = y2; y2 = t; }
     t = sun_xf_x(x);                                /* palo de 1 punto de ancho (el CPIX del original es de 2) */
-    for (y1 = sun_xf_y(y1), y2 = (sun_xf_y(y2 + 1) > sun_xf_y(y2) ? sun_xf_y(y2 + 1) - 1 : sun_xf_y(y2)); y1 <= y2; y1++)
-        gfx_xor_pixel(t, y1, col);
+    y1 = sun_xf_y(y1);
+    y2 = (sun_xf_y(y2 + 1) > sun_xf_y(y2) ? sun_xf_y(y2 + 1) - 1 : sun_xf_y(y2));
+    gfx_vline_xor(t, y1, y2, col);
 }
 
 /* Planeta de la carta corta: elipse rellena en coordenadas de pantalla, a 1 punto de resolucion (el SUN del original rellena
@@ -87,7 +92,29 @@ void sun_xf_disc(int cx, int cy, int k, u8 col)
 void sun_xf_dust(int x, int y, u8 zz)
 {
     if (xf_mode == 2) { gfx_xor_pixel(sun_xf_x(x), sun_xf_y(y), C_WHITE); return; }   /* galactica: sistemas de un solo punto */
-    gfx_dust(sun_xf_x(x), sun_xf_y(y), zz);
+    gfx_dust_6502(sun_xf_x(x), sun_xf_y(y), zz);
+}
+
+/* Vista nativa de vuelo: el planeta, el sol y los circulos del tunel se calculan como en el original (centro 68, 136 lineas, recorte
+   en 133 para que el 6/5 no pase de la linea 159) y se dibujan con la transformacion 3 (filas replicadas / extremos de linea). */
+int sun_yx2m1 = 135;
+static int vdepth = 0, v_cy, v_h, v_ys, v_yx, v_xf;
+
+void view_virtual_begin(void)
+{
+    if (!view_native) return;
+    if (vdepth++ == 0) {
+        v_cy = view_cy; v_h = clip_h; v_ys = view_yscale; v_yx = sun_yx2m1; v_xf = xf_mode;
+        view_cy = 68; clip_h = 134; view_yscale = 0; sun_yx2m1 = 133; xf_mode = 3;
+    }
+}
+
+void view_virtual_end(void)
+{
+    if (!view_native) return;
+    if (--vdepth == 0) {
+        view_cy = v_cy; clip_h = v_h; view_yscale = v_ys; sun_yx2m1 = v_yx; xf_mode = v_xf;
+    }
 }
 
 void (*sun_loin_hook)(void) = 0;                /* pruebas: cada LOIN, con X1..Y2 ya ordenados y SWAP (zswap) */
@@ -187,7 +214,7 @@ static void hloin2(u8 a, u8 y)
 }
 
 /* WPLS: borra el sol anterior (si LSX no es negativo) */
-void sun_wpls(void)
+static void sun_wpls_v(void)
 {
     u8 y;
     if (sun_lsx & 0x80) return;                    /* LDA LSX; BMI WPLS-1 */
@@ -197,8 +224,93 @@ void sun_wpls(void)
     sun_lsx = 255;                                 /* DEY: Y = 0 -> $FF; STY LSX */
 }
 
+void sun_wpls(void)
+{
+    if (view_native) { sn_erase(); return; }
+    view_virtual_begin(); sun_wpls_v(); view_virtual_end();
+}
+
+/* ---- Sol de la vista nativa: relleno por filas con el borde irregular del original ----
+   Cada fila de pantalla tiene su tramo encendido [lo, hi] (recortado a 0..255; lo > hi = vacia). En cada fotograma el tramo nuevo sale
+   de los semianchos de la elipse (gfx_ellipse_rows, sin raices) mas un numero aleatorio (DORND AND CNT, con CNT = 7, 3, 1 o 0 segun
+   el radio, como SUN) y solo se pintan en XOR las diferencias entre el tramo viejo y el nuevo de cada fila (los bordes que cambian):
+   igual que el original, no se redibuja el sol entero cada vez. Borrar = pintar los tramos que hubiera. */
+static u8 sn_lo[160], sn_hi[160];
+static u8 sn_half[300];
+static int sn_any = 0, sn_ready = 0;
+
+static void sn_span(int y, int lo, int hi)
+{
+    if (lo > hi) return;
+    gfx_hline_xor(lo, hi, y, sun_col);
+}
+
+static void sn_row(int y, int nl, int nh)           /* tramo nuevo (nl > nh: vacio): pinta la diferencia con el viejo y lo guarda */
+{
+    int ol = sn_lo[y], oh = sn_hi[y];
+    int a, b;
+    if (ol > oh) sn_span(y, nl, nh);
+    else if (nl > nh) sn_span(y, ol, oh);
+    else if (nh < ol || oh < nl) { sn_span(y, ol, oh); sn_span(y, nl, nh); }
+    else {
+        a = ol < nl ? ol : nl; b = ol < nl ? nl : ol;
+        if (a < b) sn_span(y, a, b - 1);
+        a = oh < nh ? oh : nh; b = oh < nh ? nh : oh;
+        if (a < b) sn_span(y, a + 1, b);
+    }
+    if (nl > nh) { sn_lo[y] = 255; sn_hi[y] = 0; } else { sn_lo[y] = (u8)nl; sn_hi[y] = (u8)nh; }
+}
+
+static void sn_clear(void)
+{
+    int y;
+    sn_ready = 1;
+    for (y = 0; y < 160; y++) { sn_lo[y] = 255; sn_hi[y] = 0; }
+    sn_any = 0;
+}
+
+static void sn_erase(void)
+{
+    int y;
+    if (!sn_any) return;
+    for (y = 0; y < 160; y++) if (sn_lo[y] <= sn_hi[y]) { sn_span(y, sn_lo[y], sn_hi[y]); sn_lo[y] = 255; sn_hi[y] = 0; }
+    sn_any = 0;
+}
+
+int sun_rows_get(int y, int *lo, int *hi)              /* pruebas: el tramo que la pantalla deberia tener en la fila y */
+{
+    if (y < 0 || y > 159) return 0;
+    *lo = sn_lo[y]; *hi = sn_hi[y];
+    return sn_lo[y] <= sn_hi[y];
+}
+
+static u8 sn_draw(void)
+{
+    int cx, cy, rx, ry, y, top, bot, dy, w, lo, hi, cnt;
+    sun_col = C_RED;
+    if (!sn_ready) { sn_clear(); sn_ready = 1; }
+    if (sun_chkon()) { sn_erase(); return 1; }          /* CHKON: fuera de la vista */
+    ell_params(&cx, &cy, &rx, &ry);
+    cnt = rx >= 96 ? 7 : (rx >= 40 ? 3 : (rx >= 16 ? 1 : 0));
+    gfx_ellipse_rows(rx, ry, sn_half);
+    top = cy - ry; bot = cy + ry;
+    for (y = 0; y < 160; y++) {
+        if (y < top || y > bot) { if (sn_lo[y] <= sn_hi[y]) sn_row(y, 1, 0); continue; }
+        dy = y - cy; if (dy < 0) dy = -dy;
+        em_rand_c = 0;
+        w = sn_half[dy] + (int)(em_dornd() & cnt);
+        lo = cx - w; hi = cx + w;
+        if (hi < 0 || lo > 255) { sn_row(y, 1, 0); continue; }
+        if (lo < 0) lo = 0;
+        if (hi > 255) hi = 255;
+        sn_row(y, lo, hi);
+    }
+    sn_any = 1;
+    return 0;
+}
+
 /* SUN */
-void sun_draw(void)
+static void sun_draw_v(void)
 {
     u8 x, y, a, c, cnt, tgt, t, q, r, vlo, vhi, k2lo, k2hi, xxl, xxh;
     unsigned s;
@@ -338,8 +450,76 @@ bl7:
     return circ_cnt;
 }
 
+void sun_draw(void)
+{
+    view_virtual_begin();
+    if (view_native) sn_draw(); else sun_draw_v();
+    view_virtual_end();
+}
+
+/* Vista nativa de vuelo: el planeta y los anillos del tunel son elipses de punto medio (gfx_ellipse_xor): semieje horizontal K y
+   vertical 1,2 K, centro (K3, K4) del espacio del original llevado a la pantalla con view_ty. Sin montones de segmentos: borrar =
+   volver a dibujar con los mismos datos (el planeta recuerda los del ultimo dibujo). */
+#define NAT_BOT 159                              /* ultima linea de la vista nativa */
+static int ell_valid = 0, ell_cx, ell_cy, ell_rx, ell_ry;
+static u8 ell_col;
+
+static void ell_params(int *cx, int *cy, int *rx, int *ry)
+{
+    long v = ((long)zk3[1] << 8) | zk3[0];
+    long w = ((long)zk4[1] << 8) | zk4[0];
+    if (zk3[1] & 0x80) v -= 65536L;
+    if (zk4[1] & 0x80) w -= 65536L;
+    *cx = (int)v;
+    *cy = view_ty((int)w);
+    *rx = zK[0];
+    *ry = zK[0] + zK[0] / 5;
+}
+
+static void ell_erase(void)
+{
+    if (!ell_valid) return;
+    gfx_ellipse_xor(ell_cx, ell_cy, ell_rx, ell_ry, ell_col, 0, 0, 255, NAT_BOT);
+    ell_valid = 0;
+}
+
+/* PL9 de la vista nativa: borra el circulo anterior y dibuja el nuevo, salvo que no hayan cambiado ni el centro ni el radio ni el color
+   (volar recto con el planeta lejos: nada que hacer). Si el circulo queda fuera de la vista solo borra. */
+void circle_update(void)
+{
+    int cx, cy, rx, ry;
+    view_virtual_begin();
+    if (sun_chkon()) { ell_erase(); view_virtual_end(); return; }       /* CHKON: fuera de la vista */
+    ell_params(&cx, &cy, &rx, &ry);
+    if (ell_valid && cx == ell_cx && cy == ell_cy && rx == ell_rx && ry == ell_ry && sun_col == ell_col) { view_virtual_end(); return; }
+    ell_erase();
+    ell_cx = cx; ell_cy = cy; ell_rx = rx; ell_ry = ry; ell_col = sun_col;
+    gfx_ellipse_xor(cx, cy, rx, ry, ell_col, 0, 0, 255, NAT_BOT);
+    ell_valid = 1;
+    view_virtual_end();
+}
+
+static u8 ell_planet(void)
+{
+    circle_update();
+    return ell_valid ? 0 : 1;
+}
+
+/* Anillo del tunel: en el despegue (STP = 8) un rectangulo con la proporcion de la ventana de dibujo (256 x 160: semialto = 5/8 del
+   semiancho); en el hiperespacio (STP = 4) una elipse. Los dos se borran volviendo a dibujarlos */
+static u8 ell_ring(void)
+{
+    int cx, cy, rx, ry;
+    ell_params(&cx, &cy, &rx, &ry);
+    if (circ_stp >= 8) {
+        int hh = (rx * 5) / 8;
+        gfx_frame_xor(cx, cy, rx, hh < 1 ? 1 : hh, sun_col, 0, 0, 255, NAT_BOT);
+    } else gfx_ellipse_xor(cx, cy, rx, ry, sun_col, 0, 0, 255, NAT_BOT);
+    return 0;
+}
+
 /* CIRCLE2 */
-u8 circle2_draw(void)
+static u8 circle2_draw_v(void)
 {
     u8 a, x, t, c;
     unsigned s;
@@ -373,8 +553,15 @@ u8 circle2_draw(void)
     }
 }
 
+u8 circle2_draw(void)
+{
+    u8 r;
+    if (view_native) return ell_ring();                 /* anillos del tunel */
+    view_virtual_begin(); r = circle2_draw_v(); view_virtual_end(); return r;
+}
+
 /* CIRCLE */
-u8 circle_draw(void)
+static u8 circle_draw_v(void)
 {
     u8 x, a;
     if (sun_chkon()) return 1;
@@ -388,8 +575,17 @@ u8 circle_draw(void)
     return circle2_draw();
 }
 
+u8 circle_draw(void)
+{
+    u8 r;
+    view_virtual_begin();
+    r = view_native ? ell_planet() : circle_draw_v();
+    view_virtual_end();
+    return r;
+}
+
 /* WPLS2: borra el circulo anterior volviendo a dibujar sus segmentos (XOR) */
-void circle_wpls2(void)
+static void circle_wpls2_v(void)
 {
     u8 y = circ_lsx2[0], a;
     if (y != 0) goto wp1;
@@ -412,6 +608,12 @@ wp1:
     circ_lsp = 1;
     circ_lsx2[0] = 255;
     circ_lsy2[0] = 255;
+}
+
+void circle_wpls2(void)
+{
+    if (view_native) { ell_erase(); return; }
+    view_virtual_begin(); circle_wpls2_v(); view_virtual_end();
 }
 
 /* ---------------------------------------------------------------- tunel de hiperespacio / lanzamiento (HFS2, HFS1, HFL1) */
@@ -476,6 +678,8 @@ void sun_set_sunx(u8 lo, u8 hi) { sunx[0] = lo; sunx[1] = hi; }
 /* Tras borrar el area de vista: ni el sol ni el circulo del planeta figuran como dibujados */
 void sun_forget(void)
 {
+    ell_valid = 0;                               /* la elipse del planeta (vista nativa) tampoco figura como dibujada */
+    sn_clear();                                  /* ni los tramos del sol */
     sun_flflls();
     circ_lsp = 1;
     circ_lsx2[0] = 255;

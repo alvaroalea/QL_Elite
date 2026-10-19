@@ -58,7 +58,10 @@ static void pixel2(void)
     t = a;
     a = sbcc(YHALF + 1, t);
     if (stars_pixel_hook) stars_pixel_hook(x, a, zz);
-    gfx_dust(x, a, zz);
+    if (view_native) {                     /* vista nativa: la fila del original se lleva a la de pantalla (centro 80, x 6/5) */
+        int ny = view_ty(a);
+        if (ny >= 1 && ny < clip_h) gfx_dust(x, ny, zz);
+    } else gfx_dust(x, a, zz);
     /* acarreo con que vuelve PIXEL: ZZ >= 80 -> CPY #80 deja C = 1 (PX4 no lo toca); si no, dos filas: con y mod 8 != 0 el
        SBC #3 del byte alto de la direccion no pide prestado (C = 1); con y mod 8 = 0 va por PX6 y queda el C = 0 del CPY */
     c = (u8)(zz >= 80 || (a & 7) != 0);

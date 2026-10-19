@@ -59,3 +59,16 @@ void state_clear(void)
     for (i = 0; i <= NOSH; i++) univ[i] = state_slot(i);
 }
 u8  enc_ev;                   /* EV: retraso de las naves extra (encounters.c; ZERO lo pone a 0) */
+
+/* ---- vista de vuelo nativa (160 lineas) ---- */
+int view_native = 0, view_yscale = 0, view_cy = 68, clip_h = 136;
+
+void view_set_native(int on)
+{
+    view_native = on;
+    view_yscale = on;
+    view_cy = on ? 80 : 68;
+    clip_h = on ? 160 : 136;
+}
+
+int view_ty(int vy) { return view_native ? 80 + ((vy - 68) * 6) / 5 : vy; }

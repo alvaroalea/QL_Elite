@@ -261,6 +261,11 @@ u8 sm_proj(void)
     s = (unsigned)sm_x + (s >> 8); zk3[1] = (u8)s;
     zP = inwk[3]; zP1 = inwk[4];
     if (sm_pls6((u8)(inwk[5] ^ 0x80))) { sm_a = (u8)((zK[3] & 0x7F) | zK[2]); return 1; }
+    if (view_yscale) {                                      /* vista nativa: desplazamiento vertical x 6/5 */
+        int v = (int)(((unsigned)sm_x << 8) | zK[0]);
+        v += v / 5;
+        zK[0] = (u8)v; sm_x = (u8)(((unsigned)v >> 8) & 0xFF);
+    }
     s = (unsigned)zK[0] + VIEW_CY; zk4[0] = (u8)s;
     s = (unsigned)sm_x + (s >> 8); zk4[1] = (u8)s;
     sm_a = (u8)s; sm_c = 0;

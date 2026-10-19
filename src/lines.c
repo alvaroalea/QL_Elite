@@ -11,7 +11,8 @@
 
 void (*loin_hook)(u8 x1, u8 y1, u8 x2, u8 y2) = 0;
 
-void loin_draw(u8 x1, u8 y1, u8 x2, u8 y2, u8 c)
+/* La transcripcion del LOIN del original (verificada punto a punto contra el 6502: make test_lines). Ya no la usa el juego. */
+void loin_draw_6502(u8 x1, u8 y1, u8 x2, u8 y2, u8 c)
 {
     u8 p, q, s = 128, swap = 0, t, n, x, y;
     unsigned w;
@@ -71,6 +72,51 @@ li18:           y--;
             }
         }
     }
+}
+
+/* Linea del juego: Bresenham puro en XOR, con los dos extremos. Los extremos se ordenan siempre igual (x menor primero; con la misma x,
+   y menor primero), asi que dibujar (A, B) o (B, A) enciende los mismos puntos y borrar = volver a dibujar. Un punto por cada x (la
+   linea es mas horizontal que vertical, |dy| <= |dx|) o por cada y; el error empieza en la mitad. En el QL (ASM_LINE, ql_line.asm) lo
+   hace una rutina de ensamblador que escribe directamente en la pantalla; en el PC (y para comprobarla) esta version en C. */
+void loin_bres_c(u8 x1, u8 y1, u8 x2, u8 y2, u8 c)
+{
+    int x = x1, y = y1, dx, dy, sy, e, n;
+    if (x1 > x2 || (x1 == x2 && y1 > y2)) { x = x2; y = y2; x2 = x1; y2 = y1; }
+    dx = (int)x2 - x;
+    dy = (int)y2 - y;
+    sy = 1;
+    if (dy < 0) { dy = -dy; sy = -1; }
+    if (dx >= dy) {                                     /* un punto por cada x */
+        e = dx >> 1;
+        for (n = dx; n >= 0; n--) {
+            gfx_xor_pixel(x, y, c);
+            e -= dy;
+            if (e < 0) { y += sy; e += dx; }
+            x++;
+        }
+    } else {                                            /* un punto por cada y */
+        e = dy >> 1;
+        for (n = dy; n >= 0; n--) {
+            gfx_xor_pixel(x, y, c);
+            e -= dx;
+            if (e < 0) { x++; e += dy; }
+            y += sy;
+        }
+    }
+}
+
+#ifdef ASM_LINE
+extern void ql_line(long x1, long y1, long x2, long y2, long c, long scr);   /* ql_line.asm */
+#endif
+
+void loin_draw(u8 x1, u8 y1, u8 x2, u8 y2, u8 c)
+{
+    if (loin_hook) loin_hook(x1, y1, x2, y2);
+#ifdef ASM_LINE
+    ql_line((long)x1, (long)y1, (long)x2, (long)y2, (long)c, (long)screen);
+#else
+    loin_bres_c(x1, y1, x2, y2, c);
+#endif
 }
 
 void (*lines_hloin_hook)(u8 x1, u8 x2, u8 y, u8 c) = 0;

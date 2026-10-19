@@ -2,9 +2,14 @@
 .DEFAULT_GOAL := disk
 # Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=pre0.3
 VERSION ?= pre0.2
+# Fuente de referencia (Mark Moxon): carpeta moxon/ del proyecto (ignorada por git); ELITE_SRC del entorno tiene prioridad
+export ELITE_SRC ?= $(CURDIR)/moxon/1-source-files/main-sources
 # Funciones de depuracion (SHIFT-1/2/3 compra/venta/combustible gratis, SHIFT-C/P/H en vuelo): make DEBUG= para quitarlas
 DEBUG ?= 1
 DBGDEF = $(if $(DEBUG),-DDEBUG)
+# Linea de Bresenham en ensamblador en el QL (src/ql_line.asm); make ASM_LINE= para usar la version en C
+ASM_LINE ?= 1
+ASMDEF = $(if $(ASM_LINE),-DASM_LINE)
 VERDEF = $(DBGDEF) -DELITE_VERSION='"$(VERSION)"'
 COMMON = src/gfx.c src/text.c
 
@@ -117,7 +122,7 @@ ql_ship:
 	qcc -O -Isrc -I/usr/local/share/qdos/include -o ship_ql src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
 
 # Comparacion con el codigo ORIGINAL ejecutado en un emulador de 6502 (necesita la fuente de referencia clonada:
-# git clone https://github.com/markmoxon/elite-source-code-apple-ii /tmp/moxon  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
+# git clone https://github.com/markmoxon/elite-source-code-apple-ii moxon  (en la raiz del proyecto)  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
 test_orig:
 	python3 tools/gen_ll9.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ll9 tests/test_ll9.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c
@@ -136,9 +141,9 @@ export QLLIB := $(QLSDK)/share/qdos/lib
 endif
 
 # El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
-GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm
+GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm
 elite: $(GAME_QL) $(wildcard src/*.h) Makefile
-	qcc -O $(VERDEF) -Isrc -I/usr/local/share/qdos/include -o elite $(GAME_QL) -lm
+	qcc -O $(VERDEF) $(ASMDEF) -Isrc -I/usr/local/share/qdos/include -o elite $(GAME_QL) -lm
 ql_game: elite
 
 # ---- Imagen de disco DS/DD 720 KB (elite.img) -------------------------------------------------------------
@@ -166,7 +171,41 @@ elite.img: elite $(DISK_FILES) $(QLTOOLS)
 
 disk: elite.img
 
-.PHONY: ql_game qltools disk
+.PHONY: ql_game qltools disk test_bres test_lineasm test_ellipse test_nativeview test_ellasm test_dust test_panel
+
+# Texto bajo el panel de vuelo: pintar encima de otro estado (vaciando solo el rectangulo que sobra) = pintar desde cero
+test_panel:
+	gcc -std=c89 -O2 -Isrc -o tests/test_panel tests/test_panel.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
+	./tests/test_panel
+
+# Polvo estelar (tamanos por distancia, borrado, bordes) y PIXEL original intacto
+test_dust:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_dust tests/test_dust.c src/gfx.c
+	./tests/test_dust
+
+# ql_ell.asm (elipse y tramo horizontal en ensamblador) ejecutada con tools/m68k_mini.py contra gfx_ellipse_xor y gfx_hline_xor en C
+test_ellasm:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/ell_dump tests/ell_dump.c src/gfx.c
+	python3 tools/test_ellasm.py 700
+
+# Vista nativa de vuelo: sol por filas (invariante pantalla = tramos), planeta (salto de redibujado), anillos del tunel y borrado exacto
+test_nativeview:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_nativeview tests/test_nativeview.c src/ships.c src/move.c src/sun.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c src/chart.c -lm
+	./tests/test_nativeview
+
+# Elipse de punto medio (planeta y anillos del tunel en la vista nativa): ejes, simetria sin puntos borrados por XOR, cercania a la elipse ideal, borrado exacto y recorte
+test_ellipse:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ellipse tests/test_ellipse.c src/gfx.c -lm
+	./tests/test_ellipse
+
+# Linea de Bresenham del juego (extremos, simetria, borrado exacto, cercania a la recta) y su version en ensamblador (ql_line.asm)
+# ejecutada con el interprete de 68000 de tools/m68k_mini.py contra la version en C
+test_bres:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_bres tests/test_bres.c src/lines.c src/emath.c src/gfx.c -lm
+	./tests/test_bres
+
+test_lineasm: test_bres
+	python3 tools/test_lineasm.py 3000
 
 # Logica de juego y sesion guiada por guion (PC): guarda capturas en tests/shots/
 test_game:
@@ -254,7 +293,7 @@ test_dashpng:
 dash_file:
 	python3 tools/gen_dashboard.py
 
-test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng
+test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_ellasm test_dust
 
 # Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
 c68_check:

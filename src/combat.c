@@ -19,7 +19,7 @@ void (*combat_mess_hook)(u8 token) = 0;
 void (*combat_mess_off_hook)(void) = 0;
 
 #define VIEW_X 128                       /* X: centro de la vista espacial de 256 x 136 */
-#define VIEW_Y 68                        /* Y */
+#define VIEW_Y view_cy                   /* Y (68; 80 en la vista nativa) */
 #define MLAS 50                          /* Mlas: potencia del laser de mineria */
 
 /* KWL% y KWH%: lo que suma al TALLY cada tipo de nave (1..32), parte fraccionaria (/256) y entera */

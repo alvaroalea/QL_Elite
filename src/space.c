@@ -201,8 +201,10 @@ void space_scan(u8 type)
     if (a < 146) a = 146;                                     /* CMP #146; BCS ...; LDA #146 */
     if (a >= 191) a = 190;                                    /* CMP #191; BCC ...; LDA #190 */
     if (dash_trace) { dash_trace('c', (u8)(x1 - 2), a, 0, space_scacol(type)); dash_trace('v', x1, a, y2, space_scacol(type)); }
+    gfx_yoff_set(view_native ? DASH_Y0 - 136 : 0);            /* el radar esta en el panel */
     gfx_cpix((int)x1 - 2, a, col);                            /* cabeza (CPIX con X = X1 - 2) */
     gfx_vloin(x1, a, y2, col);                                /* palo (VLOIN) */
+    gfx_yoff_set(0);
 }
 
 static void load_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) inwk[i] = p[i]; }

@@ -499,7 +499,7 @@ void ships_death_debris(void)
 
 /* ---------------------------------------------------------------- PLANET */
 
-void planet(void)
+static void planet_v(void)
 {
     u8 a;
     int sun;
@@ -512,6 +512,7 @@ void planet(void)
     if (zK[1] != 0) zK[0] = 248;
     if (ztype & 1) { sun_draw(); return; }
     sun_col = C_BLUE;                                    /* propio: el planeta siempre azul (el original usa el COL que haya quedado) */
+    if (view_native) { circle_update(); return; }        /* elipse: borra y dibuja solo si cambia el centro o el radio */
     circle_wpls2();                                      /* PL9: borra el circulo anterior y dibuja el nuevo */
     circle_draw();
     return;
@@ -520,6 +521,8 @@ pl2:
     sun_col = sun ? C_RED : C_BLUE;                      /* el borrado XOR debe usar el color con que se dibujo */
     if (sun) sun_wpls(); else circle_wpls2();
 }
+
+void planet(void) { view_virtual_begin(); planet_v(); view_virtual_end(); }
 
 /* ---------------------------------------------------------------- DOEXP */
 
@@ -596,7 +599,7 @@ static void ptcls(void)
             e_colv = (u8)((a & 0x0C) | 16);              /* AND #%00001100; ORA #16; STA COL */
             zR = zk3[1];
             hi = exs1(zk3[0], &xr);
-            if (hi == 0 && xr < 2 * 68 - 1) {            /* BNE EX11; CPX #2*Y-1; BCS EX11 */
+            if (hi == 0 && (int)xr < clip_h - 1) {       /* BNE EX11; CPX #2*Y-1; BCS EX11 */
                 y1 = xr;
                 zR = zk3[3];
                 hi = exs1(zk3[2], &xr);

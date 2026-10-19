@@ -36,7 +36,7 @@ lg = [0x0803] + [int(0x2000 * math.log(i) / math.log(2) + 0.5) for i in range(1,
 for i in range(256):
     cpu.mem[0x2000 + i] = (lg[i] >> 8) & 255; cpu.mem[0x2100 + i] = lg[i] & 255
     cpu.mem[0x2200 + i] = int(2 ** ((i / 2 + 128) / 16) + 0.5) >> 8 & 255
-REF = os.path.join(elitesrc.SRC, '..', '..', '4-reference-binaries', 'ib-disk') if hasattr(elitesrc, 'SRC') else '/tmp/moxon/4-reference-binaries/ib-disk'
+REF = os.path.join(elitesrc.SRC, '..', '..', '4-reference-binaries', 'ib-disk') if hasattr(elitesrc, 'SRC') else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'moxon', '4-reference-binaries', 'ib-disk')
 ships = open(os.path.join(REF, 'SHIPS.bin'), 'rb').read()
 NI = S['NI%']
 m = cpu.mem

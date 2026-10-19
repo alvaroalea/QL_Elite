@@ -78,6 +78,7 @@ void (*scr_trace)(char k, u8 a) = 0;             /* pruebas: MT2 (m), FLFLLS (f)
    punto 254 tambien queda encendido) */
 void scr_box(void)
 {
+    if (view_native) return;                   /* vista de vuelo de 160 lineas: sin la linea azul de arriba (propio) */
     lines_hloin(0, 255, 0, C_BLUE);
     gfx_pixel(254, 0, C_BLUE);
 }
@@ -91,7 +92,7 @@ static void ttx66k(void)
     else if (!graphics) gfx_clear(C_BLACK);
     else {
         if (qq11 == 13) gfx_clear(C_BLACK);      /* el titulo y la mision 1 del port ocupan toda la pantalla */
-        else gfx_fill_lines(0, 136, C_BLACK);
+        else gfx_fill_lines(0, clip_h, C_BLACK);
         scr_box();
     }
     if (graphics) { dt_xc = 0; dt_yc = 0; scr_text = 0; }       /* cleargrap: XC = YC = 0; HGR */
@@ -123,7 +124,7 @@ void tt66(u8 view)
         else { dt_xc = 1; dt_yc = 1; dt_tt11(3, qq22[1], 0, 0); }
     }
     dt_yc = 1;                                   /* OLDBOX */
-    if (qq11 == 0) {
+    if (qq11 == 0 && !view_native) {             /* en la vista nativa de vuelo el nombre ya sale bajo el panel (propio) */
         dt_xc = 11;
         scr_tt27((u8)(scr_viewdir | 0x60));      /* FRONT, REAR, LEFT o RIGHT */
         scr_tt27(' ');                           /* TT162 */

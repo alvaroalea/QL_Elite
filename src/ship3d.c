@@ -16,7 +16,7 @@ void (*ship_doexp_hook)(void) = 0;
 void (*ship_planet_hook)(void) = 0;
 
 #define LOIN()    do { if (ship_loin_hook) ship_loin_hook(); } while (0)
-#define YC2M1     (VIEW_CY * 2 - 1)         /* Y*2-1 = 135 */
+#define YC2M1     (clip_h - 1)              /* Y*2-1 = 135 (159 en la vista nativa) */
 
 /* puntero + desplazamiento de 16 bits con signo (los planos comparten datos con desplazamientos negativos) */
 static const u8 *bp_ptr(u8 lo, u8 hi)
@@ -162,7 +162,7 @@ static void ll118(void)
         zx15[2] = 0; zx15[3] = 0;
     }
     {                                                  /* LL135 */
-        int d = (int)zx15[2] - VIEW_CY * 2;
+        int d = (int)zx15[2] - clip_h;
         int c = (d >= 0);
         int neg;
         zR = (u8)d;
@@ -214,9 +214,9 @@ ll83:
     x = (u8)(zx15[1] - 1); a = x;
     x = (u8)(zx15[5] - 1); zx12[2] = x; a |= zx12[2];
     if (!(a & 0x80)) goto ll109;
-    cc = (zx15[2] >= VIEW_CY * 2);
+    cc = (zx15[2] >= clip_h);
     a = (u8)(zx15[3] - (1 - cc)); zx12[2] = a;
-    cc = (zx12[0] >= VIEW_CY * 2);
+    cc = (zx12[0] >= clip_h);
     a = (u8)(zx12[1] - (1 - cc)); a |= zx12[2];
     if (!(a & 0x80)) goto ll109;
 ll115:
@@ -262,7 +262,7 @@ ll113:
     ll118();                                           /* LL138 */
     if (!(zxx13 & 0x80)) goto ll124;
     if ((zx15[1] | zx15[3]) != 0) goto ll137;          /* LL117 */
-    if (zx15[2] >= VIEW_CY * 2) goto ll137;
+    if (zx15[2] >= clip_h) goto ll137;
 llx117:
     x = zx15[0]; zx15[0] = zx15[4]; zx15[4] = x;
     a = zx15[5]; x = zx15[1]; zx15[5] = x; zx15[1] = a;
@@ -292,7 +292,7 @@ void ship_shppt(void)
     u8 a;
     sm_proj();
     a = (u8)(sm_a | zk3[1]);
-    if (a == 0 && zk4[0] < VIEW_CY * 2 - 2) {
+    if (a == 0 && zk4[0] < clip_h - 2) {
         shpt(zk4[0]);
         shpt((u8)(zk4[0] + 1));
         inwk[31] |= 0x08;
@@ -553,6 +553,11 @@ ll66:
 ll67:
     em_ll28(zx15[3]);
 ll68:
+    if (view_yscale) {                                     /* vista nativa: desplazamiento vertical x 6/5 */
+        unsigned v = ((unsigned)zU << 8) | zR;
+        v += v / 5;
+        zR = (u8)v; zU = (u8)(v >> 8);
+    }
     x = y; x++;
     if (zx15[5] & 0x80) goto ll70;
     d = VIEW_CY - (int)zR; cc = (d >= 0); xx3[x] = (u8)d; x++;

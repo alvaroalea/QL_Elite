@@ -6,7 +6,10 @@
 #define SUN_H
 #include "platform.h"
 
-#define SUN_YX2M1 135                     /* Yx2M1: ultima linea del area de vista (136 lineas) */
+extern int sun_yx2m1;                     /* Yx2M1: ultima linea del area de vista (135; 133 en el espacio virtual de la vista nativa) */
+#define SUN_YX2M1 sun_yx2m1
+void view_virtual_begin(void);            /* vista nativa: planetas, soles y circulos se calculan en el espacio del original (136 lineas) y se dibujan con 6/5 en vertical */
+void view_virtual_end(void);
 
 extern u8 sun_col;                        /* COL: color de dibujo (indice de paleta del QL) */
 extern u8 sun_lso[256];                   /* LSO: semiancho de cada linea del sol */
@@ -28,7 +31,9 @@ void sun_draw(void);                      /* SUN: dibuja (XOR) el sol de K3, K4,
 void sun_wpls(void);                      /* WPLS: borra el sol anterior */
 u8   circle_draw(void);                   /* CIRCLE: devuelve el acarreo (1 = fuera de la vista) */
 u8   circle2_draw(void);                  /* CIRCLE2: como CIRCLE sin CHKON y con STP ya puesto; devuelve 0 */
-void circle_wpls2(void);                  /* WPLS2: borra el circulo anterior */
+void circle_wpls2(void);
+void circle_update(void);                 /* vista nativa: PL9 = borra el circulo anterior y dibuja el nuevo (nada si no cambia); solo con view_native */
+int  sun_rows_get(int y, int *lo, int *hi);   /* pruebas: tramo [lo, hi] que el sol de la vista nativa tiene encendido en la fila y (0 si vacia) */                  /* WPLS2: borra el circulo anterior */
 extern void (*sun_hiss_hook)(int y);      /* sonido de cada anillo del tunel (SOHISS) */
 void sun_get_sunx(u8 *v);                 /* pruebas: SUNX */
 void sun_set_sunx(u8 lo, u8 hi);

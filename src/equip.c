@@ -21,7 +21,7 @@ void bomb_off(void)
     x1 = bombtbx[0]; y1 = bombtby[0];            /* XX12 */
     for (y = 1; y < 10; y++) {                   /* CLICK: el chasquido del altavoz no se porta */
         if (bomb_line_hook) bomb_line_hook(x1, y1, bombtbx[y], bombtby[y]);
-        loin_draw(x1, y1, bombtbx[y], bombtby[y], bomb_col);
+        loin_draw(x1, (u8)view_ty(y1), bombtbx[y], (u8)view_ty(bombtby[y]), bomb_col);   /* y del original -> pantalla */
         x1 = bombtbx[y]; y1 = bombtby[y];
     }
 }

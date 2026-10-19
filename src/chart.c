@@ -56,15 +56,19 @@ void chart_tt15(int local, u8 x, u8 y, u8 size) { q19[0] = x; q19[1] = y; q19[2]
 void chart_sight(u8 view)
 {
     u8 l = laser[view & 3], col;
+    int m;
     if (l == 0) return;
     if (l == LASER_POW) col = C_BLUE;
     else if (l == LASER_BEAM) col = C_RED;
     else col = C_WHITE;
+    m = chart_xf_mode();
     sun_col = col;
+    if (view_native) chart_xf_set(3);              /* vista nativa: las cruces se estiran 6/5 en vertical y se centran en 80 */
     q19[0] = 128; q19[1] = (u8)(YHALF_VIEW - 24); q19[2] = 20;
     tt15(0);
     q19[2] = 10;
     tt15(0);
+    chart_xf_set(m);
 }
 
 /* TT14: cruz del sistema actual y circulo del alcance de combustible */

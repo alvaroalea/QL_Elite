@@ -82,22 +82,30 @@ static u8 qlcol(u8 c)
     return C_BLACK;
 }
 
+/* el panel del original esta en las lineas 136..191; con la vista nativa baja hasta DASH_Y0 */
+static void panel_y(int on) { gfx_yoff_set(on && view_native ? DASH_Y0 - 136 : 0); }
+
 /* primitivas del panel con el color del original (D_*): registran la llamada si hay dash_trace (pruebas) */
 static void d_hloin(u8 x1, u8 x2, u8 y, u8 dcol)
 {
     if (dash_trace) dash_trace('h', x1, x2, y, dcol);
+    panel_y(1);
     gfx_hloin(x1, x2, y, qlcol(dcol));
+    panel_y(0);
 }
 
 static void d_vloin(u8 x, u8 y1, u8 y2, u8 dcol)
 {
     if (dash_trace) dash_trace('v', x, y1, y2, dcol);
+    panel_y(1);
     gfx_vloin(x, y1, y2, qlcol(dcol));
+    panel_y(0);
 }
 
 /* panel minimo si falta el fichero: marco, pistas punteadas y etiquetas */
 static void fallback_panel(void)
 {
+#define DR ((DASH_Y0 - 136) / 8)             /* filas de texto que baja el panel respecto al original */
     static const char *left[6] = { "FS", "AS", "FU", "CT", "LT", "AL" };
     int i, x;
     gfx_rect(0, DASH_Y0, 256, DASH_LINES, C_BLACK);
@@ -106,13 +114,13 @@ static void fallback_panel(void)
     gfx_rect(255, DASH_Y0, 1, DASH_LINES, C_MAGENTA);
     for (i = 0; i < 13; i++) {
         int base = (i == 1 || i == 2) ? 210 : (i >= 7 ? 16 : 210);
-        for (x = base; x < base + 32; x += 2) gfx_pixel(x, dialY[i] + 6, C_RED);
+        for (x = base; x < base + 32; x += 2) gfx_pixel(x, dialY[i] + 6 + (DASH_Y0 - 136), C_RED);
     }
     txt_color(C_WHITE, TXT_TRANSPARENT);
-    for (i = 0; i < 6; i++) txt_print_at(0, (136 + 1 + 8 * i) / 8, left[i]);
-    txt_print_at(30, 17, "SP"); txt_print_at(30, 18, "RL"); txt_print_at(30, 19, "DC");
-    txt_print_at(30, 20, "1"); txt_print_at(30, 21, "2"); txt_print_at(30, 22, "3"); txt_print_at(30, 23, "4");
-    txt_print_at(6, 21, "(NO ELITE_DASH FILE)");
+    for (i = 0; i < 6; i++) txt_print_at(0, (DASH_Y0 + 1 + 8 * i) / 8, left[i]);
+    txt_print_at(30, 17 + DR, "SP"); txt_print_at(30, 18 + DR, "RL"); txt_print_at(30, 19 + DR, "DC");
+    txt_print_at(30, 20 + DR, "1"); txt_print_at(30, 21 + DR, "2"); txt_print_at(30, 22 + DR, "3"); txt_print_at(30, 23 + DR, "4");
+    txt_print_at(6, 21 + DR, "(NO ELITE_DASH FILE)");
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -186,7 +194,9 @@ static void dot(void)
 {
     if (dash_comc == 0) return;                     /* BEQ COR1 */
     if (dash_trace) dash_trace('p', dash_comx, dash_comy, dash_comc, 0);
-    gfx_dust(dash_comx, dash_comy, dash_comc);                /* JMP PIXEL con ZZ = COMC */
+    panel_y(1);
+    gfx_dust_6502(dash_comx, dash_comy, dash_comc);                /* JMP PIXEL con ZZ = COMC */
+    panel_y(0);
 }
 
 static void compas(void)
@@ -239,9 +249,11 @@ static const u8 bulb_s[8] = { 0x7F, 0x7F, 0x07, 0x7F, 0x7F, 0x70, 0x7F, 0x7F };
 static void bulb(const u8 *rows, int x)
 {
     int r, b;
+    panel_y(1);
     for (r = 0; r < 8; r++)
         for (b = 0; b < 7; b++)
             if (rows[r] & (1 << b)) gfx_xor_pixel(x + b, 176 + r, C_WHITE);
+    panel_y(0);
 }
 
 void dash_spblb(void) { bulb(bulb_s, 24 * 8); }       /* SPBLB: enciende o apaga la "S" */

@@ -45,10 +45,10 @@ int main(int argc, char **argv)
             else m = sscanf(p, "%d %d %d%n", &a[0], &a[1], &a[2], &used);
             if (m < (k == 0 ? 4 : 3)) break;
             p += used;
-            if (k == 0) loin_draw((u8)a[0], (u8)a[1], (u8)a[2], (u8)a[3], C_WHITE);
+            if (k == 0) loin_draw_6502((u8)a[0], (u8)a[1], (u8)a[2], (u8)a[3], C_WHITE);
             else if (k == 1) gfx_hloin(a[0], a[1], a[2], C_WHITE);
             else if (k == 2) gfx_vloin(a[0], a[1], a[2], C_WHITE);
-            else gfx_dust(a[0], a[1], (u8)a[2]);
+            else gfx_dust_6502(a[0], a[1], (u8)a[2]);
         }
         p = sep + 1;
         {   /* los puntos esperados estan ordenados por x y luego y; se comparan con la pantalla */
