@@ -8,4 +8,7 @@ void shipview_pos(int x, int y, int z);      /* posicion en unidades de 256 (hi)
 /* Dibuja una nave. fresh=1: monton vacio (primera vez). fresh=0: se reutiliza el monton y LL9 borra (XOR) las lineas anteriores
    mientras dibuja las nuevas (animacion). El llamante hizo state_clear() y plat_init(). */
 void shipview_draw(u8 type, int x, int y, int z, int ay, int ax, u8 *heap, u8 *slot, int fresh);
+/* Igual que shipview_draw con z en 1/256 de unidad (long): permite acercar la nave poco a poco */
+void shipview_draw16(u8 type, int x, int y, long z, int ay, int ax, u8 *heap, u8 *slot, int fresh);
+int shipview_radius(u8 type);                /* tamano del plano (mayor coordenada de sus vertices) */
 #endif

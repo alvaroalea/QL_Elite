@@ -62,7 +62,23 @@ void shipview_pos(int x, int y, int z)               /* coordenadas en unidades 
 
 void shipview_draw(u8 type, int x, int y, int z, int ay, int ax, u8 *heap, u8 *slot, int fresh)
 {
-    shipview_pos(x, y, z);
+    shipview_draw16(type, x, y, (long)z * 256L, ay, ax, heap, slot, fresh);
+}
+
+int shipview_radius(u8 type)                         /* mayor coordenada de los vertices del plano (el Cobra Mk III da ~65) */
+{
+    const u8 *bp = SHIP_BP(type), *v = bp + 20;
+    int i, n = bp[8], r = 0, k;
+    for (i = 0; i + 5 < n; i += 6)
+        for (k = 0; k < 3; k++)
+            if (v[i + k] > r) r = v[i + k];
+    return r;
+}
+
+void shipview_draw16(u8 type, int x, int y, long z, int ay, int ax, u8 *heap, u8 *slot, int fresh)
+{
+    shipview_pos(x, y, (int)(z >> 8));
+    inwk[I_ZLO] = (u8)(z & 255);
     shipview_orient(ay, ax);
     inwk[I_NEWB] = 0;
     /* LL9 solo borra las lineas viejas del monton si el bit 3 de INWK+31 esta puesto (lo pone al terminar de dibujar):

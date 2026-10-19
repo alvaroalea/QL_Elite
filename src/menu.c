@@ -649,11 +649,23 @@ int scr_disk(void)
 
 static u8 title_heap[SHIPVIEW_HEAP];
 
-#define TITLE_Z 2                                /* distancia de la nave del titulo (el original la deja en z = 1 * 256 + 250 = 506) */
+#define TITLE_Z 506L                             /* distancia final del Cobra Mk III (como el original: 1 * 256 + 250) */
+#define TITLE_FAR 4096L                          /* distancia de la que parte cada nave */
+#define TITLE_HOLD 500                           /* fotogramas que dura cada modelo (~10 s a 50 fps; provisional) */
+#define TITLE_CY 92                              /* centro del hueco entre el titulo (fila 1) y la opcion 1 (fila 21) */
+#define TITLE_CLIP 164
+#define TITLE_NSHIPS 10
 
-int scr_title(void)
+static const u8 title_ships[TITLE_NSHIPS] = {
+    SHIPT_COBRA_MK_3, SHIPT_VIPER, SHIPT_MAMBA, SHIPT_PYTHON, SHIPT_KRAIT,
+    SHIPT_FER_DE_LANCE, SHIPT_ASP_MK_2, SHIPT_ADDER, SHIPT_ANACONDA, SHIPT_THARGOID
+};
+
+static int title_loop(void)
 {
-    int ay = 0, ch, r, i;
+    int ay = 0, ch, r, i, t = 0, idx = 0, phase = 0, rc;
+    long z = TITLE_FAR, zend, rcz;
+    u8 type = title_ships[0];
     char name[CMDR_NAMELEN + 1];
     ui_clear();
     state_clear();                                   /* LL9 trabaja sobre INWK/K%: el titulo usa su propio estado */
@@ -671,14 +683,36 @@ int scr_title(void)
         txt_color(C_RED, C_BLACK);
         txt_print_at(0, 30, "NO ELITE_DASH FILE (BASIC PANEL)");
     }
-    shipview_draw(SHIPT_COBRA_MK_3, 0, 0, TITLE_Z, ay, 10, title_heap, state_slot(0), 1);
+    rc = shipview_radius(SHIPT_COBRA_MK_3);
+    zend = TITLE_Z;
+    shipview_draw16(type, 0, 0, z, ay, 10, title_heap, state_slot(0), 1);
     for (;;) {
         ch = in_poll();
         if (ch == KC_QUIT) return TITLE_QUIT;
         if (ch < 0) {                                /* la nave gira mientras se espera */
             ay = (ay + 1) & (SHIPVIEW_ANG - 1);
-            if (in_script == 0 || (in_frames() & 7) == 0)
-                shipview_draw(SHIPT_COBRA_MK_3, 0, 0, TITLE_Z, ay, 10, title_heap, state_slot(0), 0);
+            if (in_script == 0 || (in_frames() & 7) == 0) {
+                if (phase == 0) {                    /* se acerca frenando */
+                    z -= (z - zend) / 10 + 4;
+                    if (z <= zend) { z = zend; phase = 1; t = 0; }
+                } else if (phase == 1) {             /* quieta girando */
+                    if (++t >= TITLE_HOLD) phase = 2;
+                } else {                             /* se aleja; al perderse entra otro modelo */
+                    z += (z - zend) / 8 + 12;
+                    if (z >= TITLE_FAR) {
+                        zxx19 = title_heap; zlsnum = 1; zlsnum2 = title_heap[0]; ship_lsclr();   /* borra las lineas de la ultima */
+                        state_clear();
+                        idx = (idx + 1) % TITLE_NSHIPS;
+                        type = title_ships[idx];
+                        rcz = (long)shipview_radius(type) * TITLE_Z / rc;
+                        zend = rcz < 400L ? 400L : (rcz > 1400L ? 1400L : rcz);
+                        z = TITLE_FAR; phase = 0;
+                        shipview_draw16(type, 0, 0, z, ay, 10, title_heap, state_slot(0), 1);
+                        continue;
+                    }
+                }
+                shipview_draw16(type, 0, 0, z, ay, 10, title_heap, state_slot(0), 0);
+            }
             continue;
         }
         ch = in_up(ch);
@@ -696,6 +730,15 @@ int scr_title(void)
             else txt_clear_rows(25, 3, C_BLACK);
         }
     }
+}
+
+int scr_title(void)
+{
+    int svc = view_cy, svh = clip_h, svy = view_yscale, r;
+    view_cy = TITLE_CY; clip_h = TITLE_CLIP; view_yscale = 1;     /* centro del hueco libre y aspecto 1,2 del monitor */
+    r = title_loop();
+    view_cy = svc; clip_h = svh; view_yscale = svy;
+    return r;
 }
 
 /* ---------------------------------------------------------------- despacho */
