@@ -29,5 +29,7 @@ void ship_shppt(void);              /* nave lejana: un punto */
 u8   ship_clip(void);               /* recorta XX15/XX12; devuelve 1 si la linea queda fuera */
 u8   ship_clip2(u8 a);              /* entrada CLIP2 (a = XX15+5) */
 void ship_lsput(void);              /* guarda la linea en el monton y dibuja la nueva y borra la vieja */
+extern u8 ship_dbg_skip;           /* DEBUG (SHIFT-D): bit 0 = sin matematicas, bit 1 = sin dibujo */
+void ship_redraw_heap(void);        /* DEBUG: pinta dos veces las lineas del monton (coste del dibujo sin LL9) */
 void ship_lsclr(void);              /* borra las lineas del monton que quedan sin sustituir */
 #endif

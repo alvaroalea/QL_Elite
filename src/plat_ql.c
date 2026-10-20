@@ -26,6 +26,11 @@ extern long ql_trap1(long d0, long d1, long d2, long d3);
 
 static long con_in = -1L;                   /* canal QDOS de stdin (lectura) */
 static long con_out = -1L;                  /* canal QDOS de stdout (ventana) */
+extern void ql_tick_on(void);
+extern void ql_tick_off(void);
+extern long ql_ticks(void);
+static int tick_up = 0;
+static long last_tick = 0;
 static int  con_up = 0;                     /* plat_init hecho y plat_shutdown pendiente */
 static short win_def[4];                    /* ancho, alto, x, y */
 
@@ -55,6 +60,7 @@ void plat_init(void)
     }
     plat_flush_input();
     if (!con_up) { con_up = 1; atexit(plat_shutdown); }
+    if (!tick_up) { ql_tick_on(); tick_up = 1; last_tick = ql_ticks(); }
 }
 
 /* Espera de tecla para los demos: sin ella el runtime de c68 borra la pantalla al volver a QDOS.
@@ -91,13 +97,23 @@ void plat_wait_key(void)
 }
 
 /* Se llama una vez por fotograma desde el bucle: aprovecha para vaciar la cola de teclado. */
+
+unsigned long plat_ticks(void) { return tick_up ? (unsigned long)ql_ticks() : 0UL; }
+
+/* Limite de 50 fotogramas por segundo: si el fotograma ha durado menos de un cuadro (20 ms), se espera al siguiente. Un fotograma que
+   ya ha durado un cuadro o mas (un QL normal: 5-10 fps) no espera nada; solo frena a un QL rapido (Super Gold Card o similar) */
 void plat_present(void)
 {
     plat_flush_input();
+    if (tick_up) {
+        while (ql_ticks() == last_tick) { }
+        last_tick = ql_ticks();
+    }
 }
 
 void plat_shutdown(void)
 {
+    if (tick_up) { ql_tick_off(); tick_up = 0; }      /* antes de terminar: la tarea del reloj esta en nuestro codigo */
     if (!con_up) return;                    /* idempotente: tambien lo llama atexit */
     con_up = 0;
     plat_flush_input();

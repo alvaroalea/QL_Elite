@@ -10,12 +10,32 @@ u8 zxx18[9];
 u8 xx3[258];
 u8 ship_c_in;
 
+u8 ship_dbg_skip = 0;                          /* DEBUG (SHIFT-D): bit 0 = sin matematicas de LL9, bit 1 = sin dibujo de lineas */
+#ifdef DEBUG
+static void default_loin(void) { if (!(ship_dbg_skip & 2)) loin_draw(zx15[0], zx15[1], zx15[2], zx15[3], C_WHITE); }
+#else
 static void default_loin(void) { loin_draw(zx15[0], zx15[1], zx15[2], zx15[3], C_WHITE); }
+#endif
+
 void (*ship_loin_hook)(void) = default_loin;
 void (*ship_doexp_hook)(void) = 0;
 void (*ship_planet_hook)(void) = 0;
 
 #define LOIN()    do { if (ship_loin_hook) ship_loin_hook(); } while (0)
+
+/* DEBUG: el coste de dibujo de un fotograma sin las matematicas: cada linea del monton se pinta dos veces (borrar y volver a dibujar),
+   como LL9 cuando dibuja la nueva y borra la vieja; la pantalla no cambia */
+void ship_redraw_heap(void)
+{
+    u8 y = 1, n = zxx19[0];
+    if ((inwk[31] & 0x28) != 0x08) return;          /* sin lineas dibujadas, o explotando (el monton guarda la nube) */
+    while (y < n) {
+        zx15[0] = zxx19[y]; zx15[1] = zxx19[y + 1]; zx15[2] = zxx19[y + 2]; zx15[3] = zxx19[y + 3];
+        LOIN(); LOIN();
+        y = (u8)(y + 4);
+    }
+}
+
 #define YC2M1     (clip_h - 1)              /* Y*2-1 = 135 (159 en la vista nativa) */
 
 /* puntero + desplazamiento de 16 bits con signo (los planos comparten datos con desplazamientos negativos) */

@@ -15,6 +15,7 @@
 #include "chart.h"
 #include "shipdata.h"
 #include "ships.h"
+#include "ship3d.h"
 #include "combat.h"
 #include "damage.h"
 #include "equip.h"
@@ -104,7 +105,12 @@ static int tenths_text(char *b, unsigned long tenths, const char *suffix)
    sobra y se vacia de una vez (gfx_clear_cells: ensamblador); lo demas se sobrescribe celda a celda, sin parpadeo */
 static int len_here = 0, len_tgt = 0, len_cash = 0, len_dist = 0;
 
+#ifdef DEBUG
+static int len_fps = 0;
+static void panel_invalidate(void) { len_here = len_tgt = len_cash = len_dist = len_fps = 0; }
+#else
 static void panel_invalidate(void) { len_here = len_tgt = len_cash = len_dist = 0; }
+#endif
 
 static int cstr_len(const char *s) { int n = 0; while (s[n]) n++; return n; }
 
@@ -156,6 +162,51 @@ static void say(const char *s, int error)
     txt_color(C_WHITE, C_BLACK);
 }
 
+#ifdef DEBUG
+/* SHIFT-F: fotogramas por segundo en la fila de VIEW, alineados a la derecha (encima de los creditos); se calculan cada segundo
+   (50 cuadros de plat_ticks) con una decima */
+static int dbg_fps = 0;
+static unsigned long fps_t0 = 0, fps_n = 0;
+
+static void dbg_fps_key(void)
+{
+    dbg_fps = !dbg_fps;
+    fps_t0 = plat_ticks(); fps_n = 0;
+    if (!dbg_fps && len_fps) { gfx_clear_cells(32 - len_fps, ROW_VIEW, len_fps, 1); len_fps = 0; }
+}
+
+static void dbg_fps_frame(void)
+{
+    char b[16];
+    unsigned long now, dt;
+    if (!dbg_fps) return;
+    fps_n++;
+    now = plat_ticks(); dt = now - fps_t0;
+    if (dt < 50UL) return;
+    tenths_text(b, fps_n * 500UL / dt, " FPS");
+    txt_color(C_YELLOW, C_BLACK);
+    txt_nowrap(1);
+    panel_right(ROW_VIEW, b, &len_fps);
+    txt_nowrap(0);
+    txt_color(C_WHITE, C_BLACK);
+    fps_t0 = now; fps_n = 0;
+}
+
+/* SHIFT-D: cicla lo que se salta en el dibujo de las naves (LL9): nada -> matematicas -> dibujo -> ambos -> nada. Sin matematicas, cada
+   nave repinta dos veces las lineas que ya tenia (mismo coste de dibujo, no se mueve en pantalla); sin dibujo, LL9 calcula pero no pinta.
+   Al entrar o salir del modo sin dibujo se borra la vista (el monton de lineas ya no coincide con la pantalla) */
+static void clear_view(void);
+static void view_extras(void);
+static void dbg_skip_key(void)
+{
+    static const char *const names[4] = { "SKIP: NONE", "SKIP: MATHS", "SKIP: DRAWING", "SKIP: MATHS+DRAWING" };
+    u8 old = ship_dbg_skip;
+    ship_dbg_skip = (u8)((ship_dbg_skip + 1) & 3);
+    if ((old ^ ship_dbg_skip) & 2) { clear_view(); stars_new(); view_extras(); }
+    say(names[ship_dbg_skip], 0);
+}
+#endif
+
 /* Pausa: "PAUSED" a mitad del hueco entre la mira (hasta y = 75) y el panel (y = 160): fila de texto 14 (y = 112..119), centrado.
    Se guarda lo que habia debajo (naves, polvo) y se restaura al reanudar */
 #define PAUSE_ROW 14
@@ -183,6 +234,7 @@ static void clear_view(void)
     ships_forget_lines();                   /* las lineas de las naves, el sol y el planeta ya no estan en pantalla */
     sun_forget();
     laser_forget();                         /* TTX66: LAS2 = 0 */
+    chart_sight_forget();
 }
 
 /* Lo que LOOK1 y la llegada vuelven a poner tras borrar la vista: la mira y, si la bomba esta explotando, su rayo */
@@ -218,6 +270,7 @@ static void redraw_panel(void)
     ships_forget_lines();                  /* la pantalla se ha borrado: ninguna nave figura como dibujada */
     sun_forget();
     laser_forget();
+    chart_sight_forget();
     dash_show();                           /* el fondo viene de memoria: el fichero se lee una sola vez */
     space_scanner_reset();
     dash_msblob();
@@ -484,6 +537,8 @@ static int flight_loop(void)
                 ch = -1;
             }
             else if (ch == 'H') { dbg_range = 1; ch = 'h'; }                       /* SHIFT-H: salta aunque no llegue el combustible */
+            else if (ch == 'F') { dbg_fps_key(); ch = -1; }                        /* SHIFT-F: contador de fotogramas por segundo */
+            else if (ch == 'D') { dbg_skip_key(); ch = -1; }                       /* SHIFT-D: saltar matematicas / dibujo de las naves */
 #endif
             ch = in_up(ch);
             if (ch == 'c') {                                /* KY19: ordenador de atraque si lo llevamos (MA64: STA auto) */
@@ -537,7 +592,6 @@ static int flight_loop(void)
         bomb_frame();                                       /* parte 16 (MA18): la bomba sigue explotando */
         ecm_frame();                                        /* parte 16 (MA16..MA66): ECM */
         laser_frame_end();                                  /* parte 16: fin del pulso (LASLI2) */
-        if (ev & SPACE_EV_STATION) dash_spblb();            /* se apaga la S */
         stars_set_speed(zDELTA);                            /* DELT4 */
         stars_update((u8)view);                             /* STARS */
         dly_tick();                                         /* TT100: el mensaje en vuelo caduca */
@@ -546,6 +600,10 @@ static int flight_loop(void)
         if (mcnt == 0) encounters_tick(em_rand_c);          /* acarreo: el del ultimo DORND (el del 6502 sale de M%) */
         laser_cool();                                       /* MLOOP: enfriamiento y cuenta del pulso */
         dash_update();
+        chart_sight_update((u8)view);                       /* propio: aspa en la mira con la estacion cerca (S) */
+#ifdef DEBUG
+        dbg_fps_frame();
+#endif
         if (hyper && ++hyper_tick >= HYPER_FRAMES) {
             hyper_tick = 0;
             hyper--;
@@ -560,7 +618,9 @@ int flight_run(void)
     int r;
     help_i = 0; help_t = 0;
     view_set_native(1);
+    ships_spblb_hook = dash_spblb;                          /* NWSPS y KS4 encienden y apagan la S */
     r = flight_loop();
+    ships_spblb_hook = 0;
     view_set_native(0);
     return r;
 }

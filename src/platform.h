@@ -23,6 +23,7 @@ typedef unsigned char u8;
 extern u8 *screen;                /* buffer de pantalla en formato QL */
 
 void plat_init(void);
+unsigned long plat_ticks(void);    /* cuadros de 50 Hz desde el arranque (QL: tarea de la interrupcion de cuadro; PC: clock) */
 void plat_present(void);          /* una vez por fotograma; en el QL tambien vacia la cola de teclado de la consola */
 void plat_shutdown(void);         /* idempotente; en el QL se registra con atexit */
 void plat_flush_input(void);

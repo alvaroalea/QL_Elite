@@ -52,23 +52,65 @@ void chart_tt15(int local, u8 x, u8 y, u8 size) { q19[0] = x; q19[1] = y; q19[2]
 
 /* SIGHT: mira del laser de la vista: dos cruces concentricas (tamanos 20 y 10) centradas en (128, Y-24) con el color segun el laser
    (pulsos azul, haz rojo, militar blanco, otros blanco). Si no hay laser en esa vista no dibuja nada. Es TT15 de la vista espacial
-   (QQ11 = 0): el centro baja GCYT puntos y los brazos se recortan como en la galactica. */
-void chart_sight(u8 view)
+   (QQ11 = 0): el centro baja GCYT puntos y los brazos se recortan como en la galactica. Las dos cruces en XOR dejan cuatro palos
+   (de 10 a 20 puntos del centro). */
+static u8 sight_shape = 0, sight_col;           /* lo que hay en pantalla: 0 nada, 1 cruz, 2 aspa (estacion cerca) */
+
+static void sight_cross(void)
 {
-    u8 l = laser[view & 3], col;
-    int m;
-    if (l == 0) return;
-    if (l == LASER_POW) col = C_BLUE;
-    else if (l == LASER_BEAM) col = C_RED;
-    else col = C_WHITE;
-    m = chart_xf_mode();
-    sun_col = col;
-    if (view_native) chart_xf_set(3);              /* vista nativa: las cruces se estiran 6/5 en vertical y se centran en 80 */
     q19[0] = 128; q19[1] = (u8)(YHALF_VIEW - 24); q19[2] = 20;
     tt15(0);
     q19[2] = 10;
     tt15(0);
+}
+
+/* Propio (vista nativa, estacion cerca: SSPR != 0): los cuatro palos en aspa, en las diagonales, a la misma distancia del centro que los
+   de la cruz (de 10 a 20 puntos en x; en y por 6/5, como la cruz estirada), con lineas en XOR (loin_draw: ensamblador en el QL) */
+static void sight_x(u8 col)
+{
+    int cx = 128, cy = sun_xf_y(YHALF_VIEW - 24 + GCYT), sx, sy;
+    for (sx = -1; sx <= 1; sx += 2)
+        for (sy = -1; sy <= 1; sy += 2)
+            loin_draw((u8)(cx + 10 * sx), (u8)(cy + 12 * sy), (u8)(cx + 20 * sx), (u8)(cy + 24 * sy), col);
+}
+
+static void sight_draw(u8 shape, u8 col)
+{
+    int m;
+    if (shape == 2) { sight_x(col); return; }
+    m = chart_xf_mode();
+    sun_col = col;
+    if (view_native) chart_xf_set(3);              /* vista nativa: las cruces se estiran 6/5 en vertical y se centran en 80 */
+    sight_cross();
     chart_xf_set(m);
+}
+
+static u8 sight_want(u8 view, u8 *col)
+{
+    u8 l = laser[view & 3];
+    if (l == 0) return 0;
+    if (l == LASER_POW) *col = C_BLUE;
+    else if (l == LASER_BEAM) *col = C_RED;
+    else *col = C_WHITE;
+    return (u8)((view_native && sspr) ? 2 : 1);
+}
+
+void chart_sight(u8 view)                          /* tras borrar la vista */
+{
+    u8 col = C_WHITE, sh = sight_want(view, &col);
+    sight_shape = sh; sight_col = col;
+    if (sh) sight_draw(sh, col);
+}
+
+void chart_sight_forget(void) { sight_shape = 0; }   /* la vista se ha borrado: la mira ya no esta */
+
+void chart_sight_update(u8 view)                   /* cada fotograma: si la S cambia, la cruz pasa a aspa o al reves */
+{
+    u8 col = C_WHITE, sh = sight_want(view, &col);
+    if (sh == sight_shape && (sh == 0 || col == sight_col)) return;
+    if (sight_shape) sight_draw(sight_shape, sight_col);         /* XOR: borra la que habia */
+    sight_shape = sh; sight_col = col;
+    if (sh) sight_draw(sh, col);
 }
 
 /* TT14: cruz del sistema actual y circulo del alcance de combustible */

@@ -190,32 +190,53 @@ static void dis5(u8 a, u8 neg)
 
 /* ---------------------------------------------------------------- brujula (COMPAS, SP1, SP2, DOT) */
 
+/* DOT: el punto de la brujula en XOR (dibujarlo otra vez lo borra). Propio del port: 3 x 4 puntos con la esquina superior izquierda en
+   (COMX, COMY - 2), en amarillo si apunta a la estacion y en blanco si apunta al planeta; delante (COMC = $60) un disco relleno y
+   detras (COMC = $30) un anillo. Se pinta por columnas con gfx_vline_xor y gfx_xor_pixel (ensamblador en el QL), no punto a punto.
+   El PIXEL original (3 x 1 delante, 3 x 2 detras, blanco) era gfx_dust_6502 */
+static u8 com_col = C_WHITE;                        /* color con que se pinto el punto que hay en pantalla */
+
 static void dot(void)
 {
+    int x, y;
     if (dash_comc == 0) return;                     /* BEQ COR1 */
     if (dash_trace) dash_trace('p', dash_comx, dash_comy, dash_comc, 0);
+    x = dash_comx; y = dash_comy - 2;
     panel_y(1);
-    gfx_dust_6502(dash_comx, dash_comy, dash_comc);                /* JMP PIXEL con ZZ = COMC */
+    if (dash_comc & 0x40) {                         /* delante: disco  .X. / XXX / XXX / .X. */
+        gfx_vline_xor(x, y + 1, y + 2, com_col);
+        gfx_vline_xor(x + 1, y, y + 3, com_col);
+        gfx_vline_xor(x + 2, y + 1, y + 2, com_col);
+    } else {                                        /* detras: anillo  .X. / X.X / X.X / .X. */
+        gfx_vline_xor(x, y + 1, y + 2, com_col);
+        gfx_vline_xor(x + 2, y + 1, y + 2, com_col);
+        gfx_xor_pixel(x + 1, y, com_col);
+        gfx_xor_pixel(x + 1, y + 3, com_col);
+    }
     panel_y(0);
 }
 
 static void compas(void)
 {
-    u8 x, t;
+    u8 x, t, ox = dash_comx, oy = dash_comy, oc = dash_comc, col;
     unsigned s;
     int d;
-    dot();                                     /* borra el punto anterior */
     if (sspr) sm_sps4(); else sm_sps1();       /* XX15 = vector unitario hacia la estacion o el planeta */
     sm_sps2(zx15[0]);                          /* SP2 */
     x = sm_x;
     s = (unsigned)x + 195 + em_carry;          /* TXA; ADC #195 con el acarreo con que vuelve SPS2 */
-    dash_comx = (u8)s;
     sm_sps2(zx15[1]);
     t = sm_x;
     d = 148 - (int)t - (1 - (int)em_carry);    /* LDA #148; SBC T */
+    col = sspr ? C_YELLOW : C_WHITE;
+    if (!dash_trace && oc != 0 && (u8)s == ox && (u8)d == oy && oc == ((zx15[2] & 0x80) ? 0x30 : 0x60) && col == com_col)
+        return;                                /* propio: si no cambia nada no se borra ni se repinta (sin parpadeo) */
+    dot();                                     /* borra el punto anterior (con su color) */
+    dash_comx = (u8)s;
     dash_comy = (u8)d;
     dash_comc = 0x60;
-    if (zx15[2] & 0x80) dash_comc = (u8)(dash_comc >> 1);    /* detras de nosotros: punto mas tenue */
+    if (zx15[2] & 0x80) dash_comc = (u8)(dash_comc >> 1);    /* detras de nosotros: anillo */
+    com_col = col;
     dot();
 }
 

@@ -189,9 +189,12 @@ static void sos1(void)
     ship_new((u8)((qq5 & 2) | 0x80));
 }
 
+void (*ships_spblb_hook)(void) = 0;                  /* SPBLB (dash_spblb); lo pone flight_run, en las pruebas no se pinta */
+
 /* NWSPS: la estacion en la posicion de INWK (IA $81, alabeo $FF, morro invertido con los tres NwS1) en la ranura 1 */
 static void nwsps(void)
 {
+    if (ships_spblb_hook) ships_spblb_hook();            /* JSR SPBLB: se enciende la S */
     inwk[32] = 0x81;
     inwk[30] = 0;
     inwk[I_NEWB] = 0;
@@ -254,6 +257,7 @@ static void ks4(int n)
     sun_flflls();
     frin[1] = 0;
     sspr = 0;
+    if (ships_spblb_hook) ships_spblb_hook();            /* JSR SPBLB: se apaga la S */
     inwk[5] = 6;
     ship_new(129);
 }
@@ -706,6 +710,10 @@ u8 ships_step(u8 view)
         }
         plut(view);
         if (!(type & 0x80)) combat_hit();                /* HITCH y danos del laser (parte 11) */
+#ifdef DEBUG
+        if (ship_dbg_skip & 1) { if (!(ship_dbg_skip & 2) && !(type & 0x80)) ship_redraw_heap(); }   /* SHIFT-D: sin LL9 (la nave queda donde estaba) */
+        else
+#endif
         ship_ll9();
         sl[35] = inwk[35];
         if (!(type & 0x80) && combat_killed()) { ship_kill(n); continue; }       /* recogida o fin de la explosion: recompensa */

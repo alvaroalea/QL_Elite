@@ -45,4 +45,5 @@ void sescp(void);                                /* SESCP: la nave actual lanza 
 void doexp(void);                                /* DOEXP: nube de la nave que explota */
 void planet(void);                               /* PLANET: dibuja o borra el planeta o el sol de INWK */
 extern void (*ships_cpix_hook)(u8 x, u8 y, u8 col);
+extern void (*ships_spblb_hook)(void);   /* SPBLB desde NWSPS (S encendida) y KS4 (S apagada), como el original */
 #endif

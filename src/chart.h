@@ -15,7 +15,9 @@ void chart_tt15(int local, u8 x, u8 y, u8 size);   /* TT15 con QQ19 = (x, y, siz
 extern void (*chart_event_hook)(char kind, u8 a, u8 b, u8 c);
 void chart_tt16(int local, u8 x, u8 y);  /* TT16: mueve la mira (X a la derecha, Y hacia arriba) con TT123 y la redibuja */
 void chart_draw(int local);           /* dibuja la carta completa (sobre pantalla ya borrada) */
-void chart_sight(u8 view);            /* SIGHT: mira del laser de la vista (0..3) en la vista espacial */
+void chart_sight(u8 view);            /* SIGHT: mira del laser de la vista (0..3) en la vista espacial (tras borrar la vista) */
+void chart_sight_forget(void);        /* la vista se ha borrado sin volver a pintar la mira */
+void chart_sight_update(u8 view);     /* cada fotograma: cruz o aspa (estacion cerca) segun la S */
 void chart_cursor(int local);         /* TT103: cruz del sistema objetivo (XOR: dos llamadas la borran) */
 void chart_ping_set(void);        /* ping sin dibujar */
 void chart_ping(int local);           /* ping + TT103: el cursor vuelve al sistema actual (tecla O) */

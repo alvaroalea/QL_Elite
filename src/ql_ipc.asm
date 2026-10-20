@@ -47,3 +47,46 @@ _ql_trap1:
 	trap	#1
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
+
+; Reloj de 50 Hz (misma unidad): una tarea enlazada a la interrupcion de cuadro de QDOS (MT.LPOLL, trap #1, D0=$1C) suma 1 a
+; tk_count en cada cuadro (50 por segundo; 60 en un QL americano). void ql_tick_on(void) la enlaza, void ql_tick_off(void) la quita
+; (MT.RPOLL, D0=$1D; hay que hacerlo antes de terminar: el codigo de la tarea desaparece con el trabajo) y long ql_ticks(void)
+; devuelve la cuenta. Bloque de enlace: +0 enlace (lo usa QDOS), +4 direccion de la rutina.
+	.globl	_ql_tick_on
+_ql_tick_on:
+	movem.l	d2-d7/a2-a6,-(sp)
+	lea	tk_link,a0
+	lea	tk_poll,a1
+	move.l	a1,4(a0)
+	moveq	#$1C,d0
+	trap	#1
+	movem.l	(sp)+,d2-d7/a2-a6
+	rts
+
+	.globl	_ql_tick_off
+_ql_tick_off:
+	movem.l	d2-d7/a2-a6,-(sp)
+	lea	tk_link,a0
+	moveq	#$1D,d0
+	trap	#1
+	movem.l	(sp)+,d2-d7/a2-a6
+	rts
+
+	.globl	_ql_ticks
+_ql_ticks:
+	move.l	tk_count,d0
+	rts
+
+tk_poll:
+	move.l	a0,-(sp)
+	lea	tk_count,a0
+	addq.l	#1,(a0)
+	move.l	(sp)+,a0
+	rts
+
+	.data
+tk_link:
+	.long	0
+	.long	0
+tk_count:
+	.long	0
