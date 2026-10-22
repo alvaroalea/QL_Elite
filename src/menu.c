@@ -687,7 +687,7 @@ static int title_loop(void)
     txt_print_at(4, 23, "Q  QUIT");
     txt_color(C_CYAN, C_BLACK);
     if (patg) txt_print_at(0, 27, "BY D.BRABEN & I.BELL");      /* PATG: autores (ficha 13 del original) */
-    txt_print_at(0, 28, "QL PORT FROM THE APPLE II CODE");
+    txt_print_at(0, 28, "QL Port from Original 6502 Code");
     txt_print_at(0, 29, "by A.Alea & Claude 2026 R " ELITE_VERSION);
     if (!dash_loaded()) {                            /* la carga correcta es invisible; solo se avisa si falta el fichero */
         txt_color(C_RED, C_BLACK);
