@@ -222,6 +222,7 @@ static void compas(void)
     unsigned s;
     int d;
     if (sspr) sm_sps4(); else sm_sps1();       /* XX15 = vector unitario hacia la estacion o el planeta */
+    dash_comz = zx15[2];
     sm_sps2(zx15[0]);                          /* SP2 */
     x = sm_x;
     s = (unsigned)x + 195 + em_carry;          /* TXA; ADC #195 con el acarreo con que vuelve SPS2 */
@@ -279,6 +280,24 @@ static void bulb(const u8 *rows, int x)
 
 void dash_spblb(void) { bulb(bulb_s, 24 * 8); }       /* SPBLB: enciende o apaga la "S" */
 void dash_ecblb(void) { bulb(bulb_e, 7 * 8); }        /* ECBLB: enciende o apaga la "E" */
+
+/* Bombilla M (propia): salto J bloqueado. Esquina superior izquierda del radar (las inferiores son la E y la S; la superior derecha
+   tiene la brujula), roja, con la forma de las otras (7 x 8, bit 0 a la izquierda) */
+static const u8 bulb_m[8] = { 0x63, 0x77, 0x7F, 0x6B, 0x63, 0x63, 0x63, 0x63 };
+static u8 mblb_on = 0;
+
+void dash_mblb(u8 on)
+{
+    int r, b;
+    if (on == mblb_on) return;
+    mblb_on = on;
+    panel_y(1);
+    for (r = 0; r < 8; r++)
+        for (b = 0; b < 7; b++)
+            if (bulb_m[r] & (1 << b)) gfx_xor_pixel(7 * 8 + b, 140 + r, C_RED);
+    panel_y(0);
+}
+void dash_mblb_forget(void) { mblb_on = 0; }
 
 void dash_update(void)
 {

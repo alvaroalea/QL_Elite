@@ -23,6 +23,7 @@ int  sun_xf_x(int x);                     /* coordenadas de pantalla a partir de
 int  sun_xf_y(int y);
 void sun_xf_hloin(int x1, int x2, int y, u8 col);   /* gfx_hloin con la transformacion */
 void sun_xf_vloin(int x, int y1, int y2, u8 col);
+void sun_xf_circle(int cx, int cy, int k, u8 col);   /* circulo de las cartas: elipse de punto medio con el aspecto de la carta */
 void sun_xf_disc(int cx, int cy, int k, u8 col);   /* planeta de la carta corta (elipse rellena a 1 punto) */
 void sun_xf_dust(int x, int y, u8 zz);
 void sun_flflls(void);                    /* FLFLLS: vacia el montón de lineas del sol */

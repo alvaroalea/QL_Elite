@@ -2,7 +2,7 @@
 # tabla de simbolos (variables), ensamblado de rutinas con un ensamblador 6502 minimo y datos de naves.
 # La fuente no se incluye en el proyecto; hay que clonarla (ver tools/README_ref.txt) y apuntar ELITE_SRC.
 import os, re
-SRC_DIR = os.environ.get('ELITE_SRC', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'moxon', '1-source-files', 'main-sources'))
+SRC_DIR = os.environ.get('ELITE_SRC', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'moxon-appleII', '1-source-files', 'main-sources'))
 
 def read(name):
     return open(os.path.join(SRC_DIR, name)).read().split('\n')

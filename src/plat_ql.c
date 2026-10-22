@@ -60,7 +60,9 @@ void plat_init(void)
     }
     plat_flush_input();
     if (!con_up) { con_up = 1; atexit(plat_shutdown); }
+#ifndef NOTICK
     if (!tick_up) { ql_tick_on(); tick_up = 1; last_tick = ql_ticks(); }
+#endif
 }
 
 /* Espera de tecla para los demos: sin ella el runtime de c68 borra la pantalla al volver a QDOS.

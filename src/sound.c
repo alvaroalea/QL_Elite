@@ -1,8 +1,9 @@
 #include "sound.h"
 
 /* Apple II: CPU a 1.0205 MHz; cada clic invierte el altavoz, asi que frecuencia = 1.0205e6 / (2 * ciclos_por_clic).
-   QL: frecuencia ~ 11447 / (10.6 + pitch) Hz  =>  pitch = 0.022434 * ciclos - 10.6.
-   Duracion en unidades de 72 us: clics * ciclos * 1.0205e6^-1 / 72e-6 = clics * ciclos * 0.01361. */
+   QL (8049 del IPC, 22.917 pasos por segundo; sQLux, que modela el protocolo real): medio periodo = (pitch - 1 + 10,6) pasos, es decir
+   frecuencia = 22917 / (2 * (pitch + 9,6)) Hz  =>  pitch = 0.022457 * ciclos - 9.6.
+   Duracion e intervalo en pasos de 1/22917 s = 43,64 us (no los 72 us del manual): clics * ciclos / 1.0205e6 * 22917 = clics * ciclos * 0.022457. */
 #define SND_NOISE_FUZZ 12   /* ajustar de oido en el QL real */
 #define SND_NOISE_RND  12
 
@@ -17,7 +18,7 @@ static int busy_prio = 0;
 
 long snd_pitch_from_cycles(long cycles)
 {
-    long n = cycles * 22434L + 500000L - 10600000L;
+    long n = cycles * 22457L + 500000L - 9600000L;
     long p;
     if (n < 0) return SND_MIN_PITCH;
     p = n / 1000000L;
@@ -28,7 +29,7 @@ long snd_pitch_from_cycles(long cycles)
 
 long snd_units_from(long clicks, long cycles)
 {
-    long u = clicks * cycles * 1361L / 100000L;
+    long u = clicks * cycles * 2246L / 100000L;
     if (u < 1) u = 1;
     if (u > 32767L) u = 32767L;
     return u;
@@ -40,7 +41,8 @@ int snd_enabled(void) { return enabled; }
 void snd_off(void)
 {
     static u8 blk[8];
-    blk[0] = 11; blk[1] = 0; blk[2] = 0; blk[3] = 0; blk[4] = 0; blk[5] = 0; blk[6] = 0; blk[7] = 0;
+    blk[0] = 11; blk[1] = 0; blk[2] = 0; blk[3] = 0; blk[4] = 0; blk[5] = 0;
+    blk[6] = 1;                                  /* respuesta %01 = ninguna (con 0 = %00, MT.IPCOM leia 4 bits que el 8049 no envia) */
     snd_ipc(blk, 7);
     busy_until = 0; busy_prio = 0;
 }
@@ -57,24 +59,28 @@ void snd_tick(long ms)
     if (clock_ms >= busy_until) busy_prio = 0;
 }
 
-/* Bloque MT.IPCOM de BEEP (17 bytes): orden, n de parametros (10), "bits por parametro" en 32 bits
-   (2 bits cada uno, LSB primero: 10 = 8 bits, 00 = 4 bits -> $00000AAA), 10 bytes de parametros, byte de respuesta (0). */
+/* Bloque MT.IPCOM de BEEP (15 bytes), como lo espera el 8049 (64 bits de parametros; sQLux, ejemplo de ChibiAkumas): orden 10,
+   8 bytes de parametros, especificador $0000AAAA (2 bits por byte: %10 = 8 bits), pitch 1, pitch 2, intervalo y duracion de 16 bits
+   CON EL BYTE BAJO PRIMERO (el 8049 es little-endian; en big-endian una duracion de $00E6 llegaba como $E600: pitidos larguisimos),
+   byte paso/vuelta (paso en el nibble alto), byte aleatorio/difuso (aleatorio en el alto) y la longitud de la respuesta: 1 = %01 =
+   ninguna. Con 0 (%00 = 4 bits) MT.IPCOM leia 4 bits que el 8049 no manda y el enlace se desincronizaba: tras varios BEEP seguidos
+   el QL se colgaba. */
 void snd_send(const struct snd_params *p, int prio)
 {
-    static u8 blk[20];
+    static u8 blk[16];
     long dur_ms;
     if (!enabled) return;
     if (clock_ms < busy_until && prio < busy_prio) return;       /* no pisar un sonido mas importante */
-    blk[0] = 10; blk[1] = 10;
-    blk[2] = 0; blk[3] = 0; blk[4] = 0x0A; blk[5] = 0xAA;
+    blk[0] = 10; blk[1] = 8;
+    blk[2] = 0; blk[3] = 0; blk[4] = 0xAA; blk[5] = 0xAA;
     blk[6] = p->pitch1; blk[7] = p->pitch2;
-    blk[8] = (u8)(p->grad_x >> 8); blk[9] = (u8)(p->grad_x & 255);
-    blk[10] = (u8)(p->duration >> 8); blk[11] = (u8)(p->duration & 255);
-    blk[12] = (u8)(p->grad_y & 15); blk[13] = (u8)(p->wrap & 15);
-    blk[14] = (u8)(p->fuzz & 15); blk[15] = (u8)(p->rnd & 15);
-    blk[16] = 0;
-    snd_ipc(blk, 17);
-    dur_ms = (long)p->duration * 72L / 1000L;
+    blk[8] = (u8)(p->grad_x & 255); blk[9] = (u8)((p->grad_x >> 8) & 0x7F);
+    blk[10] = (u8)(p->duration & 255); blk[11] = (u8)((p->duration >> 8) & 0x7F);
+    blk[12] = (u8)(((p->grad_y & 15) << 4) | (p->wrap & 15));
+    blk[13] = (u8)(((p->rnd & 15) << 4) | (p->fuzz & 15));
+    blk[14] = 1;
+    snd_ipc(blk, 15);
+    dur_ms = (long)p->duration * 4364L / 100000L;                /* 43,64 us por paso */
     busy_until = clock_ms + dur_ms;
     busy_prio = prio;
 }
@@ -170,7 +176,7 @@ void snd_lasnoise(void)
 
 void snd_beep(void) { snd_sobeep(110, 30); }
 void snd_boop(void) { snd_sobeep(255, 99); }
-void snd_bell(void) { tone(SND_MIN_PITCH, 1389, SND_P_UI); }      /* ~1 kHz durante ~100 ms */
+void snd_bell(void) { tone(SND_MIN_PITCH, 2292, SND_P_UI); }      /* ~1 kHz durante ~100 ms (2292 pasos de 43,64 us) */
 void snd_exno(void) { snd_soexpl(15); }
 void snd_exno3(void) { snd_soexpl(40); }
 void snd_exno2(void) { snd_soexpl(55); }

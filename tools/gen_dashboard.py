@@ -18,7 +18,7 @@ def find_default():
     src = os.environ.get('ELITE_SRC', '')
     cands = []
     if src: cands.append(os.path.join(src, '..', 'images', 'ib-disk', 'A.SCREEN.bin'))
-    cands += glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'moxon', '1-source-files', 'images', 'ib-disk', 'A.SCREEN.bin'))
+    cands += glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'moxon-appleII', '1-source-files', 'images', 'ib-disk', 'A.SCREEN.bin'))
     for c in cands:
         if os.path.exists(c): return c
     raise SystemExit('no encuentro A.SCREEN.bin: pasa la ruta como primer argumento')

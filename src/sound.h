@@ -19,7 +19,7 @@
 
 struct snd_params {
     u8 pitch1, pitch2;
-    unsigned grad_x;       /* intervalo entre notas (unidades de ~72 us) */
+    unsigned grad_x;       /* intervalo entre notas (pasos de 43,64 us del 8049) */
     unsigned duration;     /* 1..32767 (0 seria "infinito") */
     u8 grad_y, wrap, fuzz, rnd;   /* 4 bits cada uno */
 };

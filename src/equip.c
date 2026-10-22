@@ -82,17 +82,17 @@ void bomb_frame(void)
 /* WARP: salto dentro del sistema (tecla J). Solo sin otras naves que no sean basura (FRIN+2+JUNK), sin estacion y fuera
    del hiperespacio, y si el planeta y el sol que esten delante (z positiva) estan lejos (MAS2 >= 2): acerca los dos 65.536
    unidades en z (ADD de $81 $81 al byte alto). Devuelve 1 si salta (el llamador repinta la vista: LOOK1 con QQ11 = 1) */
+int warp_blocked(void)
+{
+    if (frin[(u8)(2 + junk_count)] | sspr | mj) return 1;
+    if (!(ks[8] & 0x80) && sm_mas2(0, 0) < 2) return 1;
+    if (!(ks[NI + 8] & 0x80) && sm_mas2(0, NI) < 2) return 1;
+    return 0;
+}
+
 int warp(void)
 {
-    u8 a;
-    a = (u8)(frin[(u8)(2 + junk_count)] | sspr | mj);
-    if (a) { snd_boop(); return 0; }
-    if (!(ks[8] & 0x80)) {
-        if (sm_mas2(0, 0) < 2) { snd_boop(); return 0; }
-    }
-    if (!(ks[NI + 8] & 0x80)) {
-        if (sm_mas2(0, NI) < 2) { snd_boop(); return 0; }
-    }
+    if (warp_blocked()) { snd_boop(); return 0; }
     zS = 0x81; zR = 0x81; zP = 0x81;
     ks[8] = em_add(ks[8]);
     ks[NI + 8] = em_add(ks[NI + 8]);

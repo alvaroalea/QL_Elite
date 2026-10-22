@@ -14,6 +14,8 @@ class CPU:
         self.n = self.z = self.v = self.c = self.x = 0
         self._ea_cache = {}
         self.prog, self.labels = [], {}
+        self.syms = {}                # simbolos externos -> direccion (los pone el que usa la clase)
+        self.natives = {}             # rutinas externas simuladas en Python (jsr)
         for raw in src.split('\n'):
             line = raw.split(';')[0].rstrip()
             if not line.strip(): continue
@@ -47,6 +49,11 @@ class CPU:
     def ea_addr(self, t, size=4):
         t = t.strip()
         if t in self._ea_cache: return self._ea_cache[t]
+        m = re.match(r'^-\((a[0-7]|sp)\)$', t)                                       # -(An): predecremento
+        if m:
+            r = self.reg(m.group(1)); self.a[r] = (self.a[r] - size) & M32
+            self._ea_cache[t] = self.a[r]
+            return self.a[r]
         m = re.match(r'^\((a[0-7]|sp)\)\+$', t)
         if m:
             r = self.reg(m.group(1)); addr = self.a[r] & M32
@@ -57,6 +64,16 @@ class CPU:
         if m: return self.a[self.reg(m.group(1))] & M32
         m = re.match(r'^(-?\$?[0-9A-Fa-f]+)\((a[0-7]|sp)\)$', t)
         if m: return (self.a[self.reg(m.group(2))] + self.num(m.group(1))) & M32
+        m = re.match(r'^(-?\$?[0-9A-Fa-f]*)\((a[0-7]|sp),(d[0-7])\.(w|l)\)$', t)      # d8(An,Dn.w): desplazamiento de 8 bits, indice con signo
+        if m:
+            disp = self.num(m.group(1)) if m.group(1) not in ('', '-') else 0
+            assert -128 <= disp <= 127, 'desplazamiento indexado fuera de 8 bits: ' + t
+            idx = self.d[int(m.group(3)[1])]
+            idx = (idx & 0xFFFF) - 0x10000 if (m.group(4) == 'w' and idx & 0x8000) else (idx & 0xFFFF if m.group(4) == 'w' else idx)
+            return (self.a[self.reg(m.group(2))] + disp + idx) & M32
+        m = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)(\+(\d+))?$', t)                        # simbolo absoluto (variables de C), con +N
+        if m and m.group(1) in self.syms:
+            return self.syms[m.group(1)] + (int(m.group(3)) if m.group(3) else 0)
         raise ValueError('modo no soportado: ' + t)
 
     @staticmethod
@@ -139,6 +156,12 @@ class CPU:
                 if a == ret: return steps
                 if 0x10000 <= a < 0x10000 + len(self.prog): pc = a - 0x10000; continue
                 raise RuntimeError('rts a ' + hex(a))
+            elif base == 'jsr':
+                tgt = args[0].strip()
+                if tgt in self.labels:
+                    self.a[7] -= 4; self.wr(self.a[7], 4, pc + 0x10000); pc = self.labels[tgt]
+                else:                                           # rutina externa simulada en Python (self.natives[nombre](cpu)): ve los argumentos desde a7
+                    self.natives[tgt](self)
             elif base == 'bsr':
                 self.a[7] -= 4; self.wr(self.a[7], 4, pc + 0x10000); pc = self.labels[args[0]]
             elif base == 'movem':
@@ -178,6 +201,38 @@ class CPU:
                 else:
                     s = self.num(args[0][1:]); d = self.get(args[1], size); r = d + s
                     self.put(args[1], size, r); self.flags_add(d, s, r, size)
+            elif base in ('andi', 'ori', 'eori'):
+                s = self.get(args[0], size); d = self.get(args[1], size)
+                r = {'andi': s & d, 'ori': s | d, 'eori': s ^ d}[base]
+                self.put(args[1], size, r); self.flags_logic(r, size)
+            elif base in ('addx', 'subx'):
+                s = self.get(args[0], size); d = self.get(args[1], size)
+                if base == 'addx':
+                    r = d + s + self.x; self.put(args[1], size, r)
+                    bits = 8 * size; mask = (1 << bits) - 1
+                    self.c = self.x = int(((d & mask) + (s & mask) + self.x) > mask)
+                    res = r & mask
+                    self.n = (res >> (bits - 1)) & 1
+                    self.v = int(((d >> (bits - 1)) & 1) == ((s >> (bits - 1)) & 1) and self.n != ((d >> (bits - 1)) & 1))
+                    if res: self.z = 0
+                else:
+                    r = d - s - self.x; self.put(args[1], size, r)
+                    bits = 8 * size; mask = (1 << bits) - 1
+                    self.c = self.x = int(((s & mask) + self.x) > (d & mask))
+                    res = r & mask
+                    self.n = (res >> (bits - 1)) & 1
+                    self.v = int(((d >> (bits - 1)) & 1) != ((s >> (bits - 1)) & 1) and self.n != ((d >> (bits - 1)) & 1))
+                    if res: self.z = 0
+            elif base == 'divu':
+                dv = self.get(args[0], 2); i = int(args[1][1]); dd = self.d[i] & M32
+                assert dv != 0
+                q, r = dd // dv, dd % dv
+                if q > 0xFFFF: self.v = 1
+                else:
+                    self.d[i] = ((r & 0xFFFF) << 16) | q; self.v = 0
+                    self.n = (q >> 15) & 1; self.z = int(q == 0); self.c = 0
+            elif base == 'clr':
+                self.put(args[0], size, 0); self.n = 0; self.z = 1; self.v = self.c = 0
             elif base in ('and', 'or', 'eor'):
                 s = self.get(args[0], size); d = self.get(args[1], size)
                 r = {'and': s & d, 'or': s | d, 'eor': s ^ d}[base]
@@ -199,7 +254,9 @@ class CPU:
             elif base == 'tst':
                 self.flags_logic(self.get(args[0], size), size)
             elif base == 'btst':
-                bit = self.num(args[0][1:]); v = self.get(args[1], 4)
+                bit = self.num(args[0][1:])
+                if re.match(r'^d[0-7]$', args[1].strip()): v = self.get(args[1], 4); bit &= 31
+                else: v = self.get(args[1], 1); bit &= 7           # memoria: un byte
                 self.z = int(((v >> bit) & 1) == 0)
             elif base == 'exg':
                 i, j = int(args[0][1]), int(args[1][1])

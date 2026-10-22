@@ -661,9 +661,19 @@ static const u8 title_ships[TITLE_NSHIPS] = {
     SHIPT_FER_DE_LANCE, SHIPT_ASP_MK_2, SHIPT_ADDER, SHIPT_ANACONDA, SHIPT_THARGOID
 };
 
+/* Cabeceo de la nave del titulo (otro eje, ademas del giro): una onda triangular lenta de -6 a +6 pasos de 64 (unos +-34 grados), de modo que
+   se ve la parte de abajo y la de arriba (con 10 fijos solo se veia la de abajo). t = unidades de 40 ms (periodo 8 s) o fotogramas del titulo */
+#define TITLE_PITCH_PERIOD 200
+static int title_pitch(int t)
+{
+    int p = t % TITLE_PITCH_PERIOD, h = TITLE_PITCH_PERIOD / 2, v;
+    v = (p < h) ? p - h / 2 : h + h / 2 - p;                      /* -h/2 .. h/2 */
+    return (v * 6) / (h / 2);
+}
+
 static int title_loop(void)
 {
-    int ay = 0, ch, r, i, t = 0, idx = 0, phase = 0, rc;
+    int ay = 0, ax = 0, ft = 0, ch, r, i, t = 0, idx = 0, phase = 0, rc;
     long z = TITLE_FAR, zend, rcz;
     u8 type = title_ships[0];
     char name[CMDR_NAMELEN + 1];
@@ -685,12 +695,14 @@ static int title_loop(void)
     }
     rc = shipview_radius(SHIPT_COBRA_MK_3);
     zend = TITLE_Z;
-    shipview_draw16(type, 0, 0, z, ay, 10, title_heap, state_slot(0), 1);
+    shipview_draw16(type, 0, 0, z, ay, ax, title_heap, state_slot(0), 1);
     for (;;) {
         ch = in_poll();
         if (ch == KC_QUIT) return TITLE_QUIT;
         if (ch < 0) {                                /* la nave gira mientras se espera */
             ay = (ay + 1) & (SHIPVIEW_ANG - 1);
+            ++ft;
+            ax = title_pitch((!in_script && plat_ticks() != 0UL) ? (int)(plat_ticks() / 2UL % 1000UL) : ft);       /* por tiempo (periodo 8 s) si hay reloj */
             if (in_script == 0 || (in_frames() & 7) == 0) {
                 if (phase == 0) {                    /* se acerca frenando */
                     z -= (z - zend) / 10 + 4;
@@ -707,11 +719,11 @@ static int title_loop(void)
                         rcz = (long)shipview_radius(type) * TITLE_Z / rc;
                         zend = rcz < 400L ? 400L : (rcz > 1400L ? 1400L : rcz);
                         z = TITLE_FAR; phase = 0;
-                        shipview_draw16(type, 0, 0, z, ay, 10, title_heap, state_slot(0), 1);
+                        shipview_draw16(type, 0, 0, z, ay, ax, title_heap, state_slot(0), 1);
                         continue;
                     }
                 }
-                shipview_draw16(type, 0, 0, z, ay, 10, title_heap, state_slot(0), 0);
+                shipview_draw16(type, 0, 0, z, ay, ax, title_heap, state_slot(0), 0);
             }
             continue;
         }

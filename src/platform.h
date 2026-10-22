@@ -49,6 +49,8 @@ void gfx_dust_6502(int x, int y, u8 zz);            /* PIXEL del original (la br
 void gfx_dust(int x, int y, u8 zz);                  /* polvo estelar del juego: zz >= 128 = 1 punto, 80..127 = 1 x 2, < 80 = 2 x 3 (ancho x alto) */
 void gfx_rect(int x, int y, int w, int h, u8 c);
 void gfx_clear_cells(int col, int row, int ncols, int nrows);   /* vacia (negro) un rectangulo de celdas de texto 8 x 8 (ensamblador en el QL) */
+void gfx_ell_update(int ocx, int ocy, int ory, const u8 *otab, int ncx, int ncy, int nry, const u8 *ntab, u8 c, int cly1);   /* cambia una elipse por otra fila a fila (tablas de gfx_ell_spans; ory/nry = -1: no hay) */
+void gfx_ell_spans(int rx, int ry, u8 *tab);                  /* tabla de tramos del contorno por fila (2 bytes por fila: lo, hi); 2 * (ry + 1) bytes */
 void gfx_ellipse_rows(int rx, int ry, u8 *half);          /* semiancho a cada distancia vertical dy = 0..ry del centro de la elipse (el punto mas a la derecha de cada fila de su contorno) */
 void gfx_frame_xor(int cx, int cy, int hw, int hh, u8 c, int clx0, int cly0, int clx1, int cly1);   /* contorno de rectangulo en XOR (cada punto una vez), recortado */
 void gfx_ellipse_xor(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly0, int clx1, int cly1);   /* contorno de elipse en XOR (punto medio, solo enteros), recortado al rectangulo; cada punto una sola vez */

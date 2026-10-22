@@ -203,7 +203,7 @@ void space_scan(u8 type)
     if (dash_trace) { dash_trace('c', (u8)(x1 - 2), a, 0, space_scacol(type)); dash_trace('v', x1, a, y2, space_scacol(type)); }
     gfx_yoff_set(view_native ? DASH_Y0 - 136 : 0);            /* el radar esta en el panel */
     gfx_cpix((int)x1 - 2, a, col);                            /* cabeza (CPIX con X = X1 - 2) */
-    gfx_vloin(x1, a, y2, col);                                /* palo (VLOIN) */
+    gfx_vline_xor((int)x1, a, y2, col);                       /* palo: propio, 1 punto de ancho (VLOIN del original: 2) con la columna en ensamblador */
     gfx_yoff_set(0);
 }
 

@@ -24,7 +24,10 @@ void dash_reset(void);                  /* borra la memoria de lo ultimo dibujad
 void dash_update(void);                 /* DIALS: actualiza los instrumentos y la brujula */
 void dash_msbar(u8 x, u8 color);         /* MSBAR: indicador X (1..4) con el color del original (0 = apagado) */
 void dash_msblob(void);                 /* msblob: indicadores de misil (NOMSL en verde, el resto apagados) */
+extern u8 dash_comz;                    /* z (signo-magnitud, 96 = 1) del vector hacia la estacion que calcula COMPAS */
 void dash_spblb(void);                  /* SPBLB: enciende o apaga (XOR) la bombilla S de estacion cerca */
+void dash_mblb(u8 on);                  /* propio: bombilla roja M (salto J bloqueado) en la esquina libre del radar; solo pinta si cambia */
+void dash_mblb_forget(void);            /* el panel se ha repintado: la M no figura como encendida */
 void dash_ecblb(void);                  /* ECBLB: enciende o apaga (XOR) la bombilla E del ECM */
 extern void (*dash_trace)(char kind, u8 a, u8 b, u8 c, u8 d);   /* pruebas: 'h' x1 x2 y col, 'v' x y1 y2 col, 'p' x y zz, 'c' x y col (colores del original) */
 extern u8 dash_dials[13], dash_dialc[13], dash_comx, dash_comy, dash_comc, dash_mscol[4];   /* dials, dialc, COMX, COMY, COMC y mscol del original */

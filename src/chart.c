@@ -1,4 +1,5 @@
 #include "chart.h"
+#include "dash.h"
 #include "lines.h"
 #include "sun.h"
 #include "state.h"
@@ -59,19 +60,23 @@ static u8 sight_shape = 0, sight_col;           /* lo que hay en pantalla: 0 nad
 static void sight_cross(void)
 {
     q19[0] = 128; q19[1] = (u8)(YHALF_VIEW - 24); q19[2] = 20;
+    if (view_native) q19[1] = (u8)(YHALF_VIEW - GCYT);  /* propio: TT15 suma GCYT; el original (Y - 24 + 19 = 63) la deja 5 puntos por
+                                                           encima del centro de la vista; en la vista nativa se centra en view_cy = 80,
+                                                           donde convergen el laser y la proyeccion */
     tt15(0);
     q19[2] = 10;
     tt15(0);
 }
 
-/* Propio (vista nativa, estacion cerca: SSPR != 0): los cuatro palos en aspa, en las diagonales, a la misma distancia del centro que los
-   de la cruz (de 10 a 20 puntos en x; en y por 6/5, como la cruz estirada), con lineas en XOR (loin_draw: ensamblador en el QL) */
+/* Propio (vista nativa, estacion cerca: SSPR != 0): los cuatro palos en aspa, centrados en (128, view_cy), de 10 a 20 puntos del centro
+   en x como los de la cruz y con la pendiente de las diagonales de la vista (256 x 160: dy = dx * 5 / 8), con lineas en XOR
+   (loin_draw: ensamblador en el QL) */
 static void sight_x(u8 col)
 {
-    int cx = 128, cy = sun_xf_y(YHALF_VIEW - 24 + GCYT), sx, sy;
+    int cx = 128, cy = view_cy, sx, sy;
     for (sx = -1; sx <= 1; sx += 2)
         for (sy = -1; sy <= 1; sy += 2)
-            loin_draw((u8)(cx + 10 * sx), (u8)(cy + 12 * sy), (u8)(cx + 20 * sx), (u8)(cy + 24 * sy), col);
+            loin_draw((u8)(cx + 10 * sx), (u8)(cy + 6 * sy), (u8)(cx + 20 * sx), (u8)(cy + 12 * sy), col);
 }
 
 static void sight_draw(u8 shape, u8 col)
@@ -85,6 +90,19 @@ static void sight_draw(u8 shape, u8 col)
     chart_xf_set(m);
 }
 
+/* Propio: alineados para atracar = las condiciones de ISDK (damage.c) con la estacion de la ranura 1: no hostil, su morro hacia
+   nosotros (nosev_z alto >= 214, < ~26 grados), delante de nosotros en el cono de ~22 grados (z del vector unitario hacia ella
+   >= 89; lo calcula COMPAS en dash_comz) y la ranura casi horizontal (|roofv_x alto| >= 80) */
+static int station_aligned(void)
+{
+    const u8 *st = state_slot(1);
+    if (st[I_NEWB] & 0x04) return 0;
+    if (st[14] < 214) return 0;
+    if ((dash_comz & 0x80) || dash_comz < 89) return 0;
+    if ((st[16] & 0x7F) < 80) return 0;
+    return 1;
+}
+
 static u8 sight_want(u8 view, u8 *col)
 {
     u8 l = laser[view & 3];
@@ -92,7 +110,9 @@ static u8 sight_want(u8 view, u8 *col)
     if (l == LASER_POW) *col = C_BLUE;
     else if (l == LASER_BEAM) *col = C_RED;
     else *col = C_WHITE;
-    return (u8)((view_native && sspr) ? 2 : 1);
+    if (!(view_native && sspr)) return 1;
+    if (station_aligned()) *col = C_GREEN;         /* solo se calcula con el aspa */
+    return 2;
 }
 
 void chart_sight(u8 view)                          /* tras borrar la vista */
@@ -134,7 +154,8 @@ static void tt14(int local)
     zk4[1] = 0; zk3[1] = 0;
     circ_lsp = 1; circ_stp = 2;
     EV('c', zk3[0], zk4[0], zK[0]);
-    circle2_draw();
+    if (chart_xf_mode() == 1 || chart_xf_mode() == 2) sun_xf_circle(zk3[0], zk4[0], zK[0], sun_col);   /* pantalla: elipse con el aspecto */
+    else circle2_draw();
 }
 
 /* TT103 / TT105 */

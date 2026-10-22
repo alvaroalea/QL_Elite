@@ -24,6 +24,9 @@ extern void (*ship_doexp_hook)(void);
 extern void (*ship_planet_hook)(void);
 
 void ship_ll9(void);                /* dibuja (o borra) la nave de INWK */
+void ship_ll9_faces_c(const u8 *v);  /* LL86..LL88 en C (referencia de ql_ll9_faces; las pruebas las llaman) */
+void ship_ll9_verts_c(void);
+void ship_ll9_edges_c(const u8 *v);   /* LL75..LL81 en C (referencia de ql_ll9_edges) */        /* LL48..LL50 en C (referencia de ql_ll9_verts) */
 void ship_ll51(void);               /* XX12 = XX15 (vector) por la matriz XX16 */
 void ship_shppt(void);              /* nave lejana: un punto */
 u8   ship_clip(void);               /* recorta XX15/XX12; devuelve 1 si la linea queda fuera */

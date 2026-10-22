@@ -14,5 +14,6 @@ void bomb_eff(void);                     /* BOMBEFF */
 void bomb_eff2(void);                    /* BOMBEFF2: cuatro BOMBEFF */
 void bomb_key(void);                     /* parte 3: tecla de la bomba */
 void bomb_frame(void);                   /* parte 16: la bomba sigue explotando */
+int  warp_blocked(void);                /* 1 si WARP no puede saltar (naves o estacion cerca, hiperespacio, planeta o sol demasiado cerca) */
 int  warp(void);                         /* WARP: 1 si salta (hay que repintar la vista), 0 si no (BOOP) */
 #endif

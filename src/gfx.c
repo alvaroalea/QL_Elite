@@ -132,6 +132,7 @@ extern void ql_ellipse(long *blk);                                          /* q
 extern void ql_hline(long x0, long x1, long y, long c, long scr);
 extern void ql_vline(long x, long y0, long y1, long c, long scr);
 extern void ql_frame(long *blk);
+extern void ql_ellrows(long *blk);                                          /* ql_ellrows.asm */
 extern void ql_clearcells(long col, long row, long ncols, long nrows, long scr);
 #endif
 
@@ -323,6 +324,76 @@ void gfx_ellipse_rows(int rx, int ry, u8 *half)
             if (d > last || half[d] < v) half[d] = (u8)v;
         }
     }
+}
+
+/* Tabla de tramos del contorno de una elipse de semiejes rx, ry (ry <= 303): para cada distancia dy = 0..ry del centro, tab[2 * dy] = lo y
+   tab[2 * dy + 1] = hi: el contorno de esa fila es cx + lo .. cx + hi (y su reflejo a la izquierda; con lo = 0, un unico tramo cx - hi .. cx + hi).
+   Sale de la tabla de semianchos half[] (gfx_ellipse_rows): fila dy < ry: de half[dy + 1] + 1 a half[dy] si half[dy + 1] < half[dy], si no el
+   punto half[dy]; fila dy = ry: de 0 a half[ry]. Es el mismo contorno que dibuja gfx_ellipse_xor (punto medio): comprobado punto a punto en
+   make test_ellrows. Mide 2 * (ry + 1) bytes. */
+void gfx_ell_spans(int rx, int ry, u8 *tab)
+{
+    static u8 half[304];
+    int dy;
+    gfx_ellipse_rows(rx, ry, half);
+    for (dy = 0; dy <= ry; dy++) {
+        tab[2 * dy + 1] = half[dy];
+        tab[2 * dy] = (u8)((dy == ry) ? 0 : ((half[dy + 1] < half[dy]) ? half[dy + 1] + 1 : half[dy]));
+    }
+}
+
+/* Tramo de la fila y (tabla de gfx_ell_spans; cy = centro, ry = semialto, -1 = no hay elipse): 0 si no toca la fila, si no 1 con *lo y *hi */
+static int ell_span(int y, int cy, int ry, const u8 *tab, int *lo, int *hi)
+{
+    int dy = y - cy;
+    if (dy < 0) dy = -dy;
+    if (ry < 0 || dy > ry) return 0;
+    *lo = tab[2 * dy]; *hi = tab[2 * dy + 1];
+    return 1;
+}
+
+static void ell_xor_spans(int cx, int lo, int hi, int y, u8 c)
+{
+    if (lo == 0) { gfx_hline_xor(cx - hi, cx + hi, y, c); return; }
+    gfx_hline_xor(cx - hi, cx - lo, y, c);
+    gfx_hline_xor(cx + lo, cx + hi, y, c);
+}
+
+/* Cambia una elipse (centro ocx, ocy, semialto ory, tabla de tramos otab; ory = -1 si no habia ninguna) por otra (ncx, ncy, nry, ntab; nry = -1 para
+   borrarla), recortadas a x 0..255 e y 0..cly1, FILA A FILA: en cada linea se borra lo viejo y se dibuja lo nuevo seguidos (y se salta si
+   no cambia), asi la elipse nunca desaparece entera. El resultado en pantalla es el mismo que gfx_ellipse_xor(vieja) + gfx_ellipse_xor(nueva)
+   (XOR). yoff debe ser 0. En el QL va en ensamblador (ql_ellrows.asm). */
+void gfx_ell_update(int ocx, int ocy, int ory, const u8 *otab, int ncx, int ncy, int nry, const u8 *ntab, u8 c, int cly1)
+{
+    int top = 32767, bot = -32768, y;
+    if (ory >= 0) { top = ocy - ory; bot = ocy + ory; }
+    if (nry >= 0) { if (ncy - nry < top) top = ncy - nry; if (ncy + nry > bot) bot = ncy + nry; }
+    if (top > bot) return;
+    if (top < 0) top = 0;
+    if (bot > cly1) bot = cly1;
+    if (top > bot) return;
+#ifdef ASM_LINE
+    {
+        static long blk[13];
+        blk[0] = top; blk[1] = bot;
+        blk[2] = ocx; blk[3] = ocy; blk[4] = ory; blk[5] = (long)otab;
+        blk[6] = ncx; blk[7] = ncy; blk[8] = nry; blk[9] = (long)ntab;
+        blk[10] = (c & 4) ? 0xAAL : 0L;
+        blk[11] = (long)(((c & 2) ? 0xAA : 0) | ((c & 1) ? 0x55 : 0));
+        blk[12] = (long)screen;
+        ql_ellrows(blk);
+        return;
+    }
+#else
+    for (y = top; y <= bot; y++) {
+        int olo, ohi, nlo, nhi, o = ell_span(y, ocy, ory, otab, &olo, &ohi), n = ell_span(y, ncy, nry, ntab, &nlo, &nhi);
+        if (!o && !n) continue;
+        if (o && n && olo == nlo && ohi == nhi && ocx == ncx) continue;
+        if (o) ell_xor_spans(ocx, olo, ohi, y, c);
+        if (n) ell_xor_spans(ncx, nlo, nhi, y, c);
+    }
+#endif
+    (void)y;
 }
 
 /* Contorno de rectangulo (centro, semiancho hw, semialto hh) en XOR: cada punto una sola vez, recortado */

@@ -61,6 +61,7 @@ void state_clear(void)
 u8  enc_ev;                   /* EV: retraso de las naves extra (encounters.c; ZERO lo pone a 0) */
 
 /* ---- vista de vuelo nativa (160 lineas) ---- */
+u8 dash_comz = 0;                  /* XX15+2 de COMPAS (dash.c): lo lee la mira en aspa (chart.c); aqui para no enlazar dash.c */
 int view_native = 0, view_yscale = 0, view_cy = 68, clip_h = 136;
 
 void view_set_native(int on)

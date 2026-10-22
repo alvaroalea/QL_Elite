@@ -2,15 +2,22 @@
 .DEFAULT_GOAL := disk
 # Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=pre0.3
 VERSION ?= pre0.2
-# Fuente de referencia (Mark Moxon): carpeta moxon/ del proyecto (ignorada por git); ELITE_SRC del entorno tiene prioridad
-export ELITE_SRC ?= $(CURDIR)/moxon/1-source-files/main-sources
+# Fuente de referencia (Mark Moxon): carpeta moxon-appleII/ del proyecto (y moxon-bbc-a/ con la version A de BBC) (ignorada por git); ELITE_SRC del entorno tiene prioridad
+export ELITE_SRC ?= $(CURDIR)/moxon-appleII/1-source-files/main-sources
 # Funciones de depuracion (SHIFT-1/2/3 compra/venta/combustible gratis, SHIFT-C/P/H en vuelo): make DEBUG= para quitarlas
 DEBUG ?= 1
 DBGDEF = $(if $(DEBUG),-DDEBUG)
 # Linea de Bresenham en ensamblador en el QL (src/ql_line.asm); make ASM_LINE= para usar la version en C
 ASM_LINE ?= 1
 ASMDEF = $(if $(ASM_LINE),-DASM_LINE)
-VERDEF = $(DBGDEF) -DELITE_VERSION='"$(VERSION)"'
+# LL9 en ensamblador (src/ql_ll9.asm: caras, vertices y LL51): make ASM_LL9= para usar el C
+ASM_LL9 ?= 1
+ASMDEF += $(if $(ASM_LL9),-DASM_LL9)
+# Version sin sonido: snd_ipc no hace nada (ni IPC, ni ZX8302, ni ROM): make NOSOUND=1 (por defecto con sonido; ver CLAUDE.md 2026-10-22)
+NOSOUND ?=
+# Sin el reloj de 50 Hz (MT.LPOLL) ni el limite de fps: make NOTICK=1 (diagnostico de cuelgues; por defecto con reloj)
+SNDDEF = $(if $(NOSOUND),-DNOSOUND) $(if $(NOTICK),-DNOTICK)
+VERDEF = $(DBGDEF) $(SNDDEF) -DELITE_VERSION='"$(VERSION)"'
 COMMON = src/gfx.c src/text.c
 
 host:
@@ -122,7 +129,7 @@ ql_ship:
 	qcc -O -Isrc -I/usr/local/share/qdos/include -o ship_ql src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
 
 # Comparacion con el codigo ORIGINAL ejecutado en un emulador de 6502 (necesita la fuente de referencia clonada:
-# git clone https://github.com/markmoxon/elite-source-code-apple-ii moxon  (en la raiz del proyecto)  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
+# git clone https://github.com/markmoxon/elite-source-code-apple-ii moxon-appleII  (en la raiz del proyecto)  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
 test_orig:
 	python3 tools/gen_ll9.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ll9 tests/test_ll9.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c
@@ -141,7 +148,7 @@ export QLLIB := $(QLSDK)/share/qdos/lib
 endif
 
 # El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
-GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm
+GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm src/ql_ll9.asm src/ql_lltab.asm src/ql_ellrows.asm
 elite: $(GAME_QL) $(wildcard src/*.h) Makefile
 	qcc -O $(VERDEF) $(ASMDEF) -Isrc -I/usr/local/share/qdos/include -o elite $(GAME_QL) -lm
 ql_game: elite
@@ -171,7 +178,7 @@ elite.img: elite $(DISK_FILES) $(QLTOOLS)
 
 disk: elite.img
 
-.PHONY: ql_game qltools disk test_bres test_lineasm test_ellipse test_nativeview test_ellasm test_dust test_panel
+.PHONY: ql_game qltools disk test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_panel
 
 # Texto bajo el panel de vuelo: pintar encima de otro estado (vaciando solo el rectangulo que sobra) = pintar desde cero
 test_panel:
@@ -188,10 +195,31 @@ test_ellasm:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/ell_dump tests/ell_dump.c src/gfx.c
 	python3 tools/test_ellasm.py 700
 
+# Contorno de la elipse fila a fila (gfx_ell_update, sin tabla = punto medio): misma pantalla que dibujar la vieja y la nueva con gfx_ellipse_xor
+test_ellrows:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ellrows tests/test_ellrows.c src/gfx.c src/plat_host.c -lm
+	./tests/test_ellrows
+
+# ql_ellrows.asm ejecutada con tools/m68k_mini.py contra gfx_ell_update en C
+test_ellrowsasm:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/ellrows_dump tests/ellrows_dump.c src/gfx.c src/plat_host.c -lm
+	python3 tools/test_ellrowsasm.py 200 1
+
+# ql_ll9.asm (LL51, caras y vertices de LL9 en ensamblador) ejecutada con tools/m68k_mini.py contra ship_ll9_faces_c y ship_ll9_verts_c (naves reales, casos limite)
+test_ll9asm:
+	python3 tools/gen_lltab.py
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/ll9_dump tests/ll9_dump.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/plat_host.c -lm
+	python3 tools/test_ll9asm.py 300 1
+
 # Vista nativa de vuelo: sol por filas (invariante pantalla = tramos), planeta (salto de redibujado), anillos del tunel y borrado exacto
 test_nativeview:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_nativeview tests/test_nativeview.c src/ships.c src/move.c src/sun.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c src/chart.c -lm
 	./tests/test_nativeview
+
+# Meridianos y crater del planeta (vista nativa): sin restos al quitar, figura estable, crater oculto
+test_arcs:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_arcs tests/test_arcs.c src/ships.c src/move.c src/sun.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c src/chart.c -lm
+	./tests/test_arcs
 
 # Elipse de punto medio (planeta y anillos del tunel en la vista nativa): ejes, simetria sin puntos borrados por XOR, cercania a la elipse ideal, borrado exacto y recorte
 test_ellipse:
@@ -293,7 +321,7 @@ test_dashpng:
 dash_file:
 	python3 tools/gen_dashboard.py
 
-test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_ellasm test_dust
+test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm
 
 # Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
 c68_check:

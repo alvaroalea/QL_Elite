@@ -271,6 +271,7 @@ static void redraw_panel(void)
     sun_forget();
     laser_forget();
     chart_sight_forget();
+    dash_mblb_forget();
     dash_show();                           /* el fondo viene de memoria: el fichero se lee una sola vez */
     space_scanner_reset();
     dash_msblob();
@@ -600,6 +601,7 @@ static int flight_loop(void)
         if (mcnt == 0) encounters_tick(em_rand_c);          /* acarreo: el del ultimo DORND (el del 6502 sale de M%) */
         laser_cool();                                       /* MLOOP: enfriamiento y cuenta del pulso */
         dash_update();
+        dash_mblb(warp_blocked());                          /* propio: M roja con el salto J bloqueado */
         chart_sight_update((u8)view);                       /* propio: aspa en la mira con la estacion cerca (S) */
 #ifdef DEBUG
         dbg_fps_frame();
@@ -612,6 +614,56 @@ static int flight_loop(void)
     }
 }
 
+/* Entrada en la estacion (propio): antes de las pantallas de informacion, ~2 s de un tunel de como mucho 3 rectangulos igualmente espaciados
+   (los de la salida, con la proporcion de la vista: semialto = 5/8 del semiancho) que se acercan y van frenando hasta pararse. Perspectiva:
+   el rectangulo a distancia z (1 = el borde de la vista) tiene semiancho 128 / z; las tres distancias son 1 + u, 2 + u y 3 + u con u en
+   [0, 1) bajando; al pasar u por 0 el mas cercano sale de la vista y entra otro lejano (siempre 3). El recorrido sigue una curva de frenado
+   (1 - (1 - t)^3) hasta 2,5 separaciones. El tiempo va por el reloj de 50 Hz (en el QL lento serian pocos fotogramas): sin reloj
+   (NOTICK) se cuentan DOCK_FRAMES fotogramas. En las pruebas con guion no se hace. */
+#define DOCK_TICKS 100                     /* 2 s a 50 Hz */
+#define DOCK_FRAMES 100                    /* fotogramas de la animacion si no hay reloj (NOTICK) */
+#define DOCK_TRAVEL 640L                   /* recorrido total en 1/256 de separacion (2,5) */
+
+/* Semianchos de los tres rectangulos en el instante t (0..256 = de 0 a 2 s) */
+static void dock_rects(long t, int *hw)
+{
+    long r = 256L - t, d, u;
+    int i;
+    d = DOCK_TRAVEL * (256L - (r * r * r) / 65536L) / 256L;        /* recorrido en 1/256 de separacion (curva de frenado) */
+    u = (1024L - d) & 255L;
+    for (i = 0; i < 3; i++) hw[i] = (int)(32768L / (256L + u + 256L * i));
+}
+
+static void dock_frame(int cx, int hw)
+{
+    int hh = (hw * 5) / 8;
+    gfx_frame_xor(cx, view_cy, hw, hh < 1 ? 1 : hh, C_WHITE, 0, 0, 255, clip_h - 1);
+}
+
+static void dock_tunnel(void)
+{
+    int old_hw[3] = { 0, 0, 0 }, hw[3], i, frames = 0, clk;
+    unsigned long t0 = plat_ticks();
+    long t;
+    if (in_script) return;
+    clk = (t0 != 0UL);                                              /* sin reloj (NOTICK) el tiempo se cuenta en fotogramas */
+    clear_view();
+    for (;;) {
+        t = clk ? (long)(plat_ticks() - t0) * 256L / DOCK_TICKS : (long)frames * 256L / DOCK_FRAMES;
+        if (t > 256L) t = 256L;
+        dock_rects(t, hw);
+        for (i = 0; i < 3; i++) {                                   /* cada rectangulo: se borra el viejo y se dibuja el nuevo seguidos */
+            if (old_hw[i]) dock_frame(128, old_hw[i]);
+            if (t < 256L) dock_frame(128, hw[i]);
+            old_hw[i] = (t < 256L) ? hw[i] : 0;
+        }
+        if (t >= 256L) break;
+        in_poll();                                                  /* pasa el fotograma (reloj, teclado, 50 fps) */
+        frames++;
+    }
+    clear_view();
+}
+
 /* El vuelo trabaja con la vista nativa de 160 lineas (view_set_native): se activa al entrar y se quita al salir (titulo, atracado y cartas no la usan) */
 int flight_run(void)
 {
@@ -620,6 +672,7 @@ int flight_run(void)
     view_set_native(1);
     ships_spblb_hook = dash_spblb;                          /* NWSPS y KS4 encienden y apagan la S */
     r = flight_loop();
+    if (r == FL_DOCK) dock_tunnel();                       /* entrada en la estacion */
     ships_spblb_hook = 0;
     view_set_native(0);
     return r;

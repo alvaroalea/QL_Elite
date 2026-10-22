@@ -5,6 +5,8 @@
 #include "emath.h"
 #include "ship3d.h"
 #include "lines.h"
+#include "platform.h"
+#include "sne_table.h"
 
 u8 sun_col = C_WHITE;
 u8 sun_lso[256];
@@ -27,7 +29,7 @@ static void ell_params(int *cx, int *cy, int *rx, int *ry);
 static void ell_erase(void);
 
 /* Transformacion de dibujo de las cartas (solo en pantalla; las rutinas siguen trabajando en las coordenadas del original): la carta
-   local se aprieta a 9/10 en x y se estira 6/5 en y y se centra (los puntos del QL son mas anchos que altos: asi los circulos
+   local se aprieta a 9/10 en x y se estira 27/25 en y (alto / ancho = 1,2, como la vista de vuelo) y se centra (los puntos del QL son mas anchos que altos: asi los circulos
    salen redondos en un monitor 4:3); la galactica baja 8 puntos. */
 static int xf_mode = 0;
 
@@ -42,7 +44,7 @@ int sun_xf_x(int x)
 
 int sun_xf_y(int y)
 {
-    if (xf_mode == 1) { y = 90 + ((y - 75) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }
+    if (xf_mode == 1) { y = 90 + ((y - 75) * 27) / 25; if (y < 0) y = 0; if (y > 255) y = 255; }   /* local: 1,08 en y con 0,9 en x = 1,2 (como el planeta) */
     else if (xf_mode == 3) { y = 80 + ((y - 68) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* vista nativa: centro 80, x 6/5 */
     else if (xf_mode == 2) { y = 27 + ((y - 19) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* galactica: baja 8 y se estira 6/5 (aspecto de los puntos) */
     return y;
@@ -70,22 +72,39 @@ void sun_xf_vloin(int x, int y1, int y2, u8 col)
     gfx_vline_xor(t, y1, y2, col);
 }
 
-/* Planeta de la carta corta: elipse rellena en coordenadas de pantalla, a 1 punto de resolucion (el SUN del original rellena
-   con HLOIN de pares de puntos y la transformacion lo deforma). Radio original k; los puntos del QL son 4/3 mas anchos que altos */
+/* Circulos de las cartas con la transformacion activa: la misma elipse de punto medio que el planeta de la vista de vuelo, con el
+   aspecto de cada carta (local: x 9/10 e y 27/25; galactica: y 6/5; en las dos, alto / ancho = 1,2), en vez de los segmentos de CIRCLE2 deformados por la transformacion.
+   El centro (cx, cy) y el radio k estan en las coordenadas del original. */
+static void xf_radii(int k, int *rx, int *ry)
+{
+    *rx = (xf_mode == 1) ? (k * 9 + 5) / 10 : k;
+    *ry = (xf_mode == 1) ? (k * 27 + 12) / 25 : k + k / 5;      /* alto / ancho = 1,2, el aspecto del planeta en vuelo */
+    if (*rx < 1) *rx = 1;
+    if (*ry < 1) *ry = 1;
+}
+
+static int xf_bottom(void) { return xf_mode == 1 ? 167 : 151; }   /* sin pisar el texto de debajo (filas 21 y 19) */
+
+void sun_xf_circle(int cx, int cy, int k, u8 col)               /* contorno (circulo de alcance) */
+{
+    int rx, ry;
+    xf_radii(k, &rx, &ry);
+    gfx_ellipse_xor(sun_xf_x(cx), sun_xf_y(cy), rx, ry, col, 0, 20, 255, xf_bottom());
+}
+
+/* Planeta de la carta corta: elipse rellena con los semianchos por fila de gfx_ellipse_rows (lo mismo que el sol de la vista de vuelo) */
 void sun_xf_disc(int cx, int cy, int k, u8 col)
 {
-    int rx = k, ry, dy, w, r;
-    long t, big;
-    if (rx < 1) rx = 1;
-    ry = (rx * 4 + 1) / 3;
-    big = 2L * ry + 1;                                     /* alto del disco entre bordes (en medios puntos) */
+    static u8 half[64];
+    int rx, ry, dy, y;
+    xf_radii(k, &rx, &ry);
+    if (ry > 63) ry = 63;
+    gfx_ellipse_rows(rx, ry, half);
     cx = sun_xf_x(cx); cy = sun_xf_y(cy);
     for (dy = -ry; dy <= ry; dy++) {
-        t = (long)rx * rx * (big * big - 4L * dy * dy) * 4 / (big * big);   /* (2 * semiancho)^2 */
-        r = 0;
-        while ((long)(r + 1) * (r + 1) <= t) r++;          /* raiz entera */
-        w = (r + 1) / 2;                                   /* semiancho redondeado */
-        gfx_hline_xor(cx - w, cx + w, cy + dy, col);
+        y = cy + dy;
+        if (y < 20 || y > xf_bottom()) continue;
+        gfx_hline_xor(cx - half[dy < 0 ? -dy : dy], cx + half[dy < 0 ? -dy : dy], y, col);
     }
 }
 
@@ -461,8 +480,11 @@ void sun_draw(void)
    vertical 1,2 K, centro (K3, K4) del espacio del original llevado a la pantalla con view_ty. Sin montones de segmentos: borrar =
    volver a dibujar con los mismos datos (el planeta recuerda los del ultimo dibujo). */
 #define NAT_BOT 159                              /* ultima linea de la vista nativa */
+#define ELL_TAB 608                              /* tramos por fila (2 bytes): ry <= (6 * 248 + 2) / 5 = 298 */
 static int ell_valid = 0, ell_cx, ell_cy, ell_rx, ell_ry;
 static u8 ell_col;
+static u8 ell_tab[2][ELL_TAB];                   /* tabla de tramos del contorno viejo y del nuevo (se alternan; solo se recalcula si cambia el radio) */
+static int ell_cur = 0;                          /* tabla del contorno dibujado (ell_tab[ell_cur]) */
 
 static void ell_params(int *cx, int *cy, int *rx, int *ry)
 {
@@ -473,29 +495,169 @@ static void ell_params(int *cx, int *cy, int *rx, int *ry)
     *cx = (int)v;
     *cy = view_ty((int)w);
     *rx = zK[0];
-    *ry = zK[0] + zK[0] / 5;
+    *ry = (6 * zK[0] + 2) / 5;                   /* alto / ancho = 1,2 (el aspecto del monitor), redondeado */
+}
+
+
+/* ---- Meridianos y crater (PL9 partes 2 y 3, PLS1..PLS5 y PLS22 de Elite-A; el Apple II solo tiene el circulo) ----
+   Con el planeta entero en pantalla (K < 256) y radio >= 6, el tipo 128 lleva dos semielipses (meridianos a 90 grados entre si, la
+   mitad que da la cara) y el tipo 130 un crater (elipse completa desplazada, solo si roofv_z >= 0). Cada figura es un centro y dos
+   vectores de pantalla u, w: P(t) = c + u cos t + w sin t (t en 1/64 de vuelta, y invertida). Son poligonales de 64/STP segmentos
+   (STP = 2, 4 u 8 segun el radio) que se dibujan en XOR con recorte; el borrado repite exactamente los mismos segmentos. Al cambiar
+   de fotograma se sustituye segmento a segmento (los iguales no se tocan), asi no desaparece la figura entera. Cada segmento no
+   incluye su punto final (lo pone el siguiente), porque en XOR el vertice compartido se borraria. */
+#define ARC_PTS 33
+static int arc_n[2];                                /* puntos de cada poligonal dibujada (0 = ninguna) */
+static int arc_x[2][ARC_PTS], arc_y[2][ARC_PTS];
+static u8 arc_col;
+
+static int arc_clip(int *x1, int *y1, int *x2, int *y2)   /* Cohen-Sutherland a 0..255 x 0..NAT_BOT; 0 si no se ve nada */
+{
+    int c1, c2, c, x = 0, y = 0;
+#define ARC_CODE(px, py) (((px) < 0) | (((px) > 255) << 1) | (((py) < 0) << 2) | (((py) > NAT_BOT) << 3))
+    c1 = ARC_CODE(*x1, *y1); c2 = ARC_CODE(*x2, *y2);
+    for (;;) {
+        if (!(c1 | c2)) return 1;
+        if (c1 & c2) return 0;
+        c = c1 ? c1 : c2;
+        if (c & 1)      { y = *y1 + (int)((long)(*y2 - *y1) * (0 - *x1) / (*x2 - *x1)); x = 0; }
+        else if (c & 2) { y = *y1 + (int)((long)(*y2 - *y1) * (255 - *x1) / (*x2 - *x1)); x = 255; }
+        else if (c & 4) { x = *x1 + (int)((long)(*x2 - *x1) * (0 - *y1) / (*y2 - *y1)); y = 0; }
+        else            { x = *x1 + (int)((long)(*x2 - *x1) * (NAT_BOT - *y1) / (*y2 - *y1)); y = NAT_BOT; }
+        if (c == c1) { *x1 = x; *y1 = y; c1 = ARC_CODE(x, y); }
+        else         { *x2 = x; *y2 = y; c2 = ARC_CODE(x, y); }
+    }
+}
+
+static void arc_seg(int x1, int y1, int x2, int y2)       /* un segmento en XOR sin su punto final */
+{
+    int ex = x2, ey = y2;
+    if (arc_clip(&x1, &y1, &x2, &y2)) {
+        loin_draw((u8)x1, (u8)y1, (u8)x2, (u8)y2, arc_col);
+        if (x2 == ex && y2 == ey) gfx_xor_pixel(x2, y2, arc_col);   /* el final solo si no se recorto (si no, es el borde) */
+    }
+}
+
+static void arc_poly_erase(int k)
+{
+    int i;
+    for (i = 0; i + 1 < arc_n[k]; i++) arc_seg(arc_x[k][i], arc_y[k][i], arc_x[k][i + 1], arc_y[k][i + 1]);
+    arc_n[k] = 0;
+}
+
+static void arcs_erase(void)
+{
+    arc_poly_erase(0);
+    arc_poly_erase(1);
+}
+
+static long arc_sin(int i)                          /* sin(i / 64 vueltas) * 256 (maximo 255) */
+{
+    i &= 63;
+    return i < 32 ? (long)em_sne[i] : -(long)em_sne[i - 32];
+}
+
+static long arc_fdiv(long a, long b)                /* division por defecto (b > 0) */
+{
+    return a >= 0 ? a / b : -((-a + b - 1) / b);
+}
+
+static long arc_comp(int off)                       /* componente de INWK (signo y modulo) de -24576 a 24576 */
+{
+    long v = ((long)(inwk[off + 1] & 0x7F) << 8) | inwk[off];
+    return (inwk[off + 1] & 0x80) ? -v : v;
+}
+
+static int arc_atan(long a, long b)                 /* angulo (1/64 de vuelta) del vector (a, b) = ARCTAN + los cuadrantes de PLS4 */
+{
+    static const u8 tab[33] = { 0,0,1,1,1,2,2,2,2,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,7,7,8,8,8 };
+    long ax = a < 0 ? -a : a, ay = b < 0 ? -b : b;
+    int t;
+    if (ax == 0 && ay == 0) return 0;
+    if (ay <= ax) t = tab[(ay * 32 + ax / 2) / ax];
+    else t = 16 - tab[(ax * 32 + ay / 2) / ay];
+    if (a >= 0) return b >= 0 ? t : (64 - t) & 63;
+    return b >= 0 ? 32 - t : 32 + t;
+}
+
+/* Poligonal k de la figura (centro cx, cy; vectores en 1/16 de punto: ux, uy, wx, wy), de t0 con n segmentos de paso stp */
+static void arc_poly(int k, int cx, int cy, long ux, long uy, long wx, long wy, int t0, int n, int stp)
+{
+    int nx[ARC_PTS], ny[ARC_PTS], i, same = (arc_n[k] == n + 1);
+    for (i = 0; i <= n; i++) {
+        long s = arc_sin(t0 + i * stp), c = arc_sin(t0 + i * stp + 16);
+        nx[i] = cx + (int)arc_fdiv(ux * c + wx * s + 2048, 4096);
+        ny[i] = cy - (int)arc_fdiv(uy * c + wy * s + 2048, 4096);
+    }
+    if (!same) { arc_poly_erase(k); }
+    for (i = 0; i < n; i++) {
+        if (same && nx[i] == arc_x[k][i] && ny[i] == arc_y[k][i] && nx[i + 1] == arc_x[k][i + 1] && ny[i + 1] == arc_y[k][i + 1]) continue;
+        if (same) arc_seg(arc_x[k][i], arc_y[k][i], arc_x[k][i + 1], arc_y[k][i + 1]);     /* borra el viejo */
+        arc_seg(nx[i], ny[i], nx[i + 1], ny[i + 1]);                                        /* y dibuja el nuevo */
+    }
+    for (i = 0; i <= n; i++) { arc_x[k][i] = nx[i]; arc_y[k][i] = ny[i]; }
+    arc_n[k] = n + 1;
+}
+
+/* Tras dibujar el circulo del planeta (centro cx, cy en pantalla; radio rx, ry); type = 128 meridianos, 130 crater */
+static void planet_arcs(u8 type, int cx, int cy, int rx, int ry)
+{
+    int stp = rx >= 64 ? 2 : (rx >= 32 ? 4 : 8);
+    long k = rx, kv = ry;
+    long nx, ny, rxv, ryv, sx, sy;
+    int t0;
+    if (arc_n[0] | arc_n[1]) { if (arc_col != sun_col) arcs_erase(); }
+    arc_col = sun_col;
+    if (zK[1] != 0) { arcs_erase(); return; }
+    if (type == 128) {
+        if (rx < 6) { arcs_erase(); return; }
+        nx = arc_comp(9) * k / 1536; ny = arc_comp(11) * kv / 1536;                 /* nosev */
+        rxv = arc_comp(15) * k / 1536; ryv = arc_comp(17) * kv / 1536;              /* roofv */
+        sx = arc_comp(21) * k / 1536; sy = arc_comp(23) * kv / 1536;                /* sidev */
+        t0 = (arc_atan(arc_comp(13), arc_comp(19)) - 16) & 63;                       /* z de nosev cos t + roofv sin t >= 0 */
+        arc_poly(0, cx, cy, nx, ny, rxv, ryv, t0, 32 / stp, stp);
+        t0 = (arc_atan(arc_comp(13), arc_comp(25)) - 16) & 63;
+        arc_poly(1, cx, cy, nx, ny, sx, sy, t0, 32 / stp, stp);
+    } else {
+        if (inwk[20] & 0x80) { arcs_erase(); return; }                              /* crater en la cara oculta */
+        arc_poly_erase(1);
+        cx += (int)(arc_comp(15) * k * 222 / 6291456L);
+        cy -= (int)(arc_comp(17) * kv * 222 / 6291456L);
+        nx = arc_comp(9) * k / 3072; ny = arc_comp(11) * kv / 3072;                 /* nosev / 2 */
+        sx = arc_comp(21) * k / 3072; sy = arc_comp(23) * kv / 3072;                /* sidev / 2 */
+        arc_poly(0, cx, cy, nx, ny, sx, sy, 0, 64 / stp, stp);
+    }
 }
 
 static void ell_erase(void)
 {
+    arcs_erase();
     if (!ell_valid) return;
-    gfx_ellipse_xor(ell_cx, ell_cy, ell_rx, ell_ry, ell_col, 0, 0, 255, NAT_BOT);
+    gfx_ell_update(ell_cx, ell_cy, ell_ry, ell_tab[ell_cur], 0, 0, -1, ell_tab[ell_cur], ell_col, NAT_BOT);
     ell_valid = 0;
 }
 
-/* PL9 de la vista nativa: borra el circulo anterior y dibuja el nuevo, salvo que no hayan cambiado ni el centro ni el radio ni el color
-   (volar recto con el planeta lejos: nada que hacer). Si el circulo queda fuera de la vista solo borra. */
+/* PL9 de la vista nativa: cambia la elipse vieja por la nueva FILA A FILA (gfx_ell_update; ql_ellrows.asm en el QL): en cada linea se
+   borra lo viejo y se dibuja lo nuevo seguidos, asi el planeta no desaparece mientras se redibuja (antes se borraba toda la elipse y
+   luego se dibujaba toda: parpadeo). La tabla de tramos solo se recalcula si cambia el radio. Salvo que no hayan cambiado ni el
+   centro ni el radio ni el color (volar recto con el planeta lejos: nada que hacer). Si queda fuera de la vista (CHKON) solo borra. */
 void circle_update(void)
 {
-    int cx, cy, rx, ry;
+    int cx, cy, rx, ry, nxt;
     view_virtual_begin();
     if (sun_chkon()) { ell_erase(); view_virtual_end(); return; }       /* CHKON: fuera de la vista */
     ell_params(&cx, &cy, &rx, &ry);
-    if (ell_valid && cx == ell_cx && cy == ell_cy && rx == ell_rx && ry == ell_ry && sun_col == ell_col) { view_virtual_end(); return; }
-    ell_erase();
-    ell_cx = cx; ell_cy = cy; ell_rx = rx; ell_ry = ry; ell_col = sun_col;
-    gfx_ellipse_xor(cx, cy, rx, ry, ell_col, 0, 0, 255, NAT_BOT);
+    if (ell_valid && cx == ell_cx && cy == ell_cy && rx == ell_rx && ry == ell_ry && sun_col == ell_col) { planet_arcs(ztype, cx, cy, rx, ry); view_virtual_end(); return; }
+    if (ell_valid && sun_col != ell_col) ell_erase();                   /* otro color: no se puede cambiar fila a fila con una sola mascara */
+    if (ell_valid && rx == ell_rx && ry == ell_ry) nxt = ell_cur;       /* mismo radio: la misma tabla */
+    else {
+        nxt = 1 - ell_cur;
+        gfx_ell_spans(rx, ry, ell_tab[nxt]);
+    }
+    gfx_ell_update(ell_cx, ell_cy, ell_valid ? ell_ry : -1, ell_tab[ell_cur], cx, cy, ry, ell_tab[nxt], sun_col, NAT_BOT);
+    ell_cx = cx; ell_cy = cy; ell_rx = rx; ell_ry = ry; ell_col = sun_col; ell_cur = nxt;
     ell_valid = 1;
+    planet_arcs(ztype, cx, cy, rx, ry);
     view_virtual_end();
 }
 
@@ -678,6 +840,7 @@ void sun_set_sunx(u8 lo, u8 hi) { sunx[0] = lo; sunx[1] = hi; }
 /* Tras borrar el area de vista: ni el sol ni el circulo del planeta figuran como dibujados */
 void sun_forget(void)
 {
+    arc_n[0] = arc_n[1] = 0;                     /* ni sus meridianos o crater */
     ell_valid = 0;                               /* la elipse del planeta (vista nativa) tampoco figura como dibujada */
     sn_clear();                                  /* ni los tramos del sol */
     sun_flflls();

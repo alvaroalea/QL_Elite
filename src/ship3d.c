@@ -47,6 +47,10 @@ static const u8 *bp_ptr(u8 lo, u8 hi)
 }
 
 /* ---------- LL51: producto del vector XX15 por la matriz XX16 ---------- */
+#ifdef ASM_LL9
+extern void ql_ll51(void);
+void ship_ll51(void) { ql_ll51(); }                /* ql_ll9.asm */
+#else
 void ship_ll51(void)
 {
     u8 x = 0, y = 0, a;
@@ -61,6 +65,7 @@ void ship_ll51(void)
         y = (u8)(y + 2); x = (u8)(x + 6);
     } while (x < 17);
 }
+#endif
 
 /* ---------- monton de lineas ---------- */
 void ship_lsclr(void)
@@ -333,98 +338,10 @@ static void ee51(void)
     ship_lsclr();
 }
 
-void ship_ll9(void)
+/* LL86..LL88 (las caras visibles de la nave, en XX2): v = datos de las caras del plano. Version en C (referencia de ql_ll9_faces) */
+void ship_ll9_faces_c(const u8 *v)
 {
-    u8 a, c, x, y, t, c0;
-    int d, cc;
-    unsigned s;
-    const u8 *v;
-
-    if (ztype & 0x80) { if (ship_planet_hook) ship_planet_hook(); return; }      /* LL25 */
-    zxx4 = 31; zlsnum = 1;
-    zlsnum2 = (inwk[31] & 0x08) ? zxx19[0] : 0;
-    a = inwk[36];
-    if (a & 0x80) goto ee51_ret;
-    if (inwk[31] & 0x20) goto ee28;
-    if (!(inwk[31] & 0x80)) goto ee28;
-    inwk[31] = (u8)((inwk[31] | 0x20) & 0x3F);
-    zinf[28] = 0; zinf[30] = 0;
-    c0 = (inwk[31] & 0x08) ? 1 : ship_c_in;              /* C al volver de EE51 (LSCLR deja C = 1) */
-    ee51();
-    zxx19[1] = 18;
-    zxx19[2] = zxx0[7];
-    em_rand_c = c0;
-    zxx19[3] = em_dornd();
-    for (y = 4; y <= 6; y++) { em_rand_c = 0; zxx19[y] = em_dornd(); }
-ee28:
-    a = inwk[8];
-    if (a & 0x80) goto ll14;                              /* BPL LL10 no tomado */
-    goto ll10;
-ll14:
-    if (!(inwk[31] & 0x20)) goto ee51_ret;
-    inwk[31] &= 0xF7;
-    if (ship_doexp_hook) ship_doexp_hook();
-    return;
-ee51_ret:
-    ee51();
-    return;
-ll10:
-    if (inwk[7] >= 192) goto ll14;
-    if ((((unsigned)inwk[1] << 8) | inwk[0]) >= (((unsigned)inwk[7] << 8) | inwk[6])) goto ll14;
-    if ((((unsigned)inwk[4] << 8) | inwk[3]) >= (((unsigned)inwk[7] << 8) | inwk[6])) goto ll14;
-    x = zxx0[6];
-    xx3[x] = 255; xx3[x + 1] = 255;
-    t = inwk[6]; a = inwk[7];
-    c = (u8)(a & 1); a >>= 1; t = (u8)((t >> 1) | (c << 7));
-    c = (u8)(a & 1); a >>= 1; t = (u8)((t >> 1) | (c << 7));
-    c = (u8)(a & 1); a >>= 1; t = (u8)((t >> 1) | (c << 7));
-    c = (u8)(a & 1); a >>= 1;
-    if (a != 0) goto ll13;
-    a = (u8)((t >> 1) | (c << 7)); a >>= 3;
-    zxx4 = a;
-    goto ll17;
-ll13:
-    if (zxx0[13] >= inwk[7]) goto ll17;
-    if (inwk[31] & 0x20) goto ll17;
-    ship_shppt();
-    return;
-ll17:
-    for (x = 0; x < 6; x++) {
-        zxx16[x] = inwk[21 + x]; zxx16[6 + x] = inwk[15 + x]; zxx16[12 + x] = inwk[9 + x];
-    }
-    zQ = 197;
-    for (y = 16; y < 128; y = (u8)(y - 2)) {
-        c = (u8)(zxx16[y] >> 7);
-        a = (u8)((zxx16[y + 1] << 1) | c);
-        em_ll28(a);
-        zxx16[y] = zR;
-    }
-    for (x = 0; x < 9; x++) zxx18[x] = inwk[x];
-    zk3[15] = 255;                                         /* XX2+15 */
-    if (!(inwk[31] & 0x20)) goto ee29;
-    x = (u8)(zxx0[12] >> 2);
-    for (;;) { xx2[x] = 255; if (x == 0) break; x--; }
-    zxx4 = 0;                                              /* INX; STX XX4 (X pasa de $FF a 0) */
-    goto ll42;
-ee29:
-    a = zxx0[12];
-    if (a == 0) goto ll42;
-    zxx20 = a;
-    x = zxx0[18];
-    a = zxx18[7];
-    while (a != 0) {                                       /* LL90 */
-        x++;
-        c = (u8)(zxx18[4] & 1); zxx18[4] >>= 1; zxx18[3] = (u8)((zxx18[3] >> 1) | (c << 7));
-        c = (u8)(zxx18[1] & 1); zxx18[1] >>= 1; zxx18[0] = (u8)((zxx18[0] >> 1) | (c << 7));
-        c = (u8)(a & 1); a >>= 1; zxx18[6] = (u8)((zxx18[6] >> 1) | (c << 7));
-    }
-    zxx17 = x;                                             /* LL91 */
-    zx15[5] = zxx18[8]; zx15[0] = zxx18[0]; zx15[1] = zxx18[2]; zx15[2] = zxx18[3];
-    zx15[3] = zxx18[5]; zx15[4] = zxx18[6];
-    ship_ll51();
-    zxx18[0] = zx12[0]; zxx18[2] = zx12[1]; zxx18[3] = zx12[2];
-    zxx18[5] = zx12[3]; zxx18[6] = zx12[4]; zxx18[8] = zx12[5];
-    v = bp_ptr(zxx0[4], zxx0[17]);
+    u8 a, x, y;
     y = 0;
 ll86:
     zx12[1] = v[y];
@@ -476,13 +393,17 @@ ll89:
     xx2[x] = a;
     y++;
 ll88:
-    if (y >= zxx20) goto ll42;
+    if (y >= zxx20) return;
     goto ll86;
-ll42:
-    t = zxx16[2]; x = zxx16[3]; zxx16[2] = zxx16[6]; zxx16[3] = zxx16[7]; zxx16[6] = t; zxx16[7] = x;
-    t = zxx16[4]; x = zxx16[5]; zxx16[4] = zxx16[12]; zxx16[5] = zxx16[13]; zxx16[12] = t; zxx16[13] = x;
-    t = zxx16[10]; x = zxx16[11]; zxx16[10] = zxx16[14]; zxx16[11] = zxx16[15]; zxx16[14] = t; zxx16[15] = x;
-    zxx20 = zxx0[8];
+}
+
+/* LL48..LL50 (proyeccion de los vertices visibles a XX3). Version en C (referencia de ql_ll9_verts) */
+void ship_ll9_verts_c(void)
+{
+    u8 a, c, x, y, t;
+    int d, cc;
+    unsigned s;
+    const u8 *v;
     v = zxx0 + 20;
     y = 0; zcnt = 0;
 ll48:
@@ -589,10 +510,153 @@ ll70:
 ll50:
     s = (unsigned)zcnt + 4; zcnt = (u8)s;
     s = (unsigned)zxx17 + 6; y = (u8)s;
-    if (s > 255) goto ll72;
-    if (y >= zxx20) goto ll72;
+    if (s > 255) return;
+    if (y >= zxx20) return;
     goto ll48;
-ll72:
+}
+
+/* LL75..LL81 (las aristas visibles: recorte y dibujo/borrado en el montón de líneas). Version en C (referencia de ql_ll9_edges) */
+void ship_ll9_edges_c(const u8 *v)
+{
+    u8 a, x;
+ll75:
+    if (v[0] < zxx4) goto ll78;
+    a = v[1]; zP = a;
+    if (xx2[a & 0x0F] != 0) goto ll79;
+    if (xx2[a >> 4] == 0) goto ll78;
+ll79:
+    x = v[2];
+    zx15[0] = xx3[x]; zx15[1] = xx3[x + 1]; zx15[2] = xx3[x + 2]; zx15[3] = xx3[x + 3];
+    x = v[3];
+    zx15[4] = xx3[x]; zx12[0] = xx3[x + 2]; zx12[1] = xx3[x + 3]; zx15[5] = xx3[x + 1];
+    if (ship_clip2(zx15[5])) goto ll78;
+    ship_lsput();
+ll78:
+    if (zlsnum >= zcnt) return;
+    v += 4;
+    zxx17++;
+    if (zxx17 < zxx20) goto ll75;
+}
+
+#ifdef ASM_LL9
+extern void ql_ll9_faces(const u8 *v);
+extern void ql_ll9_verts(long view_cy, long view_yscale);
+#define ship_ll9_faces(v) ql_ll9_faces(v)
+#define ship_ll9_verts()  ql_ll9_verts((long)view_cy, (long)view_yscale)
+/* Bucle de aristas en ensamblador: acepta y dibuja solo las aristas que caen enteras en la vista (el caso normal); si una necesita
+   recorte devuelve 1 con XX15/XX12 cargados y en ql_edge_v la arista en curso: se recorta y dibuja en C y se continua con cont = 1 */
+extern long ql_ll9_edges(const u8 *v, long cont, long clip_h);
+const u8 *ql_edge_v;
+static void ship_ll9_edges(const u8 *v)
+{
+    long r = ql_ll9_edges(v, 0L, (long)clip_h);
+    while (r) {
+        if (!ship_clip2(zx15[5])) ship_lsput();
+        r = ql_ll9_edges(ql_edge_v, 1L, (long)clip_h);
+    }
+}
+#else
+#define ship_ll9_faces(v) ship_ll9_faces_c(v)
+#define ship_ll9_verts()  ship_ll9_verts_c()
+#define ship_ll9_edges(v) ship_ll9_edges_c(v)
+#endif
+
+void ship_ll9(void)
+{
+    u8 a, c, x, y, t, c0;
+    const u8 *v;
+
+    if (ztype & 0x80) { if (ship_planet_hook) ship_planet_hook(); return; }      /* LL25 */
+    zxx4 = 31; zlsnum = 1;
+    zlsnum2 = (inwk[31] & 0x08) ? zxx19[0] : 0;
+    a = inwk[36];
+    if (a & 0x80) goto ee51_ret;
+    if (inwk[31] & 0x20) goto ee28;
+    if (!(inwk[31] & 0x80)) goto ee28;
+    inwk[31] = (u8)((inwk[31] | 0x20) & 0x3F);
+    zinf[28] = 0; zinf[30] = 0;
+    c0 = (inwk[31] & 0x08) ? 1 : ship_c_in;              /* C al volver de EE51 (LSCLR deja C = 1) */
+    ee51();
+    zxx19[1] = 18;
+    zxx19[2] = zxx0[7];
+    em_rand_c = c0;
+    zxx19[3] = em_dornd();
+    for (y = 4; y <= 6; y++) { em_rand_c = 0; zxx19[y] = em_dornd(); }
+ee28:
+    a = inwk[8];
+    if (a & 0x80) goto ll14;                              /* BPL LL10 no tomado */
+    goto ll10;
+ll14:
+    if (!(inwk[31] & 0x20)) goto ee51_ret;
+    inwk[31] &= 0xF7;
+    if (ship_doexp_hook) ship_doexp_hook();
+    return;
+ee51_ret:
+    ee51();
+    return;
+ll10:
+    if (inwk[7] >= 192) goto ll14;
+    if ((((unsigned)inwk[1] << 8) | inwk[0]) >= (((unsigned)inwk[7] << 8) | inwk[6])) goto ll14;
+    if ((((unsigned)inwk[4] << 8) | inwk[3]) >= (((unsigned)inwk[7] << 8) | inwk[6])) goto ll14;
+    x = zxx0[6];
+    xx3[x] = 255; xx3[x + 1] = 255;
+    t = inwk[6]; a = inwk[7];
+    c = (u8)(a & 1); a >>= 1; t = (u8)((t >> 1) | (c << 7));
+    c = (u8)(a & 1); a >>= 1; t = (u8)((t >> 1) | (c << 7));
+    c = (u8)(a & 1); a >>= 1; t = (u8)((t >> 1) | (c << 7));
+    c = (u8)(a & 1); a >>= 1;
+    if (a != 0) goto ll13;
+    a = (u8)((t >> 1) | (c << 7)); a >>= 3;
+    zxx4 = a;
+    goto ll17;
+ll13:
+    if (zxx0[13] >= inwk[7]) goto ll17;
+    if (inwk[31] & 0x20) goto ll17;
+    ship_shppt();
+    return;
+ll17:
+    for (x = 0; x < 6; x++) {
+        zxx16[x] = inwk[21 + x]; zxx16[6 + x] = inwk[15 + x]; zxx16[12 + x] = inwk[9 + x];
+    }
+    zQ = 197;
+    for (y = 16; y < 128; y = (u8)(y - 2)) {
+        c = (u8)(zxx16[y] >> 7);
+        a = (u8)((zxx16[y + 1] << 1) | c);
+        em_ll28(a);
+        zxx16[y] = zR;
+    }
+    for (x = 0; x < 9; x++) zxx18[x] = inwk[x];
+    zk3[15] = 255;                                         /* XX2+15 */
+    if (!(inwk[31] & 0x20)) goto ee29;
+    x = (u8)(zxx0[12] >> 2);
+    for (;;) { xx2[x] = 255; if (x == 0) break; x--; }
+    zxx4 = 0;                                              /* INX; STX XX4 (X pasa de $FF a 0) */
+    goto ll42;
+ee29:
+    a = zxx0[12];
+    if (a == 0) goto ll42;
+    zxx20 = a;
+    x = zxx0[18];
+    a = zxx18[7];
+    while (a != 0) {                                       /* LL90 */
+        x++;
+        c = (u8)(zxx18[4] & 1); zxx18[4] >>= 1; zxx18[3] = (u8)((zxx18[3] >> 1) | (c << 7));
+        c = (u8)(zxx18[1] & 1); zxx18[1] >>= 1; zxx18[0] = (u8)((zxx18[0] >> 1) | (c << 7));
+        c = (u8)(a & 1); a >>= 1; zxx18[6] = (u8)((zxx18[6] >> 1) | (c << 7));
+    }
+    zxx17 = x;                                             /* LL91 */
+    zx15[5] = zxx18[8]; zx15[0] = zxx18[0]; zx15[1] = zxx18[2]; zx15[2] = zxx18[3];
+    zx15[3] = zxx18[5]; zx15[4] = zxx18[6];
+    ship_ll51();
+    zxx18[0] = zx12[0]; zxx18[2] = zx12[1]; zxx18[3] = zx12[2];
+    zxx18[5] = zx12[3]; zxx18[6] = zx12[4]; zxx18[8] = zx12[5];
+    ship_ll9_faces(bp_ptr(zxx0[4], zxx0[17]));
+ll42:
+    t = zxx16[2]; x = zxx16[3]; zxx16[2] = zxx16[6]; zxx16[3] = zxx16[7]; zxx16[6] = t; zxx16[7] = x;
+    t = zxx16[4]; x = zxx16[5]; zxx16[4] = zxx16[12]; zxx16[5] = zxx16[13]; zxx16[12] = t; zxx16[13] = x;
+    t = zxx16[10]; x = zxx16[11]; zxx16[10] = zxx16[14]; zxx16[11] = zxx16[15]; zxx16[14] = t; zxx16[15] = x;
+    zxx20 = zxx0[8];
+    ship_ll9_verts();
     if (!(inwk[31] & 0x20)) goto ee31;
     inwk[31] |= 0x08;
     if (ship_doexp_hook) ship_doexp_hook();
@@ -617,25 +681,7 @@ ee31:
 ll170:
     v = bp_ptr(zxx0[3], zxx0[16]);
     zcnt = zxx0[5];
-ll75:
-    y = 0;
-    if (v[0] < zxx4) goto ll78;
-    a = v[1]; zP = a;
-    if (xx2[a & 0x0F] != 0) goto ll79;
-    if (xx2[a >> 4] == 0) goto ll78;
-ll79:
-    x = v[2];
-    zx15[0] = xx3[x]; zx15[1] = xx3[x + 1]; zx15[2] = xx3[x + 2]; zx15[3] = xx3[x + 3];
-    x = v[3];
-    zx15[4] = xx3[x]; zx12[0] = xx3[x + 2]; zx12[1] = xx3[x + 3]; zx15[5] = xx3[x + 1];
-    if (ship_clip2(zx15[5])) goto ll78;
-    ship_lsput();
-ll78:
-    if (zlsnum >= zcnt) goto ll81;
-    v += 4;
-    zxx17++;
-    if (zxx17 < zxx20) goto ll75;
-ll81:
+    ship_ll9_edges(v);
     ship_lsclr();
-    (void)c0; (void)c; (void)cc;
+    (void)c0; (void)c;
 }

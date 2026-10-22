@@ -184,13 +184,13 @@ int main(void)
     frin[2] = SHIPT_VIPER; state_slot(2)[I_STATE] = 0x10;  /* ya dibujada: space_scan la dibuja ahora */
     for (i = 0; i < NI; i++) inwk[i] = state_slot(2)[i];
     space_scan(SHIPT_VIPER);
-    check(gfx_get(132, 164) == C_CYAN && gfx_get(133, 164) == C_CYAN && gfx_get(134, 164) == C_CYAN && gfx_get(135, 164) == C_CYAN, "radar: punto en (132..135, 164) para x = +10, y = z = 0");
-    check(gfx_get(131, 164) == C_BLACK && gfx_get(136, 164) == C_BLACK && gfx_get(134, 163) == C_BLACK, "radar: el punto no se sale de ahi");
+    check(gfx_get(132, 164) == C_CYAN && gfx_get(133, 164) == C_CYAN && gfx_get(134, 164) == C_CYAN && gfx_get(135, 164) == C_BLACK, "radar: cabeza de 2 puntos (132, 133) y palo de 1 punto (134) en y = 164 para x = +10, y = z = 0");
+    check(gfx_get(131, 164) == C_BLACK && gfx_get(136, 164) == C_BLACK && gfx_get(134, 163) == C_BLACK && gfx_get(135, 165) == C_BLACK, "radar: el punto no se sale de ahi (palo de 1 punto)");
     gfx_clear(C_BLACK);
     set_pos(inwk, 0, 0, 0, -(0x20L * 256));                /* detras: z = -32 (unidades altas) */
     inwk[I_STATE] = 0x10;
     space_scan(SHIPT_VIPER);
-    check(gfx_get(124, 172) == C_CYAN && gfx_get(125, 172) == C_CYAN, "radar: detras (z negativo) el punto baja 8 lineas (y = 172)");
+    check(gfx_get(122, 172) == C_CYAN && gfx_get(123, 172) == C_CYAN && gfx_get(124, 172) == C_CYAN && gfx_get(125, 172) == C_BLACK, "radar: detras (z negativo) el punto baja 8 lineas (y = 172)");
     gfx_clear(C_BLACK);
     inwk[I_STATE] = 0; space_scan(SHIPT_VIPER);
     check(gfx_get(124, 172) == C_BLACK, "radar: sin el bit 4 de INWK+31 no se dibuja");

@@ -62,7 +62,8 @@ tests/test_*
 !tests/test_*.c
 screen.bin
 .vscode/
-moxon/
+moxon-appleII/
+moxon-bbc-a/
 
 # debug information files
 *.dwo
