@@ -210,20 +210,83 @@ static void dbg_skip_key(void)
 /* Pausa: "PAUSED" a mitad del hueco entre la mira (hasta y = 75) y el panel (y = 160): fila de texto 14 (y = 112..119), centrado.
    Se guarda lo que habia debajo (naves, polvo) y se restaura al reanudar */
 #define PAUSE_ROW 14
-#define PAUSE_COL 13
-static u8 pause_save[8][24];
+#define PAUSE_COL 10
+#define PAUSE_CELLS 11
+static u8 pause_save[16][PAUSE_CELLS * 4];
 
 static void pause_banner(int on)
 {
     int r, i;
     u8 *p;
-    for (r = 0; r < 8; r++) {
+    for (r = 0; r < 16; r++) {
         p = screen + (long)(PAUSE_ROW * 8 + r) * 128L + PAUSE_COL * 4;     /* 128 bytes por linea; 4 bytes por celda de 8 puntos */
-        for (i = 0; i < 24; i++) { if (on) pause_save[r][i] = p[i]; else p[i] = pause_save[r][i]; }
+        for (i = 0; i < PAUSE_CELLS * 4; i++) { if (on) pause_save[r][i] = p[i]; else p[i] = pause_save[r][i]; }
     }
     if (on) {
         txt_color(C_WHITE, C_BLACK);
-        txt_print_at(PAUSE_COL, PAUSE_ROW, "PAUSED");
+        txt_print_at(PAUSE_COL + 3, PAUSE_ROW, "PAUSED");
+        txt_print_at(PAUSE_COL, PAUSE_ROW + 1, "O = OPTIONS");
+    }
+}
+
+/* Ventana "Options" de la pausa (tecla O; propio): una linea por opcion de TGINT con la tecla y ON/OFF; las teclas las cambian con dks3 */
+#define OPT_COL 1
+#define OPT_ROW 2
+#define OPT_W 30
+
+static void clear_view(void);
+
+static void opt_line(int row, const char *name, char key, int on)
+{
+    char buf[48];
+    int n = 0;
+    while (name[n]) { buf[n] = name[n]; n++; }
+    buf[n++] = ' '; buf[n++] = '('; buf[n++] = key; buf[n++] = ')';
+    while (n < OPT_W - 3) buf[n++] = '.';
+    buf[n] = 0;
+    txt_color(C_WHITE, C_BLACK);
+    txt_print_at(OPT_COL, row, buf);
+    txt_color(on ? C_GREEN : C_RED, C_BLACK);
+    txt_print_at(OPT_COL + OPT_W - 3, row, on ? " ON" : "OFF");
+}
+
+static void opt_draw(void)
+{
+    int r = OPT_ROW;
+    txt_color(C_WHITE, C_BLACK);
+    txt_color(C_YELLOW, C_BLACK);
+    txt_print_at(OPT_COL + 11, r, "OPTIONS");
+    r += 2;
+    opt_line(r++, "Damping", 'D', damp == 0);
+    opt_line(r++, "Key auto-centre", 'A', djd == 0);
+    opt_line(r++, "Flashing bars", 'F', (flh & 0x80) != 0);
+    opt_line(r++, "Joystick Y flip", 'Y', !(jstgy & 0x80));
+    opt_line(r++, "Joystick axes flip", 'J', (jste & 0x80) != 0);
+    opt_line(r++, "Caps in missions", 'U', (uptog & 0x80) != 0);
+    opt_line(r++, "Author credits", 'X', (patg & 0x80) != 0);
+    opt_line(r++, "Sound", 'S', snd_enabled());
+    r++;
+    txt_color(C_CYAN, C_BLACK);
+    txt_print_at(OPT_COL, r++, "ESC  Back to game");
+    txt_print_at(OPT_COL, r, "Q    Back to menu");
+}
+
+static int pause_options(void)
+{
+    int ch;
+    u8 x, y;
+    clear_view();                                   /* la ventana ocupa toda la vista 3D */
+    opt_draw();
+    for (;;) {
+        ch = in_poll();
+        if (in_quit) return 0;
+        if (ch < 0) continue;
+        x = (u8)((ch >= 'a' && ch <= 'z') ? ch - 32 : ch);
+        if (x == 'Q') return 1;                             /* al menu principal (DEATH2) */
+        if (x == 27 || x == '-') return 0;                  /* de vuelta al juego */
+        for (y = 0; y < 9; y++) if (y != 6) dks3(x, y);     /* K (JSTK) fuera: el joystick siempre esta activo */
+        if (x == 'S') snd_enable(!snd_enabled());
+        opt_draw();
     }
 }
 
@@ -550,8 +613,11 @@ static int flight_loop(void)
             if (ch == '=') {                                /* DK4: pausa (FREEZE) y teclas de configuracion */
                 key_ctx_menu();
                 pause_banner(1);
+                config_options_hook = pause_options;
+                config_options_used = 0;
                 r = freeze();
                 pause_banner(0);
+                if (config_options_used) { clear_view(); stars_new(); view_extras(); }    /* la ventana tapaba la vista */
                 if (r) { snd_off(); return FL_DEATH; }    /* ESC: DEATH2 */
                 if (in_quit) return FL_QUIT;
                 key_ctx_flight();

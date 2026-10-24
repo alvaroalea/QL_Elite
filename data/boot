@@ -1,3 +1,5 @@
-10 MODE 8
-20 LBYTES flp1_elite_scr,131072
-30 EXEC_W flp1_elite
+10 REMark Elite QL: cambiar dev$ si el juego esta en otra unidad (flp2_, win1_, mdv1_...)
+20 dev$="flp1_"
+30 MODE 8
+40 LBYTES dev$&"elite_scr",131072
+50 EXEC_W dev$&"elite"

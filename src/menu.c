@@ -584,23 +584,25 @@ static void disk_draw(void)
     txt_color(C_WHITE, C_BLACK);
     txt_print_at(2, 6, "1  LOAD COMMANDER");
     txt_print_at(2, 7, "2  SAVE COMMANDER");
-    txt_print_at(2, 8, "3  CHANGE DRIVE");
+    txt_print_at(2, 8, "3  CHANGE DRIVE/PATH");
     txt_print_at(2, 9, "4  RESET TO DEFAULT JAMESON");
-    txt_print_at(2, 10, "Q  QUIT GAME");
+    txt_print_at(2, 10, "5  RETURN TO GAME");
+    txt_print_at(2, 11, "Q  QUIT GAME");
     txt_color(C_CYAN, C_BLACK);
     txt_print_at(0, 13, "ESC = BACK");
 }
 
 int scr_disk(void)
 {
-    char name[CMDR_NAMELEN + 1];
+    char name[CMDR_NAMELEN + 1], path[SAVE_DEV_MAX + 1];
     int ch, r, i;
     disk_draw();
     for (;;) {
         ch = in_wait();
         if (ch == KC_QUIT) return SC_QUIT;
-        if (ch == KC_ESC) return SC_STATUS;
+        if (ch == KC_ESC) return back_sc();
         ch = in_up(ch);
+        if (ch == '5') return back_sc();                     /* volver al juego sin cargar ni guardar */
         if (ch == '1') {
             for (i = 0; i < CMDR_NAMELEN + 1; i++) name[i] = 0;
             if (edit_name(15, "LOAD WHICH COMMANDER?", name) > 0) {
@@ -623,7 +625,12 @@ int scr_disk(void)
                 if (r == SAVE_OK) ui_msg("COMMANDER SAVED", 0); else ui_msg(save_errstr(r), 1);
             } else if (in_quit) return SC_QUIT; else disk_draw();
         } else if (ch == '3') {
-            save_next_device();
+            for (i = 0; i < SAVE_DEV_MAX + 1; i++) path[i] = save_dev[i];
+            if (edit_text(15, "DEVICE (E.G. WIN1_ OR FLP1_DIR_):", path, SAVE_DEV_MAX) > 0) {
+                disk_draw();
+                if (save_valid_device(path)) save_set_device(path);
+                else ui_msg("BAD PATH: AAA1_[TEXT_]", 1);
+            } else if (in_quit) return SC_QUIT;
             disk_draw();
         } else if (ch == '4') {
             txt_clear_rows(15, 3, C_BLACK);

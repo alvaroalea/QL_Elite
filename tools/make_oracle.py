@@ -1,6 +1,6 @@
 # Parchea TXTELITE.C 1.5 lo minimo para compilarlo en PC y le anade un volcado del universo (oraculo de pruebas).
 import re
-s=open('tests/oracle/TXTELITE.C',encoding='latin1').read().replace('\r','')
+s=open('ref/TXTELITE.C',encoding='latin1').read().replace('\r','')
 for inc in ['#include <conio.h>','#include <graph.h>','#include <malloc.h>']:
     s=s.replace(inc,'')
 # quitar toupper/tolower propios (chocan con ctype.h)

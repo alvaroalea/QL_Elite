@@ -10,6 +10,9 @@ extern u8 uptog;                   /* UPTOG: $FF = textos de las misiones solo e
 extern u8 disk_opt;                /* DISK: cinta o disco (solo se guarda; el menu de disco es propio) */
 extern const char tgint[9];        /* TGINT: teclas de configuracion, en el orden de DAMP..DISK */
 
+extern int (*config_options_hook)(void);   /* propio: ventana "Options" de la pausa (tecla O); 1 = ESC, 0 = '-' */
+extern u8 config_options_used;             /* se pone a 1 al abrirla: el que llama repinta lo que tapaba */
+
 u8   *config_opt(u8 y);            /* la variable y (0..8): DAMP, DJD, PATG, FLH, JSTGY, JSTE, JSTK, UPTOG, DISK */
 void dks3(u8 x, u8 y);             /* DKS3: si la tecla x es la de la opcion y, la invierte (EOR #$FF) con pitidos */
 int  freeze(void);                 /* FREEZE: pausa hasta '-'; Q/S sonido, teclas de TGINT; ESC devuelve 1 (DEATH2) */

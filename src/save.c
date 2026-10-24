@@ -4,9 +4,9 @@
 #include "state.h"
 
 #ifdef __GNUC__
-char save_dev[24] = "";
+char save_dev[SAVE_DEV_MAX + 1] = "";
 #else
-char save_dev[24] = "flp1_";
+char save_dev[SAVE_DEV_MAX + 1] = "flp1_";
 #endif
 u8 save_seed = 0x5A;
 
@@ -20,12 +20,33 @@ static void scopy(char *d, const char *s, int max)
     d[n] = 0;
 }
 
-void save_set_device(const char *dev) { scopy(save_dev, dev, 24); }
+void save_set_device(const char *dev)
+{
+    int i;
+    scopy(save_dev, dev, SAVE_DEV_MAX + 1);
+    for (i = 0; i < 4; i++)                        /* save_next_device sigue desde la unidad elegida */
+        if (save_dev[0] == devs[i][0] && save_dev[1] == devs[i][1] && save_dev[2] == devs[i][2] && save_dev[3] == devs[i][3] && !save_dev[5])
+            dev_idx = i;
+}
+
+/* 3 letras, 1 cifra, '_' y luego lo que sea (letras, cifras, '_'), acabando en '_' */
+int save_valid_device(const char *d)
+{
+    int i, n = 0;
+    while (d[n]) n++;
+    if (n < 5 || n > SAVE_DEV_MAX || d[n - 1] != '_') return 0;
+    for (i = 0; i < 3; i++)
+        if (!((d[i] >= 'A' && d[i] <= 'Z') || (d[i] >= 'a' && d[i] <= 'z'))) return 0;
+    if (d[3] < '0' || d[3] > '9' || d[4] != '_') return 0;
+    for (i = 5; i < n; i++)
+        if (!((d[i] >= 'A' && d[i] <= 'Z') || (d[i] >= 'a' && d[i] <= 'z') || (d[i] >= '0' && d[i] <= '9') || d[i] == '_')) return 0;
+    return 1;
+}
 
 int save_next_device(void)
 {
     dev_idx = (dev_idx + 1) & 3;
-    scopy(save_dev, devs[dev_idx], 24);
+    scopy(save_dev, devs[dev_idx], SAVE_DEV_MAX + 1);
     return dev_idx;
 }
 
@@ -34,7 +55,7 @@ void save_filename(const char *name, char *out)
 {
     int n = 0, i = 0;
     const char *p = "elite_";
-    while (save_dev[i] && n < 24) out[n++] = save_dev[i++];
+    while (save_dev[i] && n < SAVE_DEV_MAX) out[n++] = save_dev[i++];
     while (*p) out[n++] = *p++;
     for (i = 0; name[i] && i < CMDR_NAMELEN; i++) {
         char ch = name[i];

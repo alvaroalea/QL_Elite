@@ -1,5 +1,5 @@
 # rutina   funcion_C   estado   (verificada | sin-verificar | propia)
-# --- verificadas contra el 6502 original (emulador) o contra transcripcion literal; ver Proyecto.md
+# --- verificadas contra el 6502 original (emulador) o contra transcripcion literal; ver CLAUDE.md y PENDIENTES.md
 DORND em_dornd verificada
 DORND2 em_dornd2 transcripcion
 MULTU em_multu verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)

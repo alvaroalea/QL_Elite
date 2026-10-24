@@ -28,6 +28,7 @@ void plat_present(void);          /* una vez por fotograma; en el QL tambien vac
 void plat_shutdown(void);         /* idempotente; en el QL se registra con atexit */
 void plat_flush_input(void);
 void plat_exit(void);             /* QL: termina el programa sin el mensaje "Press a key to exit" del runtime de c68 (MT.FRJOB); PC: no hace nada, main termina con return */
+int  plat_default_dir(int prog, char *buf, int max); /* QL: directorio por defecto de Toolkit II (prog = 0: DATA_USE, 1: PROG_USE) en buf; 1 si hay uno, 0 si no. PC: 0 */
 void plat_wait_key(void);         /* QL: espera una pulsacion (suelta, pulsa, suelta) para poder ver la pantalla antes de volver a QDOS; PC: no hace nada */      /* QL: descarta las teclas acumuladas en la consola (KEYROW no las consume) */
 
 /* gfx.c */

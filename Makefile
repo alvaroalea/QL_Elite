@@ -1,9 +1,12 @@
-# Pruebas en PC:  make host        QL con XTC68:  make ql
+# QL (XTC68): make elite / make disk (imagen elite.img) / make elite.mdv (microdrive)    PC: make host_game    Pruebas: make test_all
+# Orden: 1) compilacion para el QL  2) generacion de assets  3) compilacion en el PC  4) pruebas
 .DEFAULT_GOAL := disk
 # Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=pre0.3
-VERSION ?= pre0.2
-# Fuente de referencia (Mark Moxon): carpeta moxon-appleII/ del proyecto (y moxon-bbc-a/ con la version A de BBC) (ignorada por git); ELITE_SRC del entorno tiene prioridad
-export ELITE_SRC ?= $(CURDIR)/moxon-appleII/1-source-files/main-sources
+VERSION ?= 0.2
+# Fuente de referencia (Mark Moxon): carpeta ref/moxon-appleII/ del proyecto (y ref/moxon-bbc-a/ con la version A de BBC) (ignorada por git); ELITE_SRC del entorno tiene prioridad
+export ELITE_SRC ?= $(CURDIR)/ref/moxon-appleII/1-source-files/main-sources
+# Ejecutables, imagen de disco y capturas generadas van a build/
+BUILD ?= build
 # Funciones de depuracion (SHIFT-1/2/3 compra/venta/combustible gratis, SHIFT-C/P/H en vuelo): make DEBUG= para quitarlas
 DEBUG ?= 1
 DBGDEF = $(if $(DEBUG),-DDEBUG)
@@ -20,15 +23,159 @@ SNDDEF = $(if $(NOSOUND),-DNOSOUND) $(if $(NOTICK),-DNOTICK)
 VERDEF = $(DBGDEF) $(SNDDEF) -DELITE_VERSION='"$(VERSION)"'
 COMMON = src/gfx.c src/text.c
 
-host:
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o test_gfx src/test_gfx.c src/gfx.c src/plat_host.c -lm
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o test_text src/test_text.c $(COMMON) src/plat_host.c -lm
-	./test_gfx && python3 tools/ql2png.py screen.bin test.png
-	./test_text && python3 tools/ql2png.py screen.bin test_text.png
+# ==== 1. Compilacion para el QL ===========================================================================
 
-# -Isrc necesario: qcc busca "platform.h" en el directorio actual. El programa del QL es la prueba de texto.
+# Cadena de qcc (tools/install_xtc68.sh la instala en /tmp/qlsdk): si existe, se pone sola en el PATH
+QLSDK ?= /tmp/qlsdk
+ifneq ($(wildcard $(QLSDK)/bin/qcc),)
+export PATH := $(QLSDK)/bin:$(PATH)
+export QLINC := $(QLSDK)/share/qdos/include
+export QLLIB := $(QLSDK)/share/qdos/lib
+endif
+
+# Juego completo. QL: make elite (o make disk para la imagen); PC: make host_game (para pruebas)
+GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
+
+# El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
+GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm src/ql_ll9.asm src/ql_lltab.asm src/ql_ellrows.asm
+$(BUILD)/elite: $(GAME_QL) $(wildcard src/*.h) Makefile
+	mkdir -p $(BUILD)
+	qcc -O $(VERDEF) $(ASMDEF) -Isrc -I/usr/local/share/qdos/include -o $@ $(GAME_QL) -lm
+elite: $(BUILD)/elite
+
+# ---- Imagen de disco DS/DD 720 KB (elite.img) -------------------------------------------------------------
+# qltools (N. Dunbar) se compila desde las fuentes: git clone + make -C Unix, en tmp/qltools_src (no se incluye en el tar).
+# Otro qltools ya instalado:  make elite.img QLTOOLS=/ruta/qltools
+QLTOOLS_REPO ?= https://github.com/NormanDunbar/qltools
+QLTOOLS_DIR  ?= tmp/qltools_src
+QLTOOLS      ?= $(QLTOOLS_DIR)/Unix/qltools
+DISK_LABEL   ?= ELITE
+DISK_FILES    = data/boot data/elite_scr data/elite_dash
+
+$(QLTOOLS):
+	test -d $(QLTOOLS_DIR)/Unix || git clone --depth 1 $(QLTOOLS_REPO) $(QLTOOLS_DIR)
+	$(MAKE) -C $(QLTOOLS_DIR)/Unix
+
+qltools: $(QLTOOLS)
+
+# Formatea (-fdd = DS/DD 720 KB) y escribe: elite (ejecutable, con su dataspace), boot, elite_scr y elite_dash.
+# Dentro del disco los nombres son los de los ficheros sin el directorio: boot, elite, elite_scr, elite_dash.
+# Se escribe desde build/ para que en el disco el ejecutable se llame elite (qltools usa el nombre sin directorio)
+$(BUILD)/elite.img: $(BUILD)/elite $(DISK_FILES) $(QLTOOLS)
+	rm -f $@
+	$(QLTOOLS) $@ -fdd $(DISK_LABEL)
+	$(QLTOOLS) $@ -W $(BUILD)/elite $(DISK_FILES)
+	$(QLTOOLS) $@ -d
+
+elite.img: $(BUILD)/elite.img
+disk: elite.img
+
+# ---- Imagen de microdrive en formato QLAY (elite.mdv) -----------------------------------------------------
+# mdvtool (T. Harbaum / xXorAa): el del PATH o, si no hay, se compila en tmp/mdvtool (necesita libzip-dev).
+# Otro mdvtool:  make elite.mdv MDVTOOL=/ruta/mdvtool
+# No esta en el objetivo por defecto: un cartucho QLAY tiene 255 sectores de 512 B (253 libres para ficheros,
+# ~126 KB; un cartucho real suele dar menos) y hoy el ejecutable ocupa ~147 KB. La regla comprueba el tamano
+# antes de llamar a mdvtool, que con una imagen llena termina con violacion de segmento.
+MDVTOOL_REPO ?= https://github.com/xxoraa/mdvtool
+MDVTOOL_DIR  ?= tmp/mdvtool
+MDVTOOL      ?= $(or $(shell command -v mdvtool 2>/dev/null),$(MDVTOOL_DIR)/mdvtool)
+MDV_LABEL    ?= ELITE
+MDV_SECTORS  ?= 253
+
+$(MDVTOOL_DIR)/mdvtool:
+	test -d $(MDVTOOL_DIR) || git clone --depth 1 $(MDVTOOL_REPO) $(MDVTOOL_DIR)
+	$(MAKE) -C $(MDVTOOL_DIR)
+
+mdvtool: $(MDVTOOL)
+
+# mdvtool guarda el nombre tal como se le pasa: se copian los ficheros a build/mdv/ y se importan desde alli.
+# El boot del microdrive es el del disco con dev$="mdv1_". Cada fichero lleva 64 B de cabecera QDOS.
+$(BUILD)/elite.mdv: $(BUILD)/elite $(DISK_FILES) $(MDVTOOL)
+	rm -rf $(BUILD)/mdv $@
+	mkdir -p $(BUILD)/mdv
+	cp $(BUILD)/elite data/elite_scr data/elite_dash $(BUILD)/mdv/
+	sed 's/"flp1_"/"mdv1_"/' data/boot > $(BUILD)/mdv/boot
+	@n=0; for f in $(BUILD)/mdv/*; do s=$$(wc -c < $$f); n=$$((n + (s + 64 + 511) / 512)); done; \
+	if [ $$n -gt $(MDV_SECTORS) ]; then \
+	  echo "elite.mdv: los ficheros necesitan $$n sectores y el microdrive tiene $(MDV_SECTORS)"; ls -l $(BUILD)/mdv; exit 1; fi
+	cd $(BUILD)/mdv && $(abspath $(MDVTOOL)) create name $(MDV_LABEL) import boot import elite import elite_scr import elite_dash write ../elite.mdv
+	$(MDVTOOL) $@ dir
+
+elite.mdv: $(BUILD)/elite.mdv
+
+# Demos para el QL (texto, teclado, sonido, ficha de sistema y proyeccion 3D).
+# -Isrc necesario: qcc busca "platform.h" en el directorio actual. "ql" es la prueba de texto.
 ql:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o elite_ql src/test_text.c $(COMMON) src/plat_ql.c src/keys.c src/keys_ql.c src/ql_ipc.asm -lm
+	mkdir -p $(BUILD)
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/elite_ql src/test_text.c $(COMMON) src/plat_ql.c src/keys.c src/keys_ql.c src/ql_ipc.asm -lm
+ql_keys:
+	mkdir -p $(BUILD)
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/keys_ql src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/plat_ql.c src/ql_ipc.asm
+ql_sound:
+	mkdir -p $(BUILD)
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/sound_ql src/demo_sound.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/sound.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm
+ql_universe:
+	mkdir -p $(BUILD)
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/universe_ql src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/lines.c src/plat_ql.c src/ql_ipc.asm
+ql_ship:
+	mkdir -p $(BUILD)
+	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/ship_ql src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
+
+# ==== 2. Generacion de assets =============================================================================
+
+# Cabina editable en el PC: exporta el panel a PNG (asset/cabina.png, 1024 x 112) y lo vuelve a convertir en data/elite_dash
+dash_png:
+	python3 tools/png2dash.py --export data/elite_dash asset/cabina.png
+dash_from_png:
+	python3 tools/png2dash.py asset/cabina.png data/elite_dash
+
+# Fichero de fondo del panel (data/elite_dash) a partir del volcado de pantalla del Apple II (necesita ELITE_SRC)
+dash_file:
+	python3 tools/gen_dashboard.py
+
+# ==== 3. Compilacion en el PC =============================================================================
+
+# Juego completo en el PC (pantalla en memoria)
+host_game:
+	mkdir -p $(BUILD)
+	gcc -std=c89 -pedantic -Wall -O2 $(VERDEF) -Isrc -o $(BUILD)/elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
+
+# Demos en el PC: grafica/texto, teclado, ficha de sistema y proyeccion 3D
+host:
+	mkdir -p $(BUILD)
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o $(BUILD)/test_gfx src/test_gfx.c src/gfx.c src/plat_host.c -lm
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o $(BUILD)/test_text src/test_text.c $(COMMON) src/plat_host.c -lm
+	./$(BUILD)/test_gfx && python3 tools/ql2png.py screen.bin $(BUILD)/test.png
+	./$(BUILD)/test_text && python3 tools/ql2png.py screen.bin $(BUILD)/test_text.png
+
+# Demo de teclado: en el PC dibuja un cuadro con una pulsacion simulada; en el QL es interactiva
+host_demo_keys:
+	mkdir -p $(BUILD)
+	gcc -std=c89 -pedantic -Wall -O2 -DHOST_DEMO -Isrc -o $(BUILD)/demo_keys_host src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/plat_host.c
+
+# Demo de ficha de sistema (datos, descripcion y mercado)
+host_demo_universe:
+	mkdir -p $(BUILD)
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o $(BUILD)/demo_universe src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/lines.c src/plat_host.c
+	./$(BUILD)/demo_universe && python3 tools/ql2png.py screen.bin $(BUILD)/demo_universe.png
+
+# Demo de proyeccion 3D: seis naves dibujadas con LL9 (XOR)
+host_demo_ship:
+	mkdir -p $(BUILD)
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o $(BUILD)/demo_ship src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_host.c
+	./$(BUILD)/demo_ship && python3 tools/ql2png.py screen.bin $(BUILD)/demo_ship.png
+
+clean:
+	rm -f tests/test_trade tests/test_laser tests/vectors_laser.txt tests/test_damage tests/vectors_damage.txt tests/test_planet tests/vectors_planet.txt tests/test_equip tests/vectors_equip.txt tests/test_tactics tests/vectors_tactics.txt tests/test_missions tests/vectors_missions.txt tests/test_univ6502 tests/vectors_univ.txt tests/test_shipview tests/vectors_trade.txt screen.bin tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
+	rm -rf $(BUILD)
+
+# ==== 4. Pruebas ==========================================================================================
+
+test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm
+
+# Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
+c68_check:
+	tools/c68_check/run.sh
 
 # Pruebas de aritmetica: regenera tablas y vectores (referencia literal del 6502) y compara con emath.c
 test:
@@ -89,96 +236,27 @@ test_keys:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_keys tests/test_keys.c src/keys.c src/keys_host.c
 	./tests/test_keys
 
-# Demo de teclado: en el PC dibuja un cuadro con una pulsacion simulada; en el QL es interactiva
-host_demo_keys:
-	gcc -std=c89 -pedantic -Wall -O2 -DHOST_DEMO -Isrc -o demo_keys_host src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/plat_host.c
-ql_keys:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o keys_ql src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/plat_ql.c src/ql_ipc.asm
-
 # Pruebas de sonido (bloques IPC y prioridades)
 test_sound:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_sound tests/test_sound.c src/sound.c src/sound_host.c -lm
 	./tests/test_sound
 
-# Demo de sonido para el QL
-ql_sound:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o sound_ql src/demo_sound.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/sound.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm
-
 # Universo: construye el oraculo desde TXTELITE.C 1.5, vuelca ambos y compara
 test_universe:
 	python3 tools/gen_universe_text.py
 	python3 tools/make_oracle.py
-	gcc -w -funsigned-char -o tests/oracle/oracle tests/oracle/oracle.c -lm
+	gcc -std=gnu89 -w -funsigned-char -o tests/oracle/oracle tests/oracle/oracle.c -lm
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/dump_universe tests/dump_universe.c src/universe.c src/emath.c
 	./tests/oracle/oracle > tests/oracle/oracle.txt
 	./tests/dump_universe > tests/oracle/ours.txt
 	python3 tests/compare_universe.py tests/oracle/oracle.txt tests/oracle/ours.txt
 
-# Demo de ficha de sistema (datos, descripcion y mercado)
-host_demo_universe:
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o demo_universe src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/lines.c src/plat_host.c
-	./demo_universe && python3 tools/ql2png.py screen.bin demo_universe.png
-ql_universe:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o universe_ql src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/lines.c src/plat_ql.c src/ql_ipc.asm
-
-# Demo de proyeccion 3D: seis naves dibujadas con LL9 (XOR)
-host_demo_ship:
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o demo_ship src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_host.c
-	./demo_ship && python3 tools/ql2png.py screen.bin demo_ship.png
-ql_ship:
-	qcc -O -Isrc -I/usr/local/share/qdos/include -o ship_ql src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
-
 # Comparacion con el codigo ORIGINAL ejecutado en un emulador de 6502 (necesita la fuente de referencia clonada:
-# git clone https://github.com/markmoxon/elite-source-code-apple-ii moxon-appleII  (en la raiz del proyecto)  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
+# git clone https://github.com/markmoxon/elite-source-code-apple-ii ref/moxon-appleII  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
 test_orig:
 	python3 tools/gen_ll9.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ll9 tests/test_ll9.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c
 	./tests/test_ll9
-
-# Juego completo (provisional: vuelo sin MVEIT/TACTICS). PC: make host_game (para pruebas); QL: make ql_game
-GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
-host_game:
-	gcc -std=c89 -pedantic -Wall -O2 $(VERDEF) -Isrc -o elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
-# Cadena de qcc (tools/install_xtc68.sh la instala en /tmp/qlsdk): si existe, se pone sola en el PATH
-QLSDK ?= /tmp/qlsdk
-ifneq ($(wildcard $(QLSDK)/bin/qcc),)
-export PATH := $(QLSDK)/bin:$(PATH)
-export QLINC := $(QLSDK)/share/qdos/include
-export QLLIB := $(QLSDK)/share/qdos/lib
-endif
-
-# El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
-GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm src/ql_ll9.asm src/ql_lltab.asm src/ql_ellrows.asm
-elite: $(GAME_QL) $(wildcard src/*.h) Makefile
-	qcc -O $(VERDEF) $(ASMDEF) -Isrc -I/usr/local/share/qdos/include -o elite $(GAME_QL) -lm
-ql_game: elite
-
-# ---- Imagen de disco DS/DD 720 KB (elite.img) -------------------------------------------------------------
-# qltools (N. Dunbar) se compila desde las fuentes: git clone + make -C Unix, en tools/qltools_src (no se incluye en el tar).
-# Otro qltools ya instalado:  make elite.img QLTOOLS=/ruta/qltools
-QLTOOLS_REPO ?= https://github.com/NormanDunbar/qltools
-QLTOOLS_DIR  ?= tools/qltools_src
-QLTOOLS      ?= $(QLTOOLS_DIR)/Unix/qltools
-DISK_LABEL   ?= ELITE
-DISK_FILES    = data/boot data/elite_scr data/elite_dash
-
-$(QLTOOLS):
-	test -d $(QLTOOLS_DIR)/Unix || git clone --depth 1 $(QLTOOLS_REPO) $(QLTOOLS_DIR)
-	$(MAKE) -C $(QLTOOLS_DIR)/Unix
-
-qltools: $(QLTOOLS)
-
-# Formatea (-fdd = DS/DD 720 KB) y escribe: elite (ejecutable, con su dataspace), boot, elite_scr y elite_dash.
-# Dentro del disco los nombres son los de los ficheros sin el directorio: boot, elite, elite_scr, elite_dash.
-elite.img: elite $(DISK_FILES) $(QLTOOLS)
-	rm -f $@
-	$(QLTOOLS) $@ -fdd $(DISK_LABEL)
-	$(QLTOOLS) $@ -W elite $(DISK_FILES)
-	$(QLTOOLS) $@ -d
-
-disk: elite.img
-
-.PHONY: ql_game qltools disk test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_panel
 
 # Texto bajo el panel de vuelo: pintar encima de otro estado (vaciando solo el rectangulo que sobra) = pintar desde cero
 test_panel:
@@ -248,17 +326,21 @@ test_save:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_save tests/test_save.c src/cmdr.c src/save.c src/state.c
 	./tests/test_save
 
-clean:
-	rm -f tests/test_trade tests/test_laser tests/vectors_laser.txt tests/test_damage tests/vectors_damage.txt tests/test_planet tests/vectors_planet.txt tests/test_equip tests/vectors_equip.txt tests/test_tactics tests/vectors_tactics.txt tests/test_missions tests/vectors_missions.txt tests/test_univ6502 tests/vectors_univ.txt tests/test_shipview tests/vectors_trade.txt elite_host demo_ship demo_universe demo_keys_host test_gfx test_text screen.bin *.png tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/* elite elite.img
+# Cabina editable: PNG -> elite_dash -> PNG da el mismo fichero
+test_dashpng:
+	mkdir -p tests/tmp
+	python3 tools/png2dash.py --export data/elite_dash tests/tmp/cabina.png
+	python3 tools/png2dash.py tests/tmp/cabina.png tests/tmp/elite_dash_png
+	cmp data/elite_dash tests/tmp/elite_dash_png && echo "png2dash: ida y vuelta identica"
 
 test_shipview:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_shipview tests/test_shipview.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/plat_host.c
 	./tests/test_shipview
 
-# Comercio contra el 6502 original (tnpr, TT219, TT208, GCASH, LCASH, MCASH). Requiere ELITE_SRC (tools/README_ref.txt)
+# Comercio contra el 6502 original (tnpr, TT219, TT208, GCASH, LCASH, MCASH). Requiere ELITE_SRC (ref/, tools/README_ref.txt)
 test_trade:
 	python3 tools/gen_trade.py 20000 7
-	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_trade tests/test_trade.c src/game.c src/cmdr.c src/state.c src/universe.c src/emath.c
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_trade tests/test_trade.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_trade
 
 test_space:
@@ -305,27 +387,6 @@ test_tactics:
 	python3 tools/gen_tactics.py 20000 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_tactics tests/test_tactics.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_tactics
-
-# Cabina editable en el PC: exporta el panel a PNG (data/cabina.png, 1024 x 112) y lo vuelve a convertir en data/elite_dash
-dash_png:
-	python3 tools/png2dash.py --export data/elite_dash data/cabina.png
-dash_from_png:
-	python3 tools/png2dash.py data/cabina.png data/elite_dash
-test_dashpng:
-	mkdir -p tests/tmp
-	python3 tools/png2dash.py --export data/elite_dash tests/tmp/cabina.png
-	python3 tools/png2dash.py tests/tmp/cabina.png tests/tmp/elite_dash_png
-	cmp data/elite_dash tests/tmp/elite_dash_png && echo "png2dash: ida y vuelta identica"
-
-# Fichero de fondo del panel (data/elite_dash) a partir del volcado de pantalla del Apple II (necesita ELITE_SRC)
-dash_file:
-	python3 tools/gen_dashboard.py
-
-test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm
-
-# Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
-c68_check:
-	tools/c68_check/run.sh
 
 # Start and end: RESET, RES2 y DFAULT contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
 test_start:
@@ -380,3 +441,6 @@ test_arith:
 	python3 tools/gen_arith.py 2000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_arith tests/test_arith.c src/emath.c
 	./tests/test_arith
+
+
+.PHONY: elite elite.img elite.mdv disk qltools mdvtool ql ql_keys ql_sound ql_universe ql_ship dash_png dash_from_png dash_file host host_demo_keys host_demo_universe host_demo_ship host_game clean test_all c68_check test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_panel

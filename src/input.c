@@ -41,7 +41,6 @@ int in_poll(void)
     key_scan();
     plat_present();                                   /* QL: vacia la cola de teclado de la consola */
     snd_tick(20);                                     /* ~50 fotogramas por segundo: provisional */
-    if (key_down(K_SHIFT) && key_down(K_ESC)) { in_quit = 1; return KC_QUIT; }
     ch = key_getchar();
     if (ch >= 0) return ch;
     if (key_pressed(K_UP)) return KC_UP;

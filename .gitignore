@@ -52,7 +52,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-tools/qltools_src/
+tmp/
+ref/
+build/
 tools/__pycache__/
 tests/tmp/
 tests/shots/*.bin
@@ -62,8 +64,7 @@ tests/test_*
 !tests/test_*.c
 screen.bin
 .vscode/
-moxon-appleII/
-moxon-bbc-a/
+
 
 # debug information files
 *.dwo

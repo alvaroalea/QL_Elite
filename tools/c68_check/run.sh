@@ -3,10 +3,10 @@
 # Para cada sonda de tests/c68/*.c: se compila con gcc (PC) y con c68 -> ensamblador -> GNU as -> qemu-m68k; ambas dejan
 # hashes en la "pantalla" y se comparan byte a byte. Encontro un fallo real de c68 -O (ver la nota en src/ship3d.c).
 # Requisitos: c68 compilado en el PC (git clone https://github.com/stronnag/xtc68; meson setup build; ninja -C build c68),
-#             gcc-m68k-linux-gnu (as, ld) y qemu-user. Variables: XTC68=<dir con c68> (por defecto /tmp/xtc68/build)
+#             gcc-m68k-linux-gnu (as, ld) y qemu-user. Variables: XTC68=<dir con c68> (por defecto /tmp/qlsdk/bin o tmp/xtc68_src/build)
 set -e
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-XTC68=${XTC68:-$( [ -x /tmp/qlsdk/bin/c68 ] && echo /tmp/qlsdk/bin || echo /tmp/xtc68/build )}
+XTC68=${XTC68:-$( [ -x /tmp/qlsdk/bin/c68 ] && echo /tmp/qlsdk/bin || echo $ROOT/tmp/xtc68_src/build )}
 W=${W:-/tmp/c68_work}
 mkdir -p $W; cd $W
 S=$ROOT/src

@@ -1,6 +1,6 @@
 # Extrae la tabla de descripciones ("goat soup") de TXTELITE.C 1.5 (Ian Bell) a src/universe_text.h, sin retocar las cadenas.
 import re
-src=open('tests/oracle/TXTELITE.C',encoding='latin1').read().replace('\r','')
+src=open('ref/TXTELITE.C',encoding='latin1').read().replace('\r','')
 a=src.index('static struct desc_choice desc_list[] =')
 b=src.index('};',a)
 body=src[a:b].split('\n',1)[1]

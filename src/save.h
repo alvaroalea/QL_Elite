@@ -17,10 +17,12 @@
 #define SAVE_E_CHECK  (-4)       /* las sumas de comprobacion no cuadran */
 #define SAVE_E_NAME   (-5)       /* nombre vacio */
 
-extern char save_dev[24];        /* prefijo del dispositivo: "flp1_" en el QL, "" en el PC */
+#define SAVE_DEV_MAX 31
+extern char save_dev[SAVE_DEV_MAX + 1];        /* prefijo del dispositivo: "flp1_" en el QL, "" en el PC */
 extern u8   save_seed;           /* semilla del cifrado de la proxima grabacion (el juego pone un byte aleatorio) */
 
 void save_set_device(const char *dev);
+int  save_valid_device(const char *dev);           /* 1 si es AAAn_[texto_]: 3 letras, cifra, _ y acaba en _ */
 int  save_next_device(void);                       /* alterna flp1_ -> flp2_ -> mdv1_ -> mdv2_ ; devuelve el indice nuevo */
 void save_filename(const char *name, char *out);   /* out de al menos 48 bytes */
 int  save_encode(const u8 *blk, const char *name, u8 *file);          /* bloque (ya sellado) -> 94 bytes */

@@ -13,5 +13,6 @@ void plat_present(void)
     if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }
 }
 void plat_wait_key(void) {}
+int plat_default_dir(int prog, char *buf, int max) { (void)prog; (void)max; buf[0] = 0; return 0; }
 unsigned long plat_ticks(void) { return (unsigned long)(clock() * 50L / CLOCKS_PER_SEC); }
 void plat_exit(void) {}

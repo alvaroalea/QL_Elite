@@ -3,7 +3,8 @@
 # el de paleta del Apple y no se usa). Aqui el bit 7 es el punto de la izquierda (para volcar directo).
 # Uso: python3 tools/gen_font.py [A.FLOWY.bin] [src/font.h]   (por defecto, de ELITE_SRC/../fonts)
 import os, sys
-src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.environ['ELITE_SRC'], '..', 'fonts', 'A.FLOWY.bin')
+import elitesrc
+src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(elitesrc.SRC_DIR, '..', 'fonts', 'A.FLOWY.bin')
 dst = sys.argv[2] if len(sys.argv) > 2 else 'src/font.h'
 d = open(src, 'rb').read()
 assert len(d) == 768, len(d)

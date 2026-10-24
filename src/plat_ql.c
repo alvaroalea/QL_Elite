@@ -90,6 +90,15 @@ static int wk_any(void)                      /* alguna tecla (salvo SHIFT/CTRL/A
     return 0;
 }
 
+/* directorios por defecto que el runtime de c68 toma de Toolkit II (DATA_USE / PROG_USE) al arrancar;
+   sin Toolkit II quedan vacios */
+int plat_default_dir(int prog, char *buf, int max)
+{
+    buf[0] = 0;
+    if (!(prog ? getcpd(buf, max) : getcdd(buf, max))) return 0;
+    return buf[0] != 0;
+}
+
 void plat_wait_key(void)
 {
     while (wk_any()) plat_flush_input();    /* primero que suelte la tecla con la que lanzo el programa */

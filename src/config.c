@@ -4,6 +4,8 @@
 #include "keys.h"
 #include "input.h"
 
+int (*config_options_hook)(void) = 0;
+u8 config_options_used = 0;
 u8 patg = 0, jstk = 0, uptog = 0, disk_opt = 0;      /* JSTGY y JSTE estan en keys.c (los usa ctl_read) */
 const char tgint[9] = { 'D', 'A', 'X', 'F', 'Y', 'J', 'K', 'U', 'T' };
 
@@ -26,8 +28,7 @@ static void delay(int n) { int i; if (in_script) return; for (i = 0; i < n; i++)
 
 void config_apply(void)
 {
-    if ((jstk & 0x80) && ctl_joystick == 0) ctl_joystick = 1;
-    else if (!(jstk & 0x80)) ctl_joystick = 0;
+    if (ctl_joystick == 0) ctl_joystick = 1;     /* propio: el joystick CTL1 (cursores) esta siempre seleccionado; K ya no lo apaga */
 }
 
 void dks3(u8 x, u8 y)
@@ -52,6 +53,10 @@ int freeze(void)
         if (in_quit) return 0;
         if (ch < 0) continue;
         x = (u8)((ch >= 'a' && ch <= 'z') ? ch - 32 : ch);
+        if (x == 'O' && config_options_hook) {   /* propio: ventana de opciones; devuelve 1 (ESC) o 0 ('-') */
+            config_options_used = 1;
+            return config_options_hook();
+        }
         if (x == 'Q') snd_enable(0);             /* DNOIZ = $FF */
         for (y = 0; y < 9; y++) dks3(x, y);
         if (x == 'S') snd_enable(1);             /* DNOIZ = 0 */

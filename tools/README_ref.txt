@@ -3,8 +3,8 @@ Herramientas de verificacion contra el codigo ORIGINAL (solo para desarrollo; no
 La fuente de referencia (Mark Moxon, elite-source-code-apple-ii) no tiene licencia y NO se incluye en el proyecto.
 Se clona aparte y se usa unicamente para comprobar que los puertos en C hacen lo mismo que el 6502:
 
-    git clone https://github.com/markmoxon/elite-source-code-apple-ii moxon      # en la raiz del proyecto (esta en .gitignore)
-    export ELITE_SRC=$PWD/moxon/1-source-files/main-sources     # (valor por defecto del Makefile y de las herramientas)
+    git clone https://github.com/markmoxon/elite-source-code-apple-ii ref/moxon-appleII   # en ref/ (esta en .gitignore)
+    export ELITE_SRC=$PWD/ref/moxon-appleII/1-source-files/main-sources# (valor por defecto del Makefile y de las herramientas)
 
   tools/elitesrc.py   lee la fuente: tabla de simbolos de variables (SKIP/ORG) y utilidades
   tools/cpu6502.py    emulador de 6502 (instrucciones documentadas, sin modo decimal)
