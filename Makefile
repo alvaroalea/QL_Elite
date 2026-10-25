@@ -1,8 +1,8 @@
 # QL (XTC68): make elite / make disk (imagen elite.img) / make elite.mdv (microdrive)    PC: make host_game    Pruebas: make test_all
 # Orden: 1) compilacion para el QL  2) generacion de assets  3) compilacion en el PC  4) pruebas
 .DEFAULT_GOAL := disk
-# Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=pre0.3
-VERSION ?= 0.2
+# Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=0.3
+VERSION ?= pre0.3
 # Fuente de referencia (Mark Moxon): carpeta ref/moxon-appleII/ del proyecto (y ref/moxon-bbc-a/ con la version A de BBC) (ignorada por git); ELITE_SRC del entorno tiene prioridad
 export ELITE_SRC ?= $(CURDIR)/ref/moxon-appleII/1-source-files/main-sources
 # Ejecutables, imagen de disco y capturas generadas van a build/
@@ -16,7 +16,7 @@ ASMDEF = $(if $(ASM_LINE),-DASM_LINE)
 # LL9 en ensamblador (src/ql_ll9.asm: caras, vertices y LL51): make ASM_LL9= para usar el C
 ASM_LL9 ?= 1
 ASMDEF += $(if $(ASM_LL9),-DASM_LL9)
-# Version sin sonido: snd_ipc no hace nada (ni IPC, ni ZX8302, ni ROM): make NOSOUND=1 (por defecto con sonido; ver CLAUDE.md 2026-10-22)
+# Version sin sonido: snd_ipc no hace nada (ni IPC, ni ZX8302, ni ROM): make NOSOUND=1 (por defecto con sonido; era para detectar un bug al usar MT.IPCOM)
 NOSOUND ?=
 # Sin el reloj de 50 Hz (MT.LPOLL) ni el limite de fps: make NOTICK=1 (diagnostico de cuelgues; por defecto con reloj)
 SNDDEF = $(if $(NOSOUND),-DNOSOUND) $(if $(NOTICK),-DNOTICK)

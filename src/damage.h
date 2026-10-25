@@ -1,7 +1,7 @@
 /* Danos a nuestra nave (paso 3, segunda parte): OOPS (escudos y energia), OUCH/ou2/ou3 (perdida de carga y equipo),
    colisiones, recogida de cargas y atraque por la ranura (bucle de vuelo partes 9 y 10: MA58..MA63, ISDK, tnpr1),
    comprobaciones periodicas de la parte 15 (ENERGY LOW, altitud, temperatura de cabina junto al sol, recogida de
-   combustible) y la muerte (DEATH, D1/D2 con Ze y fq1). Transcripcion del 6502; verificacion en PENDIENTES.md. */
+   combustible) y la muerte (DEATH, D1/D2 con Ze y fq1). Transcripcion del 6502; verificacion en docs/PENDIENTES.md. */
 #ifndef DAMAGE_H
 #define DAMAGE_H
 #include "platform.h"

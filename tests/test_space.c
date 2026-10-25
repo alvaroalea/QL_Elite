@@ -1,4 +1,4 @@
-/* Pruebas propias de space.c y dash.c (no comparan con el original: ver PENDIENTES.md). */
+/* Pruebas propias de space.c y dash.c (no comparan con el original: ver docs/PENDIENTES.md). */
 #include <stdio.h>
 #include <string.h>
 #include "space.h"

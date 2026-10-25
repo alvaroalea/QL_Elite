@@ -1,5 +1,5 @@
 /* Logica de juego (comercio, equipo, hiperespacio) y una sesion completa guiada por guion en el PC.
-   Las capturas van a tests/shots/NN.bin (ql2png.py las convierte). No se compara con el original (ver PENDIENTES.md). */
+   Las capturas van a tests/shots/NN.bin (ql2png.py las convierte). No se compara con el original (ver docs/PENDIENTES.md). */
 #include <stdio.h>
 #include <string.h>
 #include "game.h"

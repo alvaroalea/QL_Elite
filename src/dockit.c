@@ -156,7 +156,7 @@ ph3:
     } else {
         ph22();
     }
-    if (zk3[10] == 0) inwk[I_NEWB] = (u8)(inwk[I_NEWB] | 0x80);   /* TN13: K3+10 (= XX2+10): ver CLAUDE.md 8.2 */
+    if (zk3[10] == 0) inwk[I_NEWB] = (u8)(inwk[I_NEWB] | 0x80);   /* TN13: K3+10 (= XX2+10): ver docs/HALLAZGOS.md */
 }
 
 /* DOKEY con el ordenador de atraque: nuestra nave como INWK (ZINF, TYPE = $E0), DOCKIT, y su resultado en teclas virtuales

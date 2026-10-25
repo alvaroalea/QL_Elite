@@ -6,7 +6,7 @@
    P  parte 15 (MA22..MA23: ENERGY LOW, altitud con MAS2/MAS3/LL5, cabina y combustible; MESS y DEATH registran)
    X  una vuelta de D1 de DEATH (Ze, DORND, ZINF y fq1 reales; NWSHP registra INWK y el tipo)
 Los sonidos (EXNO3 -> SOEXPL) se sustituyen por stubs: en el original SOEXPL llama a DORND (el ruido) y gasta numeros
-aleatorios cuando el sonido esta activado; el port no reproduce eso (ver CLAUDE.md 8.2).
+aleatorios cuando el sonido esta activado; el port no reproduce eso (ver docs/HALLAZGOS.md).
 Requiere ELITE_SRC. Uso: python3 tools/gen_damage.py [n] [semilla]"""
 import sys, random
 sys.path.insert(0, 'tools')

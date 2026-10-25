@@ -1,4 +1,4 @@
-/* Espacio local (sin verificar, ver PENDIENTES.md): giro de la nave (roll/pitch con amortiguacion), planeta y estacion
+/* Espacio local (sin verificar, ver docs/PENDIENTES.md): giro de la nave (roll/pitch con amortiguacion), planeta y estacion
    respecto a la nave para la brujula, altitud. Transcripcion de DOKEY (parte de giro), BUMP2, REDU2, cntr, la parte del bucle
    principal que calcula ALPHA/BETA, MV40, MVT1 y MV45 (traslacion por la velocidad), y el calculo de ALTIT. */
 #ifndef SPACE_H

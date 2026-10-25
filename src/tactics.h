@@ -1,6 +1,6 @@
 /* IA de las naves (TACTICS, 7 partes; la cola TA151..TA10 esta en dockit.c), misiles (FRMIS, FR1, SFRMIS, KS2, ABORT,
    ABORT2 y los tramos del bucle de vuelo: teclas T, U, M, fijar blanco en la parte 11) y ECM (ECBLB2, ECMOF, tecla E y
-   parte 16). Transcripcion del 6502 (ver PENDIENTES.md). */
+   parte 16). Transcripcion del 6502 (ver docs/PENDIENTES.md). */
 #ifndef TACTICS_H
 #define TACTICS_H
 #include "platform.h"

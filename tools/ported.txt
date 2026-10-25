@@ -1,5 +1,5 @@
 # rutina   funcion_C   estado   (verificada | sin-verificar | propia)
-# --- verificadas contra el 6502 original (emulador) o contra transcripcion literal; ver CLAUDE.md y PENDIENTES.md
+# --- verificadas contra el 6502 original (emulador) o contra transcripcion literal; ver CLAUDE.md y docs/PENDIENTES.md
 DORND em_dornd verificada
 DORND2 em_dornd2 transcripcion
 MULTU em_multu verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
@@ -62,7 +62,7 @@ GCASH sm_gcash verificada make test_geom (codigo original en el emulador)
 SCALEX sm_scalex verificada make test_geom (codigo original en el emulador)
 SCALEY sm_scaley verificada make test_geom (codigo original en el emulador)
 SCALEY2 sm_scaley2 verificada make test_geom (codigo original en el emulador)
-# --- port sin verificar (estrategia 2026-10-16): ver PENDIENTES.md
+# --- port sin verificar (estrategia 2026-10-16): ver docs/PENDIENTES.md
 CHECK cmdr_check verificada make test_start (DFAULT con CHECK real: la suma del port coincide en 1.000 bloques) y make test_jameson
 CHECK2 cmdr_check2 verificada make test_start (DFAULT con CHECK2 real) y make test_jameson
 JAMESON cmdr_default verificada make test_jameson: los 76 bytes de NA2% (Q% = FALSE) ensamblados de la fuente son los de cmdr_default (COK con el bit 3 que pone DFAULT; CHK2/CHK3/CHK de fabrica = sumas del bloque)

@@ -5,7 +5,7 @@
 
 Port of **Elite (Apple II version, Firebird 1985)** to the **Sinclair QL** (68008, mode 8: 256 × 256 with 8 colours), written in C89 with
 XTC68 (`qcc`) and a little assembler. It is a faithful port: it uses the original's 8-bit integer arithmetic, and every routine has been
-compared, whenever possible, against the original 6502 code in an emulator (status in `INVENTARIO.md`).
+compared, whenever possible, against the original 6502 code in an emulator (status in `docs/INVENTARIO.md`).
 
 The original game is by Ian Bell and David Braben. The reference code is Mark Moxon's (`elite-source-code-apple-ii`), which is used
 only for consultation and verification; the port's code is original.
@@ -32,7 +32,7 @@ Without the `elite_dash` file the game draws a minimal panel and warns with "NO 
   `test_arith`, `test_flight`...) need Moxon's source:
   `git clone https://github.com/markmoxon/elite-source-code-apple-ii /tmp/moxon` and
   `export ELITE_SRC=/tmp/moxon/1-source-files/main-sources`.
-- The project documentation is in `CLAUDE.md` (full project memory) and `INVENTARIO.md` (status of the original's 528 routines),
+- The project documentation is in `CLAUDE.md` (full project memory) and `docs/INVENTARIO.md` (status of the original's 528 routines),
   both in Spanish.
 
 ## Keys

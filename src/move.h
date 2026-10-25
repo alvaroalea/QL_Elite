@@ -1,5 +1,5 @@
 /* Movimiento de las naves en el espacio local: MVEIT completo (partes 1 a 9), MV40, MV45, MVT1, MVT6, MVS4, MVS5 y PLUT de la fuente de
-   referencia. Port sin verificar, ver PENDIENTES.md. Opera sobre INWK (la nave actual) con TYPE = ztype, y usa ALPHA, BETA, ALP1, ALP2,
+   referencia. Port sin verificar, ver docs/PENDIENTES.md. Opera sobre INWK (la nave actual) con TYPE = ztype, y usa ALPHA, BETA, ALP1, ALP2,
    BET1, BET2 y DELTA (space.h) para girar y trasladar la posicion respecto a nuestra nave. */
 #ifndef MOVE_H
 #define MOVE_H

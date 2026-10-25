@@ -580,37 +580,55 @@ static int arc_atan(long a, long b)                 /* angulo (1/64 de vuelta) d
     return b >= 0 ? 32 - t : 32 + t;
 }
 
-/* Poligonal k de la figura (centro cx, cy; vectores en 1/16 de punto: ux, uy, wx, wy), de t0 con n segmentos de paso stp */
+/* Poligonal k de la figura (centro cx, cy; vectores en 1/16 de punto: ux, uy, wx, wy), de t0 con n segmentos de paso stp. Solo CALCULA los
+   puntos nuevos (arc_nx/arc_ny); arc_commit los dibuja. Asi la matematica va antes de cambiar la elipse y entre el cambio del planeta y el de
+   sus meridianos solo queda el dibujo de lineas */
+static int arc_nx[2][ARC_PTS], arc_ny[2][ARC_PTS], arc_pn[2];
 static void arc_poly(int k, int cx, int cy, long ux, long uy, long wx, long wy, int t0, int n, int stp)
 {
-    int nx[ARC_PTS], ny[ARC_PTS], i, same = (arc_n[k] == n + 1);
+    int i;
     for (i = 0; i <= n; i++) {
         long s = arc_sin(t0 + i * stp), c = arc_sin(t0 + i * stp + 16);
-        nx[i] = cx + (int)arc_fdiv(ux * c + wx * s + 2048, 4096);
-        ny[i] = cy - (int)arc_fdiv(uy * c + wy * s + 2048, 4096);
+        arc_nx[k][i] = cx + (int)arc_fdiv(ux * c + wx * s + 2048, 4096);
+        arc_ny[k][i] = cy - (int)arc_fdiv(uy * c + wy * s + 2048, 4096);
     }
-    if (!same) { arc_poly_erase(k); }
+    arc_pn[k] = n + 1;
+}
+
+static void arc_commit_poly(int k)
+{
+    int n = arc_pn[k] - 1, i, same;
+    if (n < 0) { arc_poly_erase(k); return; }
+    same = (arc_n[k] == n + 1);
+    if (!same) arc_poly_erase(k);
     for (i = 0; i < n; i++) {
-        if (same && nx[i] == arc_x[k][i] && ny[i] == arc_y[k][i] && nx[i + 1] == arc_x[k][i + 1] && ny[i + 1] == arc_y[k][i + 1]) continue;
+        if (same && arc_nx[k][i] == arc_x[k][i] && arc_ny[k][i] == arc_y[k][i] && arc_nx[k][i + 1] == arc_x[k][i + 1] && arc_ny[k][i + 1] == arc_y[k][i + 1]) continue;
         if (same) arc_seg(arc_x[k][i], arc_y[k][i], arc_x[k][i + 1], arc_y[k][i + 1]);     /* borra el viejo */
-        arc_seg(nx[i], ny[i], nx[i + 1], ny[i + 1]);                                        /* y dibuja el nuevo */
+        arc_seg(arc_nx[k][i], arc_ny[k][i], arc_nx[k][i + 1], arc_ny[k][i + 1]);            /* y dibuja el nuevo */
     }
-    for (i = 0; i <= n; i++) { arc_x[k][i] = nx[i]; arc_y[k][i] = ny[i]; }
+    for (i = 0; i <= n; i++) { arc_x[k][i] = arc_nx[k][i]; arc_y[k][i] = arc_ny[k][i]; }
     arc_n[k] = n + 1;
 }
 
-/* Tras dibujar el circulo del planeta (centro cx, cy en pantalla; radio rx, ry); type = 128 meridianos, 130 crater */
-static void planet_arcs(u8 type, int cx, int cy, int rx, int ry)
+static void arc_commit(void)
+{
+    if ((arc_n[0] | arc_n[1]) && arc_col != sun_col) arcs_erase();
+    arc_col = sun_col;
+    arc_commit_poly(0);
+    arc_commit_poly(1);
+}
+
+/* Calcula las figuras para el circulo del planeta (centro cx, cy en pantalla; radio rx, ry); type = 128 meridianos, 130 crater */
+static void planet_arcs_prepare(u8 type, int cx, int cy, int rx, int ry)
 {
     int stp = rx >= 64 ? 2 : (rx >= 32 ? 4 : 8);
     long k = rx, kv = ry;
     long nx, ny, rxv, ryv, sx, sy;
     int t0;
-    if (arc_n[0] | arc_n[1]) { if (arc_col != sun_col) arcs_erase(); }
-    arc_col = sun_col;
-    if (zK[1] != 0) { arcs_erase(); return; }
+    arc_pn[0] = arc_pn[1] = 0;
+    if (zK[1] != 0) return;
     if (type == 128) {
-        if (rx < 6) { arcs_erase(); return; }
+        if (rx < 6) return;
         nx = arc_comp(9) * k / 1536; ny = arc_comp(11) * kv / 1536;                 /* nosev */
         rxv = arc_comp(15) * k / 1536; ryv = arc_comp(17) * kv / 1536;              /* roofv */
         sx = arc_comp(21) * k / 1536; sy = arc_comp(23) * kv / 1536;                /* sidev */
@@ -619,8 +637,7 @@ static void planet_arcs(u8 type, int cx, int cy, int rx, int ry)
         t0 = (arc_atan(arc_comp(13), arc_comp(25)) - 16) & 63;
         arc_poly(1, cx, cy, nx, ny, sx, sy, t0, 32 / stp, stp);
     } else {
-        if (inwk[20] & 0x80) { arcs_erase(); return; }                              /* crater en la cara oculta */
-        arc_poly_erase(1);
+        if (inwk[20] & 0x80) return;                                                /* crater en la cara oculta */
         cx += (int)(arc_comp(15) * k * 222 / 6291456L);
         cy -= (int)(arc_comp(17) * kv * 222 / 6291456L);
         nx = arc_comp(9) * k / 3072; ny = arc_comp(11) * kv / 3072;                 /* nosev / 2 */
@@ -647,17 +664,18 @@ void circle_update(void)
     view_virtual_begin();
     if (sun_chkon()) { ell_erase(); view_virtual_end(); return; }       /* CHKON: fuera de la vista */
     ell_params(&cx, &cy, &rx, &ry);
-    if (ell_valid && cx == ell_cx && cy == ell_cy && rx == ell_rx && ry == ell_ry && sun_col == ell_col) { planet_arcs(ztype, cx, cy, rx, ry); view_virtual_end(); return; }
+    if (ell_valid && cx == ell_cx && cy == ell_cy && rx == ell_rx && ry == ell_ry && sun_col == ell_col) { planet_arcs_prepare(ztype, cx, cy, rx, ry); arc_commit(); view_virtual_end(); return; }
     if (ell_valid && sun_col != ell_col) ell_erase();                   /* otro color: no se puede cambiar fila a fila con una sola mascara */
     if (ell_valid && rx == ell_rx && ry == ell_ry) nxt = ell_cur;       /* mismo radio: la misma tabla */
     else {
         nxt = 1 - ell_cur;
         gfx_ell_spans(rx, ry, ell_tab[nxt]);
     }
+    planet_arcs_prepare(ztype, cx, cy, rx, ry);                          /* la matematica de los meridianos antes de tocar la pantalla */
     gfx_ell_update(ell_cx, ell_cy, ell_valid ? ell_ry : -1, ell_tab[ell_cur], cx, cy, ry, ell_tab[nxt], sun_col, NAT_BOT);
     ell_cx = cx; ell_cy = cy; ell_rx = rx; ell_ry = ry; ell_col = sun_col; ell_cur = nxt;
     ell_valid = 1;
-    planet_arcs(ztype, cx, cy, rx, ry);
+    arc_commit();                                                        /* y su dibujo justo despues del planeta */
     view_virtual_end();
 }
 

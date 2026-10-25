@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Mutaciones de src/ql_ellrows.asm: cada una debe hacer fallar tools/test_ellrowsasm.py (si no, la prueba no cubre esa instruccion).
 Dos son equivalentes y no se detectan: `cmp.w #254,d2` (con x1 = 255 el recorte da el mismo valor) y `cmp.w d4,d3` en vez de `cmp.w d7,d3` (solo
-difiere con el mismo hi, lo viejo < hi y lo nuevo = hi, que en el contorno de una elipse no ocurre: ver CLAUDE.md)."""
+difiere con el mismo hi, lo viejo < hi y lo nuevo = hi, que en el contorno de una elipse no ocurre)."""
 import subprocess, os, tempfile
 src = open('src/ql_ellrows.asm').read()
 muts = [('\tbpl\tg1', '\tbmi\tg1'), ('\tbgt\tgnone', '\tbge\tgnone'), ('\tbeq\tnextrow\t\t\t; mismo tramo', '\tbne\tnextrow'), ('lsl.w\t#7,d1', 'lsl.w\t#6,d1'),

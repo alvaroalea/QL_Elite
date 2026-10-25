@@ -1,5 +1,5 @@
 /* Naves en el espacio local: lista de ranuras (K%, FRIN, MANY), creacion (ZINF, NWSHP), bucle por nave del bucle principal reducido
-   (MVEIT, PLUT, LL9), explosiones (DOEXP), planeta y sol (PLANET), SOLAR y NWSPS, y KILLSHP. Port sin verificar, ver PENDIENTES.md.
+   (MVEIT, PLUT, LL9), explosiones (DOEXP), planeta y sol (PLANET), SOLAR y NWSPS, y KILLSHP. Port sin verificar, ver docs/PENDIENTES.md.
    Cada ranura tiene su monton de lineas (heaps) para dibujar y borrar sus lineas en XOR, y para la nube de la explosion. */
 #ifndef SHIPS_H
 #define SHIPS_H

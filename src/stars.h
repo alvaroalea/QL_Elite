@@ -1,5 +1,5 @@
 /* Polvo estelar (STARS, STARS1, STARS6, STARS2, FLIP, NWSTARS, nWq, PIXEL2 de la fuente de referencia): port sin verificar,
-   ver PENDIENTES.md. Cada particula guarda x, y, z en 8 bits mas una parte baja de 8 bits (sxl, syl, szl); las coordenadas x e y
+   ver docs/PENDIENTES.md. Cada particula guarda x, y, z en 8 bits mas una parte baja de 8 bits (sxl, syl, szl); las coordenadas x e y
    son signo-magnitud centradas en la pantalla y z es la distancia (255 = lejos). Se dibujan y se borran con XOR (gfx_dust).
    Usa ALPHA, BETA, ALP1, ALP2, BET1 y BET2 de space.c y DELTA para mover el polvo con los giros y la velocidad de la nave. */
 #ifndef STARS_H

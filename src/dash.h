@@ -1,4 +1,4 @@
-/* Panel de instrumentos (dashboard) del Elite de Apple II, port sin verificar (ver PENDIENTES.md).
+/* Panel de instrumentos (dashboard) del Elite de Apple II, port sin verificar (ver docs/PENDIENTES.md).
    El fondo es un bitmap que el original carga del disco (A.SCREEN): aqui se convierte con tools/gen_dashboard.py a
    data/elite_dash (tira de 256 x 56 pixeles en modo 8) y se carga de <unidad>elite_dash. Si falta el fichero se dibuja un panel
    minimo (marco, pistas y etiquetas) para que los instrumentos funcionen igual.

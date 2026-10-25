@@ -1,5 +1,5 @@
 /* Cartas galactica y local (TT22, TT23, TT14, TT15, TT103, TT105 de la fuente de referencia), con SUN y CIRCLE.
-   Port sin verificar (ver PENDIENTES.md). Geometria de la fuente: carta galactica de 192 x 96 pixeles (x 32..223, y 19..115,
+   Port sin verificar (ver docs/PENDIENTES.md). Geometria de la fuente: carta galactica de 192 x 96 pixeles (x 32..223, y 19..115,
    escala 0,75 en x y 0,375 en y); carta local con 3 pixeles por unidad en x y 1,5 en y, centrada en (105, 75). */
 #ifndef CHART_H
 #define CHART_H

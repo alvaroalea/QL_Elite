@@ -1,4 +1,4 @@
-/* SUN, CIRCLE y sus rutinas de apoyo (Elite Apple II, port sin verificar: ver PENDIENTES.md).
+/* SUN, CIRCLE y sus rutinas de apoyo (Elite Apple II, port sin verificar: ver docs/PENDIENTES.md).
    SUN dibuja un sol/planeta relleno linea a linea con borde irregular (K3, K4 = centro de 16 bits, K = radio);
    el montón LSO guarda el semiancho de cada linea para borrar el dibujo anterior. CIRCLE/CIRCLE2 dibuja una circunferencia
    de K pixeles de radio con segmentos (BLINE + recorte LL145); el montón LSX2/LSY2 guarda los puntos para borrarla. */

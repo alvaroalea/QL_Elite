@@ -2,7 +2,7 @@
 """Inventario de rutinas de la fuente de referencia y su estado de port.
 Lee las cabeceras ';       Name: X' / ';   Category: Y' / ';    Summary: Z' de elite-source.asm y la lista
 tools/ported.txt (una linea por rutina portada: NOMBRE  funcion_C  estado, estado = verificada | sin-verificar | propia).
-Genera INVENTARIO.md. La fuente de referencia no se incluye en el proyecto (ver tools/README_ref.txt)."""
+Genera docs/INVENTARIO.md. La fuente de referencia no se incluye en el proyecto (ver tools/README_ref.txt)."""
 import os, re, sys
 src = os.environ.get("ELITE_SRC", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ref", "moxon-appleII", "1-source-files", "main-sources"))
 text = open(os.path.join(src, "elite-source.asm"), encoding="latin-1").read().split("\n")
@@ -85,5 +85,5 @@ for cat in sorted(bycat):
         else:
             md.append("| %s | %s |  |  |  |" % (n, s))
     md.append("")
-open("INVENTARIO.md", "w").write("\n".join(md))
+open("docs/INVENTARIO.md", "w").write("\n".join(md))
 print("rutinas %d, portadas %d (verificadas %d), no necesarias %d, sin portar %d" % (allc["total"], allc["port"], allc["ver"], allc["nn"], allc["pi"]))

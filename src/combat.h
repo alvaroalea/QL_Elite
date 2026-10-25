@@ -1,4 +1,4 @@
-/* Laser propio y danos a otras naves (paso 3, primera parte). Port sin verificar salvo donde se dice (ver PENDIENTES.md):
+/* Laser propio y danos a otras naves (paso 3, primera parte). Port sin verificar salvo donde se dice (ver docs/PENDIENTES.md):
    disparo del bucle principal (parte 3, MA68), LASLI/LASLI2 (lineas del laser), HITCH (la nave esta en la mira),
    los danos del laser (parte 11, MA47..MA14: EXNO, BURN, SPIN, EXNO2, ANGRY), la recompensa al terminar de explotar
    (parte 12, MA15..KS1S), el fin del pulso (parte 16, MA23), el enfriamiento y el contador del pulso (MLOOP),

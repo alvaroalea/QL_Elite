@@ -1,5 +1,5 @@
 /* Equipo en vuelo: bomba de energia (BOMBON, BOMBOFF, BOMBEFF, BOMBEFF2, BOMBPOS, BOMBTBX, BOMBTBY y los tramos de las
-   partes 3 y 16 del bucle de vuelo) y salto dentro del sistema (WARP). Transcripcion del 6502 (ver PENDIENTES.md). */
+   partes 3 y 16 del bucle de vuelo) y salto dentro del sistema (WARP). Transcripcion del 6502 (ver docs/PENDIENTES.md). */
 #ifndef EQUIP_H
 #define EQUIP_H
 #include "platform.h"
