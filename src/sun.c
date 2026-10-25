@@ -801,6 +801,7 @@ void (*sun_hiss_hook)(int y) = 0;                /* SOHISS(y): sonido de cada an
 void (*sun_blip_hook)(int x, int y) = 0;         /* SOBLIP(x, y) de LL164 */
 void (*sun_tt66_hook)(void) = 0;                 /* TT66 de HFS2: borrar la vista */
 void (*sun_circle_hook)(u8 k3, u8 k4, u8 k, u8 stp) = 0;   /* pruebas: cada CIRCLE2 del tunel */
+void (*sun_pace_hook)(void) = 0;                 /* propio: tras cada anillo, para que no salgan todos de golpe en maquinas rapidas */
 
 /* HFL1: una serie de circulos concentricos cuyo radio empieza en (XX4 AND 7) + 8 y se duplica mientras sea < 160 */
 static void hfl1(u8 xx4)
@@ -812,6 +813,7 @@ static void hfl1(u8 xx4)
         circ_lsp = 1;
         if (sun_circle_hook) sun_circle_hook(zk3[0], zk4[0], zK[0], circ_stp);
         circle2_draw();
+        if (sun_pace_hook) sun_pace_hook();
         if (zK[0] & 0x80) return;                /* ASL K; BCS HF8 */
         zK[0] = (u8)(zK[0] << 1);
         if (zK[0] >= 160) return;                /* CMP #160; BCC HFL2 */

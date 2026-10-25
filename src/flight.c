@@ -32,10 +32,13 @@ int flight_testkeys = 0;                   /* pruebas (make test_game): N, K y C
 #define ROW_MSG   27                       /* texto bajo el panel (lineas 216..255): estado (LY, vista o mensaje, creditos), HERE, TARGET; la 30 libre y FPS en la 31 */
 #define ROW_HERE  28                       /* HERE a la izquierda y TARGET a la derecha */
 #define ROW_HELP  31                       /* ayuda rotativa; los FPS pisan sus 8 ultimas columnas */
+#define FRAME_TICKS 5                      /* cuadros de 50 Hz minimos por fotograma de vuelo (5 = 10 FPS como maximo) */
 #define HELP_FRAMES 100                    /* fotogramas que dura cada linea de ayuda (~2 s a 50 fps; provisional) */
 #define TGT_COL 16
 #define MSG_FRAMES 100                     /* fotogramas que dura un mensaje antes de volver a mostrarse la vista (~2 s a 50 fps; provisional) */
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
+#define TUNNEL_TICKS 1                     /* cuadros de 50 Hz por cada unidad de TUNNEL_FRAMES (30 = ~0,6 s) */
+#define RING_TICKS 2                       /* cuadros de 50 Hz minimos por anillo del tunel (~35 anillos: ~1,4 s) */
 #define TUNNEL_FRAMES 30                   /* cuanto se deja ver el tunel de lanzamiento o de hiperespacio */
 
 static int view = 0;
@@ -49,8 +52,21 @@ static void hiss(int y) { snd_sohiss(y); }
 static void wait_frames(int n)             /* en el QL deja pasar tiempo real leyendo el teclado; con guion no consume teclas */
 {
     int i;
+    unsigned long t0;
     if (in_script) return;
-    for (i = 0; i < n; i++) in_poll();
+    t0 = plat_ticks();
+    if (t0 == 0UL) { for (i = 0; i < n; i++) in_poll(); return; }
+    while (plat_ticks() - t0 < (unsigned long)n * TUNNEL_TICKS) in_poll();     /* propio: por tiempo, no por vueltas */
+}
+
+/* propio: cada anillo del tunel tarda como minimo RING_TICKS cuadros de 50 Hz (en el QL real los iba dibujando la lentitud) */
+static void ring_pace(void)
+{
+    static unsigned long last = 0;
+    unsigned long now;
+    if (in_script || plat_ticks() == 0UL) return;
+    do { now = plat_ticks(); } while (now - last < RING_TICKS && now >= last);
+    last = now;
 }
 
 static const char *const help_lines[3] = { "CURSORS TURN F FAST D SLOW", "1-4 VIEW 5-0 INFO H/G/J JUMPS", "B BOMB C/P DOCK = PAUSE" };
@@ -449,7 +465,7 @@ static void blip(int x, int y) { snd_soblip(x, y); }
 
 static void tunnel_hooks(void)
 {
-    sun_hiss_hook = hiss; sun_blip_hook = blip; sun_tt66_hook = space_tt66;
+    sun_hiss_hook = hiss; sun_blip_hook = blip; sun_tt66_hook = space_tt66; sun_pace_hook = ring_pace;
     sun_col = C_WHITE;
 }
 
@@ -594,6 +610,7 @@ static int flight_loop(void)
     int ch, sc, r;
     u8 ev;
     struct controls c;
+    unsigned long last_t;
     static const u8 contact_types[6] = { SHIPT_VIPER, SHIPT_COBRA_MK_3, SHIPT_PYTHON, SHIPT_ASTEROID, SHIPT_SIDEWINDER, SHIPT_KRAIT };
 
     ui_clear();
@@ -617,7 +634,15 @@ static int flight_loop(void)
     view_extras();
     stars_new();
     say(dash_loaded() ? "LAUNCHED" : "LAUNCHED (NO ELITE_DASH FILE)", 0);
+    last_t = plat_ticks();
     for (;;) {
+        /* propio: paso fijo. Toda la simulacion cuenta por fotograma y el original iba a ~10 FPS o menos: con mas
+           rapidez se espera hasta FRAME_TICKS cuadros de 50 Hz desde el fotograma anterior (sin reloj o en scripts, no) */
+        if (!in_script && last_t != 0UL) {
+            unsigned long now_t;
+            do { now_t = plat_ticks(); } while (now_t - last_t < FRAME_TICKS);
+            last_t = now_t;
+        }
         ch = in_poll();
         if (ch == KC_QUIT) { key_ctx_menu(); return FL_QUIT; }
         if (ch >= 0) {
