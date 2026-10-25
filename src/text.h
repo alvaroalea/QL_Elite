@@ -17,7 +17,4 @@ void txt_puts(const char *s);
 void txt_print_at(int col, int row, const char *s);
 void txt_clear_rows(int row0, int nrows, u8 color);   /* borra filas de texto completas */
 void txt_nowrap(int on);                   /* 1: lo que no cabe en la fila se recorta (no salta a la fila de abajo); 0: normal */
-void txt_cursor(int on);                   /* muestra/oculta el cursor de bloque (XOR) */
-void txt_cursor_blink(void);               /* alterna el cursor; llamar desde el temporizador */
-void txt_cursor_color(u8 c);               /* color del bloque (por defecto blanco) */
 #endif

@@ -29,12 +29,12 @@
 int flight_testkeys = 0;                   /* pruebas (make test_game): N, K y C sin ordenador de atraque */
 
 #define VIEW_H 160                         /* lineas de la vista en pantalla */
-#define ROW_MSG   27                       /* texto bajo el panel (lineas 216..255): mensajes, VIEW, HERE, TARGET y ayuda rotativa */
-#define ROW_VIEW  28
-#define ROW_HERE  29
-#define ROW_TARGET 30
-#define ROW_HELP  31
+#define ROW_MSG   27                       /* texto bajo el panel (lineas 216..255): estado (LY, vista o mensaje, creditos), HERE, TARGET; la 30 libre y FPS en la 31 */
+#define ROW_HERE  28                       /* HERE a la izquierda y TARGET a la derecha */
+#define ROW_HELP  31                       /* ayuda rotativa; los FPS pisan sus 8 ultimas columnas */
 #define HELP_FRAMES 100                    /* fotogramas que dura cada linea de ayuda (~2 s a 50 fps; provisional) */
+#define TGT_COL 16
+#define MSG_FRAMES 100                     /* fotogramas que dura un mensaje antes de volver a mostrarse la vista (~2 s a 50 fps; provisional) */
 #define HYPER_FRAMES 8                     /* fotogramas por cuenta atras (provisional: ~0,16 s a 50 fps) */
 #define TUNNEL_FRAMES 30                   /* cuanto se deja ver el tunel de lanzamiento o de hiperespacio */
 
@@ -53,15 +53,18 @@ static void wait_frames(int n)             /* en el QL deja pasar tiempo real le
     for (i = 0; i < n; i++) in_poll();
 }
 
-/* Texto bajo el panel (lineas 216..255 = filas 27..31): mensajes, VIEW, HERE, TARGET y una linea de ayuda que cambia sola */
 static const char *const help_lines[3] = { "CURSORS TURN F FAST D SLOW", "1-4 VIEW 5-0 INFO H/G/J JUMPS", "B BOMB C/P DOCK = PAUSE" };
 static int help_i = 0, help_t = 0;
+static char fps_text[9] = "";                /* los FPS que pisan el final de la ayuda ("" = apagado) */
 
 static void help_draw(void)
 {
     txt_clear_rows(ROW_HELP, 1, C_BLACK);
     txt_color(C_CYAN, C_BLACK);
+    txt_nowrap(1);
     txt_print_at(0, ROW_HELP, help_lines[help_i]);
+    if (fps_text[0]) { txt_color(C_YELLOW, C_BLACK); txt_print_at(24, ROW_HELP, fps_text); }
+    txt_nowrap(0);
     txt_color(C_WHITE, C_BLACK);
 }
 
@@ -80,9 +83,8 @@ static void panel_static(void)
     panel_invalidate();                                     /* el rectangulo de abajo se borra entero: nada de lo anterior sigue pintado */
     gfx_rect(0, DASH_Y0 + DASH_LINES, 256, 256 - (DASH_Y0 + DASH_LINES), C_BLACK);
     txt_color(C_CYAN, C_BLACK);
-    txt_print_at(0, ROW_VIEW, "VIEW");
     txt_print_at(0, ROW_HERE, "HERE");
-    txt_print_at(0, ROW_TARGET, "TARGET");
+    txt_print_at(TGT_COL, ROW_HERE, "TARGET");
     help_draw();
 }
 
@@ -90,12 +92,11 @@ static void panel_static(void)
 static int tenths_text(char *b, unsigned long tenths, const char *suffix)
 {
     char t[12];
-    unsigned long v = tenths / 10UL;
-    int n = 0, i = 0;
-    do { t[n++] = (char)('0' + (int)(v % 10UL)); v /= 10UL; } while (v);
-    while (n) b[i++] = t[--n];
+    int n = dec_digits(tenths, t), i = 0, k;
+    if (n < 2) { t[1] = t[0]; t[0] = '0'; n = 2; }              /* 5 -> "0.5" */
+    for (k = 0; k < n - 1; k++) b[i++] = t[k];
     b[i++] = '.';
-    b[i++] = (char)('0' + (int)(tenths % 10UL));
+    b[i++] = t[n - 1];
     while (*suffix) b[i++] = *suffix++;
     b[i] = 0;
     return i;
@@ -103,22 +104,21 @@ static int tenths_text(char *b, unsigned long tenths, const char *suffix)
 
 /* Lo ultimo que se pinto (columnas) en cada texto que cambia de longitud: si el nuevo es mas corto, se calcula el rectangulo de celdas que
    sobra y se vacia de una vez (gfx_clear_cells: ensamblador); lo demas se sobrescribe celda a celda, sin parpadeo */
-static int len_here = 0, len_tgt = 0, len_cash = 0, len_dist = 0;
+static int len_here = 0, len_tgt = 0;
 
 #ifdef DEBUG
-static int len_fps = 0;
-static void panel_invalidate(void) { len_here = len_tgt = len_cash = len_dist = len_fps = 0; }
+static void panel_invalidate(void) { len_here = len_tgt = 0; }
 #else
-static void panel_invalidate(void) { len_here = len_tgt = len_cash = len_dist = 0; }
+static void panel_invalidate(void) { len_here = len_tgt = 0; }
 #endif
 
 static int cstr_len(const char *s) { int n = 0; while (s[n]) n++; return n; }
 
-static void panel_name(int row, const char *name, int *oldlen)       /* nombre a la izquierda, en la columna 7 */
+static void panel_name(int col, const char *name, int *oldlen)       /* nombre tras su etiqueta, en la fila de HERE */
 {
     int n = cstr_len(name);
-    if (*oldlen > n) gfx_clear_cells(7 + n, row, *oldlen - n, 1);
-    txt_print_at(7, row, name);
+    if (*oldlen > n) gfx_clear_cells(col + n, ROW_HERE, *oldlen - n, 1);
+    txt_print_at(col, ROW_HERE, name);
     *oldlen = n;
 }
 
@@ -130,40 +130,71 @@ static void panel_right(int row, const char *s, int *oldlen)         /* valor al
     *oldlen = n;
 }
 
-static void panel_cash(void)                                         /* los creditos de la fila de HERE */
+/* Fila de estado: anos luz hasta el destino a la izquierda, creditos a la derecha y en medio la vista ("FRONT VIEW"); un mensaje
+   la ocupa entera, centrado, hasta que caduca (MSG_FRAMES) */
+static char msg_text[34];
+static u8 msg_col = 0;
+static int msg_t = 0;
+
+static void status_draw(void)
 {
-    char b[24];
-    tenths_text(b, cash_get(), " Cr");
-    txt_color(C_WHITE, C_BLACK);
+    char ly[24], cr[24];
+    int n = 0, c0 = 0, nl, nc;
+    txt_clear_rows(ROW_MSG, 1, C_BLACK);
     txt_nowrap(1);
-    panel_right(ROW_HERE, b, &len_cash);
+    nl = tenths_text(ly, (unsigned long)jump_distance(tgt_sys), " LY");
+    nc = tenths_text(cr, cash_get(), " Cr");
+    if (msg_t) {                                            /* el mensaje centrado; LY y creditos solo si caben a sus lados */
+        n = cstr_len(msg_text);
+        c0 = n < 32 ? (32 - n) / 2 : 0;
+        txt_color(msg_col, C_BLACK);
+        txt_print_at(c0, ROW_MSG, msg_text);
+    } else {
+        txt_color(C_CYAN, C_BLACK);
+        txt_print_at(11, ROW_MSG, vnames[view]);
+        txt_print_at(17, ROW_MSG, "VIEW");
+        c0 = 11; n = 10;
+    }
+    txt_color(C_WHITE, C_BLACK);
+    if (c0 > nl) txt_print_at(0, ROW_MSG, ly);
+    if (c0 + n < 32 - nc) txt_print_at(32 - nc, ROW_MSG, cr);
     txt_nowrap(0);
 }
 
+static void msg_show(const char *s, u8 color)
+{
+    int i;
+    for (i = 0; s[i] && i < 33; i++) msg_text[i] = s[i];
+    msg_text[i] = 0;
+    msg_col = color;
+    msg_t = i ? MSG_FRAMES : 0;
+    status_draw();
+}
+
+static void msg_tick(void)
+{
+    if (msg_t && --msg_t == 0) status_draw();
+}
+
+static void panel_cash(void) { status_draw(); }                     /* los creditos van en la fila de estado */
+
 static void panel_update(void)
 {
-    char b[24];
     txt_color(C_WHITE, C_BLACK);
-    txt_nowrap(1);                                          /* un nombre largo o mucho dinero no debe saltar a la fila siguiente */
-    txt_print_at(7, ROW_VIEW, vnames[view]);
-    panel_name(ROW_HERE, uni_galaxy[cur_sys].name, &len_here);
-    panel_name(ROW_TARGET, uni_galaxy[tgt_sys].name, &len_tgt);
-    tenths_text(b, (unsigned long)jump_distance(tgt_sys), " LY");      /* la distancia, a la derecha en la fila de TARGET */
-    panel_right(ROW_TARGET, b, &len_dist);
+    txt_nowrap(1);                                          /* un nombre largo no debe saltar a la fila siguiente */
+    panel_name(5, uni_galaxy[cur_sys].name, &len_here);
+    panel_name(TGT_COL + 7, uni_galaxy[tgt_sys].name, &len_tgt);
     txt_nowrap(0);
-    panel_cash();
+    status_draw();
 }
 
 static void say(const char *s, int error)
 {
-    txt_clear_rows(ROW_MSG, 1, C_BLACK);
-    txt_color(error ? C_RED : C_GREEN, C_BLACK);
-    txt_print_at(0, ROW_MSG, s);
-    txt_color(C_WHITE, C_BLACK);
+    msg_show(s, error ? C_RED : C_GREEN);
 }
 
 #ifdef DEBUG
-/* SHIFT-F: fotogramas por segundo en la fila de VIEW, alineados a la derecha (encima de los creditos); se calculan cada segundo
+/* SHIFT-F: fotogramas por segundo en la ultima fila, alineados a la derecha; se calculan cada segundo
    (50 cuadros de plat_ticks) con una decima */
 static int dbg_fps = 0;
 static unsigned long fps_t0 = 0, fps_n = 0;
@@ -172,7 +203,7 @@ static void dbg_fps_key(void)
 {
     dbg_fps = !dbg_fps;
     fps_t0 = plat_ticks(); fps_n = 0;
-    if (!dbg_fps && len_fps) { gfx_clear_cells(32 - len_fps, ROW_VIEW, len_fps, 1); len_fps = 0; }
+    if (!dbg_fps) { fps_text[0] = 0; help_draw(); }
 }
 
 static void dbg_fps_frame(void)
@@ -184,11 +215,13 @@ static void dbg_fps_frame(void)
     now = plat_ticks(); dt = now - fps_t0;
     if (dt < 50UL) return;
     tenths_text(b, fps_n * 500UL / dt, " FPS");
-    txt_color(C_YELLOW, C_BLACK);
-    txt_nowrap(1);
-    panel_right(ROW_VIEW, b, &len_fps);
-    txt_nowrap(0);
-    txt_color(C_WHITE, C_BLACK);
+    {
+        int n = cstr_len(b), i = 0, k;
+        for (; i < 8 - n; i++) fps_text[i] = ' ';          /* siempre 8 caracteres */
+        for (k = 0; k < n && i < 8; k++, i++) fps_text[i] = b[k];
+        fps_text[i] = 0;
+    }
+    help_draw();
     fps_t0 = now; fps_n = 0;
 }
 
@@ -357,11 +390,8 @@ static void flight_mess(u8 token)
 {
     static const char *eq[8] = { "E.C.M.SYSTEM", 0, 0, "FUEL SCOOPS", 0, "ENERGY BOMB", "ENERGY UNIT", "DOCKING COMPUTERS" };
     const char *t = 0;
-    char b[16];
-    int i;
-    txt_clear_rows(ROW_MSG, 1, C_BLACK);
-    txt_color(C_GREEN, C_BLACK);
-    txt_at(0, ROW_MSG);
+    char b[16], c[24], b2[40];
+    int i, n;
     if (token == MESS_RIGHT_ON) t = "RIGHT ON COMMANDER!";
     else if (token == MESS_ENERGY_LOW) { t = "ENERGY LOW"; snd_beep(); }
     else if (token == MESS_DOCK_ON) t = "DOCKING COMPUTERS ON";
@@ -375,14 +405,12 @@ static void flight_mess(u8 token)
         for (i = 0; n[i] && i < 15; i++) b[i] = (char)((n[i] >= 'a' && n[i] <= 'z') ? n[i] - 32 : n[i]);
         b[i] = 0; t = b;
     }
-    if (t) txt_puts(t);
-    else { ui_tenths(cash_get()); txt_puts(" CR"); }
-    if (mess_de & 2) txt_puts(" DESTROYED");
-    txt_color(C_WHITE, C_BLACK);
-    if (token == MESS_CASH) panel_cash();                   /* el cobro de una recompensa: los creditos de la fila de HERE */
+    if (!t) { tenths_text(c, cash_get(), " CR"); t = c; }
+    if (mess_de & 2) { for (i = 0; t[i] && i < 20; i++) b2[i] = t[i]; for (n = 0; " DESTROYED"[n]; n++) b2[i++] = " DESTROYED"[n]; b2[i] = 0; t = b2; }
+    msg_show(t, C_GREEN);
 }
 
-static void flight_mess_off(void) { txt_clear_rows(ROW_MSG, 1, C_BLACK); }
+static void flight_mess_off(void) { msg_t = 0; status_draw(); }
 
 static void say_hyper(void)
 {
@@ -663,6 +691,7 @@ static int flight_loop(void)
         stars_update((u8)view);                             /* STARS */
         dly_tick();                                         /* TT100: el mensaje en vuelo caduca */
         help_tick();                                        /* la linea de ayuda cambia cada ~2 s */
+        msg_tick();                                         /* el mensaje caduca y vuelve la vista */
         mcnt--;                                             /* me3: DEC MCNT; a 0, partes 2-4 (aparicion de naves) */
         if (mcnt == 0) encounters_tick(em_rand_c);          /* acarreo: el del ultimo DORND (el del 6502 sale de M%) */
         laser_cool();                                       /* MLOOP: enfriamiento y cuenta del pulso */
@@ -734,7 +763,7 @@ static void dock_tunnel(void)
 int flight_run(void)
 {
     int r;
-    help_i = 0; help_t = 0;
+    msg_t = 0; help_i = 0; help_t = 0;
     view_set_native(1);
     ships_spblb_hook = dash_spblb;                          /* NWSPS y KS4 encienden y apagan la S */
     r = flight_loop();

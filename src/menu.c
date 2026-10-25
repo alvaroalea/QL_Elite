@@ -68,20 +68,41 @@ void ui_footer(void)
     txt_color(C_WHITE, C_BLACK);
 }
 
+/* Cifras decimales de v en b (sin ceros a la izquierda, al menos una); devuelve cuantas. Restas de potencias de 10 en vez de dividir:
+   en el 68008 la division de 32 bits es una rutina de libreria y costaba mas que dibujar el digito */
+int dec_digits(unsigned long v, char *b)
+{
+    static const unsigned long p10[10] = { 1000000000UL, 100000000UL, 10000000UL, 1000000UL, 100000UL, 10000UL, 1000UL, 100UL, 10UL, 1UL };
+    int k, n = 0;
+    char d;
+    for (k = 0; k < 10; k++) {
+        d = 0;
+        while (v >= p10[k]) { v -= p10[k]; d++; }
+        if (d || n || k == 9) b[n++] = (char)('0' + d);
+    }
+    return n;
+}
+
 void ui_num(unsigned long v, int width)
 {
-    char b[12];
-    int i = 0, k;
-    do { b[i++] = (char)('0' + (int)(v % 10UL)); v /= 10UL; } while (v);
-    for (k = i; k < width; k++) txt_putc(' ');
-    while (i) txt_putc(b[--i]);
+    char b[24];
+    int n = dec_digits(v, b + 12), k = 0, pad;
+    for (pad = n; pad < width && k < 12; pad++) b[k++] = ' ';
+    for (pad = 0; pad < n; pad++) b[k++] = b[12 + pad];
+    b[k] = 0;
+    txt_puts(b);                                                  /* de una vez: txt_putc por caracter es mucho mas lento */
 }
 
 void ui_tenths(unsigned long v)
 {
-    ui_num(v / 10UL, 0);
-    txt_putc('.');
-    txt_putc((char)('0' + (int)(v % 10UL)));
+    char b[24];
+    int n = dec_digits(v, b + 12), k = 0;
+    if (n < 2) { b[13] = b[12]; b[12] = '0'; n = 2; }              /* 5 -> "0.5" */
+    while (k < n - 1) { b[k] = b[12 + k]; k++; }
+    b[k++] = '.';
+    b[k++] = b[12 + n - 1];
+    b[k] = 0;
+    txt_puts(b);
 }
 
 void ui_msg(const char *s, int error)
@@ -556,19 +577,19 @@ static int edit_text(int row, const char *prompt, char *buf, int maxlen)
     txt_print_at(0, row, prompt);
     txt_color(C_WHITE, C_BLACK);
     while (buf[n]) n++;
-    txt_at(0, row + 1); txt_puts("> "); txt_puts(buf); txt_cursor(1);
+    txt_at(0, row + 1); txt_puts("> "); txt_puts(buf); txt_puts("_\b");          /* raya como cursor */
     for (;;) {
         ch = in_wait();
-        if (ch == KC_QUIT) { txt_cursor(0); in_quit = 1; return 0; }
-        if (ch == KC_ESC) { txt_cursor(0); return 0; }
-        if (ch == KC_ENTER) { txt_cursor(0); return n; }
+        if (ch == KC_QUIT) { txt_puts(" \b"); in_quit = 1; return 0; }
+        if (ch == KC_ESC) { txt_puts(" \b"); return 0; }
+        if (ch == KC_ENTER) { txt_puts(" \b"); return n; }
         if (ch == KC_BS) {
-            if (n > 0) { n--; buf[n] = 0; txt_putc('\b'); txt_putc(' '); txt_putc('\b'); }
+            if (n > 0) { n--; buf[n] = 0; txt_puts(" \b\b_\b"); }
         } else if (n < maxlen &&
                    ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '_' || ch == '-')) {
             if (ch >= 'a' && ch <= 'z') ch = ch - 'a' + 'A';
             buf[n++] = (char)ch; buf[n] = 0;
-            txt_putc(ch);
+            txt_putc(ch); txt_puts("_\b");
         }
     }
 }

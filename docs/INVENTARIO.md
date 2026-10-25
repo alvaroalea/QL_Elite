@@ -647,8 +647,8 @@ Columnas: *Portadas* = verificadas + no verificables + pendientes de verificar (
 | RR5 | Print a character in the text screen mode | no-necesaria |  | impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico |
 | TT67K | Print a newline | verificada | `dt_chpr` | detok.c, make test_missions |
 | CHPR | Print a character at the text cursor by poking into screen memory | verificada | `dt_chpr` | salida del motor de fichas: XC/YC, saltos de linea, clss (detok.c); las pantallas propias siguen con txt_putc, make test_missions |
-| letter | Draw a character in the high-resolution screen mode using the game | verificada | `txt_putc`, `draw_glyph` | la fuente es la FONT del original (A.FLOWY.bin, tools/gen_font.py), comparada con make test_univ6502; el dibujo es el de la pantalla del QL |
-| letter2 | Draw a character or indicator bulb bitmap in the high-resolution | verificada | `txt_putc`, `draw_glyph`, `dash` | letras con la FONT del original (make test_univ6502); las bombillas del panel salen del volcado de la pantalla original |
+| letter | Draw a character in the high-resolution screen mode using the game | verificada | `txt_putc`, `draw_glyph`, `ql_puts` | la fuente es la FONT del original (A.FLOWY.bin, tools/gen_font.py), comparada con make test_univ6502; el dibujo es el de la pantalla del QL (celda opaca con ql_puts de ql_text.asm, verificada contra su C con make test_putsasm) |
+| letter2 | Draw a character or indicator bulb bitmap in the high-resolution | verificada | `txt_putc`, `draw_glyph`, `ql_puts`, `dash` | letras con la FONT del original (make test_univ6502); las bombillas del panel salen del volcado de la pantalla original |
 | SETXC | Move the text cursor to a specific column | verificada | `dt_xc`, `dt_yc` | cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions |
 | SETYC | Move the text cursor to a specific row | verificada | `dt_xc`, `dt_yc` | cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions |
 

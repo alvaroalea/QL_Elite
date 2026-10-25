@@ -48,6 +48,7 @@ void ui_clear(void);
 void ui_title(const char *t);                    /* barra de titulo en la fila 0 */
 void ui_footer(void);                            /* ayuda de teclas en las filas 30 y 31 */
 void ui_num(unsigned long v, int width);         /* entero alineado a la derecha */
+int  dec_digits(unsigned long v, char *b);              /* cifras decimales de v en b (sin ceros a la izquierda, sin 0 final); devuelve cuantas */
 void ui_tenths(unsigned long v);                 /* decimas -> "123.4" */
 void ui_msg(const char *s, int error);           /* mensaje en la fila 28 con sonido */
 int  ui_nav(int ch);                             /* tecla de pantalla ('0'..'9','i') -> SC_*, o -1 */

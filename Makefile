@@ -16,6 +16,9 @@ ASMDEF = $(if $(ASM_LINE),-DASM_LINE)
 # LL9 en ensamblador (src/ql_ll9.asm: caras, vertices y LL51): make ASM_LL9= para usar el C
 ASM_LL9 ?= 1
 ASMDEF += $(if $(ASM_LL9),-DASM_LL9)
+# Celda de texto opaca en ensamblador (src/ql_text.asm): make ASM_TEXT= para usar el C
+ASM_TEXT ?= 1
+ASMDEF += $(if $(ASM_TEXT),-DASM_TEXT)
 # Version sin sonido: snd_ipc no hace nada (ni IPC, ni ZX8302, ni ROM): make NOSOUND=1 (por defecto con sonido; era para detectar un bug al usar MT.IPCOM)
 NOSOUND ?=
 # Sin el reloj de 50 Hz (MT.LPOLL) ni el limite de fps: make NOTICK=1 (diagnostico de cuelgues; por defecto con reloj)
@@ -37,7 +40,7 @@ endif
 GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
 
 # El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
-GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm src/ql_ll9.asm src/ql_lltab.asm src/ql_ellrows.asm
+GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm src/ql_ll9.asm src/ql_lltab.asm src/ql_ellrows.asm src/ql_text.asm
 $(BUILD)/elite: $(GAME_QL) $(wildcard src/*.h) Makefile
 	mkdir -p $(BUILD)
 	qcc -O $(VERDEF) $(ASMDEF) -Isrc -I/usr/local/share/qdos/include -o $@ $(GAME_QL) -lm
@@ -108,6 +111,9 @@ elite.mdv: $(BUILD)/elite.mdv
 ql:
 	mkdir -p $(BUILD)
 	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/elite_ql src/test_text.c $(COMMON) src/plat_ql.c src/keys.c src/keys_ql.c src/ql_ipc.asm -lm
+ql_bench:
+	mkdir -p $(BUILD)
+	qcc -O -Isrc -I/usr/local/share/qdos/include -DASM_TEXT -o $(BUILD)/bench_ql src/bench_text.c $(COMMON) src/plat_ql.c src/keys.c src/keys_ql.c src/ql_ipc.asm src/ql_text.asm -lm
 ql_keys:
 	mkdir -p $(BUILD)
 	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/keys_ql src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_ql.c src/plat_ql.c src/ql_ipc.asm
@@ -171,7 +177,7 @@ clean:
 
 # ==== 4. Pruebas ==========================================================================================
 
-test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm
+test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm test_putsasm
 
 # Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
 c68_check:
@@ -277,6 +283,10 @@ test_ellasm:
 test_ellrows:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ellrows tests/test_ellrows.c src/gfx.c src/plat_host.c -lm
 	./tests/test_ellrows
+
+# ql_text.asm (ql_puts) ejecutada con tools/m68k_mini.py contra su version en C (la formula de text.c)
+test_putsasm:
+	python3 tools/test_putsasm.py 2000
 
 # ql_ellrows.asm ejecutada con tools/m68k_mini.py contra gfx_ell_update en C
 test_ellrowsasm:
@@ -443,4 +453,4 @@ test_arith:
 	./tests/test_arith
 
 
-.PHONY: elite elite.img elite.mdv disk qltools mdvtool ql ql_keys ql_sound ql_universe ql_ship dash_png dash_from_png dash_file host host_demo_keys host_demo_universe host_demo_ship host_game clean test_all c68_check test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_panel
+.PHONY: elite elite.img elite.mdv disk qltools mdvtool ql ql_keys ql_bench test_putsasm ql_sound ql_universe ql_ship dash_png dash_from_png dash_file host host_demo_keys host_demo_universe host_demo_ship host_game clean test_all c68_check test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_panel

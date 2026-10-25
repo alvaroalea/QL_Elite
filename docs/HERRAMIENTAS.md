@@ -31,7 +31,7 @@ Movido desde `CLAUDE.md` (secciones 3.2–3.6 y 5.3).
 | `gen_font.py`, `gen_tables.py`, `gen_sne.py`, `gen_universe_text.py`, `make_oracle.py` | fuente 8×8, tablas log/seno, tabla de seno de naves, textos del universo, oráculo de Text Elite |
 | `ql2png.py` | convierte una captura de pantalla QL (32 KB) a PNG |
 | `inventory.py`, `ported.txt` | generan `INVENTARIO.md` |
-| `m68k_mini.py`, `test_lineasm.py`, `test_ellasm.py`, `test_ll9asm.py`, `gen_lltab.py` | intérprete mínimo de 68000 y pruebas del ensamblador propio (`ql_line`, `ql_ell`, `ql_ll9`) contra el C; `gen_lltab.py` genera `src/ql_lltab.asm` |
+| `m68k_mini.py`, `test_lineasm.py`, `test_ellasm.py`, `test_ll9asm.py`, `test_putsasm.py`, `gen_lltab.py` | intérprete mínimo de 68000 y pruebas del ensamblador propio (`ql_line`, `ql_ell`, `ql_ll9`, `ql_puts`) contra el C; `gen_lltab.py` genera `src/ql_lltab.asm` |
 | `install_xtc68.sh`, `c68_check/` | cadena de qcc y verificación de c68 |
 | `tmp/qltools_src/` (se crea sola) | clon y compilación de **qltools** de N. Dunbar (`make qltools`); formatea y escribe la imagen `elite.img` (3.5). No se incluye en el tar |
 
@@ -54,3 +54,6 @@ Movido desde `CLAUDE.md` (secciones 3.2–3.6 y 5.3).
 ## 5.3 Cómo verificar una rutina nueva contra el original
 `tools/orig.py` monta una imagen del 6502 con las rutinas originales que se pidan y stubs para las que dibujan; `tools/gen_laser.py` y `tools/gen_damage.py` son los ejemplos más cómodos; usan `tools/frag6502.py` (su `build(lineas, None, presets)` convierte en stubs que registran (nombre, A, X, Y) todo lo que no se resuelve, y pone un RTS local cuando una rama no llega al stub; ensambla tramos sueltos del bucle principal por etiqueta: `.MA68`..`.MA3`, `.MA47`..`.MA8`...; `presets` fija direcciones de tablas como `log`; si una rama no llega a una etiqueta de fuera, hay que ponerle un `RTS` local delante, p. ej. `['.out', 'RTS'] + OUCH`). Cuidado: un tramo que «cae» en la rutina siguiente (como `Ze` en `DORND2`) necesita esa rutina justo detrás en la lista; `tools/gen_trade.py` (preprocesa `IF/ELIF`, sustituye pantalla por stubs, ejecuta `tnpr` y los tramos de `TT219`/`TT208`). Pasos: volcar el estado inicial aleatorio en el emulador y en C, ejecutar, comparar INWK/variables/líneas dibujadas, repetir con valores límite, mutar una instrucción del C y comprobar que el test falla.
 
+## Cronometraje del texto (`make ql_bench`)
+
+`src/bench_text.c` imprime 2000 caracteres (papel opaco, transparente, `txt_puts` y números) y muestra los cuadros de 20 ms y los µs por carácter. Ejecutar `build/bench_ql` en el QL. Medido antes de `ql_text.asm` (C puro, tabla `fm`): opaco 73 t (730 µs/car.); antes de la tabla, 189 t. `ASM_TEXT` (en el `Makefile`, por defecto 1) usa `ql_puts` (`src/ql_text.asm`: tira de celdas con papel opaco, desenrollada) en `txt_puts` y `txt_putc`; el papel transparente sigue en C. Sin `ASM_TEXT` se usa la misma fórmula en C.

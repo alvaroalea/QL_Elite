@@ -531,8 +531,8 @@ SETYC dt_xc,dt_yc verificada cursor del motor de fichas (asignacion directa de X
 csh dt_csh verificada dinero con BPRNT (9 cifras y punto), make test_missions
 fwl dt_fwl verificada combustible y dinero, make test_missions
 tal dt_tt27 verificada numero de galaxia con pr2, make test_missions
-letter txt_putc,draw_glyph verificada la fuente es la FONT del original (A.FLOWY.bin, tools/gen_font.py), comparada con make test_univ6502; el dibujo es el de la pantalla del QL
-letter2 txt_putc,draw_glyph,dash verificada letras con la FONT del original (make test_univ6502); las bombillas del panel salen del volcado de la pantalla original
+letter txt_putc,draw_glyph,ql_puts verificada la fuente es la FONT del original (A.FLOWY.bin, tools/gen_font.py), comparada con make test_univ6502; el dibujo es el de la pantalla del QL (celda opaca con ql_puts de ql_text.asm, verificada contra su C con make test_putsasm)
+letter2 txt_putc,draw_glyph,ql_puts,dash verificada letras con la FONT del original (make test_univ6502); las bombillas del panel salen del volcado de la pantalla original
 TT25 tt25,tt25_raw,scr_data verificada pantalla de datos del sistema del original con el motor de fichas (missions.c), make test_missions (letra a letra, con TT24 y PDESC reales)
 TT146 tt25_raw verificada distancia con pr5 y LIGHT YEARS, make test_missions
 TT70 tt25_raw verificada MAINLY, make test_missions

@@ -29,7 +29,6 @@ int main(void)
     txt_print_at(0, 28, "Ajuste de linea: esta frase es mas larga que treinta y dos columnas.");
     txt_color(C_CYAN, C_BLACK);
     txt_print_at(0, 22, "Comandante: JAMESON");
-    txt_cursor(1);                                    /* cursor visible tras el texto */
     plat_present();
     plat_wait_key();
     plat_shutdown();
