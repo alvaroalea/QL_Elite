@@ -241,17 +241,20 @@ static void dbg_fps_frame(void)
     fps_t0 = now; fps_n = 0;
 }
 
-/* SHIFT-D: cicla lo que se salta en el dibujo de las naves (LL9): nada -> matematicas -> dibujo -> ambos -> nada. Sin matematicas, cada
-   nave repinta dos veces las lineas que ya tenia (mismo coste de dibujo, no se mueve en pantalla); sin dibujo, LL9 calcula pero no pinta.
-   Al entrar o salir del modo sin dibujo se borra la vista (el monton de lineas ya no coincide con la pantalla) */
+/* SHIFT-D: cicla lo que se salta (ship_dbg_skip, 3 bits, 8 estados): bit 0 = matematicas de LL9, bit 1 = dibujo de las naves, bit 2 = pintado de
+   las estrellas (se calculan pero no se pintan). Sin matematicas, cada nave repinta dos veces las lineas que ya tenia (mismo coste de dibujo, no se
+   mueve en pantalla); sin dibujo, LL9 calcula pero no pinta. Al cambiar el dibujo de las naves o el de las estrellas se borra la vista (el monton
+   de lineas o las estrellas ya no coinciden con la pantalla) */
 static void clear_view(void);
 static void view_extras(void);
 static void dbg_skip_key(void)
 {
-    static const char *const names[4] = { "SKIP: NONE", "SKIP: MATHS", "SKIP: DRAWING", "SKIP: MATHS+DRAWING" };
+    static const char *const names[8] = { "SKIP: NONE", "SKIP: MATHS", "SKIP: DRAWING", "SKIP: MATHS+DRAWING",
+                                          "SKIP: STARS", "SKIP: STARS+MATHS", "SKIP: STARS+DRAWING", "SKIP: ALL" };
     u8 old = ship_dbg_skip;
-    ship_dbg_skip = (u8)((ship_dbg_skip + 1) & 3);
-    if ((old ^ ship_dbg_skip) & 2) { clear_view(); stars_new(); view_extras(); }
+    ship_dbg_skip = (u8)((ship_dbg_skip + 1) & 7);
+    stars_dbg_nodraw = (u8)((ship_dbg_skip >> 2) & 1);
+    if ((old ^ ship_dbg_skip) & 6) { clear_view(); stars_new(); view_extras(); }
     say(names[ship_dbg_skip], 0);
 }
 #endif

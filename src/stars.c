@@ -13,6 +13,9 @@ u8 delt4[2];
 #define YHALF 68                          /* Y: mitad de la altura de la vista (136 / 2) */
 
 static u8 c;                              /* acarreo del 6502 */
+#ifdef DEBUG
+u8 stars_dbg_nodraw = 0;                        /* DEBUG (SHIFT-F): 1 = las estrellas se calculan pero no se pintan */
+#endif
 void (*stars_pixel_hook)(u8 x, u8 y, u8 zz) = 0;   /* pruebas: cada PIXEL de PIXEL2 (X, A, ZZ) */
 static u8 xx[2], yy[2];                   /* XX, YY (16 bits, byte bajo primero) */
 static u8 zz;                             /* ZZ */
@@ -58,6 +61,9 @@ static void pixel2(void)
     t = a;
     a = sbcc(YHALF + 1, t);
     if (stars_pixel_hook) stars_pixel_hook(x, a, zz);
+#ifdef DEBUG
+    if (stars_dbg_nodraw) { c = 1; return; }
+#endif
     if (view_native) {                     /* vista nativa: la fila del original se lleva a la de pantalla (centro 80, x 6/5) */
         int ny = view_ty(a);
         if (ny >= 1 && ny < clip_h) gfx_dust(x, ny, zz);
