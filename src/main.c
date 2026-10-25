@@ -56,6 +56,7 @@ int main(int argc, char **argv)
 {
     plat_init();
     txt_init();
+    plat_mode(gfx_hires_opt);                       /* por defecto se arranca en modo 8; con la opcion de 512 (menu de opciones del vuelo), titulo y vuelo van en modo 4 (512 x 256, rojo, verde y blanco) */
     in_init();
     config_apply();                                 /* joystick CTL1 (cursores y espacio) siempre seleccionado */
     snd_init();

@@ -16,6 +16,7 @@
 #define D_WARN   0xFF
 
 static u8 dash_bg[DASH_BYTES];
+static u8 dash_bg4[DASH_BYTES];        /* el mismo fondo en modo 4 (negro, rojo, verde y blanco), convertido al cargar */
 static int bg_ok = 0;
 static int bg_loads = 0;               /* veces que se ha leido el fichero del disco (debe ser 1 por sesion) */
 
@@ -45,6 +46,27 @@ void dash_reset(void)
     dash_comc = 0;
 }
 
+/* Fondo en modo 8 -> modo 4: cada punto (pareja de bits) pasa a los 2 puntos fisicos de su sitio. Solo el rojo puro y el verde puro
+   conservan su color; el negro sigue negro y cualquier otro color es blanco (como gfx_ccode). */
+static void dash_to_mode4(void)
+{
+    long i;
+    int k;
+    for (i = 0; i < (long)DASH_BYTES; i += 2) {
+        u8 g = dash_bg[i], rb = dash_bg[i + 1], og = 0, orr = 0;
+        for (k = 0; k < 4; k++) {
+            int s = 2 * (3 - k);
+            int gg = (g >> (s + 1)) & 1, rr = (rb >> (s + 1)) & 1, bb = (rb >> s) & 1;
+            u8 cc, m = (u8)(3 << s);
+            if (!(gg | rr | bb)) continue;
+            cc = (!bb && gg && !rr) ? 12 : ((!bb && rr && !gg) ? 3 : 15);
+            og |= (u8)(GFX_GM(cc) & m);
+            orr |= (u8)(GFX_RM(cc) & m);
+        }
+        dash_bg4[i] = og; dash_bg4[i + 1] = orr;
+    }
+}
+
 int dash_load(void)
 {
     char fn[48];
@@ -63,6 +85,7 @@ int dash_load(void)
     n = (long)fread(dash_bg, 1, DASH_BYTES, f);
     fclose(f);
     if (n != (long)DASH_BYTES) return DASH_E_FORMAT;
+    dash_to_mode4();
     bg_ok = 1;
     bg_loads++;
     return DASH_OK;
@@ -127,7 +150,7 @@ static void fallback_panel(void)
 void dash_show(void)
 {
     u8 *dst = screen + (long)DASH_Y0 * 128L;
-    if (bg_ok) gfx_copy(dst, dash_bg, (long)DASH_BYTES);
+    if (bg_ok) gfx_copy(dst, gfx_m4 ? dash_bg4 : dash_bg, (long)DASH_BYTES);
     else fallback_panel();
     dash_reset();
 }
@@ -191,7 +214,7 @@ static void dis5(u8 a, u8 neg)
 /* ---------------------------------------------------------------- brujula (COMPAS, SP1, SP2, DOT) */
 
 /* DOT: el punto de la brujula en XOR (dibujarlo otra vez lo borra). Propio del port: 3 x 4 puntos con la esquina superior izquierda en
-   (COMX, COMY - 2), en amarillo si apunta a la estacion y en blanco si apunta al planeta; delante (COMC = $60) un disco relleno y
+   (COMX, COMY - 2), en amarillo (modo 8) o rojo (modo 4) si apunta a la estacion y en blanco si apunta al planeta; delante (COMC = $60) un disco relleno y
    detras (COMC = $30) un anillo. Se pinta por columnas con gfx_vline_xor y gfx_xor_pixel (ensamblador en el QL), no punto a punto.
    El PIXEL original (3 x 1 delante, 3 x 2 detras, blanco) era gfx_dust_6502 */
 static u8 com_col = C_WHITE;                        /* color con que se pinto el punto que hay en pantalla */
@@ -229,7 +252,7 @@ static void compas(void)
     sm_sps2(zx15[1]);
     t = sm_x;
     d = 148 - (int)t - (1 - (int)em_carry);    /* LDA #148; SBC T */
-    col = sspr ? C_YELLOW : C_WHITE;
+    col = sspr ? (gfx_m4 ? C_RED : C_YELLOW) : C_WHITE;   /* propio: estacion = amarillo (modo 8) o rojo (modo 4); planeta = blanco */
     if (!dash_trace && oc != 0 && (u8)s == ox && (u8)d == oy && oc == ((zx15[2] & 0x80) ? 0x30 : 0x60) && col == com_col)
         return;                                /* propio: si no cambia nada no se borra ni se repinta (sin parpadeo) */
     dot();                                     /* borra el punto anterior (con su color) */

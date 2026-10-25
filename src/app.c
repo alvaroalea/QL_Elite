@@ -18,6 +18,7 @@ title:
     if (t == TITLE_QUIT || in_quit) return 0;
     f = in_frames();                                  /* semilla del generador: tiempo hasta la primera pulsacion */
     em_rand[0] = (u8)(f); em_rand[1] = (u8)(f >> 8); em_rand[2] = (u8)(f ^ 0x5A); em_rand[3] = (u8)(0xA7 + (f >> 4));
+    plat_mode(0);                                     /* dentro de la estacion: modo 8 */
     if (t == TITLE_NEW) game_new();
     missions_hooks();
     sc = SC_STATUS;

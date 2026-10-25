@@ -29,8 +29,9 @@ Movido desde `CLAUDE.md` (secciones 3.2–3.6 y 5.3).
 | `gen_dashboard.py` | `A.SCREEN.bin` (volcado hires del Apple II) → `data/elite_dash` |
 | `png2dash.py` | cabina editable: PNG de 8 colores (cualquier múltiplo de 256 × 56) → `data/elite_dash`, y `--export` del panel a PNG (por defecto 1024 × 112, píxeles de 4 × 2 con la proporción del QL); `make dash_png`, `make dash_from_png` (con `asset/cabina.png`), `make test_dashpng` (ida y vuelta) |
 | `gen_font.py`, `gen_tables.py`, `gen_sne.py`, `gen_universe_text.py`, `make_oracle.py` | fuente 8×8, tablas log/seno, tabla de seno de naves, textos del universo, oráculo de Text Elite |
-| `ql2png.py` | convierte una captura de pantalla QL (32 KB) a PNG |
+| `ql2png.py` | convierte una captura de pantalla QL (32 KB) a PNG (`ql2png.py captura.bin salida.png [4]`: el 4 = modo 4, 1024 × 768; las capturas de `test_game` de modo 4 llevan un `NN.m4` al lado) |
 | `inventory.py`, `ported.txt` | generan `INVENTARIO.md` |
+| `test_mode4asm.py` | ensamblador de **modo 4** (`ql_line4`, `ql_ellipse` con `hr`, `ql_ellrows4` y punto/tramo/columna/rectángulo con los códigos de color de modo 4) ejecutado con `m68k_mini.py` contra las versiones en C con `gfx_m4 = 1` (`tests/m4_dump.c`); `make test_mode4asm` |
 | `m68k_mini.py`, `test_lineasm.py`, `test_ellasm.py`, `test_ll9asm.py`, `test_putsasm.py`, `gen_lltab.py` | intérprete mínimo de 68000 y pruebas del ensamblador propio (`ql_line`, `ql_ell`, `ql_ll9`, `ql_puts`) contra el C; `gen_lltab.py` genera `src/ql_lltab.asm` |
 | `install_xtc68.sh`, `c68_check/` | cadena de qcc y verificación de c68 |
 | `tmp/qltools_src/` (se crea sola) | clon y compilación de **qltools** de N. Dunbar (`make qltools`); formatea y escribe la imagen `elite.img` (3.5). No se incluye en el tar |

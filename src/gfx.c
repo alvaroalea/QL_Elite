@@ -1,8 +1,27 @@
 #include "platform.h"
 
 /* Modo 8: cada palabra = 4 pixeles. Para el pixel k (0..3, izq a der), sea s=2*(3-k):
-   byte0: bit s+1 = Verde, bit s = Flash ; byte1: bit s+1 = Rojo, bit s = Azul. */
+   byte0: bit s+1 = Verde, bit s = Flash ; byte1: bit s+1 = Rojo, bit s = Azul.
+   Modo 4: cada palabra = 8 puntos fisicos (byte0 = verde, byte1 = rojo, bit 7 = el de la izquierda). Un punto del juego (x de 0 a 255) son
+   2 puntos fisicos seguidos, que caen exactamente en las parejas de bits s+1 y s del modo 8: por eso las rutinas de punto, tramo y
+   relleno son las mismas en los dos modos y solo cambian las mascaras de color (el bit "flash" hace de segundo punto del verde y el
+   bit "azul" del rojo; ver gfx_ccode). Las lineas y las elipses de la vista de vuelo usan los 512 puntos (sufijo _hr). */
 #define OFF(x,y) ((long)(y) * SCR_STRIDE + (((x) >> 2) << 1))
+
+u8 gfx_m4 = 0;
+u8 gfx_hires_opt = 0;
+void (*gfx_mode_hook)(void) = 0;
+
+static const u8 ccm4[8] = { 0, 15, 3, 15, 12, 15, 15, 15 };   /* modo 4: negro, rojo (2) y verde (4) tal cual; todo lo demas, blanco */
+#define CC(c) (gfx_m4 ? ccm4[(c) & 7] : (u8)((c) & 7))
+
+u8 gfx_ccode(u8 c) { return CC(c); }
+
+void gfx_set_mode(int m4)
+{
+    gfx_m4 = (u8)(m4 ? 1 : 0);
+    if (gfx_mode_hook) gfx_mode_hook();
+}
 
 static int iabs(int v) { return v < 0 ? -v : v; }
 
@@ -10,13 +29,14 @@ void gfx_pixel(int x, int y, u8 c)
 {
     u8 *p;
     int s;
-    u8 m;
+    u8 m, cc;
     if ((unsigned)x >= SCR_W || (unsigned)y >= SCR_H) return;
     p = screen + OFF(x, y);
     s = 2 * (3 - (x & 3));
     m = (u8)(3 << s);
-    p[0] = (u8)((p[0] & ~m) | ((c & 4) ? (2 << s) : 0));
-    p[1] = (u8)((p[1] & ~m) | ((c & 2) ? (2 << s) : 0) | ((c & 1) ? (1 << s) : 0));
+    cc = CC(c);
+    p[0] = (u8)((p[0] & ~m) | (GFX_GM(cc) & m));
+    p[1] = (u8)((p[1] & ~m) | (GFX_RM(cc) & m));
 }
 
 #ifdef ASM_LINE
@@ -26,11 +46,14 @@ static void xor1(int x, int y, u8 c)
 {
     u8 *p;
     int s;
+    u8 m, cc;
     if ((unsigned)x >= SCR_W || (unsigned)y >= SCR_H) return;
     p = screen + OFF(x, y);
     s = 2 * (3 - (x & 3));
-    p[0] ^= (u8)((c & 4) ? (2 << s) : 0);
-    p[1] ^= (u8)(((c & 2) ? (2 << s) : 0) | ((c & 1) ? (1 << s) : 0));
+    m = (u8)(3 << s);
+    cc = CC(c);
+    p[0] ^= (u8)(GFX_GM(cc) & m);
+    p[1] ^= (u8)(GFX_RM(cc) & m);
 }
 #endif
 
@@ -44,20 +67,38 @@ void gfx_xor_pixel(int x, int y, u8 c)
 #ifdef ASM_LINE
     y += yoff;
     if ((unsigned)x > 255 || y < 0 || y > 255) return;
-    ql_xpix((long)x, (long)y, (long)c, (long)screen);
+    ql_xpix((long)x, (long)y, (long)CC(c), (long)screen);
 #else
     xor1(x, y + yoff, c);
 #endif
+}
+
+/* Modo 4: un punto fisico (x de 0 a 511) en XOR, con el mismo desplazamiento vertical que gfx_xor_pixel. En modo 8 no hay resolucion
+   doble: es el punto del juego x / 2 */
+void gfx_xor_pixel_hr(int x, int y, u8 c)
+{
+    u8 *p, m, cc;
+    if (!gfx_m4) { gfx_xor_pixel(x >> 1, y, c); return; }
+    y += yoff;
+    if ((unsigned)x > 511U || (unsigned)y > 255U) return;
+    cc = CC(c);
+    p = screen + (long)y * SCR_STRIDE + (((long)x >> 3) << 1);
+    m = (u8)(0x80 >> (x & 7));
+    if (cc & 4) p[0] ^= m;
+    if (cc & 2) p[1] ^= m;
 }
 
 u8 gfx_get(int x, int y)
 {
     u8 *p;
     int s;
+    int g, r;
     if ((unsigned)x >= SCR_W || (unsigned)y >= SCR_H) return 0;
     p = screen + OFF(x, y);
     s = 2 * (3 - (x & 3));
-    return (u8)((((p[0] >> (s + 1)) & 1) << 2) | (((p[1] >> (s + 1)) & 1) << 1) | ((p[1] >> s) & 1));
+    g = (p[0] >> (s + 1)) & 1; r = (p[1] >> (s + 1)) & 1;
+    if (gfx_m4) return (u8)((g << 2) | (r << 1) | (g & r));       /* blanco = verde y rojo */
+    return (u8)((g << 2) | (r << 1) | ((p[1] >> s) & 1));
 }
 
 /* Relleno rapido de n lineas completas (128 bytes cada una) desde la linea y con el color c. En el QL se escribe de 4 en 4 bytes y
@@ -65,8 +106,9 @@ u8 gfx_get(int x, int y)
    de reglas de alias. La pantalla y las lineas estan en direcciones pares. */
 void gfx_fill_lines(int y, int n, u8 c)
 {
-    u8 g = (c & 4) ? 0xAA : 0;
-    u8 rb = (u8)(((c & 2) ? 0xAA : 0) | ((c & 1) ? 0x55 : 0));
+    u8 cc = CC(c);
+    u8 g = GFX_GM(cc);
+    u8 rb = GFX_RM(cc);
     if (y < 0) { n += y; y = 0; }
     if (y + n > SCR_H) n = SCR_H - y;
     if (n <= 0) return;
@@ -133,6 +175,7 @@ extern void ql_hline(long x0, long x1, long y, long c, long scr);
 extern void ql_vline(long x, long y0, long y1, long c, long scr);
 extern void ql_frame(long *blk);
 extern void ql_ellrows(long *blk);                                          /* ql_ellrows.asm */
+extern void ql_ellrows4(long *blk);                                         /* modo 4, a los 512 puntos */
 extern void ql_clearcells(long col, long row, long ncols, long nrows, long scr);
 #endif
 
@@ -145,7 +188,7 @@ void gfx_hline_xor(int x0, int x1, int y, u8 c)
     if (y < 0 || y > 255 || x1 < 0 || x0 > 255) return;
     if (x0 < 0) x0 = 0;
     if (x1 > 255) x1 = 255;
-    ql_hline((long)x0, (long)x1, (long)y, (long)c, (long)screen);
+    ql_hline((long)x0, (long)x1, (long)y, (long)CC(c), (long)screen);
 #else
     for (x = x0; x <= x1; x++) gfx_xor_pixel(x, y, c);
 #endif
@@ -162,7 +205,7 @@ void gfx_vline_xor(int x, int y0, int y1, u8 c)
     if (x < 0 || x > 255 || y1 < 0 || y0 > 255) return;
     if (y0 < 0) y0 = 0;
     if (y1 > 255) y1 = 255;
-    ql_vline((long)x, (long)y0, (long)y1, (long)c, (long)screen);
+    ql_vline((long)x, (long)y0, (long)y1, (long)CC(c), (long)screen);
 #else
     for (y = y0; y <= y1; y++) gfx_xor_pixel(x, y, c);
 #endif
@@ -234,22 +277,35 @@ void gfx_rect(int x, int y, int w, int h, u8 c)
    borra lo dibujado, asi que no hace falta guardar los puntos. Todo en long (en c68 int es de 16 bits): con rx <= 300 y ry <= 360 los
    terminos de error caben en 32 bits. Recorta al rectangulo (clx0, cly0)-(clx1, cly1); si cabe entero va sin comprobar cada punto. */
 static u8 el_col;
-static int el_x0, el_y0, el_x1, el_y1, el_clip;
+static int el_x0, el_y0, el_x1, el_y1, el_clip, el_hr;
 
 static void el_plot(int x, int y)
 {
     if (el_clip && (x < el_x0 || x > el_x1 || y < el_y0 || y > el_y1)) return;
-    gfx_xor_pixel(x, y, el_col);
+    if (el_hr) gfx_xor_pixel_hr(x, y, el_col); else gfx_xor_pixel(x, y, el_col);
 }
 
+static void ellipse_core(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly0, int clx1, int cly1, int hr);
+
+/* En modo 4 la elipse se dibuja a los 512 puntos: el semieje horizontal es 2 rx puntos fisicos (rx y ry son los del juego, con el
+   aspecto del monitor ya aplicado a ry: los puntos fisicos de modo 4 son la mitad de anchos que los de modo 8, el mismo 2 x que las lineas) */
 void gfx_ellipse_xor(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly0, int clx1, int cly1)
+{
+    if (gfx_m4) {
+        if (rx < 0) rx = -rx;
+        if (cx + rx < clx0 || cx - rx > clx1) return;      /* antes de doblar: cx puede ser grande y en c68 int es de 16 bits */
+        ellipse_core(2 * cx, cy, 2 * rx, ry, c, 2 * clx0, cly0, 2 * clx1 + 1, cly1, 1);
+    } else ellipse_core(cx, cy, rx, ry, c, clx0, cly0, clx1, cly1, 0);
+}
+
+static void ellipse_core(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly0, int clx1, int cly1, int hr)
 {
     long a, b, dx, dy, err, e2, a8, b8;
     int x0, x1, y0, y1;
     if (rx < 0) rx = -rx;
     if (ry < 0) ry = -ry;
     if (cx + rx < clx0 || cx - rx > clx1 || cy + ry < cly0 || cy - ry > cly1) return;       /* fuera del todo */
-    el_col = c; el_x0 = clx0; el_y0 = cly0; el_x1 = clx1; el_y1 = cly1;
+    el_col = c; el_x0 = clx0; el_y0 = cly0; el_x1 = clx1; el_y1 = cly1; el_hr = hr;
     el_clip = !(cx - rx >= clx0 && cx + rx <= clx1 && cy - ry >= cly0 && cy + ry <= cly1);
     if (rx == 0 || ry == 0) {                          /* degenerada: un punto o un segmento */
         for (y0 = cy - ry; y0 <= cy + ry; y0++) for (x0 = cx - rx; x0 <= cx + rx; x0++) el_plot(x0, y0);
@@ -264,10 +320,11 @@ void gfx_ellipse_xor(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly0, i
     a8 = 8L * a * a; b8 = 8L * b * b;
 #ifdef ASM_LINE
     {                                                    /* bucle completo en ensamblador (ql_ell.asm): bloque de parametros */
-        static long blk[18];
+        static long blk[19];
         blk[0] = a8; blk[1] = b8;
-        blk[2] = (c & 4) ? 0xAAL : 0L;
-        blk[3] = (long)(((c & 2) ? 0xAA : 0) | ((c & 1) ? 0x55 : 0));
+        blk[2] = (long)GFX_GM(CC(c));
+        blk[3] = (long)GFX_RM(CC(c));
+        blk[18] = (long)hr;
         blk[4] = clx0; blk[5] = cly0; blk[6] = clx1; blk[7] = cly1;
         blk[8] = dx; blk[9] = dy; blk[10] = 0L; blk[11] = err;
         blk[12] = (long)screen; blk[13] = 2L * ry;
@@ -326,15 +383,52 @@ void gfx_ellipse_rows(int rx, int ry, u8 *half)
     }
 }
 
+/* Modo 4, a los 512 puntos: igual que gfx_ellipse_rows pero con el semieje rx ya en puntos fisicos (hasta 510) y semianchos de 16 bits */
+static void ell_rows_hr(int rx, int ry, unsigned short *half)
+{
+    long a, b, dx, dy, err, e2, a8, b8;
+    int x0, x1, y0, last = -1, d;
+    if (rx == 0 || ry == 0) { for (d = 0; d <= ry; d++) half[d] = (unsigned short)rx; return; }
+    y0 = 0;
+    a = 2L * rx; b = 2L * ry;
+    dx = 4L * (1L - a) * b * b;
+    dy = 4L * a * a;
+    err = dx + dy;
+    a8 = 8L * a * a; b8 = 8L * b * b;
+    x0 = -rx; x1 = rx;
+    do {
+        if (y0 != last && y0 <= ry) { half[y0] = (unsigned short)x1; last = y0; }
+        e2 = 2L * err;
+        if (e2 <= dy) { y0++; dy += a8; err += dy; }
+        if (e2 >= dx || 2L * err > dy) { x0++; x1--; dx += b8; err += dx; }
+    } while (x0 <= x1);
+    for (d = y0; d <= ry; d++) {
+        int v = x1 + 1 < 0 ? 0 : x1 + 1;
+        if (d > last || half[d] < v) half[d] = (unsigned short)v;
+    }
+}
+
 /* Tabla de tramos del contorno de una elipse de semiejes rx, ry (ry <= 303): para cada distancia dy = 0..ry del centro, tab[2 * dy] = lo y
    tab[2 * dy + 1] = hi: el contorno de esa fila es cx + lo .. cx + hi (y su reflejo a la izquierda; con lo = 0, un unico tramo cx - hi .. cx + hi).
    Sale de la tabla de semianchos half[] (gfx_ellipse_rows): fila dy < ry: de half[dy + 1] + 1 a half[dy] si half[dy + 1] < half[dy], si no el
    punto half[dy]; fila dy = ry: de 0 a half[ry]. Es el mismo contorno que dibuja gfx_ellipse_xor (punto medio): comprobado punto a punto en
-   make test_ellrows. Mide 2 * (ry + 1) bytes. */
+   make test_ellrows. Mide 2 * (ry + 1) bytes. En modo 4 la tabla es de palabras de 16 bits (unsigned short, direccion par; 4 * (ry + 1)
+   bytes) y en puntos fisicos: rx es el semieje del juego y el contorno sale con 2 rx. */
 void gfx_ell_spans(int rx, int ry, u8 *tab)
 {
     static u8 half[304];
     int dy;
+    if (gfx_m4) {
+        static unsigned short half16[304];
+        unsigned short *t = (unsigned short *)tab;
+        ell_rows_hr(2 * (rx < 0 ? -rx : rx), ry < 0 ? -ry : ry, half16);
+        if (ry < 0) ry = -ry;
+        for (dy = 0; dy <= ry; dy++) {
+            t[2 * dy + 1] = half16[dy];
+            t[2 * dy] = (unsigned short)((dy == ry) ? 0 : ((half16[dy + 1] < half16[dy]) ? half16[dy + 1] + 1 : half16[dy]));
+        }
+        return;
+    }
     gfx_ellipse_rows(rx, ry, half);
     for (dy = 0; dy <= ry; dy++) {
         tab[2 * dy + 1] = half[dy];
@@ -352,6 +446,32 @@ static int ell_span(int y, int cy, int ry, const u8 *tab, int *lo, int *hi)
     return 1;
 }
 
+#ifndef ASM_LINE
+/* Modo 4 (puntos fisicos): la misma tabla en palabras de 16 bits */
+static int ell_span_hr(int y, int cy, int ry, const unsigned short *tab, int *lo, int *hi)
+{
+    int dy = y - cy;
+    if (dy < 0) dy = -dy;
+    if (ry < 0 || dy > ry) return 0;
+    *lo = tab[2 * dy]; *hi = tab[2 * dy + 1];
+    return 1;
+}
+
+static void hline_hr(int x0, int x1, int y, u8 c)       /* x0 <= x1, 0 a 511 recortado */
+{
+    if (x0 < 0) x0 = 0;
+    if (x1 > 511) x1 = 511;
+    for (; x0 <= x1; x0++) gfx_xor_pixel_hr(x0, y, c);
+}
+
+static void ell_xor_spans_hr(int cx, int lo, int hi, int y, u8 c)
+{
+    if (lo == 0) { hline_hr(cx - hi, cx + hi, y, c); return; }
+    hline_hr(cx - hi, cx - lo, y, c);
+    hline_hr(cx + lo, cx + hi, y, c);
+}
+#endif
+
 static void ell_xor_spans(int cx, int lo, int hi, int y, u8 c)
 {
     if (lo == 0) { gfx_hline_xor(cx - hi, cx + hi, y, c); return; }
@@ -362,7 +482,8 @@ static void ell_xor_spans(int cx, int lo, int hi, int y, u8 c)
 /* Cambia una elipse (centro ocx, ocy, semialto ory, tabla de tramos otab; ory = -1 si no habia ninguna) por otra (ncx, ncy, nry, ntab; nry = -1 para
    borrarla), recortadas a x 0..255 e y 0..cly1, FILA A FILA: en cada linea se borra lo viejo y se dibuja lo nuevo seguidos (y se salta si
    no cambia), asi la elipse nunca desaparece entera. El resultado en pantalla es el mismo que gfx_ellipse_xor(vieja) + gfx_ellipse_xor(nueva)
-   (XOR). yoff debe ser 0. En el QL va en ensamblador (ql_ellrows.asm). */
+   (XOR). yoff debe ser 0. En el QL va en ensamblador (ql_ellrows.asm). En modo 4 las tablas son de 16 bits y en puntos fisicos
+   (gfx_ell_spans), los centros siguen siendo del juego (x fisica = 2 x) y se recorta a 0..511. */
 void gfx_ell_update(int ocx, int ocy, int ory, const u8 *otab, int ncx, int ncy, int nry, const u8 *ntab, u8 c, int cly1)
 {
     int top = 32767, bot = -32768, y;
@@ -378,13 +499,24 @@ void gfx_ell_update(int ocx, int ocy, int ory, const u8 *otab, int ncx, int ncy,
         blk[0] = top; blk[1] = bot;
         blk[2] = ocx; blk[3] = ocy; blk[4] = ory; blk[5] = (long)otab;
         blk[6] = ncx; blk[7] = ncy; blk[8] = nry; blk[9] = (long)ntab;
-        blk[10] = (c & 4) ? 0xAAL : 0L;
-        blk[11] = (long)(((c & 2) ? 0xAA : 0) | ((c & 1) ? 0x55 : 0));
+        blk[10] = (long)GFX_GM(CC(c));
+        blk[11] = (long)GFX_RM(CC(c));
         blk[12] = (long)screen;
-        ql_ellrows(blk);
+        if (gfx_m4) { blk[2] = 2L * ocx; blk[6] = 2L * ncx; ql_ellrows4(blk); }
+        else ql_ellrows(blk);
         return;
     }
 #else
+    if (gfx_m4) {
+        for (y = top; y <= bot; y++) {
+            int olo, ohi, nlo, nhi, o = ell_span_hr(y, ocy, ory, (const unsigned short *)otab, &olo, &ohi), n = ell_span_hr(y, ncy, nry, (const unsigned short *)ntab, &nlo, &nhi);
+            if (!o && !n) continue;
+            if (o && n && olo == nlo && ohi == nhi && ocx == ncx) continue;
+            if (o) ell_xor_spans_hr(2 * ocx, olo, ohi, y, c);
+            if (n) ell_xor_spans_hr(2 * ncx, nlo, nhi, y, c);
+        }
+        return;
+    }
     for (y = top; y <= bot; y++) {
         int olo, ohi, nlo, nhi, o = ell_span(y, ocy, ory, otab, &olo, &ohi), n = ell_span(y, ncy, nry, ntab, &nlo, &nhi);
         if (!o && !n) continue;
@@ -416,8 +548,8 @@ void gfx_frame_xor(int cx, int cy, int hw, int hh, u8 c, int clx0, int cly0, int
         static long blk[11];
         blk[0] = cx - hw; blk[1] = cy - hh; blk[2] = cx + hw; blk[3] = cy + hh;
         blk[4] = clx0; blk[5] = cly0; blk[6] = clx1; blk[7] = cly1;
-        blk[8] = (c & 4) ? 0xAAL : 0L;
-        blk[9] = (long)(((c & 2) ? 0xAA : 0) | ((c & 1) ? 0x55 : 0));
+        blk[8] = (long)GFX_GM(CC(c));
+        blk[9] = (long)GFX_RM(CC(c));
         blk[10] = (long)screen;
         ql_frame(blk);
     }

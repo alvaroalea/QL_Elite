@@ -194,6 +194,9 @@ static void snapshot(int n)
     sprintf(fn, "tests/shots/%02d.bin", n);
     f = fopen(fn, "wb");
     if (f) { fwrite(screen, 1, SCR_BYTES, f); fclose(f); snapn++; }
+    sprintf(fn, "tests/shots/%02d.m4", n);                  /* marca de modo: el fichero existe solo si la captura es de modo 4 (ql2png.py ... 4) */
+    if (gfx_m4) { f = fopen(fn, "wb"); if (f) fclose(f); }
+    else remove(fn);
 }
 
 static int feed(void)

@@ -13,7 +13,7 @@ elite_dash  Fondo del panel de instrumentos (tira de 256 x 56 pixeles en modo 8)
             y python3 tools/png2dash.py --export [elite_dash] [imagen.png] [--scale K] (K = 0: 256 x 56; K: 512K x 56K).
             El juego dibuja encima las barras, la brujula, el radar, los misiles y las bombillas: conviene respetar esas
             zonas de la plantilla.
-boot        Programa de arranque de SuperBASIC: MODE 8, carga elite_scr en la pantalla ($20000) y ejecuta elite.
+boot        Programa de arranque de SuperBASIC: MODE 8 (pantalla de carga; el juego solo pasa a modo 4 en el titulo y el vuelo si se activa la opcion 512 (tecla M en las opciones de la pausa)), carga elite_scr en la pantalla ($20000) y ejecuta elite.
             La unidad va en la variable dev$ (linea 20, "flp1_"). El juego busca elite_dash (y guarda los comandantes
             alli) en DATA_USE, PROG_USE, flp1_, flp2_, win1_, mdv1_ y mdv2_. Con Toolkit II o SMSQ/E se le puede
             pasar la unidad: EXEC_W dev$&"elite";dev$ (necesario si es un directorio, p. ej. win1_elite_); sin

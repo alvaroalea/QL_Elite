@@ -6,13 +6,13 @@ La LLM actúa como experta en Sinclair QL, Apple II, C y ensamblador de 6502 y 6
 
 **Detalle en `docs/`** (leer el que toque antes de trabajar en esa área):
 - `docs/HERRAMIENTAS.md` — instalar XTC68, herramientas Python de `tools/`, `c68_check`, imágenes `elite.img` (qltools) y `elite.mdv` (mdvtool), verificar contra el 6502.
-- `docs/HARDWARE_QL.md` — pantalla modo 8, consola, `KEYROW`, joystick, `BEEP` por IPC, trap #3, disco y unidad del juego, `_envsetup`.
+- `docs/HARDWARE_QL.md` — pantalla modos 4 y 8 (y cuándo se cambia), consola, `KEYROW`, joystick, `BEEP` por IPC, trap #3, disco y unidad del juego, `_envsetup`.
 - `docs/HALLAZGOS.md` — comportamientos y fallos del original que se reproducen (acarreos de `DORND`, `LOIN`, `MT17`, láser, daños, TACTICS...). **Consultar antes de portar o tocar una rutina.**
 - `docs/DECISIONES.md` — rutinas «no necesarias», decisiones de diseño y mejoras propias retiradas (y cómo recuperarlas).
 
 ## 1. Resumen
 
-- **Objetivo:** port de **Elite, versión Apple II (Firebird, 1985)** al **Sinclair QL** (68008 a 7,5 MHz, bus de 8 bits, sin FPU, ≤ 640 KB, **modo 8: 256×256, 8 colores**), en **C89** con **qcc (XTC68/c68)** y ensamblador `as68`. Versión de disco.
+- **Objetivo:** port de **Elite, versión Apple II (Firebird, 1985)** al **Sinclair QL** (68008 a 7,5 MHz, bus de 8 bits, sin FPU, ≤ 640 KB; **modo 8: 256×256, 8 colores; opcionalmente (opciones de la pausa, tecla M) título y vuelo en modo 4: 512×256, negro/rojo/verde/blanco**), en **C89** con **qcc (XTC68/c68)** y ensamblador `as68`. Versión de disco.
 - **Referencias** (solo para verificar, no son parte del proyecto): `ref/moxon-appleII` (Mark Moxon; `1-source-files/main-sources/elite-source.asm`, rutinas con cabecera `;       Name: X`, y `elite-data.asm`; **sin licencia**: el código del port es propio y no copia sus comentarios), `ref/moxon-bbc-a`, `ref/TXTELITE.C` (Text Elite 1.5). Emuladores: QPC2, uQLx, sQLux. Juego original de Ian Bell y David Braben.
 - **Estrategia:** HAL para lo que depende del hardware (no se compara con el 6502); el resto se porta a C sin verificar cada rutina, anotándola en `tools/ported.txt` (de ahí sale `docs/INVENTARIO.md`); con el juego arrancando en el QL se verifica contra el emulador de 6502; después, profiling, paso a ensamblador y mejoras.
 

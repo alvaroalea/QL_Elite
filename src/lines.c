@@ -80,16 +80,17 @@ li18:           y--;
    hace una rutina de ensamblador que escribe directamente en la pantalla; en el PC (y para comprobarla) esta version en C. */
 void loin_bres_c(u8 x1, u8 y1, u8 x2, u8 y2, u8 c)
 {
-    int x = x1, y = y1, dx, dy, sy, e, n;
+    int x = x1, y = y1, dx, dy, sy, e, n, hr = gfx_m4;
     if (x1 > x2 || (x1 == x2 && y1 > y2)) { x = x2; y = y2; x2 = x1; y2 = y1; }
     dx = (int)x2 - x;
     dy = (int)y2 - y;
+    if (hr) { x *= 2; dx *= 2; }                        /* modo 4: los 512 puntos (x fisica = 2 x del juego) */
     sy = 1;
     if (dy < 0) { dy = -dy; sy = -1; }
     if (dx >= dy) {                                     /* un punto por cada x */
         e = dx >> 1;
         for (n = dx; n >= 0; n--) {
-            gfx_xor_pixel(x, y, c);
+            if (hr) gfx_xor_pixel_hr(x, y, c); else gfx_xor_pixel(x, y, c);
             e -= dy;
             if (e < 0) { y += sy; e += dx; }
             x++;
@@ -97,7 +98,7 @@ void loin_bres_c(u8 x1, u8 y1, u8 x2, u8 y2, u8 c)
     } else {                                            /* un punto por cada y */
         e = dy >> 1;
         for (n = dy; n >= 0; n--) {
-            gfx_xor_pixel(x, y, c);
+            if (hr) gfx_xor_pixel_hr(x, y, c); else gfx_xor_pixel(x, y, c);
             e -= dx;
             if (e < 0) { x++; e += dy; }
             y += sy;

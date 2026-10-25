@@ -230,3 +230,221 @@ h_last:
 	and.b	d1,d0
 	eor.b	d0,1(a0)
 	rts
+
+; ---------------------------------------------------------------------------------------------------------------------------------
+; void ql_ellrows4(long *blk)    modo 4, a los 512 puntos fisicos: el mismo bloque que ql_ellrows, pero ocx y ncx ya son x fisicas (2 x del
+; juego), las tablas de tramos son de palabras de 16 bits (lo, hi: 4 bytes por fila, gfx_ell_spans en modo 4), los tramos se recortan a
+; 0..511 y GB/RB valen $FF o 0. Es ql_ellrows con 8 puntos por palabra.
+	.globl	_ql_ellrows4
+_ql_ellrows4:
+	movem.l	d2-d7/a2-a6,-(sp)
+	move.l	48(sp),a6
+	move.l	48(a6),a2
+	move.l	40(a6),d5
+	move.l	44(a6),d6
+	move.l	20(a6),a3
+	move.l	36(a6),a4
+rowlp4:
+	move.w	2(a6),d0		; y
+	move.w	d0,d1
+	lsl.w	#7,d1
+	lea	0(a2,d1.w),a5		; inicio de la fila y
+	move.w	14(a6),d1		; elipse vieja: ocy, ory, tabla
+	move.w	18(a6),d2
+	move.l	a3,a0
+	bsr	getspan4
+	move.w	d2,d4			; vieja: hi en d4, lo en d7
+	move.w	d3,d7
+	move.w	2(a6),d0
+	move.w	30(a6),d1		; elipse nueva: ncy, nry, tabla
+	move.w	34(a6),d2
+	move.l	a4,a0
+	bsr	getspan4			; nueva: hi en d2, lo en d3
+	tst.w	d4
+	bpl	have4
+	tst.w	d2
+	bmi	nextrow4			; ninguna de las dos toca esta fila
+have4:
+	cmp.w	d4,d2
+	bne	draw4
+	cmp.w	d7,d3
+	bne	draw4
+	move.w	10(a6),d0
+	cmp.w	26(a6),d0
+	beq	nextrow4			; mismo tramo y mismo centro: nada que cambiar
+draw4:
+	move.w	d2,-(sp)		; la nueva se guarda mientras se borra la vieja
+	move.w	d3,-(sp)
+	tst.w	d4
+	bmi	dnew4
+	move.w	d4,d2
+	move.w	d7,d3
+	move.w	10(a6),d1
+	bsr	spans4
+dnew4:
+	move.w	(sp)+,d3
+	move.w	(sp)+,d2
+	tst.w	d2
+	bmi	nextrow4
+	move.w	26(a6),d1
+	bsr	spans4
+nextrow4:
+	move.w	2(a6),d0
+	addq.w	#1,d0
+	move.w	d0,2(a6)
+	cmp.w	6(a6),d0
+	ble	rowlp4
+	movem.l	(sp)+,d2-d7/a2-a6
+	rts
+
+; getspan4: d0 = y, d1 = cy, d2 = ry (-1 = sin elipse), a0 = tabla de tramos (2 bytes por fila: lo, hi)  ->  d2 = hi (-1 si la elipse no toca
+; la fila), d3 = lo; destruye d1
+getspan4:
+	move.w	d0,d3
+	sub.w	d1,d3
+	bpl	g14
+	neg.w	d3			; dy = |y - cy|
+g14:
+	cmp.w	d2,d3
+	bgt	gnone4			; dy > ry
+	lsl.w	#2,d3
+	move.w	2(a0,d3.w),d2		; hi
+	move.w	0(a0,d3.w),d1		; lo
+	move.w	d1,d3
+	rts
+gnone4:
+	moveq	#-1,d2
+	rts
+
+; spans4: d1 = cx (con signo), d2 = hi, d3 = lo (>= 0), a5 = fila: XOR de los tramos [cx - hi, cx - lo] y [cx + lo, cx + hi] (uno solo
+; [cx - hi, cx + hi] si lo = 0); destruye d0-d4, d7, a0
+spans4:
+	tst.w	d3
+	bne	s14
+	move.w	d1,d4
+	sub.w	d2,d4			; x0 = cx - hi
+	add.w	d2,d1			; x1 = cx + hi
+	move.w	d1,d2
+	move.w	d4,d1
+	bra	run4
+s14:
+	cmp.w	d2,d3
+	bne	s24
+	move.w	d1,d4			; lo = hi: un punto a cada lado (cx - hi y cx + hi)
+	sub.w	d2,d4
+	bmi	s24
+	add.w	d2,d1
+	cmp.w	#511,d1
+	bgt	s2b4
+	move.w	d1,d2
+	move.w	d4,d1
+	bsr	r_pt4
+	move.w	d2,d1
+	bra	r_pt4
+s2b4:
+	sub.w	d2,d1			; (se deshace la suma: fuera de la vista, camino general)
+s24:
+	move.w	d1,d0
+	add.w	d3,d0			; x0 del tramo derecho = cx + lo
+	move.w	d1,d4
+	add.w	d2,d4			; x1 = cx + hi
+	move.w	d0,-(sp)
+	move.w	d4,-(sp)
+	move.w	d1,d0
+	sub.w	d3,d0			; x1 del tramo izquierdo = cx - lo
+	sub.w	d2,d1			; x0 = cx - hi
+	move.w	d0,d2
+	bsr	run4
+	move.w	(sp)+,d2
+	move.w	(sp)+,d1
+				; sigue en run4
+
+; run4: d1 = x0, d2 = x1 (con signo): recorta a 0..255 y dibuja
+run4:
+	tst.w	d2
+	bmi	rdone4
+	cmp.w	#511,d1
+	bgt	rdone4
+	tst.w	d1
+	bpl	r14
+	moveq	#0,d1
+r14:
+	cmp.w	#511,d2
+	ble	r24
+	move.w	#511,d2
+r24:
+	cmp.w	d1,d2
+	bne	r_hrun4
+				; un solo punto: sigue en r_pt4
+; r_pt4: XOR de un punto (d1 = x, 0..255) en la fila a5; destruye d0, d1, d7, a0
+r_pt4:
+	move.w	d1,d0
+	lsr.w	#3,d0
+	add.w	d0,d0
+	lea	0(a5,d0.w),a0
+	and.w	#7,d1
+	move.b	#$80,d0
+	lsr.b	d1,d0
+	move.b	d5,d7
+	and.b	d0,d7
+	eor.b	d7,(a0)
+	move.b	d6,d7
+	and.b	d0,d7
+	eor.b	d7,1(a0)
+rdone4:
+	rts
+
+; r_hrun4: XOR de los puntos d1..d2 (0 <= d1 < d2 <= 255) de la fila a5; destruye d0-d4, d7, a0
+r_hrun4:
+	move.w	d1,d3
+	lsr.w	#3,d3			; palabra del primer punto
+	move.w	d2,d4
+	lsr.w	#3,d4			; palabra del ultimo
+	move.w	d3,d0
+	add.w	d0,d0
+	lea	0(a5,d0.w),a0
+	move.w	d1,d0
+	and.w	#7,d0
+	move.b	#$FF,d7
+	lsr.b	d0,d7			; mascara izquierda
+	move.w	d2,d0
+	and.w	#7,d0
+	neg.w	d0
+	add.w	#7,d0
+	move.b	#$FF,d1
+	lsl.b	d0,d1			; mascara derecha
+	cmp.w	d3,d4
+	bne	h_multi4
+	and.b	d1,d7
+	move.b	d5,d0
+	and.b	d7,d0
+	eor.b	d0,(a0)
+	move.b	d6,d0
+	and.b	d7,d0
+	eor.b	d0,1(a0)
+	rts
+h_multi4:
+	move.b	d5,d0
+	and.b	d7,d0
+	eor.b	d0,(a0)
+	move.b	d6,d0
+	and.b	d7,d0
+	eor.b	d0,1(a0)
+	addq.l	#2,a0
+	move.w	d4,d0
+	sub.w	d3,d0
+	subq.w	#1,d0
+	beq	h_last4
+	subq.w	#1,d0
+h_mid4:
+	eor.b	d5,(a0)+
+	eor.b	d6,(a0)+
+	dbra	d0,h_mid4
+h_last4:
+	move.b	d5,d0
+	and.b	d1,d0
+	eor.b	d0,(a0)
+	move.b	d6,d0
+	and.b	d1,d0
+	eor.b	d0,1(a0)
+	rts

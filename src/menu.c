@@ -775,6 +775,7 @@ static int title_loop(void)
 int scr_title(void)
 {
     int svc = view_cy, svh = clip_h, svy = view_yscale, r;
+    plat_mode(gfx_hires_opt);                                     /* el titulo va en modo 4 si esta la opcion de 512 (y si no, en modo 8) */
     view_cy = TITLE_CY; clip_h = TITLE_CLIP; view_yscale = 1;     /* centro del hueco libre y aspecto 1,2 del monitor */
     r = title_loop();
     view_cy = svc; clip_h = svh; view_yscale = svy;

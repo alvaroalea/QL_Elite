@@ -4,7 +4,7 @@
 [![Español](https://img.shields.io/badge/Language-Español-red)](README.md)
 
 
-Port de **Elite (versión Apple II, Firebird 1985)** al **Sinclair QL** (68008, modo 8: 256 × 256 con 8 colores), escrito en C89 con
+Port de **Elite (versión Apple II, Firebird 1985)** al **Sinclair QL** (68008; modo 8: 256 × 256 con 8 colores; opcionalmente título y vuelo en modo 4: 512 × 256 con rojo, verde y blanco, desde las opciones de la pausa), escrito en C89 con
 XTC68 (`qcc`) y un poco de ensamblador. Es un port fiel: usa la aritmética de enteros de 8 bits del original y cada rutina se ha
 comparado, cuando se ha podido, con el código 6502 original en un emulador (estado en `docs/INVENTARIO.md`).
 
@@ -112,7 +112,7 @@ por fila (`KEYROW`), por lo que tres teclas pulsadas en un rectángulo de la mat
 
 ## Datos del juego (`data/`)
 
-- `elite_dash`: fondo del panel de instrumentos (256 × 56 en modo 8). Se puede editar en el PC: `make dash_png` lo exporta a
+- `elite_dash`: fondo del panel de instrumentos (256 × 56 en modo 8; en el vuelo se convierte a modo 4: rojo y verde se conservan, el resto sale blanco). Se puede editar en el PC: `make dash_png` lo exporta a
   `asset/cabina.png`, se edita con los 8 colores del QL y `make dash_from_png` lo vuelve a generar. Más detalles en `data/README.txt`.
 - `boot`: programa de arranque de SuperBASIC. `elite_scr`: pantalla de carga.
 

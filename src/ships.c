@@ -515,14 +515,14 @@ static void planet_v(void)
     em_dvid3b(0, (u8)(inwk[6] | 1), inwk[7], inwk[8]);   /* DVID3B2 */
     if (zK[1] != 0) zK[0] = 248;
     if (ztype & 1) { sun_draw(); return; }
-    sun_col = C_BLUE;                                    /* propio: el planeta siempre azul (el original usa el COL que haya quedado) */
+    sun_col = gfx_m4 ? C_GREEN : C_BLUE;                 /* propio: el planeta siempre azul, verde en modo 4 (el original usa el COL que haya quedado) */
     if (view_native) { circle_update(); return; }        /* elipse: borra y dibuja solo si cambia el centro o el radio */
     circle_wpls2();                                      /* PL9: borra el circulo anterior y dibuja el nuevo */
     circle_draw();
     return;
 pl2:
     sun = ztype & 1;
-    sun_col = sun ? C_RED : C_BLUE;                      /* el borrado XOR debe usar el color con que se dibujo */
+    sun_col = sun ? C_RED : (gfx_m4 ? C_GREEN : C_BLUE);   /* el borrado XOR debe usar el color con que se dibujo */
     if (sun) sun_wpls(); else circle_wpls2();
 }
 

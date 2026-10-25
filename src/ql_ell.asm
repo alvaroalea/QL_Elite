@@ -1,12 +1,14 @@
 ; ql_ell.asm - elipse de punto medio y tramo horizontal en XOR escritos directamente en la pantalla del QL (modo 8), sintaxis de as68.
 ; Equivalen a gfx_ellipse_xor y gfx_hline_xor de gfx.c (que prepara los datos). Cada palabra son 4 puntos: byte par = verde (bit alto de
 ; cada pareja de bits), byte impar = rojo (alto) y azul (bajo); un punto se enciende con la mascara $C0, $30, $0C o $03.
+; Modo 4: las mismas rutinas valen con los codigos de color de gfx_ccode (bit 3 = segundo punto del verde, bit 0 = el del rojo: las
+; mascaras salen $FF) y ql_ellipse, con el campo 72 del bloque a 1, trabaja a los 512 puntos fisicos (8 por palabra).
 ; Sin recorte de y/x por parte de ql_hline (el llamante deja x en 0..255 e y en 0..255); ql_ellipse recorta cada punto al rectangulo.
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
 ; void ql_ellipse(long *blk)    bloque de palabras largas (desplazamiento en bytes):
 ;   0 a8 (8 a^2)  4 b8 (8 b^2)  8 GB  12 RB  16 clx0  20 cly0  24 clx1  28 cly1  32 dx  36 dy  40 -  44 err  48 scr  52 2*ry
-;   56 x0  60 x1  64 y0  68 y1        (dx, dy, err y x0..y1 se modifican)
+;   56 x0  60 x1  64 y0  68 y1  72 hr (1 = puntos fisicos de modo 4)        (dx, dy, err y x0..y1 se modifican)
 ; GB/RB: mascaras del byte par/impar para un punto lleno (GB = $AA si hay verde, RB = $AA si hay rojo y $55 si hay azul).
 ; Registros: d1 = x0, d2 = x1, d3 = y0, d4 = y1, a0 = bloque; el punto a dibujar va en d5 (x) y d6 (y) a la subrutina e_plot.
 	.globl	_ql_ellipse
@@ -124,6 +126,8 @@ e_plot:
 	bgt	e_out
 	move.l	d6,d7
 	lsl.l	#7,d7
+	tst.l	72(a0)
+	bne	e_phr
 	move.l	d5,d0
 	lsr.l	#2,d0
 	add.l	d0,d0
@@ -135,6 +139,19 @@ e_plot:
 	add.w	d7,d7
 	move.b	#$C0,d0
 	lsr.b	d7,d0
+	bra	e_pm
+e_phr:
+	move.l	d5,d0
+	lsr.l	#3,d0
+	add.l	d0,d0
+	add.l	d0,d7
+	move.l	48(a0),a1
+	adda.l	d7,a1
+	move.l	d5,d7
+	and.w	#7,d7
+	move.b	#$80,d0
+	lsr.b	d7,d0
+e_pm:
 	move.b	11(a0),d7
 	and.b	d0,d7
 	eor.b	d7,(a1)
@@ -146,7 +163,7 @@ e_out:
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
 ; Subrutinas de color y de lineas rectas (en registros; las usan ql_hline, ql_vline y ql_frame)
-; s_col:   d3 = color 0..7  ->  d5 = mascara del byte par (verde), d6 = mascara del byte impar (rojo/azul) de un punto lleno
+; s_col:   d3 = color 0..7 (o codigo de modo 4: bit 3 = segundo punto del verde)  ->  d5 = mascara del byte par (verde), d6 = mascara del byte impar (rojo/azul) de un punto lleno
 ; s_hline: d1 = x0, d2 = x1 (x0 <= x1, 0..255), d0 = y (0..255), d5/d6 = mascaras, a2 = pantalla; destruye d0-d4, d7, a0
 ; s_vline: d1 = x (0..255), d2 = y0, d3 = y1 (y0 <= y1, 0..255), d5/d6 = mascaras, a2 = pantalla; destruye d0-d4, d7, a0
 s_col:
@@ -156,6 +173,10 @@ s_col:
 	beq	c_ng
 	move.b	#$AA,d5
 c_ng:
+	btst	#3,d3
+	beq	c_nf
+	or.b	#$55,d5
+c_nf:
 	btst	#1,d3
 	beq	c_nr
 	move.b	#$AA,d6
@@ -383,6 +404,10 @@ _ql_xpix:
 	beq	x_ng
 	eor.b	d2,(a0)
 x_ng:
+	btst	#3,d0
+	beq	x_nf
+	eor.b	d3,(a0)
+x_nf:
 	moveq	#0,d1
 	btst	#1,d0
 	beq	x_nr

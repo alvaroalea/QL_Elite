@@ -52,13 +52,16 @@ void txt_init(void)
         for (k = 0; k < 8; k++) fi[n][k] = (unsigned short)(font8x8[n][k] * 4);
     ink = C_WHITE; paper = C_BLACK; cx = cy = 0;
     set_masks();
+    gfx_mode_hook = set_masks;                       /* al cambiar de modo los mismos colores dan otras mascaras */
 }
 
-/* Colores en formato de pantalla: byte par = verde (bit 2), impar = rojo (bit 1) y azul (bit 0) */
+/* Colores en formato de pantalla: byte par = verde (bit 2), impar = rojo (bit 1) y azul (bit 0); en modo 4 los codigos de gfx_ccode
+   (verde = $FF en el byte par, rojo = $FF en el impar: cada punto del texto son 2 puntos fisicos) */
 static void col_bytes(int col, u8 *q)
 {
-    q[0] = q[2] = (u8)((col & 4) ? 0xAA : 0);
-    q[1] = q[3] = (u8)(((col & 2) ? 0xAA : 0) | ((col & 1) ? 0x55 : 0));
+    u8 cc = gfx_ccode((u8)col);
+    q[0] = q[2] = GFX_GM(cc);
+    q[1] = q[3] = GFX_RM(cc);
 }
 
 static void set_masks(void)

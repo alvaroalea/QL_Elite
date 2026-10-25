@@ -275,6 +275,7 @@ class CPU:
 def run_line(src, x1, y1, x2, y2, c, scr=0x20000):
     cpu = CPU(src)
     cpu.a[7] = 0x1F000
+    cpu.syms['_gfx_m4'] = 0x1C000                       # ql_line mira _gfx_m4 (0 = modo 8)
     args = [x1, y1, x2, y2, c, scr]
     for v in reversed(args):
         cpu.a[7] -= 4; cpu.wr(cpu.a[7], 4, v)

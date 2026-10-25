@@ -34,6 +34,7 @@ static int tick_up = 0;
 static long last_tick = 0;
 static int  con_up = 0;                     /* plat_init hecho y plat_shutdown pendiente */
 static short win_def[4];                    /* ancho, alto, x, y */
+static short orig_mode = -1;                /* modo de pantalla con que se arranco (0 = modo 4, 8 = modo 8; -1 = no se pudo leer): se restaura al salir */
 
 /* Vacia la cola de teclado de la consola sin esperar (timeout 0). */
 void plat_flush_input(void)
@@ -44,26 +45,47 @@ void plat_flush_input(void)
         if (ql_trap3(IO_FBYTE, 0L, 0L, 0L, con_in, 0L) != 0L) break;
 }
 
-void plat_init(void)
+/* Ventana de consola a pantalla completa, negra y sin cursor (tras arrancar y tras cada cambio de modo) */
+static void con_setup(void)
 {
-    short mode = 8, tv = -1;               /* modo 8, sin cambiar TV */
-    mt_dmode(&mode, &tv);
-    /* NOTA: escribir directo en $20000 puede requerir modo supervisor (trap #0) o SD.EXTOP */
-
-    con_in  = (long)fgetchid(stdin);
-    con_out = (long)fgetchid(stdout);
-
     if (con_out >= 0L) {
         win_def[0] = 512; win_def[1] = 256; win_def[2] = 0; win_def[3] = 0;   /* pantalla completa */
         ql_trap3(SD_WDEF, 0L, 0L, -1L, con_out, (long)win_def);              /* borde negro, ancho 0 */
         ql_trap3(SD_CLEAR, 0L, 0L, -1L, con_out, 0L);
         ql_trap3(SD_CURS, 0L, 0L, -1L, con_out, 0L);                         /* sin cursor */
     }
+}
+
+void plat_init(void)
+{
+    short mode = -1, tv = -1;              /* -1 = leer el modo actual */
+    mt_dmode(&mode, &tv);
+    if (orig_mode < 0 && (mode == 0 || mode == 8)) orig_mode = mode;
+    mode = 8; tv = -1;                     /* las demos arrancan en modo 8, sin cambiar TV (el juego pide el modo 4 con plat_mode) */
+    mt_dmode(&mode, &tv);
+    /* NOTA: escribir directo en $20000 puede requerir modo supervisor (trap #0) o SD.EXTOP */
+
+    con_in  = (long)fgetchid(stdin);
+    con_out = (long)fgetchid(stdout);
+
+    con_setup();
     plat_flush_input();
     if (!con_up) { con_up = 1; atexit(plat_shutdown); }
 #ifndef NOTICK
     if (!tick_up) { ql_tick_on(); tick_up = 1; last_tick = ql_ticks(); }
 #endif
+}
+
+/* Cambia el modo de pantalla (MT.DMODE: D1 = 0 es el modo 4 de 512 x 256 y 8 el modo 8; sin cambiar TV), vuelve a dejar la consola a pantalla
+   completa y borra la pantalla a negro. Un cambio al mismo modo no hace nada */
+void plat_mode(int m4)
+{
+    short mode = m4 ? 0 : 8, tv = -1;
+    if ((m4 ? 1 : 0) == (int)gfx_m4) return;
+    mt_dmode(&mode, &tv);
+    con_setup();
+    gfx_set_mode(m4);
+    gfx_clear(C_BLACK);
 }
 
 /* Espera de tecla para los demos: sin ella el runtime de c68 borra la pantalla al volver a QDOS.
@@ -185,6 +207,11 @@ void plat_shutdown(void)
     if (!con_up) return;                    /* idempotente: tambien lo llama atexit */
     con_up = 0;
     plat_flush_input();
+    if (orig_mode >= 0 && orig_mode != (gfx_m4 ? 0 : 8)) {      /* el modo con que arranco el usuario */
+        short mode = orig_mode, tv = -1;
+        mt_dmode(&mode, &tv);
+        con_setup();
+    }
     if (con_out >= 0L) {
         ql_trap3(SD_CLEAR, 0L, 0L, -1L, con_out, 0L);
         ql_trap3(SD_CURE, 0L, 0L, -1L, con_out, 0L);                         /* devuelve el cursor */

@@ -10,7 +10,13 @@ void plat_flush_input(void) {}
 void plat_present(void)
 {
     FILE *f = fopen("screen.bin", "wb");
-    if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }
+    if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }       /* sin cabecera: tools/ql2png.py <bin> <png> [4] (el 4 = modo 4) */
+}
+void plat_mode(int m4)
+{
+    if ((m4 ? 1 : 0) == (int)gfx_m4) return;
+    gfx_set_mode(m4);
+    gfx_clear(C_BLACK);
 }
 void plat_wait_key(void) {}
 int plat_default_dir(int prog, char *buf, int max) { (void)prog; (void)max; buf[0] = 0; return 0; }

@@ -483,8 +483,9 @@ void sun_draw(void)
 #define ELL_TAB 608                              /* tramos por fila (2 bytes): ry <= (6 * 248 + 2) / 5 = 298 */
 static int ell_valid = 0, ell_cx, ell_cy, ell_rx, ell_ry;
 static u8 ell_col;
-static u8 ell_tab[2][ELL_TAB];                   /* tabla de tramos del contorno viejo y del nuevo (se alternan; solo se recalcula si cambia el radio) */
-static int ell_cur = 0;                          /* tabla del contorno dibujado (ell_tab[ell_cur]) */
+static unsigned short ell_tabw[2][ELL_TAB];      /* tabla de tramos del contorno viejo y del nuevo (se alternan; solo se recalcula si cambia el radio): bytes en modo 8, palabras en modo 4 (a los 512 puntos) */
+#define ELL_T(i) ((u8 *)ell_tabw[i])
+static int ell_cur = 0;                          /* tabla del contorno dibujado (ELL_T(ell_cur)) */
 
 static void ell_params(int *cx, int *cy, int *rx, int *ry)
 {
@@ -650,7 +651,7 @@ static void ell_erase(void)
 {
     arcs_erase();
     if (!ell_valid) return;
-    gfx_ell_update(ell_cx, ell_cy, ell_ry, ell_tab[ell_cur], 0, 0, -1, ell_tab[ell_cur], ell_col, NAT_BOT);
+    gfx_ell_update(ell_cx, ell_cy, ell_ry, ELL_T(ell_cur), 0, 0, -1, ELL_T(ell_cur), ell_col, NAT_BOT);
     ell_valid = 0;
 }
 
@@ -669,10 +670,10 @@ void circle_update(void)
     if (ell_valid && rx == ell_rx && ry == ell_ry) nxt = ell_cur;       /* mismo radio: la misma tabla */
     else {
         nxt = 1 - ell_cur;
-        gfx_ell_spans(rx, ry, ell_tab[nxt]);
+        gfx_ell_spans(rx, ry, ELL_T(nxt));
     }
     planet_arcs_prepare(ztype, cx, cy, rx, ry);                          /* la matematica de los meridianos antes de tocar la pantalla */
-    gfx_ell_update(ell_cx, ell_cy, ell_valid ? ell_ry : -1, ell_tab[ell_cur], cx, cy, ry, ell_tab[nxt], sun_col, NAT_BOT);
+    gfx_ell_update(ell_cx, ell_cy, ell_valid ? ell_ry : -1, ELL_T(ell_cur), cx, cy, ry, ELL_T(nxt), sun_col, NAT_BOT);
     ell_cx = cx; ell_cy = cy; ell_rx = rx; ell_ry = ry; ell_col = sun_col; ell_cur = nxt;
     ell_valid = 1;
     arc_commit();                                                        /* y su dibujo justo despues del planeta */

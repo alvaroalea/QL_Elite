@@ -177,7 +177,7 @@ clean:
 
 # ==== 4. Pruebas ==========================================================================================
 
-test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm test_putsasm
+test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm test_putsasm test_mode4asm
 
 # Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
 c68_check:
@@ -287,6 +287,12 @@ test_ellrows:
 # ql_text.asm (ql_puts) ejecutada con tools/m68k_mini.py contra su version en C (la formula de text.c)
 test_putsasm:
 	python3 tools/test_putsasm.py 2000
+
+# Modo 4 (512 x 256): ql_line4, ql_ellipse (hr), ql_ellrows4 y las rutinas de punto/tramo/rectangulo con los codigos de color de modo 4,
+# ejecutadas con tools/m68k_mini.py contra las versiones en C con gfx_m4 = 1 (tests/m4_dump.c)
+test_mode4asm:
+	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/m4_dump tests/m4_dump.c src/gfx.c src/lines.c src/emath.c -lm
+	python3 tools/test_mode4asm.py 400
 
 # ql_ellrows.asm ejecutada con tools/m68k_mini.py contra gfx_ell_update en C
 test_ellrowsasm:

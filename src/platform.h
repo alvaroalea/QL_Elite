@@ -10,6 +10,16 @@ typedef unsigned char u8;
 #define SCR_STRIDE 128
 #define SCR_BYTES 32768L          /* no cabe en un int de 16 bits: siempre long */
 
+/* Dos modos de pantalla (mismas 32 KB, 128 bytes por linea, mismo reparto de bytes por celda de texto de 8 x 8 = 4 bytes):
+   modo 8 (256 x 256, 8 colores; las vistas dentro de la estacion) y modo 4 (512 x 256, negro, rojo, verde y blanco; titulo y vuelo).
+   Las coordenadas del juego son siempre las de 256 columnas: en modo 4 cada punto del juego son 2 puntos fisicos de ancho, salvo las
+   lineas y las elipses del planeta y los anillos, que se dibujan a los 512 puntos (x fisica = 2 x). Modo 4: palabra = 8 puntos, byte par =
+   verde (bit 7 = punto de la izquierda), byte impar = rojo; blanco = los dos. */
+extern u8 gfx_m4;                 /* 1 = modo 4 (cambiar solo con plat_mode) */
+extern void (*gfx_mode_hook)(void);   /* se llama al cambiar de modo (el texto recalcula sus mascaras) */
+extern u8 gfx_hires_opt;          /* opcion del usuario (menu de opciones del vuelo, tecla M): 1 = titulo y vuelo en modo 4 (512 x 256); 0 (por defecto) = todo en modo 8 */
+void plat_mode(int m4);           /* cambia de modo (QL: MT.DMODE y consola de nuevo) y borra la pantalla a negro; PC: solo la marca */
+
 /* Colores QL: bit2=Verde, bit1=Rojo, bit0=Azul */
 #define C_BLACK   0
 #define C_BLUE    1
@@ -32,6 +42,12 @@ int  plat_default_dir(int prog, char *buf, int max); /* QL: directorio por defec
 void plat_wait_key(void);         /* QL: espera una pulsacion (suelta, pulsa, suelta) para poder ver la pantalla antes de volver a QDOS; PC: no hace nada */      /* QL: descarta las teclas acumuladas en la consola (KEYROW no las consume) */
 
 /* gfx.c */
+u8   gfx_ccode(u8 c);                      /* color C_* -> codigo interno de pantalla: igual en modo 8; en modo 4 solo hay negro, C_RED, C_GREEN y blanco (todo lo demas es blanco),
+                                               con el bit 3 = segundo punto fisico del verde y el bit 0 = el del rojo (3 = rojo, 12 = verde, 15 = blanco) */
+#define GFX_GM(cc) ((u8)(((cc) & 4 ? 0xAA : 0) | ((cc) & 8 ? 0x55 : 0)))   /* byte par (verde) de 4 puntos llenos del codigo interno */
+#define GFX_RM(cc) ((u8)(((cc) & 2 ? 0xAA : 0) | ((cc) & 1 ? 0x55 : 0)))   /* byte impar (rojo y azul) */
+void gfx_set_mode(int m4);                 /* solo la marca y el aviso al texto (plat_mode llama a esto) */
+void gfx_xor_pixel_hr(int x, int y, u8 c);   /* modo 4: un punto fisico (x de 0 a 511) en XOR; en modo 8 el punto del juego x / 2 */
 void gfx_clear(u8 c);
 void gfx_fill_lines(int y, int n, u8 c);   /* pone a un color n lineas completas desde la y: rapido (palabras largas en el QL) */
 void gfx_copy(u8 *dst, const u8 *src, long n);   /* copia rapida de n bytes (multiplo de 32 para ir por palabras largas) */

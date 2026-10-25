@@ -284,6 +284,7 @@ static void pause_banner(int on)
 #define OPT_W 30
 
 static void clear_view(void);
+static void redraw_panel(void);
 
 static void opt_line(int row, const char *name, char key, int on)
 {
@@ -314,11 +315,14 @@ static void opt_draw(void)
     opt_line(r++, "Caps in missions", 'U', (uptog & 0x80) != 0);
     opt_line(r++, "Author credits", 'X', (patg & 0x80) != 0);
     opt_line(r++, "Sound", 'S', snd_enabled());
+    opt_line(r++, "512 mode", 'M', gfx_hires_opt);
     r++;
     txt_color(C_CYAN, C_BLACK);
     txt_print_at(OPT_COL, r++, "ESC  Back to game");
     txt_print_at(OPT_COL, r, "Q    Back to menu");
 }
+
+static int mode_changed = 0;                        /* se cambio de modo de pantalla en la pausa: al reanudar hay que repintarlo todo */
 
 static int pause_options(void)
 {
@@ -335,6 +339,13 @@ static int pause_options(void)
         if (x == 27 || x == '-') return 0;                  /* de vuelta al juego */
         for (y = 0; y < 9; y++) if (y != 6) dks3(x, y);     /* K (JSTK) fuera: el joystick siempre esta activo */
         if (x == 'S') snd_enable(!snd_enabled());
+        if (x == 'M') {                                     /* propio: de modo 8 a modo 4 (512) y al reves: la pantalla se borra, se repinta el panel */
+            gfx_hires_opt = (u8)!gfx_hires_opt;
+            plat_mode(gfx_hires_opt);
+            redraw_panel();
+            clear_view();
+            mode_changed = 1;
+        }
         opt_draw();
     }
 }
@@ -544,6 +555,7 @@ static int flight_screens(int sc)
     int pending = 0;
     key_ctx_menu();
     view_set_native(0);                                     /* las pantallas de texto y las cartas usan las coordenadas del original */
+    plat_mode(0);                                           /* y el modo 8, como dentro de la estacion */
     for (;;) {
         sc = scr_dispatch(sc);
         if (sc == SC_QUIT || in_quit) { return FL_QUIT; }
@@ -554,6 +566,7 @@ static int flight_screens(int sc)
     }
     key_ctx_flight();
     view_set_native(1);
+    plat_mode(gfx_hires_opt);                               /* de vuelta a la vista de vuelo (redraw_all repinta todo) */
     redraw_all();
     if (pending == 1) start_hyper(0);
     else if (pending == 2) start_hyper(1);
@@ -670,7 +683,8 @@ static int flight_loop(void)
                 config_options_used = 0;
                 r = freeze();
                 pause_banner(0);
-                if (config_options_used) { clear_view(); stars_new(); view_extras(); }    /* la ventana tapaba la vista */
+                if (mode_changed) { mode_changed = 0; redraw_all(); }                      /* otro modo de pantalla: el panel y la vista se pintan de nuevo (lo guardado de PAUSED ya no vale) */
+                else if (config_options_used) { clear_view(); stars_new(); view_extras(); }    /* la ventana tapaba la vista */
                 if (r) { snd_off(); return FL_DEATH; }    /* ESC: DEATH2 */
                 if (in_quit) return FL_QUIT;
                 key_ctx_flight();
@@ -789,11 +803,13 @@ int flight_run(void)
 {
     int r;
     msg_t = 0; help_i = 0; help_t = 0;
+    plat_mode(gfx_hires_opt);                               /* la vista de vuelo va en modo 4 si esta la opcion de 512 */
     view_set_native(1);
     ships_spblb_hook = dash_spblb;                          /* NWSPS y KS4 encienden y apagan la S */
     r = flight_loop();
     if (r == FL_DOCK) dock_tunnel();                       /* entrada en la estacion */
     ships_spblb_hook = 0;
     view_set_native(0);
+    if (r != FL_DEATH && r != FL_QUIT) plat_mode(0);        /* atracado: modo 8 (tras la muerte viene el titulo, en modo 4) */
     return r;
 }
