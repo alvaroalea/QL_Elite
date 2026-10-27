@@ -1,5 +1,5 @@
-/* Sound contra el codigo original en el emulador (tools/gen_sound.py): los DORND que gasta cada rutina (SOEXPL, SOHISS y
-   SOBOMB, solo con el sonido activo), RAND y el acarreo a la salida. El sonido en si (BEEP del QL) es propio. */
+/* Sound against the original code in the emulator (tools/gen_sound.py): the DORNDs each routine consumes (SOEXPL, SOHISS and
+   SOBOMB, only with sound on), RAND and the carry on exit. The sound itself (QL BEEP) is our own. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,13 +1,13 @@
-; ql_line.asm - linea de Bresenham en XOR escrita directamente en la pantalla del QL (modo 8), sintaxis de as68 (XTC68).
-; void ql_line(long x1, long y1, long x2, long y2, long c, long scr)   (todo como palabras largas, como ql_trap3)
-; Equivale a loin_bres_c (lines.c): ordena los extremos (x menor primero; con la misma x, y menor primero), un punto por cada x si
-; dx >= dy y por cada y si no, error inicial = mitad, los dos extremos incluidos. Coordenadas 0..255 (la pantalla tiene 256 lineas:
-; no hace falta recortar); c = color 0..7 (bit 2 verde, bit 1 rojo, bit 0 azul); scr = direccion de la pantalla.
-; Cada palabra son 4 puntos: byte par = verde (bit alto de cada pareja), byte impar = rojo (alto) y azul (bajo). P selecciona la
-; pareja de bits del punto actual: $C0, $30, $0C, $03. Registros: a0 = palabra actual, d4 = P, d5 = mascara del byte par,
-; d6 = mascara del byte impar, d7 = error, d2/d3 = dx/dy y contador, d1 = copia del paso grande.
-; Modo 4 (_gfx_m4 != 0): la linea va a los 512 puntos fisicos (x fisica = 2 x del juego): ver ql_line4 al final. Los colores de entrada son
-; los del juego (0..7): negro, rojo (2) y verde (4) son ellos; todo lo demas, blanco.
+; ql_line.asm - XOR Bresenham line written directly to the QL screen (mode 8), as68 syntax (XTC68).
+; void ql_line(long x1, long y1, long x2, long y2, long c, long scr)   (all as long words, like ql_trap3)
+; Equivalent to loin_bres_c (lines.c): sorts the endpoints (smaller x first; with the same x, smaller y first), one dot per x if
+; dx >= dy and per y otherwise, initial error = half, both endpoints included. Coordinates 0..255 (the screen has 256 lines:
+; no clipping needed); c = colour 0..7 (bit 2 green, bit 1 red, bit 0 blue); scr = screen address.
+; Each word is 4 dots: even byte = green (high bit of each pair), odd byte = red (high) and blue (low). P selects the
+; bit pair of the current dot: $C0, $30, $0C, $03. Registers: a0 = current word, d4 = P, d5 = even byte mask,
+; d6 = odd byte mask, d7 = error, d2/d3 = dx/dy and counter, d1 = copy of the large step.
+; Mode 4 (_gfx_m4 != 0): the line goes to the 512 physical dots (physical x = 2 x the game's): see ql_line4 at the end. The input colours are
+; the game's (0..7): black, red (2) and green (4) are themselves; everything else, white.
 	.globl	_ql_line
 	.text
 _ql_line:
@@ -157,10 +157,10 @@ done:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; void ql_line4(long x1, long y1, long x2, long y2, long c, long scr)    modo 4, mismos argumentos que ql_line (x1, x2 del juego, 0..255)
-; Los extremos se ordenan igual que en ql_line (con las x del juego) y luego x = 2 x: Bresenham sobre los 512 puntos (loin_bres_c con
-; gfx_m4). Palabra = 8 puntos: byte par = verde, byte impar = rojo, bit 7 = el punto de la izquierda. Registros como en ql_line, con
-; d4 = mascara del punto ($80, $40 ... $01), d5 = byte par de un punto lleno ($FF o 0) y d6 = byte impar.
+; void ql_line4(long x1, long y1, long x2, long y2, long c, long scr)    mode 4, same arguments as ql_line (game x1, x2, 0..255)
+; The endpoints are sorted as in ql_line (with the game's x) and then x = 2 x: Bresenham over the 512 dots (loin_bres_c with
+; gfx_m4). Word = 8 dots: even byte = green, odd byte = red, bit 7 = leftmost dot. Registers as in ql_line, with
+; d4 = dot mask ($80, $40 ... $01), d5 = even byte of a full dot ($FF or 0) and d6 = odd byte.
 	.globl	_ql_line4
 _ql_line4:
 	movem.l	d2-d7/a2-a6,-(sp)

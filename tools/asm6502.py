@@ -1,4 +1,4 @@
-# Ensamblador minimo de la sintaxis de la fuente de referencia (etiquetas ".X", EQUB/EQUW, P%, LO()/HI(), %bin, $hex)
+# Minimal assembler for the reference source syntax (".X" labels, EQUB/EQUW, P%, LO()/HI(), %bin, $hex)
 import re
 from cpu6502 import OPS, SIZE
 
@@ -20,7 +20,7 @@ def split_operand(op):
     return 'abs', op
 
 def assemble(lines, org, syms, cpu, externs=None):
-    """Ensambla 'lines' en cpu.mem desde org; anade las etiquetas a syms. Devuelve la direccion final."""
+    """Assembles 'lines' into cpu.mem from org; adds the labels to syms. Returns the final address."""
     items = []
     for l in lines:
         t = re.sub(r';.*', '', l).strip()

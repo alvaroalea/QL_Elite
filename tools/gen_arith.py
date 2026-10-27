@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_arith.txt con el codigo ORIGINAL de Maths (Arithmetic) en el emulador de 6502: cada rutina con A, X, Y, C y la
-pagina cero al azar (con muchos valores limite) y todas sus salidas (A, X, Y, C, P, P+1, Q, R, S, K, Y1). Rutinas: MULTU, MU11, SQUA,
-SQUA2, MULT1, MULT12, MAD, ADD, TIS1, TIS2, DVID4, DV41, DV42, MLTU2, MULT3, MLU1, MLU2, LL38, DVID3B2 (y MU1, MU5, MU6 a traves de ellas).
-Se comprueba con tests/test_arith (make test_arith). Requiere ELITE_SRC. Uso: python3 tools/gen_arith.py [n] [semilla]"""
+"""Generates tests/vectors_arith.txt with the ORIGINAL Maths (Arithmetic) code in the 6502 emulator: each routine with random A, X, Y, C and
+zero page (with many boundary values) and all its outputs (A, X, Y, C, P, P+1, Q, R, S, K, Y1). Routines: MULTU, MU11, SQUA,
+SQUA2, MULT1, MULT12, MAD, ADD, TIS1, TIS2, DVID4, DV41, DV42, MLTU2, MULT3, MLU1, MLU2, LL38, DVID3B2 (and MU1, MU5, MU6 through them).
+Checked with tests/test_arith (make test_arith). Requires ELITE_SRC. Usage: python3 tools/gen_arith.py [n] [seed]"""
 import sys, random, re, math
 sys.path.insert(0, 'tools')
 from frag6502 import *
 n = int(sys.argv[1]) if len(sys.argv) > 1 else 2000
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 51)
 
-# todos los bloques de la categoria Maths, en el orden de la fuente
+# all the blocks of the Maths category, in source order
 blocks = []
 for i, l in enumerate(L):
     m = re.match(r'^;\s+Name: (\S+)', l)
@@ -23,13 +23,13 @@ code_ = []
 skipped = []
 for a, b in blocks:
     bl = preprocess(L[a - 1:b - 1])
-    if any(re.match(r'^FOR\b', code(l)) for l in bl): skipped.append(re.sub(r'^;\s+Name: ', '', L[a - 1]).strip()); continue   # tablas
+    if any(re.match(r'^FOR\b', code(l)) for l in bl): skipped.append(re.sub(r'^;\s+Name: ', '', L[a - 1]).strip()); continue   # tables
     bl = [l for l in bl if code(l) != 'SKIP 0']
-    if any('PL2-1' in code(l) for l in bl):              # RTS justo antes de PL2 (fuera de Maths): uno local
+    if any('PL2-1' in code(l) for l in bl):              # RTS just before PL2 (outside Maths): a local one
         bl = [l.replace('PL2-1', 'PL2RTS') for l in bl] + ['.PL2RTS', ' RTS']
     code_ += bl
 print('tablas fuera:', skipped, file=sys.stderr)
-extra = preprocess(L[nl('MVT3') - 1:nx(nl('MVT3')) - 1]) + preprocess(L[nl('PLS6') - 1:nx(nl('PLS6')) - 1]) + routine('PL21')   # PL21: SEC; RTS (no basta un RTS local)
+extra = preprocess(L[nl('MVT3') - 1:nx(nl('MVT3')) - 1]) + preprocess(L[nl('PLS6') - 1:nx(nl('PLS6')) - 1]) + routine('PL21')   # PL21: SEC; RTS (a local RTS is not enough)
 extra = [l.replace('PL2-1', 'PL2RTSB') for l in extra if code(l) != 'SKIP 0'] + ['.PL2RTSB', ' RTS']
 code_ += extra
 code_ = [re.sub(r'\s+AND\s+(?=\d)', ' & ', l) for l in code_]
@@ -67,7 +67,7 @@ for _ in range(n):
         delta = B(); sy = B()
         if op in ('MU11', 'MLU1') and False: pass
         if op == 'MU11': x = NZ()
-        if op in ('DVID4', 'TIS2'): v['Q'] = NZ()                      # divisor 0: no ocurre y depende de log[0] (varia entre binarios)
+        if op in ('DVID4', 'TIS2'): v['Q'] = NZ()                      # divisor 0: does not occur and depends on log[0] (varies between binaries)
         if op == 'DV41': a = NZ()
         if op == 'DV42':
             a = NZ(); m[S['SZ'] + y] = a

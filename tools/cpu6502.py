@@ -1,5 +1,5 @@
-# Emulador minimo de 6502 (instrucciones documentadas, sin modo decimal) y ensamblador de la sintaxis de la
-# fuente de referencia. Solo para verificar las rutinas portadas contra el codigo original.
+# Minimal 6502 emulator (documented instructions, no decimal mode) and assembler for the syntax of the
+# reference source. Only to verify the ported routines against the original code.
 import re
 
 OPS = {
@@ -63,8 +63,8 @@ class CPU:
             z = s.rd(p); return ((s.rd(z) | (s.rd((z + 1) & 255) << 8)) + s.y) & 0xFFFF
         raise Exception('modo ' + mode)
     def run(s, start, stop_sp=0xFF, maxsteps=2000000):
-        """Ejecuta una rutina como JSR a 'start' hasta que vuelva (RTS con la pila inicial)."""
-        s.sp = 0xFF; s.push(0xFF); s.push(0xFE)               # direccion de retorno centinela $FFFF
+        """Runs a routine as a JSR to 'start' until it returns (RTS with the initial stack)."""
+        s.sp = 0xFF; s.push(0xFF); s.push(0xFE)               # sentinel return address $FFFF
         s.pc = start; s.steps = 0
         while True:
             if s.pc == 0xFFFF: return

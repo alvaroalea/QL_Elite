@@ -1,7 +1,7 @@
-/* Linea de Bresenham del juego (loin_bres_c): extremos, simetria (A->B = B->A), borrado exacto en XOR, continuidad y cercania a la
-   recta ideal; y modo "dump" para comparar ql_line.asm (tools/test_lineasm.py).
-     test_bres                 -> pruebas
-     test_bres dump casos.txt  -> para cada caso "x1 y1 x2 y2 c" escribe los bytes de pantalla no nulos ("offset:valor ...") */
+/* Game Bresenham line (loin_bres_c): endpoints, symmetry (A->B = B->A), exact erasing in XOR, continuity and closeness to the ideal
+   line; and "dump" mode to compare ql_line.asm (tools/test_lineasm.py).
+     test_bres                 -> tests
+     test_bres dump cases.txt  -> for each case "x1 y1 x2 y2 c" writes the non-zero screen bytes ("offset:value ...") */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,9 +36,9 @@ int main(int argc, char **argv)
     srand(12345);
     for (i = 0; i < 20000; i++) {
         int x1 = rand() & 255, y1 = rand() & 255, x2 = rand() & 255, y2 = rand() & 255, n = 0, x, y, dx, dy, ok;
-        if (i % 4 == 0) y2 = y1;                                  /* horizontales */
-        if (i % 4 == 1) x2 = x1;                                  /* verticales */
-        if (i % 4 == 2) { y2 = y1 + (x2 - x1); if (y2 < 0 || y2 > 255) y2 = y1; }     /* diagonales */
+        if (i % 4 == 0) y2 = y1;                                  /* horizontals */
+        if (i % 4 == 1) x2 = x1;                                  /* verticals */
+        if (i % 4 == 2) { y2 = y1 + (x2 - x1); if (y2 < 0 || y2 > 255) y2 = y1; }     /* diagonals */
         memset(buf, 0, sizeof buf);
         loin_bres_c((u8)x1, (u8)y1, (u8)x2, (u8)y2, C_WHITE);
         check(lit(x1, y1) && lit(x2, y2), "los dos extremos estan encendidos");
@@ -49,10 +49,10 @@ int main(int argc, char **argv)
         memset(buf, 0, sizeof buf);
         loin_bres_c((u8)x2, (u8)y2, (u8)x1, (u8)y1, C_WHITE);
         check(memcmp(buf, buf2, sizeof buf) == 0, "A->B y B->A encienden lo mismo");
-        loin_bres_c((u8)x1, (u8)y1, (u8)x2, (u8)y2, C_WHITE);       /* XOR: volver a dibujar borra, aunque sea en el otro sentido */
+        loin_bres_c((u8)x1, (u8)y1, (u8)x2, (u8)y2, C_WHITE);       /* XOR: drawing again erases, even in the other direction */
         for (k = 0; k < 32768 && buf[k] == 0; k++) ;
         check(k == 32768, "dibujar dos veces borra");
-        /* cercania a la recta ideal: un punto por cada columna (o fila) y a menos de 1 punto de la recta */
+        /* closeness to the ideal line: one dot for each column (or row) and less than 1 dot from the line */
         ok = 1;
         if (dx >= dy && dx > 0) {
             int lo = x1 < x2 ? x1 : x2, hi = x1 < x2 ? x2 : x1;

@@ -1,9 +1,9 @@
-/* Backend QL: lee una fila del teclado con el comando IPC 9. SIN PROBAR en hardware.
-   Bloque de 8 bytes (formato verificado con ejemplos de la comunidad QL): 9,1,0,0,0,0,<fila>,2 ; respuesta en D1.B */
+/* QL backend: reads a keyboard row with IPC command 9. UNTESTED on hardware.
+   8-byte block (format verified with QL community examples): 9,1,0,0,0,0,<row>,2 ; reply in D1.B */
 #include "keys.h"
 
 extern long ql_ipc(char *blk);
-static long ipc_blk[2];                    /* long para alinear a direccion par */
+static long ipc_blk[2];                    /* long to align to an even address */
 
 int ql_read_row(int row)
 {

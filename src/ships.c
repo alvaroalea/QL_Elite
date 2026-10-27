@@ -17,7 +17,7 @@
 
 static u8 heaps[NOSH][HEAP_BYTES];
 
-/* E%: banderas NEWB iniciales por tipo (1..32) */
+/* E%: initial NEWB flags per type (1..32) */
 static const u8 e_newb[33] = {
     0, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x61, 0xA0, 0xA0, 0xA0, 0xA1, 0xA1, 0xC2,
     0x0C, 0x8C, 0x8C, 0x8C, 0x0C, 0x8C, 0x05, 0x8C, 0x8C, 0x8C, 0x82, 0x0C, 0x0C, 0x04, 0x04, 0x00
@@ -42,10 +42,10 @@ void ship_zinf(void)
 static void put_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) p[i] = inwk[i]; }
 static void get_slot(int n) { u8 *p = state_slot(n); int i; for (i = 0; i < NI; i++) inwk[i] = p[i]; }
 
-/* Monton de lineas del original (SLSP): baja desde LS% = $0B5F y cada nave (salvo la estacion y los planetas) toma el
-   byte 5 de su plano; la direccion de su monton va en los bytes 33 y 34 de su bloque. NWSHP falla si el monton nuevo
-   quedaria a menos de NI% bytes por encima del bloque de la ranura en K% ($0800); KILLSHP baja los montones (KS3). En el
-   port los montones son propios (heaps), pero se lleva la cuenta del original para que haya las mismas naves */
+/* Line heap of the original (SLSP): descends from LS% = $0B5F and each ship (except the station and the planets) takes
+   byte 5 of its blueprint; the address of its heap goes in bytes 33 and 34 of its block. NWSHP fails if the new heap
+   would end up less than NI% bytes above the slot's block in K% ($0800); KILLSHP lowers the heaps (KS3). In the
+   port the heaps are our own (heaps), but the original's count is kept so that the same ships fit */
 #define ORIG_LS 0x0B5F
 #define ORIG_K  0x0800
 #define ORIG_LSO 0x0600
@@ -58,9 +58,9 @@ int ship_new(u8 type)
     long d;
     for (n = 0; n < NOSH; n++) if (frin[n] == 0) break;
     if (n >= NOSH) return -1;
-    if (!(type & 0x80)) {                              /* NW6: energia y banderas de linea del plano */
+    if (!(type & 0x80)) {                              /* NW6: energy and line flags of the blueprint */
         bp = ship_bp_for(type);
-        if (type != SHIPT_CORIOLIS) {                  /* NW1: sitio en el monton (SLSP) */
+        if (type != SHIPT_CORIOLIS) {                  /* NW1: room in the heap (SLSP) */
             u16 hp = (u16)(orig_slsp - bp[5]);
             d = (long)hp - (ORIG_K + (long)n * NI);
             if (d < NI) return -1;                     /* BCC NW3+1 / CPY #NI%: C = 0 */
@@ -79,7 +79,7 @@ int ship_new(u8 type)
     return n;
 }
 
-/* KS2: los misiles que apuntaban a una ranura posterior a n pasan a la anterior; los que apuntaban a n se quedan sin blanco */
+/* KS2: missiles that pointed at a slot after n move to the previous one; those that pointed at n are left without a target */
 void ks2(int n)
 {
     int j;
@@ -102,21 +102,21 @@ void ship_kill(int n)
 {
     u8 type = frin[n];
     int j, i;
-    if (mstg == n) {                                     /* el blanco de nuestro misil: TARGET LOST */
+    if (mstg == n) {                                     /* the target of our missile: TARGET LOST */
         abort_missile(MS_GREEN);
         mess(MESS_TARGET_LOST);
     }
     if (type == SHIPT_CORIOLIS) { ks4(n); return; }      /* KS4 */
-    if (type == SHIPT_CONSTRICTOR) { tp = (u8)(tp | 0x02); tally[1]++; }   /* mision 1: Constrictor destruido */
+    if (type == SHIPT_CONSTRICTOR) { tp = (u8)(tp | 0x02); tally[1]++; }   /* mission 1: Constrictor destroyed */
     if (type < 128 && many[type]) many[type]--;
     if ((type == SHIPT_ROCK_HERMIT || (type >= SHIPT_ESCAPE_POD && type < SHIPT_SHUTTLE + 2)) && junk_count) junk_count--;
-    if (type < 128) {                                    /* KS2..KS3: el monton del original sube */
+    if (type < 128) {                                    /* KS2..KS3: the original's heap rises */
         u8 *sl = state_slot(n);
         u16 pp = (u16)((sl[33] | (sl[34] << 8)) + ship_bp_for(type)[5]);
         for (j = n + 1; j < NOSH && frin[j]; j++) {
             if (frin[j] & 0x80) continue;
             pp = (u16)(pp - ship_bp_for(frin[j])[5]);
-            state_slot(j)[33] = (u8)pp; state_slot(j)[34] = (u8)(pp >> 8);   /* el bloque se copia despues a la ranura j - 1 */
+            state_slot(j)[33] = (u8)pp; state_slot(j)[34] = (u8)(pp >> 8);   /* the block is copied afterwards to slot j - 1 */
         }
         orig_slsp = pp;
     }
@@ -131,8 +131,8 @@ void ship_kill(int n)
     ks2(n);
 }
 
-/* ZERO: pone a 0 desde FRIN hasta "de" (inclusive): FRIN, MANY (con SSPR), JUNK, auto, ECMP, MJ, CABTMP, LAS2, MSAR, VIEW,
-   LASCT, GNTMP, HFX, EV, DLY y de. HFX (efecto del hiperespacio) no existe en el port */
+/* ZERO: zeroes from FRIN up to "de" (inclusive): FRIN, MANY (with SSPR), JUNK, auto, ECMP, MJ, CABTMP, LAS2, MSAR, VIEW,
+   LASCT, GNTMP, HFX, EV, DLY and de. HFX (hyperspace effect) does not exist in the port */
 void ships_zero(void)
 {
     int n;
@@ -142,7 +142,7 @@ void ships_zero(void)
     enc_ev = 0; dly = 0; mess_de = 0;
 }
 
-/* SLSP = LS% (el monton de lineas del original vuelve a estar vacio) */
+/* SLSP = LS% (the original's line heap is empty again) */
 void ships_slsp_reset(void) { orig_slsp = ORIG_LS; }
 
 void ships_clear(void)
@@ -156,7 +156,7 @@ void ships_clear(void)
     ships_slsp_reset();                                /* RES2: SLSP = LS% */
 }
 
-/* Borra las lineas dibujadas de la nave de la ranura n (monton de lineas) */
+/* Erases the drawn lines of the ship in slot n (line heap) */
 static void erase_lines(int n)
 {
     u8 *p = state_slot(n);
@@ -167,7 +167,7 @@ static void erase_lines(int n)
     p[I_STATE] = (u8)(p[I_STATE] & 0xF7);
 }
 
-/* Tras borrar la pantalla entera: ninguna nave figura como dibujada (sus lineas ya no estan) */
+/* After erasing the whole screen: no ship counts as drawn (its lines are no longer there) */
 void ships_forget_lines(void)
 {
     int n;
@@ -182,34 +182,34 @@ void ships_erase_all(void)
 
 /* ---------------------------------------------------------------- SOLAR y NWSPS */
 
-/* SOS1: el planeta (tipo 128, o 130 si el bit 1 del nivel tecnologico esta puesto) con los giros sin amortiguar */
+/* SOS1: the planet (type 128, or 130 if bit 1 of the tech level is set) with undamped turns */
 static void sos1(void)
 {
     inwk[29] = 127; inwk[30] = 127;
     ship_new((u8)((qq5 & 2) | 0x80));
 }
 
-void (*ships_spblb_hook)(void) = 0;                  /* SPBLB (dash_spblb); lo pone flight_run, en las pruebas no se pinta */
+void (*ships_spblb_hook)(void) = 0;                  /* SPBLB (dash_spblb); set by flight_run, not painted in tests */
 
-/* NWSPS: la estacion en la posicion de INWK (IA $81, alabeo $FF, morro invertido con los tres NwS1) en la ranura 1 */
+/* NWSPS: the station at the position of INWK (AI $81, roll $FF, nose inverted with the three NwS1) in slot 1 */
 static void nwsps(void)
 {
-    if (ships_spblb_hook) ships_spblb_hook();            /* JSR SPBLB: se enciende la S */
+    if (ships_spblb_hook) ships_spblb_hook();            /* JSR SPBLB: the S lights up */
     inwk[32] = 0x81;
     inwk[30] = 0;
     inwk[I_NEWB] = 0;
-    frin[1] = 0;                                         /* STX FRIN+1: la estacion sustituye al sol */
+    frin[1] = 0;                                         /* STX FRIN+1: the station replaces the sun */
     inwk[29] = 0xFF;
     inwk[10] = (u8)(inwk[10] ^ 0x80); inwk[12] = (u8)(inwk[12] ^ 0x80); inwk[14] = (u8)(inwk[14] ^ 0x80);
-    inwk[33] = (u8)ORIG_LSO; inwk[34] = (u8)(ORIG_LSO >> 8);        /* monton LSO */
-    ship_new(SHIPT_CORIOLIS);                            /* Dodo si el nivel tecnologico es 10 o mas (ship_bp_for) */
+    inwk[33] = (u8)ORIG_LSO; inwk[34] = (u8)(ORIG_LSO >> 8);        /* LSO heap */
+    ship_new(SHIPT_CORIOLIS);                            /* Dodo if the tech level is 10 or more (ship_bp_for) */
 }
 
-/* TT110: al despegar, planeta delante (z_sign = 1) y estacion justo detras (z = -256) */
+/* TT110: on launch, planet ahead (z_sign = 1) and station just behind (z = -256) */
 void ships_launch(void)
 {
     ships_clear();
-    ship_zinf();                                         /* RES2 acaba en ZINF */
+    ship_zinf();                                         /* RES2 ends in ZINF */
     inwk[8]++;
     sos1();
     inwk[8] = 0x80;
@@ -217,7 +217,7 @@ void ships_launch(void)
     nwsps();
 }
 
-/* SOLAR: tras el hiperespacio; FIST a la mitad, Trumbles (si los hubiera), planeta delante y arriba a la derecha y sol detras */
+/* SOLAR: after hyperspace; FIST halved, Trumbles (if any), planet ahead and up to the right and sun behind */
 void ships_arrive(void)
 {
     const uni_system *sy = &uni_galaxy[cur_sys];
@@ -249,7 +249,7 @@ void ships_arrive(void)
     ship_new(129);
 }
 
-/* KS4: la estacion se ha alejado (FAROF): en su ranura (la 1) aparece el sol, en y_sign = 6 */
+/* KS4: the station has moved away (FAROF): in its slot (1) the sun appears, at y_sign = 6 */
 static void ks4(int n)
 {
     erase_lines(n);
@@ -257,14 +257,14 @@ static void ks4(int n)
     sun_flflls();
     frin[1] = 0;
     sspr = 0;
-    if (ships_spblb_hook) ships_spblb_hook();            /* JSR SPBLB: se apaga la S */
+    if (ships_spblb_hook) ships_spblb_hook();            /* JSR SPBLB: the S goes off */
     inwk[5] = 6;
     ship_new(129);
 }
 
-/* Parte 14 del bucle de vuelo (MA22..MA23S): cada 32 vueltas, fuera del hiperespacio y sin estacion: si estamos cerca del
-   planeta (signos 0) y su punto planeta + 2 * morro esta a menos de 192 en cada eje, se borra el sol y aparece la estacion.
-   Devuelve 1 si ha aparecido (SPBLB) */
+/* Part 14 of the flight loop (MA22..MA23S): every 32 iterations, outside hyperspace and with no station: if we are near the
+   planet (signs 0) and its point planet + 2 * nose is less than 192 away on each axis, the sun is erased and the station appears.
+   Returns 1 if it has appeared (SPBLB) */
 int ships_part14(u8 mc)
 {
     int i;
@@ -272,33 +272,33 @@ int ships_part14(u8 mc)
     if (mc & 31) return 0;
     if (sspr) return 0;
     if (sm_mas2(0, 0)) return 0;
-    for (i = 0; i <= 28; i++) inwk[i] = ks[i];           /* MAL4: INWK = planeta (29 bytes) */
+    for (i = 0; i <= 28; i++) inwk[i] = ks[i];           /* MAL4: INWK = planet (29 bytes) */
     if (sm_mas1(9, 0)) return 0;                         /* x += nosev_x * 2 */
     if (sm_mas1(11, 3)) return 0;
     if (sm_mas1(13, 6)) return 0;
-    if (!sm_farof2(192)) return 0;                                    /* FAROF2 con 192 */
-    sun_wpls();                                          /* WPLS: se borra el sol */
+    if (!sm_farof2(192)) return 0;                                    /* FAROF2 with 192 */
+    sun_wpls();                                          /* WPLS: the sun is erased */
     nwsps();
     return 1;
 }
 
 #ifdef DEBUG
-/* DEBUG (SHIFT-J): coloca la estacion (ranura 1) delante de nosotros, a z = 1024 unidades, quieta; 0 si no hay estacion en el sistema */
+/* DEBUG (SHIFT-J): places the station (slot 1) ahead of us, at z = 1024 units, stationary; 0 if there is no station in the system */
 int ships_dbg_near_station(void)
 {
     u8 *p;
     int i;
     if (!sspr) return 0;
-    ships_erase_all();                                   /* sus lineas dibujadas se borran antes de moverla */
+    ships_erase_all();                                   /* its drawn lines are erased before moving it */
     p = state_slot(1);
     for (i = 0; i < 9; i++) p[i] = 0;
-    p[7] = 4;                                            /* z = +1024 (hi = 4, signo +) */
+    p[7] = 4;                                            /* z = +1024 (hi = 4, sign +) */
     p[I_SPEED] = 0;
     return 1;
 }
 #endif
 
-/* ---------------------------------------------------------------- contactos de prueba */
+/* ---------------------------------------------------------------- test contacts */
 
 int ships_spawn(u8 type)
 {
@@ -306,17 +306,17 @@ int ships_spawn(u8 type)
     const u8 *bp;
     u8 sg, sp;
     ship_zinf();
-    inwk[0] = em_dornd(); inwk[1] = (u8)(em_dornd() % 2);   inwk[2] = (u8)(em_dornd() & 0x80);      /* entre 500 y 1500 unidades: */
-    inwk[3] = em_dornd(); inwk[4] = (u8)(em_dornd() % 2);   inwk[5] = (u8)(em_dornd() & 0x80);      /* se ven como figuras de lineas */
+    inwk[0] = em_dornd(); inwk[1] = (u8)(em_dornd() % 2);   inwk[2] = (u8)(em_dornd() & 0x80);      /* between 500 and 1500 units: */
+    inwk[3] = em_dornd(); inwk[4] = (u8)(em_dornd() % 2);   inwk[5] = (u8)(em_dornd() & 0x80);      /* they are seen as line figures */
     inwk[6] = em_dornd(); inwk[7] = (u8)(2 + em_dornd() % 4); inwk[8] = 0;
     bp = ship_bp_for(type);
-    sp = bp[15] ? (u8)(bp[15] / 8) : 0;                  /* se acercan despacio para poder verlas */
+    sp = bp[15] ? (u8)(bp[15] / 8) : 0;                  /* they approach slowly so they can be seen */
     inwk[27] = sp;
     sg = (u8)(em_dornd() & 0x80);
     inwk[29] = (u8)(sg | 40);
     inwk[30] = (u8)((sg ^ 0x80) | 20);
-    inwk[32] = (u8)(em_dornd() | 0x80);                  /* provisional: IA con agresividad al azar */
-    if (type != SHIPT_ASTEROID) inwk[36] = 0x04;         /* y hostil, para probar TACTICS hasta que haya encuentros */
+    inwk[32] = (u8)(em_dornd() | 0x80);                  /* provisional: AI with random aggression */
+    if (type != SHIPT_ASTEROID) inwk[36] = 0x04;         /* and hostile, to test TACTICS until there are encounters */
     n = ship_new(type);
     return n;
 }
@@ -340,16 +340,16 @@ int ships_explode_nearest(void)
 
 /* ---------------------------------------------------------------- SFS1, SFS2, SPIN, SPIN2 */
 
-/* SFS2: suma al eje X de la posicion (A * 2) con el signo de A (MVT1) */
+/* SFS2: adds to the X axis of the position (A * 2) with the sign of A (MVT1) */
 static void sfs2(u8 a, u8 x)
 {
     zR = (u8)(a << 1);
     mvt1((u8)(a & 0x80), x);
 }
 
-/* SFS1: la hija sale del bloque K% de la madre (INF), no de INWK; INWK se guarda y se restituye (el original usa XX3).
-   Si la madre es la estacion, sale por la ranura a velocidad 32. Los restos (PLT..SPL) giran al azar y su velocidad es
-   aleatoria (0..15: el X que deja DORND); el contador de alabeo es $7F con el signo del bit 7 del numero aleatorio (ROR con el acarreo de ASL) */
+/* SFS1: the child leaves from the mother's K% block (INF), not from INWK; INWK is saved and restored (the original uses XX3).
+   If the mother is the station, it leaves through the slot at speed 32. Debris (PLT..SPL) spins randomly and its speed is
+   random (0..15: the X left by DORND); the roll counter is $7F with the sign of bit 7 of the random number (ROR with the carry of ASL) */
 int sfs1(u8 ai, u8 type)
 {
     u8 save[NI], a, c;
@@ -364,15 +364,15 @@ int sfs1(u8 ai, u8 type)
     inwk[32] = ai;
     inwk[29] = (u8)(inwk[29] & 0xFE);                    /* LSR; ASL */
     if (type >= SHIPT_PLATE && type <= SHIPT_SPLINTER) {
-        em_rand_c = 1;                                   /* CMP #PLT con A >= PLT deja C = 1 para DORND */
+        em_rand_c = 1;                                   /* CMP #PLT with A >= PLT leaves C = 1 for DORND */
         a = em_dornd();
         c = (u8)(a >> 7);
         inwk[30] = (u8)(a << 1);
-        inwk[27] = (u8)(em_rand_x & 15);                 /* TXA: X lo ha dejado DORND (aleatorio), no es el tipo */
+        inwk[27] = (u8)(em_rand_x & 15);                 /* TXA: X was left by DORND (random), it is not the type */
         inwk[29] = (u8)((c << 7) | 0x7F);                /* LDA #$FF; ROR A */
     }
     n = ship_new(type);
-    em_rand_c = (u8)(n >= 0);                            /* NWSHP vuelve con C = 1 si hubo sitio (lo usa el DORND siguiente) */
+    em_rand_c = (u8)(n >= 0);                            /* NWSHP returns with C = 1 if there was room (used by the next DORND) */
     for (i = 0; i < NI; i++) inwk[i] = save[i];
     return n;
 }
@@ -382,7 +382,7 @@ void spin2(u8 cnt, u8 type)
     while (cnt) { sfs1(0, type); cnt--; }
 }
 
-/* SPIN: la cantidad es (tipo AND byte 0 del plano AND 15): el TYA tapa el numero aleatorio (asi en el original) */
+/* SPIN: the quantity is (type AND byte 0 of the blueprint AND 15): the TYA covers the random number (so in the original) */
 void spin(u8 type)
 {
     u8 a = em_dornd();
@@ -390,9 +390,9 @@ void spin(u8 type)
     spin2((u8)(type & zxx0[0] & 15), type);
 }
 
-/* ---------------------------------------------------------------- Ze, fq1 y los restos de nuestra nave (DEATH, D1) */
+/* ---------------------------------------------------------------- Ze, fq1 and the remains of our ship (DEATH, D1) */
 
-/* Ze: INWK para una nave al azar a 25 unidades altas en cada eje, con IA y agresividad; cae en DORND2 y devuelve su A */
+/* Ze: INWK for a random ship 25 units high on each axis, with AI and aggression; falls into DORND2 and returns its A */
 static u8 ze(void)
 {
     u8 a, x, c;
@@ -407,7 +407,7 @@ static u8 ze(void)
     return em_dornd2();
 }
 
-/* fq1: morro hacia nosotros, velocidad DELTA * 2 + C, y NWSHP */
+/* fq1: nose towards us, speed DELTA * 2 + C, and NWSHP */
 static int fq1(u8 type, u8 c)
 {
     inwk[14] = 0x60;
@@ -416,7 +416,7 @@ static int fq1(u8 type, u8 c)
     return ship_new(type);
 }
 
-/* FRS1: una nave nueva justo delante de nosotros, por debajo de la mira (y = -28, z = 14), con IA = MSTG * 2 | $80 */
+/* FRS1: a new ship just ahead of us, below the sight (y = -28, z = 14), with AI = MSTG * 2 | $80 */
 int frs1(u8 type)
 {
     u8 a, c;
@@ -426,26 +426,26 @@ int frs1(u8 type)
     inwk[5] = 0x80;
     a = mstg;
     c = (u8)(a >> 7);
-    inwk[32] = (u8)((a << 1) | 0x80);                    /* ASL A; ORA #$80: el acarreo pasa a fq1 */
+    inwk[32] = (u8)((a << 1) | 0x80);                    /* ASL A; ORA #$80: the carry passes to fq1 */
     return fq1(type, c);
 }
 
-/* GTHG: un Thargoid agresivo (Ze, IA = $FF) y un Thargon en el mismo sitio */
+/* GTHG: an aggressive Thargoid (Ze, AI = $FF) and a Thargon in the same place */
 u8 gthg(void)
 {
     ze();
     inwk[32] = 0xFF;
     ship_new(SHIPT_THARGOID);
-    return (u8)(ship_new(SHIPT_THARGON) >= 0);           /* JMP NWSHP: C = 1 si cabe */
+    return (u8)(ship_new(SHIPT_THARGON) >= 0);           /* JMP NWSHP: C = 1 if it fits */
 }
 
 u8 ships_ze(void) { return ze(); }
 
 u8 *ships_heap(int n) { return heaps[n]; }
 
-/* ESCAPE (la parte que mueve la nave): nuestra Cobra sale delante (FRS1 con CYL o, si no cabe, CYL2) y se aleja durante
-   97 fotogramas (MVEIT + LL9 sobre INWK); luego se borra del radar. El resto (carga, FIST, cupula, combustible y GOIN) lo
-   hace flight.c */
+/* ESCAPE (the part that moves the ship): our Cobra leaves ahead (FRS1 with CYL or, if it does not fit, CYL2) and moves away for
+   97 frames (MVEIT + LL9 on INWK); then it is erased from the radar. The rest (cargo, FIST, canopy, fuel and GOIN) is
+   done by flight.c */
 void ships_escape(void)
 {
     int n;
@@ -456,7 +456,7 @@ void ships_escape(void)
     if (n < 0) return;
     inwk[27] = 8;
     inwk[30] = 194;
-    inwk[32] = 194 >> 1;                                 /* LSR A: 97 vueltas */
+    inwk[32] = 194 >> 1;                                 /* LSR A: 97 iterations */
     zinf = state_slot(n); zxx19 = heaps[n]; zxx0 = ship_bp_for(ztype); move_xsav = (u8)n;
     ships_hooks();
     do {
@@ -464,13 +464,13 @@ void ships_escape(void)
         ship_ll9();
         inwk[32]--;
     } while (inwk[32] != 0);
-    space_scan(ztype);                                   /* JSR SCAN: lo quita del radar */
+    space_scan(ztype);                                   /* JSR SCAN: removes it from the radar */
 }
 
-/* SESCP: la nave actual lanza una capsula de escape (SFS1 con IA %11111110) */
+/* SESCP: the current ship launches an escape pod (SFS1 with AI %11111110) */
 void sescp(void) { sfs1(0xFE, SHIPT_ESCAPE_POD); }
 
-/* D1 de DEATH: restos (cargas o placas) que salen de donde estaba nuestra nave hasta llenar la ranura 4; algunos explotan */
+/* D1 of DEATH: debris (cargo or plates) leaving from where our ship was until slot 4 is filled; some explode */
 int ships_death_debris_one(void)
 {
     u8 a, x, c, t;
@@ -482,16 +482,16 @@ int ships_death_debris_one(void)
     inwk[1] = inwk[4] = inwk[7] = inwk[32] = 0;
     mcnt = 255;
     a = (u8)(a ^ 0x2A); inwk[3] = a;
-    a = (u8)(a | 0x50); inwk[6] = a;                     /* z con el bit 6: nunca chocan con nosotros */
+    a = (u8)(a | 0x50); inwk[6] = a;                     /* z with bit 6: they never collide with us */
     a = (u8)(x & 0x8F); inwk[29] = a;
     lasct = 64;
     c = (u8)(a & 1); a = (u8)((a >> 1) | 0x80);          /* SEC; ROR A */
     inwk[30] = (u8)(a & 0x87);
-    t = c ? SHIPT_PLATE : SHIPT_CANISTER;                /* BCC D3 (el plano de la placa existe) */
+    t = c ? SHIPT_PLATE : SHIPT_CANISTER;                /* BCC D3 (the plate blueprint exists) */
     n = fq1(t, c);
-    em_rand_c = (u8)(n >= 0);                            /* NWSHP vuelve con C = 1 si hubo sitio */
+    em_rand_c = (u8)(n >= 0);                            /* NWSHP returns with C = 1 if there was room */
     a = em_dornd();
-    if (n >= 0) state_slot(n)[31] = (u8)(a & 0x80);      /* LDY #31; STA (INF),Y: unos explotan ya */
+    if (n >= 0) state_slot(n)[31] = (u8)(a & 0x80);      /* LDY #31; STA (INF),Y: some explode already */
     return n;
 }
 
@@ -515,14 +515,14 @@ static void planet_v(void)
     em_dvid3b(0, (u8)(inwk[6] | 1), inwk[7], inwk[8]);   /* DVID3B2 */
     if (zK[1] != 0) zK[0] = 248;
     if (ztype & 1) { sun_draw(); return; }
-    sun_col = gfx_m4 ? C_GREEN : C_BLUE;                 /* propio: el planeta siempre azul, verde en modo 4 (el original usa el COL que haya quedado) */
-    if (view_native) { circle_update(); return; }        /* elipse: borra y dibuja solo si cambia el centro o el radio */
-    circle_wpls2();                                      /* PL9: borra el circulo anterior y dibuja el nuevo */
+    sun_col = gfx_m4 ? C_GREEN : C_BLUE;                 /* own: the planet always blue, green in mode 4 (the original uses whatever COL was left) */
+    if (view_native) { circle_update(); return; }        /* ellipse: erases and draws only if the centre or radius changes */
+    circle_wpls2();                                      /* PL9: erases the previous circle and draws the new one */
     circle_draw();
     return;
 pl2:
     sun = ztype & 1;
-    sun_col = sun ? C_RED : (gfx_m4 ? C_GREEN : C_BLUE);   /* el borrado XOR debe usar el color con que se dibujo */
+    sun_col = sun ? C_RED : (gfx_m4 ? C_GREEN : C_BLUE);   /* the XOR erase must use the colour it was drawn with */
     if (sun) sun_wpls(); else circle_wpls2();
 }
 
@@ -532,26 +532,26 @@ void planet(void) { view_virtual_begin(); planet_v(); view_virtual_end(); }
 
 static u8 e_u, e_tgt;
 static u8 e_col, e_colv;
-void (*ships_cpix_hook)(u8 x, u8 y, u8 col) = 0;     /* pruebas: cada CPIX de DOEXP con el COL del original (16, 20, 24, 28) */
+void (*ships_cpix_hook)(u8 x, u8 y, u8 col) = 0;     /* tests: each CPIX of DOEXP with the original's COL (16, 20, 24, 28) */
 
-static u8 dornd0(void)                                  /* paso del generador con CLC delante (acarreo de entrada 0) */
+static u8 dornd0(void)                                  /* generator step with CLC in front (incoming carry 0) */
 {
     em_rand_c = 0;
     return em_dornd();
 }
 
-/* colores de las particulas: COL = (aleatorio AND 12) OR 16 -> 16, 20, 24 y 28 (azul, "rojo", "fuzzy" y otro en el Apple II) */
+/* particle colours: COL = (random AND 12) OR 16 -> 16, 20, 24 and 28 (blue, "red", "fuzzy" and another on the Apple II) */
 static u8 expl_col(u8 v)
 {
     switch (v & 0x0C) {
-    case 0:  return C_CYAN;                              /* el azul puro se ve poco sobre negro */
+    case 0:  return C_CYAN;                              /* pure blue is hard to see on black */
     case 4:  return C_RED;
     case 8:  return C_YELLOW;
     }
     return C_WHITE;
 }
 
-/* EXS1: (A X) = (S R) +/- (aleatorio * Q / 256); devuelve A (Z = 0 si queda fuera de la pantalla) y X en *xout */
+/* EXS1: (A X) = (S R) +/- (random * Q / 256); returns A (Z = 0 if off screen) and X in *xout */
 static u8 exs1(u8 s_in, u8 *xout)
 {
     u8 a, c, hi, t;
@@ -564,7 +564,7 @@ static u8 exs1(u8 s_in, u8 *xout)
     a = (u8)((a << 1) | c);                              /* ROL A */
     c = hi;
     if (!c) {
-        em_carry = 0;                                    /* BCS EX5 no salta: C = 0 */
+        em_carry = 0;                                    /* BCS EX5 does not jump: C = 0 */
         a = em_fmltu(a);
         c = em_carry;
         s = (unsigned)a + zR + c;                        /* ADC R */
@@ -572,7 +572,7 @@ static u8 exs1(u8 s_in, u8 *xout)
         c = (u8)(s >> 8);
         return (u8)(zS + c);                             /* LDA S; ADC #0 */
     }
-    em_carry = 1;                                        /* EX5: C = 1 (si A o Q son 0, FMLTU no lo toca) */
+    em_carry = 1;                                        /* EX5: C = 1 (if A or Q are 0, FMLTU does not touch it) */
     a = em_fmltu(a);
     t = a;
     d = (int)zR - t - (1 - (int)em_carry); cc = (d >= 0);
@@ -580,7 +580,7 @@ static u8 exs1(u8 s_in, u8 *xout)
     return (u8)(zS - (1 - cc));
 }
 
-/* PTCLS: dibuja (XOR) la nube de particulas del monton; llamarla dos veces la borra */
+/* PTCLS: draws (XOR) the particle cloud of the heap; calling it twice erases it */
 static void ptcls(void)
 {
     u8 a, x, y, cnt, rand1, k, xr, hi, y1, cnt2;
@@ -612,7 +612,7 @@ static void ptcls(void)
                     gfx_cpix(xr, y1, e_col);
                 }
             } else {
-                dornd0();                                /* EX11: un paso mas del generador */
+                dornd0();                                /* EX11: one more generator step */
             }
             cnt2--;                                      /* DEC CNT2; BPL EXL4 */
             if (cnt2 & 0x80) break;
@@ -627,15 +627,15 @@ static void ptcls(void)
 
 static void ex2(void) { inwk[31] = (u8)(inwk[31] | 0xA0); }
 
-/* DOEXP: una explosion mas: borra la nube anterior, la hace crecer y la dibuja (o termina la nave) */
+/* DOEXP: one more explosion step: erases the previous cloud, makes it grow and draws it (or finishes the ship) */
 void doexp(void)
 {
     u8 a, t, c, y;
     unsigned s;
-    if (inwk[31] & 0x40) ptcls();                        /* borra la nube anterior */
+    if (inwk[31] & 0x40) ptcls();                        /* erases the previous cloud */
     t = inwk[6];
     a = inwk[7];
-    if (a >= 32) { a = 0xFE; c = 1; }                    /* CMP #32; BCC; LDA #$FE; BNE yy (el acarreo queda a 1) */
+    if (a >= 32) { a = 0xFE; c = 1; }                    /* CMP #32; BCC; LDA #$FE; BNE yy (the carry stays at 1) */
     else {
         /* ASL T; ROL A; ASL T; ROL A; SEC; ROL A */
         c = (u8)(t >> 7); t = (u8)(t << 1);
@@ -652,19 +652,19 @@ void doexp(void)
     em_dvid4(a);                                         /* (P R) = A * 256 / Q */
     a = zP;
     if (a >= 0x1C) a = 0xFE;
-    else {                                               /* ASL R; ROL A (tres veces) */
+    else {                                               /* ASL R; ROL A (three times) */
         for (y = 0; y < 3; y++) { c = (u8)(zR >> 7); zR = (u8)(zR << 1); a = (u8)((a << 1) | c); }
     }
     zxx19[0] = a;                                        /* LABEL_1: DEY; STA (XX19),Y */
     inwk[31] = (u8)(inwk[31] & 0xBF);
-    if (!(inwk[31] & 0x08)) return;                      /* TT48: la nube ya existe */
+    if (!(inwk[31] & 0x08)) return;                      /* TT48: the cloud already exists */
     y = zxx19[2];
-    do { zxx19[y] = xx3[y - 7]; y--; } while (y != 6);   /* EXL1: copia los vertices de pantalla al monton */
+    do { zxx19[y] = xx3[y - 7]; y--; } while (y != 6);   /* EXL1: copies the screen vertices to the heap */
     inwk[31] = (u8)(inwk[31] | 0x40);
     ptcls();
 }
 
-static void snd_dornd(void) { em_dornd(); }      /* JSR DORND dentro de un sonido: el acarreo sigue la cadena de em_rand_c */
+static void snd_dornd(void) { em_dornd(); }      /* JSR DORND inside a sound: the carry follows the em_rand_c chain */
 
 void ships_hooks(void)
 {
@@ -674,10 +674,10 @@ void ships_hooks(void)
     move_tactics_hook = tactics;
 }
 
-/* FAROF: 1 si alguna coordenada alta pasa de 224 */
-static int farof(void) { return !sm_farof2(224); }                    /* FAROF: C = 0 (lejos) */
+/* FAROF: 1 if some high coordinate exceeds 224 */
+static int farof(void) { return !sm_farof2(224); }                    /* FAROF: C = 0 (far) */
 
-/* ---------------------------------------------------------------- bucle por nave (MAIN LOOP: MVEIT, PLUT, LL9, KILLSHP) */
+/* ---------------------------------------------------------------- per-ship loop (MAIN LOOP: MVEIT, PLUT, LL9, KILLSHP) */
 
 u8 ships_step(u8 view)
 {
@@ -692,7 +692,7 @@ u8 ships_step(u8 view)
         ztype = type; zinf = sl; zxx19 = heaps[n]; move_xsav = (u8)n;
         if (!(type & 0x80)) {
             zxx0 = ship_bp_for(type);
-            /* parte 4: la bomba de energia destruye todo menos la estacion, los Thargoides, el Constrictor y el Dodo */
+            /* part 4: the energy bomb destroys everything except the station, Thargoids, the Constrictor and the Dodo */
             if ((bomb & 0x80) && type != SHIPT_CORIOLIS && type != SHIPT_THARGOID && type < SHIPT_CONSTRICTOR &&
                 !(inwk[31] & 0x20)) {
                 inwk[31] = (u8)(inwk[31] | 0x80);
@@ -700,25 +700,25 @@ u8 ships_step(u8 view)
             }
         }
         mveit();
-        if (player_dead) return (u8)(ev | SHIPS_EV_DEATH);         /* TACTICS nos ha matado (OOPS: JMP DEATH) */
+        if (player_dead) return (u8)(ev | SHIPS_EV_DEATH);         /* TACTICS has killed us (OOPS: JMP DEATH) */
         put_slot(n);                                     /* MAL3 */
-        if (!(type & 0x80)) {                            /* partes 9 y 10: choque, recogida o atraque */
+        if (!(type & 0x80)) {                            /* parts 9 and 10: collision, scooping or docking */
             int col = combat_collide();
             if (col == COL_DOCK) return (u8)(ev | SHIPS_EV_DOCK);      /* JMP DOENTRY */
             if (col == COL_DEATH) return (u8)(ev | SHIPS_EV_DEATH);    /* JMP DEATH */
-            if (inwk[I_NEWB] & 0x80) space_scan(type);   /* MA26: recogida: se borra del radar */
+            if (inwk[I_NEWB] & 0x80) space_scan(type);   /* MA26: scooping: erased from the radar */
         }
         plut(view);
-        if (!(type & 0x80)) combat_hit();                /* HITCH y danos del laser (parte 11) */
+        if (!(type & 0x80)) combat_hit();                /* HITCH and laser damage (part 11) */
 #ifdef DEBUG
-        if (ship_dbg_skip & 1) { if (!(ship_dbg_skip & 2) && !(type & 0x80)) ship_redraw_heap(); }   /* SHIFT-D: sin LL9 (la nave queda donde estaba) */
+        if (ship_dbg_skip & 1) { if (!(ship_dbg_skip & 2) && !(type & 0x80)) ship_redraw_heap(); }   /* SHIFT-D: without LL9 (the ship stays where it was) */
         else
 #endif
         ship_ll9();
         sl[35] = inwk[35];
-        if (!(type & 0x80) && combat_killed()) { ship_kill(n); continue; }       /* recogida o fin de la explosion: recompensa */
-        if (!(type & 0x80) && !farof()) { /* cerca: sigue */ }
-        else if (!(type & 0x80)) {                       /* MAC1: FAROF con C = 0 (la estacion deja paso al sol: KS4) */
+        if (!(type & 0x80) && combat_killed()) { ship_kill(n); continue; }       /* scooping or end of explosion: reward */
+        if (!(type & 0x80) && !farof()) { /* near: continues */ }
+        else if (!(type & 0x80)) {                       /* MAC1: FAROF with C = 0 (the station gives way to the sun: KS4) */
             if (type == SHIPT_CORIOLIS) ev |= SHIPS_EV_STATION;
             ship_kill(n);
             continue;

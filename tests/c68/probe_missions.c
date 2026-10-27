@@ -1,5 +1,5 @@
-/* Sonda c68: motor de fichas (todas las fichas de TKN1 y RUTOK, y las normales), PDESC, la decision de DOENTRY y la
-   aparicion de naves, con estados fijos; los hashes van a la "pantalla" para comparar el PC con c68 */
+/* c68 probe: token engine (all the TKN1 and RUTOK tokens, and the normal ones), PDESC, the DOENTRY decision and the
+   appearance of ships, with fixed states; the hashes go to the "screen" to compare the PC with c68 */
 #include "platform.h"
 #include "text.h"
 #include "detok.h"

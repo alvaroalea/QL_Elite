@@ -1,4 +1,4 @@
-/* Teclado: contextos de filas, flancos, caracteres y controles con patrones pseudoaleatorios de la matriz. */
+/* Keyboard: row contexts, edges, characters and controls with pseudo-random matrix patterns. */
 #include "platform.h"
 #include "keys.h"
 typedef unsigned short u16s;

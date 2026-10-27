@@ -1,25 +1,25 @@
-/* Polvo estelar (STARS, STARS1, STARS6, STARS2, FLIP, NWSTARS, nWq, PIXEL2 de la fuente de referencia): port sin verificar,
-   ver docs/PENDIENTES.md. Cada particula guarda x, y, z en 8 bits mas una parte baja de 8 bits (sxl, syl, szl); las coordenadas x e y
-   son signo-magnitud centradas en la pantalla y z es la distancia (255 = lejos). Se dibujan y se borran con XOR (gfx_dust).
-   Usa ALPHA, BETA, ALP1, ALP2, BET1 y BET2 de space.c y DELTA para mover el polvo con los giros y la velocidad de la nave. */
+/* Stardust (STARS, STARS1, STARS6, STARS2, FLIP, NWSTARS, nWq, PIXEL2 of the reference source): unverified port,
+   see docs/PENDIENTES.md. Each particle stores x, y, z in 8 bits plus an 8-bit low part (sxl, syl, szl); the x and y coordinates
+   are sign-magnitude centred on the screen and z is the distance (255 = far). They are drawn and erased with XOR (gfx_dust).
+   Uses ALPHA, BETA, ALP1, ALP2, BET1 and BET2 of space.c and DELTA to move the dust with the ship's turns and speed. */
 #ifndef STARS_H
 #define STARS_H
 #include "platform.h"
 
-#define NOST 12                          /* particulas de polvo en el espacio normal */
+#define NOST 12                          /* dust particles in normal space */
 
-extern u8 stars_nostm;                   /* NOSTM: particulas en uso (NOST normalmente; menos en el espacio de las brujas) */
+extern u8 stars_nostm;                   /* NOSTM: particles in use (NOST normally; fewer in witchspace) */
 extern u8 sx[NOST + 1], sy[NOST + 1], sz[NOST + 1];       /* indices 1..NOSTM */
 extern u8 sxl[NOST + 1], syl[NOST + 1], szl[NOST + 1];
-extern u8 delt4[2];                      /* DELT4 (16 bits, byte bajo primero) = velocidad * 64 */
+extern u8 delt4[2];                      /* DELT4 (16 bits, low byte first) = speed * 64 */
 
 #ifdef DEBUG
 extern u8 stars_dbg_nodraw;
 #endif
 extern void (*stars_pixel_hook)(u8 x, u8 y, u8 zz);
-void stars_set_speed(u8 delta);          /* DELT4 = DELTA * 64 (bucle principal, MA68) */
-void stars_update(u8 view);              /* STARS: mueve, borra y dibuja el polvo segun la vista (0 delante, 1 atras, 2 izq., 3 der.) */
-void stars_new(void);                    /* nWq: nube aleatoria nueva dibujada en la pantalla */
-void stars_flip(void);                   /* FLIP: refleja el polvo en la diagonal (cambio de vista) y lo redibuja */
-void stars_draw_all(void);              /* ayuda de pruebas: redibuja todas las particulas en su sitio actual */
+void stars_set_speed(u8 delta);          /* DELT4 = DELTA * 64 (main loop, MA68) */
+void stars_update(u8 view);              /* STARS: moves, erases and draws the dust according to the view (0 front, 1 rear, 2 left, 3 right) */
+void stars_new(void);                    /* nWq: new random cloud drawn on screen */
+void stars_flip(void);                   /* FLIP: mirrors the dust on the diagonal (view change) and redraws it */
+void stars_draw_all(void);              /* test aid: redraws all the particles at their current place */
 #endif

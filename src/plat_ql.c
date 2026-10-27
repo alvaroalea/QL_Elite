@@ -1,42 +1,42 @@
-/* Backend QL (XTC68 / qcc). SIN PROBAR en hardware: validar en QL real o emulador.
+/* QL backend (XTC68 / qcc). UNTESTED on hardware: validate on a real QL or emulator.
 
-   Consola: el runtime de c68 abre una ventana (centrada, con marco rojo y cursor). El juego no la usa
-   (dibuja directo en $20000 y lee el teclado con KEYROW), pero el IPC sigue metiendo cada pulsacion en la
-   cola de teclado de esa ventana, que es la que tiene el foco. Si nadie la lee, al salir SuperBASIC recibe
-   todas las teclas. Por eso: (1) la ventana se redefine a pantalla completa, negra y sin cursor,
-   (2) la cola se vacia al arrancar, en cada plat_present() y al salir (atexit). */
+   Console: the c68 runtime opens a window (centred, with a red border and cursor). The game does not use it
+   (it draws directly at $20000 and reads the keyboard with KEYROW), but the IPC still puts every key press into the
+   keyboard queue of that window, which has the focus. If nobody reads it, on exit SuperBASIC receives
+   all the keys. Hence: (1) the window is redefined as full screen, black and without cursor,
+   (2) the queue is emptied at start-up, on every plat_present() and on exit (atexit). */
 #include "platform.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <qdos.h>
 
-u8 *screen = (u8 *)0x20000L;               /* pantalla 1 del QL estandar */
+u8 *screen = (u8 *)0x20000L;               /* standard QL screen 1 */
 
-/* ql_ipc.asm: trap #3 generico; devuelve D0 (0 = ok, negativo = error QDOS) */
+/* ql_ipc.asm: generic trap #3; returns D0 (0 = ok, negative = QDOS error) */
 extern long ql_trap3(long d0, long d1, long d2, long d3, long a0, long a1);
 extern long ql_trap1(long d0, long d1, long d2, long d3);
 
-/* Operaciones de trap #3 usadas */
-#define IO_FBYTE 0x01L                      /* D3 = timeout; D1.B = byte; ERR.NC (-1) si no hay nada */
-#define SD_WDEF  0x0DL                      /* D1.B = color borde, D2.W = ancho borde, A1 -> 4 words w,h,x,y */
-#define SD_CURE  0x0EL                      /* activa el cursor */
-#define SD_CURS  0x0FL                      /* suprime el cursor */
-#define SD_CLEAR 0x20L                      /* borra toda la ventana */
-#define FLUSH_MAX 512                       /* tope de bytes por vaciado, por si el canal devolviera datos sin fin */
+/* trap #3 operations used */
+#define IO_FBYTE 0x01L                      /* D3 = timeout; D1.B = byte; ERR.NC (-1) if there is nothing */
+#define SD_WDEF  0x0DL                      /* D1.B = border colour, D2.W = border width, A1 -> 4 words w,h,x,y */
+#define SD_CURE  0x0EL                      /* enables the cursor */
+#define SD_CURS  0x0FL                      /* suppresses the cursor */
+#define SD_CLEAR 0x20L                      /* clears the whole window */
+#define FLUSH_MAX 512                       /* cap on bytes per flush, in case the channel returned endless data */
 
-static long con_in = -1L;                   /* canal QDOS de stdin (lectura) */
-static long con_out = -1L;                  /* canal QDOS de stdout (ventana) */
+static long con_in = -1L;                   /* QDOS stdin channel (read) */
+static long con_out = -1L;                  /* QDOS stdout channel (window) */
 extern void ql_tick_on(void);
 extern void ql_tick_off(void);
 extern long ql_ticks(void);
 static int tick_up = 0;
 static long last_tick = 0;
-static int  con_up = 0;                     /* plat_init hecho y plat_shutdown pendiente */
-static short win_def[4];                    /* ancho, alto, x, y */
-static short orig_mode = -1;                /* modo de pantalla con que se arranco (0 = modo 4, 8 = modo 8; -1 = no se pudo leer): se restaura al salir */
+static int  con_up = 0;                     /* plat_init done and plat_shutdown pending */
+static short win_def[4];                    /* width, height, x, y */
+static short orig_mode = -1;                /* screen mode the program started with (0 = mode 4, 8 = mode 8; -1 = could not be read): restored on exit */
 
-/* Vacia la cola de teclado de la consola sin esperar (timeout 0). */
+/* Empties the console keyboard queue without waiting (timeout 0). */
 void plat_flush_input(void)
 {
     int n;
@@ -45,25 +45,25 @@ void plat_flush_input(void)
         if (ql_trap3(IO_FBYTE, 0L, 0L, 0L, con_in, 0L) != 0L) break;
 }
 
-/* Ventana de consola a pantalla completa, negra y sin cursor (tras arrancar y tras cada cambio de modo) */
+/* Console window full screen, black and without cursor (after start-up and after each mode change) */
 static void con_setup(void)
 {
     if (con_out >= 0L) {
-        win_def[0] = 512; win_def[1] = 256; win_def[2] = 0; win_def[3] = 0;   /* pantalla completa */
-        ql_trap3(SD_WDEF, 0L, 0L, -1L, con_out, (long)win_def);              /* borde negro, ancho 0 */
+        win_def[0] = 512; win_def[1] = 256; win_def[2] = 0; win_def[3] = 0;   /* full screen */
+        ql_trap3(SD_WDEF, 0L, 0L, -1L, con_out, (long)win_def);              /* black border, width 0 */
         ql_trap3(SD_CLEAR, 0L, 0L, -1L, con_out, 0L);
-        ql_trap3(SD_CURS, 0L, 0L, -1L, con_out, 0L);                         /* sin cursor */
+        ql_trap3(SD_CURS, 0L, 0L, -1L, con_out, 0L);                         /* no cursor */
     }
 }
 
 void plat_init(void)
 {
-    short mode = -1, tv = -1;              /* -1 = leer el modo actual */
+    short mode = -1, tv = -1;              /* -1 = read the current mode */
     mt_dmode(&mode, &tv);
     if (orig_mode < 0 && (mode == 0 || mode == 8)) orig_mode = mode;
-    mode = 8; tv = -1;                     /* las demos arrancan en modo 8, sin cambiar TV (el juego pide el modo 4 con plat_mode) */
+    mode = 8; tv = -1;                     /* the demos start in mode 8, without changing TV (the game asks for mode 4 with plat_mode) */
     mt_dmode(&mode, &tv);
-    /* NOTA: escribir directo en $20000 puede requerir modo supervisor (trap #0) o SD.EXTOP */
+    /* NOTE: writing directly to $20000 may require supervisor mode (trap #0) or SD.EXTOP */
 
     con_in  = (long)fgetchid(stdin);
     con_out = (long)fgetchid(stdout);
@@ -76,8 +76,8 @@ void plat_init(void)
 #endif
 }
 
-/* Cambia el modo de pantalla (MT.DMODE: D1 = 0 es el modo 4 de 512 x 256 y 8 el modo 8; sin cambiar TV), vuelve a dejar la consola a pantalla
-   completa y borra la pantalla a negro. Un cambio al mismo modo no hace nada */
+/* Changes the screen mode (MT.DMODE: D1 = 0 is the 512 x 256 mode 4 and 8 is mode 8; without changing TV), leaves the console full
+   screen again and clears the screen to black. A change to the same mode does nothing */
 void plat_mode(int m4)
 {
     short mode = m4 ? 0 : 8, tv = -1;
@@ -88,10 +88,10 @@ void plat_mode(int m4)
     gfx_clear(C_BLACK);
 }
 
-/* Espera de tecla para los demos: sin ella el runtime de c68 borra la pantalla al volver a QDOS.
-   Lee la matriz con el mismo comando IPC que keys_ql.c (KEYROW), pero sin depender de keys.c. */
+/* Key wait for the demos: without it the c68 runtime clears the screen when returning to QDOS.
+   Reads the matrix with the same IPC command as keys_ql.c (KEYROW), but without depending on keys.c. */
 extern long ql_ipc(char *blk);
-static long wk_blk[2];                      /* long: direccion par */
+static long wk_blk[2];                      /* long: even address */
 
 static int wk_row(int row)
 {
@@ -102,7 +102,7 @@ static int wk_row(int row)
     return (r < 0L) ? 0 : (int)(r & 0xFF);
 }
 
-static int wk_any(void)                      /* alguna tecla (salvo SHIFT/CTRL/ALT) */
+static int wk_any(void)                      /* any key (except SHIFT/CTRL/ALT) */
 {
     int r, v;
     for (r = 0; r < 8; r++) {
@@ -113,20 +113,20 @@ static int wk_any(void)                      /* alguna tecla (salvo SHIFT/CTRL/A
     return 0;
 }
 
-/* Sustituye a _envsetup del runtime de c68 4.24f, que Cinit llama antes de main. El original copia los directorios por
-   defecto de Toolkit II (punteros a cadenas QDOS en SV+$AC, $B0 y $B4) a PROG_USE, DATA_USE y SPL_USE sin comprobar nada:
-   sin Toolkit II los punteros son 0 y lee la cadena de la direccion 0 de la ROM, cuya primera palabra es la longitud.
-   En la ROM JS vale 3 (3 bytes de basura), en Minerva $4C02: copia 19458 bytes en un bufer de 50 de la pila y el
-   programa se cuelga antes de llegar a main. Este hace lo mismo que el original (lista de entorno del padre o de la
-   extension *ENV* de SuperBASIC), pero solo acepta un puntero par dentro de la RAM y una longitud de 1 a 49. */
+/* Replaces _envsetup of the c68 4.24f runtime, which Cinit calls before main. The original copies the Toolkit II default
+   directories (pointers to QDOS strings at SV+$AC, $B0 and $B4) to PROG_USE, DATA_USE and SPL_USE without checking anything:
+   without Toolkit II the pointers are 0 and it reads the string at ROM address 0, whose first word is the length.
+   On the JS ROM it is 3 (3 bytes of garbage), on Minerva $4C02: it copies 19458 bytes into a 50-byte stack buffer and the
+   program hangs before reaching main. This one does the same as the original (environment list of the parent or of the
+   SuperBASIC *ENV* extension), but only accepts an even pointer inside RAM and a length from 1 to 49. */
 static void tk2_default(char *name, long off)
 {
     char *q = *(char **)(_sys_var + off);
     char *s, *e;
     int n, i;
     e = getenv(name);
-    if (e && *e) return;                                   /* el entorno manda, como en el original */
-    if (q <= _sys_var || q >= *(char **)(_sys_var + 0x20) || ((long)q & 1L)) return;   /* fuera de la RAM (SV_RAMT) */
+    if (e && *e) return;                                   /* the environment rules, as in the original */
+    if (q <= _sys_var || q >= *(char **)(_sys_var + 0x20) || ((long)q & 1L)) return;   /* outside RAM (SV_RAMT) */
     n = *(short *)q;
     if (n < 1 || n > 49) return;
     s = (char *)malloc(strlen(name) + n + 2);
@@ -143,16 +143,16 @@ void _envsetup(char *env)
 {
     char *p = 0, *bv, *nt, *ntb, *nl;
     if (env && !((long)env & 1L) && *(short *)env == 0x4AFC)
-        p = *(char **)(env + 2);                           /* entorno pasado por el trabajo padre */
+        p = *(char **)(env + 2);                           /* environment passed by the parent job */
     else {
-        _super();                                          /* que SuperBASIC no mueva sus tablas mientras se recorren */
-        bv  = *(char **)(_sys_var + 0x10) + 0x68;          /* SV_BASIC: variables de BASIC */
+        _super();                                          /* so that SuperBASIC does not move its tables while they are walked */
+        bv  = *(char **)(_sys_var + 0x10) + 0x68;          /* SV_BASIC: BASIC variables */
         ntb = bv + *(long *)(bv + 0x18);                   /* BV_NTBAS */
-        nt  = bv + *(long *)(bv + 0x1C) - 8;               /* BV_NTP: ultima entrada */
+        nt  = bv + *(long *)(bv + 0x1C) - 8;               /* BV_NTP: last entry */
         nl  = bv + *(long *)(bv + 0x20);                   /* BV_NLBAS */
         for (; nt >= ntb; nt -= 8)
             if (nt[0] == 8 && nt[1] == 0 && !strncmp("*ENV*", nl + *(short *)(nt + 2) + 1, 5)) {
-                p = *(char **)(*(char **)(nt + 4) + 2);  /* funcion *ENV* de la extension ENV */
+                p = *(char **)(*(char **)(nt + 4) + 2);  /* *ENV* function of the ENV extension */
                 break;
             }
         _user();
@@ -165,8 +165,8 @@ void _envsetup(char *env)
     tk2_default("SPL_USE", 0xB4L);
 }
 
-/* directorios por defecto de Toolkit II (DATA_USE / PROG_USE), que _envsetup deja en el entorno al arrancar;
-   sin Toolkit II quedan vacios. (getcdd de c68 lee SPL_USE, no DATA_USE: por eso getenv.) */
+/* Toolkit II default directories (DATA_USE / PROG_USE), which _envsetup leaves in the environment at start-up;
+   without Toolkit II they are empty. (c68's getcdd reads SPL_USE, not DATA_USE: hence getenv.) */
 int plat_default_dir(int prog, char *buf, int max)
 {
     char *e = getenv(prog ? "PROG_USE" : "DATA_USE");
@@ -180,18 +180,18 @@ int plat_default_dir(int prog, char *buf, int max)
 
 void plat_wait_key(void)
 {
-    while (wk_any()) plat_flush_input();    /* primero que suelte la tecla con la que lanzo el programa */
+    while (wk_any()) plat_flush_input();    /* first wait for the key used to launch the program to be released */
     while (!wk_any()) plat_flush_input();
-    while (wk_any()) plat_flush_input();    /* y que la suelte: asi SuperBASIC no la recibe */
+    while (wk_any()) plat_flush_input();    /* and released: so SuperBASIC does not receive it */
     plat_flush_input();
 }
 
-/* Se llama una vez por fotograma desde el bucle: aprovecha para vaciar la cola de teclado. */
+/* Called once per frame from the loop: takes the opportunity to empty the keyboard queue. */
 
 unsigned long plat_ticks(void) { return tick_up ? (unsigned long)ql_ticks() : 0UL; }
 
-/* Limite de 50 fotogramas por segundo: si el fotograma ha durado menos de un cuadro (20 ms), se espera al siguiente. Un fotograma que
-   ya ha durado un cuadro o mas (un QL normal: 5-10 fps) no espera nada; solo frena a un QL rapido (Super Gold Card o similar) */
+/* 50 frames per second limit: if the frame lasted less than one tick (20 ms), wait for the next. A frame that
+   already lasted one tick or more (a normal QL: 5-10 fps) waits for nothing; it only slows down a fast QL (Super Gold Card or similar) */
 void plat_present(void)
 {
     plat_flush_input();
@@ -203,24 +203,24 @@ void plat_present(void)
 
 void plat_shutdown(void)
 {
-    if (tick_up) { ql_tick_off(); tick_up = 0; }      /* antes de terminar: la tarea del reloj esta en nuestro codigo */
-    if (!con_up) return;                    /* idempotente: tambien lo llama atexit */
+    if (tick_up) { ql_tick_off(); tick_up = 0; }      /* before finishing: the clock task is in our code */
+    if (!con_up) return;                    /* idempotent: atexit also calls it */
     con_up = 0;
     plat_flush_input();
-    if (orig_mode >= 0 && orig_mode != (gfx_m4 ? 0 : 8)) {      /* el modo con que arranco el usuario */
+    if (orig_mode >= 0 && orig_mode != (gfx_m4 ? 0 : 8)) {      /* the mode the user started with */
         short mode = orig_mode, tv = -1;
         mt_dmode(&mode, &tv);
         con_setup();
     }
     if (con_out >= 0L) {
         ql_trap3(SD_CLEAR, 0L, 0L, -1L, con_out, 0L);
-        ql_trap3(SD_CURE, 0L, 0L, -1L, con_out, 0L);                         /* devuelve el cursor */
+        ql_trap3(SD_CURE, 0L, 0L, -1L, con_out, 0L);                         /* gives the cursor back */
     }
 }
 
-/* Salida sin el \"Press a key to exit\" del runtime de c68: se limpia la consola y el trabajo se elimina a si mismo
-   con MT.FRJOB (trap #1, D0=5, D1=-1 = este trabajo, D3 = codigo de error 0). No vuelve. Si por lo que sea falla,
-   plat_exit regresa y el programa termina por el camino normal. */
+/* Exit without the c68 runtime's "Press a key to exit": the console is cleaned and the job removes itself
+   with MT.FRJOB (trap #1, D0=5, D1=-1 = this job, D3 = error code 0). It does not return. If for some reason it fails,
+   plat_exit returns and the program ends through the normal path. */
 void plat_exit(void)
 {
     plat_shutdown();

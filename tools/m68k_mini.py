@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Interprete minimo de 68000 (solo las instrucciones que usa src/ql_line.asm) que ejecuta el TEXTO del ensamblador, para comprobar
-la logica de la rutina sin un emulador de 68000 (aqui no hay qemu-m68k). No comprueba la codificacion de as68 (eso lo hace qcc al
-enlazar): comprueba el algoritmo, los modos de direccionamiento, el orden de operandos y los indicadores (N, Z, V, C)."""
+"""Minimal 68000 interpreter (only the instructions src/ql_line.asm uses) that runs the assembler TEXT, to check
+the routine's logic without a 68000 emulator (there is no qemu-m68k here). It does not check as68's encoding (qcc does that on
+linking): it checks the algorithm, the addressing modes, the operand order and the flags (N, Z, V, C)."""
 import re, sys
 
 M32 = 0xFFFFFFFF
@@ -14,8 +14,8 @@ class CPU:
         self.n = self.z = self.v = self.c = self.x = 0
         self._ea_cache = {}
         self.prog, self.labels = [], {}
-        self.syms = {}                # simbolos externos -> direccion (los pone el que usa la clase)
-        self.natives = {}             # rutinas externas simuladas en Python (jsr)
+        self.syms = {}                # external symbols -> address (set by whoever uses the class)
+        self.natives = {}             # external routines simulated in Python (jsr)
         for raw in src.split('\n'):
             line = raw.split(';')[0].rstrip()
             if not line.strip(): continue
@@ -31,13 +31,13 @@ class CPU:
             args = [x.strip() for x in re.split(r',(?![^()]*\))', parts[1])] if len(parts) > 1 else []
             self.prog.append((op, args))
 
-    # --- memoria
+    # --- memory
     def rd(self, addr, size):
         return int.from_bytes(self.mem[addr:addr + size], 'big')
     def wr(self, addr, size, val):
         self.mem[addr:addr + size] = (val & ((1 << (8 * size)) - 1)).to_bytes(size, 'big')
 
-    # --- operandos
+    # --- operands
     @staticmethod
     def num(t):
         t = t.strip()
@@ -49,7 +49,7 @@ class CPU:
     def ea_addr(self, t, size=4):
         t = t.strip()
         if t in self._ea_cache: return self._ea_cache[t]
-        m = re.match(r'^-\((a[0-7]|sp)\)$', t)                                       # -(An): predecremento
+        m = re.match(r'^-\((a[0-7]|sp)\)$', t)                                       # -(An): predecrement
         if m:
             r = self.reg(m.group(1)); self.a[r] = (self.a[r] - size) & M32
             self._ea_cache[t] = self.a[r]
@@ -64,14 +64,14 @@ class CPU:
         if m: return self.a[self.reg(m.group(1))] & M32
         m = re.match(r'^(-?\$?[0-9A-Fa-f]+)\((a[0-7]|sp)\)$', t)
         if m: return (self.a[self.reg(m.group(2))] + self.num(m.group(1))) & M32
-        m = re.match(r'^(-?\$?[0-9A-Fa-f]*)\((a[0-7]|sp),(d[0-7])\.(w|l)\)$', t)      # d8(An,Dn.w): desplazamiento de 8 bits, indice con signo
+        m = re.match(r'^(-?\$?[0-9A-Fa-f]*)\((a[0-7]|sp),(d[0-7])\.(w|l)\)$', t)      # d8(An,Dn.w): 8-bit displacement, signed index
         if m:
             disp = self.num(m.group(1)) if m.group(1) not in ('', '-') else 0
             assert -128 <= disp <= 127, 'desplazamiento indexado fuera de 8 bits: ' + t
             idx = self.d[int(m.group(3)[1])]
             idx = (idx & 0xFFFF) - 0x10000 if (m.group(4) == 'w' and idx & 0x8000) else (idx & 0xFFFF if m.group(4) == 'w' else idx)
             return (self.a[self.reg(m.group(2))] + disp + idx) & M32
-        m = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)(\+(\d+))?$', t)                        # simbolo absoluto (variables de C), con +N
+        m = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)(\+(\d+))?$', t)                        # absolute symbol (C variables), with +N
         if m and m.group(1) in self.syms:
             return self.syms[m.group(1)] + (int(m.group(3)) if m.group(3) else 0)
         raise ValueError('modo no soportado: ' + t)
@@ -94,7 +94,7 @@ class CPU:
             i = int(t[1])
             self.d[i] = ((self.d[i] & ~mask) | (val & mask)) & M32
         elif re.match(r'^(a[0-7]|sp)$', t):
-            self.a[self.reg(t)] = val & M32            # solo palabra larga (adda, lea, move.l a)
+            self.a[self.reg(t)] = val & M32            # long word only (adda, lea, move.l a)
         else:
             self.wr(self.ea_addr(t, size), size, val)
 
@@ -160,7 +160,7 @@ class CPU:
                 tgt = args[0].strip()
                 if tgt in self.labels:
                     self.a[7] -= 4; self.wr(self.a[7], 4, pc + 0x10000); pc = self.labels[tgt]
-                else:                                           # rutina externa simulada en Python (self.natives[nombre](cpu)): ve los argumentos desde a7
+                else:                                           # external routine simulated in Python (self.natives[name](cpu)): sees the arguments from a7
                     self.natives[tgt](self)
             elif base == 'bsr':
                 self.a[7] -= 4; self.wr(self.a[7], 4, pc + 0x10000); pc = self.labels[args[0]]
@@ -256,7 +256,7 @@ class CPU:
             elif base == 'btst':
                 bit = self.num(args[0][1:])
                 if re.match(r'^d[0-7]$', args[1].strip()): v = self.get(args[1], 4); bit &= 31
-                else: v = self.get(args[1], 1); bit &= 7           # memoria: un byte
+                else: v = self.get(args[1], 1); bit &= 7           # memory: one byte
                 self.z = int(((v >> bit) & 1) == 0)
             elif base == 'exg':
                 i, j = int(args[0][1]), int(args[1][1])
@@ -275,7 +275,7 @@ class CPU:
 def run_line(src, x1, y1, x2, y2, c, scr=0x20000):
     cpu = CPU(src)
     cpu.a[7] = 0x1F000
-    cpu.syms['_gfx_m4'] = 0x1C000                       # ql_line mira _gfx_m4 (0 = modo 8)
+    cpu.syms['_gfx_m4'] = 0x1C000                       # ql_line looks at _gfx_m4 (0 = mode 8)
     args = [x1, y1, x2, y2, c, scr]
     for v in reversed(args):
         cpu.a[7] -= 4; cpu.wr(cpu.a[7], 4, v)

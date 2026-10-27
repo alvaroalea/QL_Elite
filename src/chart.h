@@ -1,26 +1,26 @@
-/* Cartas galactica y local (TT22, TT23, TT14, TT15, TT103, TT105 de la fuente de referencia), con SUN y CIRCLE.
-   Port sin verificar (ver docs/PENDIENTES.md). Geometria de la fuente: carta galactica de 192 x 96 pixeles (x 32..223, y 19..115,
-   escala 0,75 en x y 0,375 en y); carta local con 3 pixeles por unidad en x y 1,5 en y, centrada en (105, 75). */
+/* Galactic and local charts (TT22, TT23, TT14, TT15, TT103, TT105 of the reference source), with SUN and CIRCLE.
+   Unverified port (see docs/PENDIENTES.md). Geometry of the source: 192 x 96 pixel galactic chart (x 32..223, y 19..115,
+   scale 0.75 in x and 0.375 in y); local chart with 3 pixels per unit in x and 1.5 in y, centred at (105, 75). */
 #ifndef CHART_H
 #define CHART_H
 #include "platform.h"
 
-#define CHART_GCYT 19                 /* GCYT: y de la parte superior de la carta galactica */
-#define CHART_GCYB 115                /* GCYB = GCYT + 0,75 * 128 */
+#define CHART_GCYT 19                 /* GCYT: y of the top of the galactic chart */
+#define CHART_GCYB 115                /* GCYB = GCYT + 0.75 * 128 */
 
-#define CHART_TOP_FULLWIDTH 1         /* 1 = linea bajo el titulo de 0 a 255 como el original (NLIN5); 0 = solo cierra el marco (x 30..227) */
+#define CHART_TOP_FULLWIDTH 1         /* 1 = line under the title from 0 to 255 like the original (NLIN5); 0 = only closes the frame (x 30..227) */
 
-extern void (*chart_line_hook)(u8 kind, u8 a, u8 b, u8 c);   /* pruebas: HLOIN (0: x1, x2, y) y VLOIN (1: x, y1, y2) */
-void chart_tt15(int local, u8 x, u8 y, u8 size);   /* TT15 con QQ19 = (x, y, size); local = QQ11 negativo */
+extern void (*chart_line_hook)(u8 kind, u8 a, u8 b, u8 c);   /* tests: HLOIN (0: x1, x2, y) and VLOIN (1: x, y1, y2) */
+void chart_tt15(int local, u8 x, u8 y, u8 size);   /* TT15 with QQ19 = (x, y, size); local = QQ11 negative */
 extern void (*chart_event_hook)(char kind, u8 a, u8 b, u8 c);
-void chart_tt16(int local, u8 x, u8 y);  /* TT16: mueve la mira (X a la derecha, Y hacia arriba) con TT123 y la redibuja */
-void chart_draw(int local);           /* dibuja la carta completa (sobre pantalla ya borrada) */
-void chart_sight(u8 view);            /* SIGHT: mira del laser de la vista (0..3) en la vista espacial (tras borrar la vista) */
-void chart_sight_forget(void);        /* la vista se ha borrado sin volver a pintar la mira */
-void chart_sight_update(u8 view);     /* cada fotograma: cruz o aspa (estacion cerca) segun la S */
-void chart_cursor(int local);         /* TT103: cruz del sistema objetivo (XOR: dos llamadas la borran) */
-void chart_ping_set(void);        /* ping sin dibujar */
-void chart_ping(int local);           /* ping + TT103: el cursor vuelve al sistema actual (tecla O) */
-void chart_hm(int local);             /* hm: sistema mas cercano al cursor + cruz (tecla D) */
-int  chart_find_system(const char *name);   /* HME2: indice del sistema con ese nombre (sin mayusculas), o -1 */
+void chart_tt16(int local, u8 x, u8 y);  /* TT16: moves the crosshair (X to the right, Y up) with TT123 and redraws it */
+void chart_draw(int local);           /* draws the whole chart (on an already cleared screen) */
+void chart_sight(u8 view);            /* SIGHT: laser sight of the view (0..3) in the space view (after erasing the view) */
+void chart_sight_forget(void);        /* the view has been erased without repainting the sight */
+void chart_sight_update(u8 view);     /* every frame: cross or X shape (station near) according to the S */
+void chart_cursor(int local);         /* TT103: cross of the target system (XOR: two calls erase it) */
+void chart_ping_set(void);        /* ping without drawing */
+void chart_ping(int local);           /* ping + TT103: the cursor returns to the current system (O key) */
+void chart_hm(int local);             /* hm: system nearest the cursor + cross (D key) */
+int  chart_find_system(const char *name);   /* HME2: index of the system with that name (case-insensitive), or -1 */
 #endif

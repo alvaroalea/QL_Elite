@@ -46,7 +46,7 @@ int main(void)
 {
     int i;
     plat_init(); txt_init(); in_init(); snd_init();
-    save_set_device("flp1_");                      /* igual en el PC y en c68 (el valor por defecto de save.c depende del compilador) */
+    save_set_device("flp1_");                      /* the same on the PC and in c68 (save.c's default value depends on the compiler) */
     in_script = feed;
     game_run();
     snap();

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_tactics.txt ejecutando en el emulador de 6502 el codigo ORIGINAL de TACTICS (las 7 partes) con todo
-lo que usa real: DOCKIT/DCS1/GOPL/TA151, TAS1-6, VCSUB, SPS1, NORM, MVT3, MAD, MAS4, OOPS+OUCH, EXNO2 (con KWL%/KWH%),
-SESCP/SFS1/SFS2, SFRMIS, ECBLB2, DORND... Solo registran: NWSHP (tipo e INWK; vuelve con C = 1), MESS, LASNOISE, SOHISS,
-EXNO3, SOEXPL, ECBLB y DEATH. Escudos y energia altos para que no haya muerte (DEATH no vuelve en el original).
-Requiere ELITE_SRC. Uso: python3 tools/gen_tactics.py [n] [semilla]"""
+"""Generates tests/vectors_tactics.txt by running the ORIGINAL TACTICS code (all 7 parts) in the 6502 emulator with everything
+it uses real: DOCKIT/DCS1/GOPL/TA151, TAS1-6, VCSUB, SPS1, NORM, MVT3, MAD, MAS4, OOPS+OUCH, EXNO2 (with KWL%/KWH%),
+SESCP/SFS1/SFS2, SFRMIS, ECBLB2, DORND... Only these log: NWSHP (type and INWK; returns with C = 1), MESS, LASNOISE, SOHISS,
+EXNO3, SOEXPL, ECBLB and DEATH. High shields and energy so there is no death (DEATH does not return in the original).
+Requires ELITE_SRC. Usage: python3 tools/gen_tactics.py [n] [seed]"""
 import sys, random, math
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -30,7 +30,7 @@ for i in range(256):
     cpu.mem[0x2200 + i] = int(2 ** ((i / 2 + 128) / 16) + 0.5) >> 8 & 255
 cpu.mem[S['KWL%']:S['KWL%'] + 32] = bytes(table('KWL%')); cpu.mem[S['KWH%']:S['KWH%'] + 32] = bytes(table('KWH%'))
 cpu.mem[S['E%']:S['E%'] + 32] = bytes(table('E%'))
-if 'DNOIZ' in S: cpu.mem[S['DNOIZ']] = 0xFF                      # sonido desactivado: SOEXPL/SOHISS no llaman a DORND (como el port)
+if 'DNOIZ' in S: cpu.mem[S['DNOIZ']] = 0xFF                      # sound off: SOEXPL/SOHISS do not call DORND (like the port)
 NI = S['NI%']
 got = []
 def nwshp(c):
@@ -62,7 +62,7 @@ for _ in range(n):
     iw[27] = pick(0, 10, 30, rb() & 63); iw[28] = rb(); iw[29] = rb(); iw[30] = rb()
     iw[31] = pick(0, 1, 2, 3, 4, 0x41, rb() & 0x47)
     iw[32] = pick(0xFF, 0x80, 0xC0, 0x81, 0xFE, rb() | 0x80)
-    if typ == 1:                                                  # misil: a nosotros o a una ranura
+    if typ == 1:                                                  # missile: at us or at a slot
         iw[32] = pick(0xFE, 0xFE, 0x80, 0x80, 0x82, 0x84, 0x86, 0x88, 0x8A, 0xC2 & 0xBF) | 0x80
         if random.random() < 0.4:
             for k in (0, 3, 6): iw[k] = pick(0, 0, rb())
@@ -70,7 +70,7 @@ for _ in range(n):
             for k in (2, 5, 8): iw[k] &= 0x80
     iw[35] = rb(); iw[36] = pick(0, 1, 2, 4, 8, 16, 0x24, 0x84, rb() & 0x7F)
     slots = [ship(pick(0x400, 0x8000, 0x40000)) for _ in range(8)]
-    if random.random() < 0.4:                                     # blanco del misil pegado a el
+    if random.random() < 0.4:                                     # missile target stuck to it
         t = (iw[32] & 0x7F) >> 1
         if t < 8:
             slots[t][:9] = list(iw[:9])
@@ -87,7 +87,7 @@ for _ in range(n):
     for i in range(8): cpu.mem[S['K%'] + i * NI:S['K%'] + (i + 1) * NI] = bytes(slots[i])
     cpu.mem[S['INWK']:S['INWK'] + NI] = bytes(iw)
     k2 = S['K%'] + 2 * NI; cpu.mem[S['INF']] = k2 & 255; cpu.mem[S['INF'] + 1] = k2 >> 8
-    for i in range(8):                                            # UNIV: direccion de cada ranura
+    for i in range(8):                                            # UNIV: address of each slot
         a = S['K%'] + i * NI; cpu.mem[S['UNIV'] + 2 * i] = a & 255; cpu.mem[S['UNIV'] + 2 * i + 1] = a >> 8
     bpa = 0x6000; cpu.mem[bpa:bpa + 20] = bytes(bp); cpu.mem[S['XX0']] = bpa & 255; cpu.mem[S['XX0'] + 1] = bpa >> 8
     for i in range(34): cpu.mem[S['MANY'] + i] = 0
@@ -109,7 +109,7 @@ for _ in range(n):
         cpu.mem[S['RAT']], cpu.mem[S['RAT2']], cpu.mem[S['CNT']], cpu.mem[S['CNT2']], cpu.mem[S['ECMA']],
         cpu.mem[S['FSH']], cpu.mem[S['ASH']], cpu.mem[S['ENERGY']], cpu.mem[S['TALLYL']], cpu.mem[S['TALLY']],
         cpu.mem[S['TALLY'] + 1], lg_, nw))
-# ---------------------------------------------------------------- KS2, teclas de misil (MA4..MA24) y ECM (MA16..MA66)
+# ---------------------------------------------------------------- KS2, missile keys (MA4..MA24) and ECM (MA16..MA66)
 cpu2, S2 = build(routine('KS2'), None, {'UNIV': 0x2400})
 for _ in range(n // 4):
     xx4 = random.randrange(8)
@@ -126,7 +126,7 @@ for _ in range(n // 4):
 
 keys = rng(lab('MA4'), lab('MA24')) + ['.MA24', 'RTS', '.MA64', 'RTS'] + routine('ABORT') + routine('ABORT2')
 cpu3, S3 = build(keys, None)
-cpu3.hooks[S3['MSBAR']] = lambda c: (c.log.append(('MSBAR', c.a, c.x, c.y)), setattr(c, 'y', 0))   # MSBAR vuelve con Y = 0
+cpu3.hooks[S3['MSBAR']] = lambda c: (c.log.append(('MSBAR', c.a, c.x, c.y)), setattr(c, 'y', 0))   # MSBAR returns with Y = 0
 for _ in range(n // 4):
     ky = [pick(0, 0, 0xFF) for _ in range(3)]          # KY15 (U), KY14 (T), KY16 (M)
     nomsl, mstg, msar = pick(0, 1, 3, 4), pick(0xFF, 0xFF, 3), pick(0, 0xFF)

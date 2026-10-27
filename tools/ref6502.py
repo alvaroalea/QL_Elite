@@ -1,5 +1,5 @@
-# Referencia: transcripcion literal (instruccion a instruccion) de rutinas aritmeticas de Elite Apple II.
-class R:  # estado con acarreo
+# Reference: literal (instruction by instruction) transcription of arithmetic routines of Apple II Elite.
+class R:  # state with carry
     pass
 def adc(a,b,c):
     s=a+b+c; return s&255, s>>8
@@ -18,7 +18,7 @@ def mult1(A,Q):
         A,c=ror(A,c); P,c=ror(P,c)
     A,c=lsr(A); P,c=ror(P,c)
     return A|T,P
-def mls(Pin,A):  # MULTS con P=Pin (0..31)
+def mls(Pin,A):  # MULTS with P=Pin (0..31)
     X=A; T=A&0x80; A&=0x7F
     if A==0: return 0,0
     T1=A-1; P=Pin; A=0
@@ -49,17 +49,17 @@ def tis2(A,Q):
     if A>=Q: return (Y&0x80)|96
     T=0xFE
     while True:
-        A=(A<<1)&255  # nota: ASL puede desbordar C; el original lo trata: A<=127 y Q>A
-        # ASL produce acarreo si A>=128; CMP Q con A (8 bits) -> comparacion sobre A de 8 bits
+        A=(A<<1)&255  # note: ASL may overflow C; the original handles it: A<=127 and Q>A
+        # ASL produces a carry if A>=128; CMP Q with A (8 bits) -> comparison on 8-bit A
         if A>=Q: A-=Q
         T2=(T<<1)|1 if True else 0
         c=(T>>7)&1; T=((T<<1)&255)|1 if True else 0
-        # ROL T usa el acarreo de CMP/SBC: c_in = 1 si A>=Q(antes de restar)
+        # ROL T uses the carry from CMP/SBC: c_in = 1 if A>=Q (before subtracting)
         break
     return None
 if __name__=='__main__':
     import itertools
-    # MULT1: hallar forma cerrada
+    # MULT1: find the closed form
     bad=0
     for A in range(256):
         for Q in range(256):

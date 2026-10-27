@@ -1,4 +1,4 @@
-/* Relleno y copia rapidos (palabras largas en c68): hashes de la pantalla tras rellenos con recorte y copias con direcciones pares e impares. */
+/* Fast fill and copy (long words in c68): screen hashes after fills with clipping and copies with even and odd addresses. */
 #include "platform.h"
 #include "text.h"
 typedef unsigned short u16s;
@@ -30,7 +30,7 @@ int main(void)
         for (j = 0; j < 7300L; j++) h = (u16s)(((h << 5) | (h >> 11)) ^ dst[j]);
         hv[n++] = h;
     }
-    gfx_copy(screen + 128L * 136L, src + 2, 7168L);          /* a la pantalla, como el panel */
+    gfx_copy(screen + 128L * 136L, src + 2, 7168L);          /* to the screen, like the panel */
     gfx_copy(screen, src, 7168L);
     h = 0;
     for (j = 0; j < 32768L; j++) h = (u16s)(((h << 5) | (h >> 11)) ^ screen[j]);

@@ -1,5 +1,5 @@
-/* FREEZE (DK4 con '=') y DKS3 (config.c) contra el codigo original en el emulador (tools/gen_keys.py): las 9 opciones de
-   configuracion (DAMP..DISK), DNOIZ, como termina la pausa ('-' o ESC = DEATH2) y cuantas teclas se leyeron. */
+/* FREEZE (DK4 with '=') and DKS3 (config.c) against the original code in the emulator (tools/gen_keys.py): the 9 configuration
+   options (DAMP..DISK), DNOIZ, how the pause ends ('-' or ESC = DEATH2) and how many keys were read. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_charts.txt con el codigo ORIGINAL de las cartas en el emulador de 6502 (universo real: TT81, TT20,
-TT54, TT111 con readdistnce, SQUA2, LL5; SCALEX/SCALEY/SCALEY2; TT14, TT15, TT103, TT105, TT126, TT128, NLIN5/NLIN2...).
-Las primitivas registran sus argumentos: HLOIN (h X1 X2 Y1 COL), VLOIN (v X1 Y1 Y2 COL), PIXEL (p X A ZZ), CIRCLE2
-(c K3 K4 K), SUN (s K3 K4 K) y cpl (real; registra n XC YC QQ15+3 QQ15+1 al entrar).
-  G  TT22 (carta galactica)       L  TT23 (carta local)       M  TT16 (mover la mira)       H  hm (sistema mas cercano)
-Se comprueba con tests/test_charts (make test_charts). Uso: python3 tools/gen_charts.py [n] [semilla]"""
+"""Generates tests/vectors_charts.txt with the ORIGINAL chart code in the 6502 emulator (real universe: TT81, TT20,
+TT54, TT111 with readdistnce, SQUA2, LL5; SCALEX/SCALEY/SCALEY2; TT14, TT15, TT103, TT105, TT126, TT128, NLIN5/NLIN2...).
+The primitives log their arguments: HLOIN (h X1 X2 Y1 COL), VLOIN (v X1 Y1 Y2 COL), PIXEL (p X A ZZ), CIRCLE2
+(c K3 K4 K), SUN (s K3 K4 K) and cpl (real; logs n XC YC QQ15+3 QQ15+1 on entry).
+  G  TT22 (galactic chart)       L  TT23 (local chart)       M  TT16 (move the crosshair)       H  hm (nearest system)
+Checked with tests/test_charts (make test_charts). Usage: python3 tools/gen_charts.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -13,7 +13,7 @@ n = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 23)
 hx = lambda b: ''.join('%02x' % x for x in b)
 src = []
-for r in ('TT22', 'TT15', 'TT23', 'TT14', 'TT128', 'TT123', 'TT16', 'TT103', 'TT105', 'hm', 'TT81', 'TT20', 'TT54', 'TT111', 'cpl',   # TT22 cae en TT15 y TT16 en TT103
+for r in ('TT22', 'TT15', 'TT23', 'TT14', 'TT128', 'TT123', 'TT16', 'TT103', 'TT105', 'hm', 'TT81', 'TT20', 'TT54', 'TT111', 'cpl',   # TT22 falls into TT15 and TT16 into TT103
           'SCALEY', 'SCALEY2', 'SCALEX', 'DVLOIN', 'LL5'):
     src += routine(r)
 src += rng(nl('SQUA2') - 1, nx(nl('MU11')) - 1) + rng(nl('NLI4') - 1, nl('HLOIN2') - 1)
@@ -34,11 +34,11 @@ def flf(c): c.a = 0
 cpu.hooks[S['FLFLLS']] = flf
 
 gal = [0x4A, 0x5A, 0x48, 0x02, 0x53, 0xB7]
-def twist(b):                                        # G1 de Ghy: cada byte de QQ21 rota a la izquierda
+def twist(b):                                        # G1 of Ghy: each byte of QQ21 rotates left
     return [((v << 1) | (v >> 7)) & 255 for v in b]
 seeds = []
 for g in range(8): seeds.append(gal); gal = twist(gal)
-def systems(g):                                      # coordenadas de los 256 sistemas (TT81 + TT20)
+def systems(g):                                      # coordinates of the 256 systems (TT81 + TT20)
     m[S['QQ21']:S['QQ21'] + 6] = bytes(seeds[g]); cpu.run(S['TT81']); out = []
     for i in range(256):
         out.append((m[S['QQ15'] + 3], m[S['QQ15'] + 1])); cpu.run(S['TT20'])
@@ -48,7 +48,7 @@ out = []
 def setup(g, cur, q9, q10, q14, qq11):
     m[S['QQ21']:S['QQ21'] + 6] = bytes(seeds[g])
     m[S['QQ0']], m[S['QQ1']] = SYS[g][cur]; m[S['QQ9']] = q9; m[S['QQ10']] = q10; m[S['QQ14']] = q14; m[S['QQ11']] = qq11
-    m[S['SC'] + 1] = 0x2A                              # SC+1 (= INWK-1 en la pagina cero): nunca 0 tras dibujar
+    m[S['SC'] + 1] = 0x2A                              # SC+1 (= INWK-1 in zero page): never 0 after drawing
     cpu.log = []
 for k in range(n):
     g = random.randrange(8); cur = random.randrange(256); q14 = random.choice([0, 1, 35, 70, random.randrange(71)])
@@ -66,7 +66,7 @@ for k in range(n):
         out.append('M %d %d %d %d %d %d %d : %s : %d %d' % (qq11 >> 7, g, cur, a9, a10, dx, dy, ' '.join(e for e in cpu.log if isinstance(e, str)), m[S['QQ9']], m[S['QQ10']]))
         setup(g, cur, a9, a10, q14, qq11); cpu.run(S['hm'])
         out.append('H %d %d %d %d %d : %s : %d %d' % (qq11 >> 7, g, cur, a9, a10, ' '.join(e for e in cpu.log if isinstance(e, str)), m[S['QQ9']], m[S['QQ10']]))
-# ---------------------------------------------------------------- F: HME2 (busqueda por nombre) con el motor de texto real
+# ---------------------------------------------------------------- F: HME2 (search by name) with the real text engine
 def blk(a, b): return preprocess(L[a - 1:b - 1])
 def tok_arrays():
     h = open('src/tokens_data.h').read(); d = {}
@@ -97,7 +97,7 @@ t = TK['tok_tkn1'] + TK['tok_rupla'] + TK['tok_rugal'] + TK['tok_rutok']
 m[S['TKN1']:S['TKN1'] + len(t)] = bytes(t)
 cpu.hooks[S['DOXC']] = lambda c: c.wr(S['XC'], c.a)
 term = []
-def mt26(c):                                         # lectura de la linea: el texto en INWK+5 terminado en CR
+def mt26(c):                                         # line reading: the text in INWK+5 ending in CR
     for i, ch in enumerate(term): c.mem[S['INWK'] + 5 + i] = ch
     c.mem[S['INWK'] + 5 + len(term)] = 13
 cpu.hooks[S['MT26']] = mt26
@@ -122,7 +122,7 @@ for k in range(n):
     elif r < 0.5: nm = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(random.randrange(1, 9)))
     term = [ord(ch) for ch in nm.upper()] if random.random() < 0.85 else [ord(ch) for ch in nm]
     del res[:]
-    m[S['QQ17']] = 0xC0                                # minusculas: el estado tras imprimir un titulo (con $80 no encuentra el sistema 0; con 0 o $40, ninguno)
+    m[S['QQ17']] = 0xC0                                # lower case: the state after printing a title (with $80 it does not find system 0; with 0 or $40, none)
     m[S['QQ9']] = random.randrange(256); m[S['QQ10']] = random.randrange(256)
     m[S['QQ12']] = 1; m[S['QQ11']] = 64
     cpu.log = []; cpu.run(S['HME2'])

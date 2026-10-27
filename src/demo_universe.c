@@ -1,4 +1,4 @@
-/* Demo: ficha de un sistema (datos, descripcion y mercado) con el modulo de texto. En el PC dibuja un cuadro y termina. */
+/* Demo: a system's sheet (data, description and market) with the text module. On the PC it draws a frame and ends. */
 #include "text.h"
 #include "universe.h"
 
@@ -6,7 +6,7 @@ static char desc[512];
 static int dlen;
 static void cap(int c) { if (dlen < 511) desc[dlen++] = (char)c; desc[dlen] = 0; }
 
-/* escribe una cadena con ajuste por palabras a 32 columnas */
+/* writes a string with word wrap at 32 columns */
 static void put_wrapped(const char *s)
 {
     char word[40];
@@ -67,8 +67,8 @@ int main(void)
         txt_at(25, 15 + i); num(m.quantity[i], 3);
     }
     plat_present();
-    plat_wait_key();                              /* QL: espera una tecla antes de volver a QDOS */
+    plat_wait_key();                              /* QL: waits for a key before returning to QDOS */
     plat_shutdown();
-    plat_exit();                                  /* QL: sin "Press a key to exit" */
+    plat_exit();                                  /* QL: without "Press a key to exit" */
     return 0;
 }

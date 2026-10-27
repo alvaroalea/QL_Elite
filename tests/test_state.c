@@ -1,5 +1,5 @@
-/* Compara ship_math.c con los vectores generados desde la transcripcion literal del 6502.
-   Formato de cada linea:  op in:nombre=hex,... out:nombre=hex,...   */
+/* Compares ship_math.c with the vectors generated from the literal 6502 transcription.
+   Format of each line:  op in:name=hex,... out:name=hex,...   */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -11,8 +11,8 @@ static int fails, total, nops;
 static char opcount[64][16]; static long opn[64], opf[64];
 
 typedef struct { const char *name; u8 *p; int len; } var_t;
-static u8 r_ia, r_ix, r_iy, r_iv, r_ic;           /* registros de entrada */
-static u8 o_ra, o_rx, o_ry, o_rc;                 /* registros de salida */
+static u8 r_ia, r_ix, r_iy, r_iv, r_ic;           /* input registers */
+static u8 o_ra, o_rx, o_ry, o_rc;                 /* output registers */
 static var_t vars[] = {
     {"inwk", inwk, NI}, {"ks", ks, 2 * NI}, {"k", zK, 4}, {"k3", zk3, 16}, {"x15", zx15, 6},
     {"q", &zQ, 1}, {"r", &zR, 1}, {"s", &zS, 1}, {"t", &zT, 1}, {"u", &zU, 1},
@@ -29,7 +29,7 @@ static var_t *find(const char *n, int len)
     return 0;
 }
 
-/* recorre "a=hex,b=hex"; modo 0 = cargar, modo 1 = comparar; devuelve 0 si todo coincide */
+/* walks "a=hex,b=hex"; mode 0 = load, mode 1 = compare; returns 0 if everything matches */
 static int apply(const char *s, int compare, const char *op, const char *line)
 {
     int bad = 0;
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
         if (!in || !out) continue;
         state_clear();
         apply(in + 4, 0, op, line);
-        /* mvt3/tas1 etc. leen K tal como esta; los registros de entrada ya estan cargados */
+        /* mvt3/tas1 etc. read K as it is; the input registers are already loaded */
         run(op);
         bad = apply(out + 5, 1, op, line);
         total++;

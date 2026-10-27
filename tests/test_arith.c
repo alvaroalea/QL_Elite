@@ -1,5 +1,5 @@
-/* Maths (Arithmetic) contra el codigo original en el emulador (tools/gen_arith.py): cada rutina con A, X, Y, C y la pagina cero al
-   azar; se comparan sus salidas (las que declara el contrato de emath.h) y, si el port toca em_carry, el acarreo. */
+/* Maths (Arithmetic) against the original code in the emulator (tools/gen_arith.py): each routine with random A, X, Y, C and zero page;
+   their outputs are compared (those the emath.h contract declares) and, if the port touches em_carry, the carry. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

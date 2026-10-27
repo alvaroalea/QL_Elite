@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_flight.txt con el codigo ORIGINAL del grupo Flight en el emulador de 6502:
-  U  PLUT (INWK al azar y VIEW 0..3)
-  E  ESCAPE (RES2, FRS1, MVEIT, LL9, SCAN y GOIN registran): llamadas y variables a la salida
-  J  MJP (mis-jump): llamadas y variables
-  L  TT110 (despegue): llamadas y variables
-Se comprueba con tests/test_flight (make test_flight). Requiere ELITE_SRC. Uso: python3 tools/gen_flight.py [n] [semilla]"""
+"""Generates tests/vectors_flight.txt with the ORIGINAL Flight group code in the 6502 emulator:
+  U  PLUT (random INWK and VIEW 0..3)
+  E  ESCAPE (RES2, FRS1, MVEIT, LL9, SCAN and GOIN log): calls and variables on exit
+  J  MJP (mis-jump): calls and variables
+  L  TT110 (launch): calls and variables
+Checked with tests/test_flight (make test_flight). Requires ELITE_SRC. Usage: python3 tools/gen_flight.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -21,7 +21,7 @@ i2 = [i for i, l in enumerate(src) if code(l) == '.PU2'][0]
 j = max(i for i in range(i2) if code(src[i]))
 assert code(src[j]) == 'RTS'
 src.insert(j, '.PU2RTS')
-src.append(' RTS')                                 # PLUT acaba en LO2: RTS
+src.append(' RTS')                                 # PLUT ends in LO2: RTS
 cpu, S = build(src, None)
 print('stubs PLUT:', sorted(k for k, v in S.items() if 0x3E00 <= v < 0x3F00), file=sys.stderr)
 m = cpu.mem; NI = S['NI%']
@@ -30,8 +30,8 @@ for _ in range(n):
     m[S['INWK']:S['INWK'] + NI] = iw; m[S['VIEW']] = v
     cpu.run(S['PLUT'])
     out.append('U %d %s : %s' % (v, hx(iw), hx(m[S['INWK']:S['INWK'] + NI])))
-# ---------------------------------------------------------------- J: MJP (RES2, ZERO, ZINF y ECMOF reales; TT66, LL164, GTHG, LOOK1 y ECBLB registran)
-FLAGS['_IB_DISK'] = 1                            # MJP1 de la version IB (hasta tener tres Thargoides)
+# ---------------------------------------------------------------- J: MJP (real RES2, ZERO, ZINF and ECMOF; TT66, LL164, GTHG, LOOK1 and ECBLB log)
+FLAGS['_IB_DISK'] = 1                            # MJP1 of the IB version (until there are three Thargoids)
 src = [l for l in routine('MJP') + routine('RES2') + routine('ZINF') + routine('ZERO') + routine('ECMOF') if code(l) != 'SKIP 0']
 cpu, S = build(src, None)
 FLAGS['_IB_DISK'] = 0
@@ -52,7 +52,7 @@ for _ in range(n // 4):
     del log[:]
     cpu.y = B(); cpu.run(S['MJP'])
     out.append('J %d %d %d %d : %s : %d %d %d %d %d' % (q1, mc, ecma, sspr, ' '.join(log), m[S['MJ']], m[S['NOSTM']], m[S['QQ1']], m[S['MANY'] + S['THG']], m[S['ECMA']]))
-# ---------------------------------------------------------------- L: TT110 (RES2, SOS1, NWSPS, BAD y DORND reales; NWSHP registra INWK)
+# ---------------------------------------------------------------- L: TT110 (real RES2, SOS1, NWSPS, BAD and DORND; NWSHP logs INWK)
 def rb(): return random.randrange(256)
 dornd_ = routine('DORND')
 src = routine('TT110') + routine('SOS1') + routine('NWSPS') + ['.NWSHP', ' RTS'] + routine('NwS1') + routine('RES2') + routine('ZINF') + routine('ZERO') + routine('ECMOF') + routine('BAD') + dornd_

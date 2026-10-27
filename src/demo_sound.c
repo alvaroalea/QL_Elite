@@ -1,5 +1,5 @@
-/* Demo de sonido: cada tecla lanza un efecto de Elite. SHIFT+ESC sale. Sirve para ajustar de oido los parametros
-   (SND_NOISE_FUZZ/SND_NOISE_RND en sound.c) en un QL real o emulador. */
+/* Sound demo: each key launches an Elite effect. SHIFT+ESC exits. Used to tune the parameters by ear
+   (SND_NOISE_FUZZ/SND_NOISE_RND in sound.c) on a real QL or emulator. */
 #include "text.h"
 #include "keys.h"
 #include "sound.h"
@@ -52,6 +52,6 @@ int main(void)
     }
     snd_off();
     plat_shutdown();
-    plat_exit();                                  /* QL: sin "Press a key to exit" */
+    plat_exit();                                  /* QL: without "Press a key to exit" */
     return 0;
 }

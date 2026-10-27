@@ -1,8 +1,8 @@
-/* Compara con el 6502 original (tests/vectors_univ.txt, de tools/gen_universe.py) el universo del port:
-   S/G  semillas de las 8 galaxias y los 256 sistemas de cada una (TT24, TT20/TT54, cpl, radio de TT25)
-   N    TT111 (sistema mas cercano y distancia QQ8) y jmp
-   V    GVL (QQ26 y disponibilidad) y TT151 (precios)
-   W    secuencias de NWSHP y KILLSHP (con KS2); Z  ZINF */
+/* Compares the port's universe with the original 6502 (tests/vectors_univ.txt, from tools/gen_universe.py):
+   S/G  seeds of the 8 galaxies and the 256 systems of each (TT24, TT20/TT54, cpl, radius of TT25)
+   N    TT111 (nearest system and distance QQ8) and jmp
+   V    GVL (QQ26 and availability) and TT151 (prices)
+   W    sequences of NWSHP and KILLSHP (with KS2); Z  ZINF */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,7 +59,7 @@ static void s_case(char **a, const char *l)
 static int twins;
 static void n_case(char **a, const char *l)
 {
-    /* N g x y x0 y0 | zz q15 qq9 qq10 qq8 qq3 qq0 qq1 zz2 (TT111 otra vez desde (qq9, qq10)) */
+    /* N g x y x0 y0 | zz q15 qq9 qq10 qq8 qq3 qq0 qq1 zz2 (TT111 again from (qq9, qq10)) */
     int g = atoi(a[1]), idx, zz = atoi(a[7]);
     uni_system cur;
     const uni_system *p;
@@ -77,13 +77,13 @@ static void n_case(char **a, const char *l)
 
 static void h_case(char **a, const char *l)
 {
-    /* H g x y x0 y0 ev0 | qq0 qq1 qq2 ev qq28 tek gov: hyp1+3 (TT18) tras la seleccion con TT111 y el safehouse de TTX111 */
+    /* H g x y x0 y0 ev0 | qq0 qq1 qq2 ev qq28 tek gov: hyp1+3 (TT18) after the selection with TT111 and TTX111's safehouse */
     int g = atoi(a[1]), idx;
     const uni_system *p;
     u8 q2[6], c2[6];
     galaxy(g);
     idx = uni_nearest((u8)atoi(a[2]), (u8)atoi(a[3]));
-    game_enter_system(idx, 1);                           /* jmp + QQ28, tek y gov del sistema nuevo */
+    game_enter_system(idx, 1);                           /* jmp + QQ28, tek and gov of the new system */
     p = &uni_galaxy[idx];
     c2[0] = (u8)(p->seed0 & 255); c2[1] = (u8)(p->seed0 >> 8);
     c2[2] = p->goatsoupseed.a; c2[3] = p->goatsoupseed.b; c2[4] = p->goatsoupseed.c; c2[5] = p->goatsoupseed.d;
@@ -161,7 +161,7 @@ static void w_case(char **a, int na, const char *l)
 
 static void f_case(char **a, const char *l)
 {
-    /* F c bytes: la FONT del original (bit 0 = punto de la izquierda) frente a font8x8 (bit 7 = izquierda) */
+    /* F c bytes: the original's FONT (bit 0 = leftmost dot) versus font8x8 (bit 7 = left) */
     u8 b[8];
     int c = atoi(a[1]), i, j, ok = 1;
     hexb(a[2], b, 8);

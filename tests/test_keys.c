@@ -17,13 +17,13 @@ int main(void)
     key_init();
     memset(host_matrix, 0, 8);
 
-    /* codificacion segun la tabla KEYROW: Izq+Arriba en la fila 1 = 6, SHIFT en la fila 7 = 1 */
+    /* encoding according to the KEYROW table: Left+Up in row 1 = 6, SHIFT in row 7 = 1 */
     check(KEY_ROW(K_LEFT) == 1 && (1 << KEY_BIT(K_LEFT)) == 2, "izquierda = fila 1 valor 2");
     check((1 << KEY_BIT(K_UP)) == 4, "arriba = fila 1 valor 4");
     check((1 << KEY_BIT(K_RIGHT)) == 16 && (1 << KEY_BIT(K_ESC)) == 8 && (1 << KEY_BIT(K_DOWN)) == 128, "derecha 16, ESC 8, abajo 128");
     check(KEY_ROW(K_SHIFT) == 7 && (1 << KEY_BIT(K_SHIFT)) == 1 && (1 << KEY_BIT(K_CTRL)) == 2 && (1 << KEY_BIT(K_ALT)) == 4, "SHIFT/CTRL/ALT en fila 7");
 
-    /* teclas simultaneas: Izq + Arriba + Espacio + A (disparo) + X */
+    /* simultaneous keys: Left + Up + Space + A (fire) + X */
     press(K_LEFT); press(K_UP); press(K_SPACE); press(K_A); press(K_X);
     host_reads = 0; key_scan();
     check(host_reads == 7, "se leen 7 filas por defecto (1..7)");
@@ -35,7 +35,7 @@ int main(void)
     release(K_A); key_scan();
     check(!key_down(K_A) && key_released(K_A), "flanco de soltado");
 
-    /* controles de vuelo */
+    /* flight controls */
     memset(host_matrix, 0, 8);
     press(K_LEFT); press(K_DOWN); press(K_A); press(K_SPACE); key_scan();
     ctl_read(&c);
@@ -55,7 +55,7 @@ int main(void)
     ctl_read(&c);
     check(!c.roll_left && !c.roll_right && !c.pitch_up && !c.pitch_down, ", . S X ya no giran la nave");
 
-    /* joystick 1 (cursores+espacio): izquierda + disparo */
+    /* joystick 1 (cursors+space): left + fire */
     memset(host_matrix, 0, 8);
     press(K_LEFT); press(K_SPACE); key_scan();
     check(joy_read(1) == (JOY_LEFT | JOY_FIRE), "joystick 1: izquierda + disparo");
@@ -64,7 +64,7 @@ int main(void)
     press(K_F); key_scan(); ctl_read(&c);
     check(c.speed_up && c.fire, "con el CTL1 F acelera y el espacio sigue disparando");
 
-    /* joystick 2 (F1..F5) en la fila 0 */
+    /* joystick 2 (F1..F5) in row 0 */
     memset(host_matrix, 0, 8);
     key_set_rows(0xFF);
     press(K_F4); press(K_F3); press(K_F5); key_scan();
@@ -73,7 +73,7 @@ int main(void)
     check(c.pitch_down && c.roll_right && c.fire, "controles con el joystick 2 (arriba = picar)");
     ctl_joystick = 0;
 
-    /* caracteres */
+    /* characters */
     memset(host_matrix, 0, 8); key_set_rows(0xFF); key_scan();
     while (key_getchar() >= 0) {}
     press(K_J); key_scan();
@@ -92,23 +92,23 @@ int main(void)
     release(K_LEFT); release(K_CTRL); key_scan();
     press(K_CTRL); key_scan(); check(key_getchar() == -1, "CTRL solo no genera caracter");
     release(K_CTRL); key_scan();
-    press(K_A); press(K_B); press(K_S); key_scan();     /* tres a la vez: salen las tres, en orden de fila */
+    press(K_A); press(K_B); press(K_S); key_scan();     /* three at once: all three come out, in row order */
     check(key_getchar() != -1 && key_getchar() != -1 && key_getchar() != -1 && key_getchar() == -1, "tres pulsaciones simultaneas -> tres caracteres");
     release(K_A); release(K_B); release(K_S); key_scan();
 
-    /* cualquier tecla (ignora modificadores) */
+    /* any key (ignores modifiers) */
     memset(host_matrix, 0, 8); key_scan();
     press(K_SHIFT); press(K_CTRL); key_scan();
     check(!key_any(), "solo modificadores no cuenta");
     press(K_Q); key_scan();
     check(key_any(), "una tecla normal si");
 
-    /* filas no leidas conservan el ultimo valor */
+    /* rows not read keep their last value */
     memset(host_matrix, 0, 8); key_set_rows(0xFF); press(K_E); key_scan();
     key_set_rows(0x02); release(K_E); key_scan();
     check(key_down(K_E), "fila 6 no leida conserva su estado");
     (void)i;
-    /* contextos de lectura: menos filas por scan (cada fila es una llamada al IPC en el QL real) */
+    /* read contexts: fewer rows per scan (each row is an IPC call on the real QL) */
     key_init(); memset(host_matrix, 0, 8);
     key_ctx_menu(); host_reads = 0; key_scan();
     check(host_reads == 3, "menus: 3 lecturas por scan (filas 1 y 7 + una rotando)");

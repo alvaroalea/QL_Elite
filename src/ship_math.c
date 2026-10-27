@@ -2,14 +2,14 @@
 
 u8 sm_x, sm_y, sm_c, sm_a;
 
-/* ---------- MVT3: suma con signo-magnitud de 24 bits ---------- */
+/* ---------- MVT3: 24-bit sign-magnitude addition ---------- */
 u8 sm_mvt3(u8 x)
 {
     u8 a, t;
     int d, c;
     unsigned s;
     a = zK[3]; zS = a; t = (u8)(a & 0x80); zT = t;
-    if (((a ^ inwk[x + 2]) & 0x80) == 0) {                 /* mismos signos: sumar */
+    if (((a ^ inwk[x + 2]) & 0x80) == 0) {                 /* same signs: add */
         s = (unsigned)zK[1] + inwk[x];       zK[1] = (u8)s;
         s = (unsigned)zK[2] + inwk[x + 1] + (s >> 8); zK[2] = (u8)s;
         s = (unsigned)zK[3] + inwk[x + 2] + (s >> 8);
@@ -17,19 +17,19 @@ u8 sm_mvt3(u8 x)
         sm_c = (u8)(s >> 8);
         return a;
     }
-    zS = (u8)(zS & 0x7F);                                  /* MV13: signos distintos, restar */
+    zS = (u8)(zS & 0x7F);                                  /* MV13: different signs, subtract */
     d = (int)inwk[x] - zK[1];            c = (d >= 0); zK[1] = (u8)d;
     d = (int)inwk[x + 1] - zK[2] - (1 - c); c = (d >= 0); zK[2] = (u8)d;
     d = (int)(inwk[x + 2] & 0x7F) - zS - (1 - c); c = (d >= 0); a = (u8)d;
     a = (u8)((a | 0x80) ^ t); zK[3] = a;
     if (c) { sm_c = 1; return a; }                         /* MV14 */
-    d = 1 - (int)zK[1] - (1 - c);        c = (d >= 0); zK[1] = (u8)d;   /* negar el resultado */
+    d = 1 - (int)zK[1] - (1 - c);        c = (d >= 0); zK[1] = (u8)d;   /* negate the result */
     d = 0 - (int)zK[2] - (1 - c);        c = (d >= 0); zK[2] = (u8)d;
     d = 0 - (int)zK[3] - (1 - c);        sm_c = (u8)(d >= 0); a = (u8)(((u8)d & 0x7F) | t); zK[3] = a;
     return a;
 }
 
-/* ---------- MAS1 a MAS4 ---------- */
+/* ---------- MAS1 to MAS4 ---------- */
 u8 sm_mas1(u8 y, u8 x)
 {
     u8 a, a2, c;
@@ -55,8 +55,8 @@ u8 sm_mas3(u8 y)
     u8 a;
     a = em_squa2(ks[y + 1]); zR = a;
     a = em_squa2(ks[y + 4]);
-    s = (unsigned)a + zR;                                  /* SQUA2 sale con C = 0 */
-    em_carry = 1;                                          /* MA30: desborda con C = 1 */
+    s = (unsigned)a + zR;                                  /* SQUA2 returns with C = 0 */
+    em_carry = 1;                                          /* MA30: overflows with C = 1 */
     if (s > 255) return 0xFF;
     zR = (u8)s;
     a = em_squa2(ks[y + 7]);
@@ -69,7 +69,7 @@ u8 sm_mas3(u8 y)
 u8 sm_farof2(u8 a) { return (u8)(a >= inwk[1] && a >= inwk[4] && a >= inwk[7]); }
 u8 sm_mas4(u8 a) { return (u8)(a | inwk[1] | inwk[4] | inwk[7]); }
 
-/* ---------- VCSUB / TAS1: K3 = INWK - vector de otra nave ---------- */
+/* ---------- VCSUB / TAS1: K3 = INWK - vector of another ship ---------- */
 void sm_tas1(const u8 *v, u8 y)
 {
     u8 a, x;
@@ -261,7 +261,7 @@ u8 sm_proj(void)
     s = (unsigned)sm_x + (s >> 8); zk3[1] = (u8)s;
     zP = inwk[3]; zP1 = inwk[4];
     if (sm_pls6((u8)(inwk[5] ^ 0x80))) { sm_a = (u8)((zK[3] & 0x7F) | zK[2]); return 1; }
-    if (view_yscale) {                                      /* vista nativa: desplazamiento vertical x 6/5 */
+    if (view_yscale) {                                      /* native view: vertical offset x 6/5 */
         int v = (int)(((unsigned)sm_x << 8) | zK[0]);
         v += v / 5;
         zK[0] = (u8)v; sm_x = (u8)(((unsigned)v >> 8) & 0xFF);
@@ -272,7 +272,7 @@ u8 sm_proj(void)
     return 0;
 }
 
-/* ---------- Dinero ---------- */
+/* ---------- Money ---------- */
 u8 sm_mcash(u8 x, u8 y)
 {
     unsigned s;
@@ -292,7 +292,7 @@ u8 sm_lcash(u8 x, u8 y)
     d = (int)cash[1] - (1 - c);           c = (d >= 0); cash[1] = (u8)d;
     d = (int)cash[0] - (1 - c);           c = (d >= 0); cash[0] = (u8)d;
     if (c) { sm_c = 1; return 1; }                         /* TT113 */
-    return sm_mcash(x, y);                                 /* sin saldo: restituir */
+    return sm_mcash(x, y);                                 /* no balance: restore */
 }
 
 u8 sm_gcash(void)

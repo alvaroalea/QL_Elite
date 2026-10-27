@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_move.txt con el codigo ORIGINAL del grupo Moving en el emulador de 6502 (Maths real, SCAN y TACTICS
-registran):
+"""Generates tests/vectors_move.txt with the ORIGINAL Moving group code in the 6502 emulator (real Maths, SCAN and TACTICS
+log):
   T  MVT1 (INWK, A, X, R)           V  MVS4 (INWK, ALPHA, BETA, Y)       W  MVS5 (INWK, X, Y, RAT2)
-  X  MVT6 (INWK, A, X, P+1, P+2)    M  MVEIT completo (planetas y soles por MV40, MV45, MVS4, MVS5, MVT1, MVT6, TIDY)
-Se comprueba con tests/test_move (make test_move). Requiere ELITE_SRC. Uso: python3 tools/gen_move.py [n] [semilla]"""
+  X  MVT6 (INWK, A, X, P+1, P+2)    M  full MVEIT (planets and suns via MV40, MV45, MVS4, MVS5, MVT1, MVT6, TIDY)
+Checked with tests/test_move (make test_move). Requires ELITE_SRC. Usage: python3 tools/gen_move.py [n] [seed]"""
 import sys, random, re, os
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -54,7 +54,7 @@ def reset():
     m[S['XX21']:S['XX21'] + len(ships)] = ships
 def inwk():
     iw = bytearray(B() for _ in range(NI))
-    if random.random() < 0.5: iw[31] &= 0x5F            # sin los bits 7 y 5 con frecuencia
+    if random.random() < 0.5: iw[31] &= 0x5F            # frequently without bits 7 and 5
     return iw
 out = []
 YS = (9, 15, 21)
@@ -86,7 +86,7 @@ for _ in range(n):
     del log[:]
     cpu.run(S['MV45'])
     out.append('Y %d %d %d %d %s : %s : %s' % (t, de, al, be, hx(iw), ' '.join(log), hx(m[S['INWK']:S['INWK'] + NI])))
-    # ---- MV40 hasta MV45 (se para al llegar a MV45)
+    # ---- MV40 up to MV45 (stops on reaching MV45)
     reset(); iw = inwk(); m[S['INWK']:S['INWK'] + NI] = iw
     al, be = B(), B(); m[S['ALPHA']] = al; m[S['BETA']] = be
     class Stop(Exception): pass
@@ -100,7 +100,7 @@ for _ in range(n):
     reset(); iw = inwk()
     t = random.choice([1, 3, 5, 7, 11, 15, 16, 17, 18, 19, 20, 22, 24, 31, S['MSL'] if 'MSL' in S else 1, 128, 129, 128 + 2, 130])
     if random.random() < 0.15: t = random.randrange(1, 31)
-    if t >= 128: iw[31] &= 0x5F                         # un planeta no explota (sin plano: XX0 no apunta a nada)
+    if t >= 128: iw[31] &= 0x5F                         # a planet does not explode (no blueprint: XX0 points to nothing)
     m[S['INWK']:S['INWK'] + NI] = iw
     m[S['TYPE']] = t; xs = B(); mc = B(); de = random.choice([0, 1, 3, 12, 40, B()])
     al, be, a1, b1 = B(), B(), random.choice([0, 1, 2, 3, B()]), random.choice([0, 1, 2, 3, B()])

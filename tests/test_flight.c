@@ -1,4 +1,4 @@
-/* PLUT (move.c) y, en su momento, ESCAPE, MJP y TT110 contra el codigo original en el emulador (tools/gen_flight.py). */
+/* PLUT (move.c) and, in due course, ESCAPE, MJP and TT110 against the original code in the emulator (tools/gen_flight.py). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,13 +54,13 @@ int main(int argc, char **argv)
             { char hs[16]; sprintf(hs, "%02x%02x%02x%02x", em_rand[0], em_rand[1], em_rand[2], em_rand[3]); if (strcmp(hs, wr)) bad = 1; }
             if (fist != wf || zDELTA != wd) bad = 1;
             q = strchr(p, ':'); q++;
-            for (i = 0; i < 2; i++) {                          /* planeta y estacion: tipo e INWK (salvo bytes 31, 33, 34, 35 y, del planeta, 36) */
+            for (i = 0; i < 2; i++) {                          /* planet and station: type and INWK (except bytes 31, 33, 34, 35 and, for the planet, 36) */
                 int t = atoi(q), k;
                 u8 w[NI];
                 char *colon = strchr(q, ':');
                 rdh(colon + 1, w, NI);
                 if (i == 0 && frin[0] != t) bad = 1;
-                if (i == 1 && frin[1] != t) bad = 1;                 /* tipo 2 (Coriolis) aunque el plano sea el del Dodo */
+                if (i == 1 && frin[1] != t) bad = 1;                 /* type 2 (Coriolis) even though the blueprint is the Dodo's */
                 for (k = 0; k < NI; k++) {
                     if (k == 31 || k == 33 || k == 34 || k == 35) continue;
                     if (i == 0 && k == 36) continue;

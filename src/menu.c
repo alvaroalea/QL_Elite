@@ -1,5 +1,5 @@
 #ifndef ELITE_VERSION
-#define ELITE_VERSION "pre0.2"    /* normalmente lo pone el Makefile (VERSION) */
+#define ELITE_VERSION "pre0.2"    /* normally set by the Makefile (VERSION) */
 #endif
 #include "menu.h"
 #include "text.h"
@@ -22,7 +22,7 @@
 
 static int edit_text(int row, const char *prompt, char *buf, int maxlen);
 
-/* ---------------------------------------------------------------- utilidades */
+/* ---------------------------------------------------------------- utilities */
 
 void ui_clear(void)
 {
@@ -46,7 +46,7 @@ static void ui_title_bg(const char *t, u8 bg)
 
 void ui_title(const char *t) { ui_title_bg(t, C_BLUE); }
 
-/* titulo de las cartas: como el de STATUS y DATA (fila 1, amarillo sobre negro, centrado); la linea azul de debajo la dibuja la carta */
+/* chart title: like STATUS and DATA (row 1, yellow on black, centred); the blue line below is drawn by the chart */
 static void ui_title_row1(const char *t)
 {
     int col = (TXT_COLS - slen(t)) / 2;
@@ -61,15 +61,15 @@ void ui_footer(void)
     if (qq12) {
         txt_print_at(0, 30, "1BUY 2SELL 3EQUIP 5GAL 6LOCAL");
         txt_print_at(0, 31, "7DATA 8MKT 9STAT 0INV IDISK UGO");
-    } else {                                           /* en vuelo: 1-4 vistas, 5-9 pantallas (como en el original) */
+    } else {                                           /* in flight: 1-4 views, 5-9 screens (as in the original) */
         txt_print_at(0, 30, "1-4 VIEW 5GAL 6LOCAL 7DATA");
         txt_print_at(0, 31, "8MKT 9STAT 0INV H/G JUMP ESC");
     }
     txt_color(C_WHITE, C_BLACK);
 }
 
-/* Cifras decimales de v en b (sin ceros a la izquierda, al menos una); devuelve cuantas. Restas de potencias de 10 en vez de dividir:
-   en el 68008 la division de 32 bits es una rutina de libreria y costaba mas que dibujar el digito */
+/* Decimal digits of v in b (no leading zeros, at least one); returns how many. Subtractions of powers of 10 instead of dividing:
+   on the 68008 32-bit division is a library routine and cost more than drawing the digit */
 int dec_digits(unsigned long v, char *b)
 {
     static const unsigned long p10[10] = { 1000000000UL, 100000000UL, 10000000UL, 1000000UL, 100000UL, 10000UL, 1000UL, 100UL, 10UL, 1UL };
@@ -90,7 +90,7 @@ void ui_num(unsigned long v, int width)
     for (pad = n; pad < width && k < 12; pad++) b[k++] = ' ';
     for (pad = 0; pad < n; pad++) b[k++] = b[12 + pad];
     b[k] = 0;
-    txt_puts(b);                                                  /* de una vez: txt_putc por caracter es mucho mas lento */
+    txt_puts(b);                                                  /* at once: txt_putc per character is much slower */
 }
 
 void ui_tenths(unsigned long v)
@@ -129,13 +129,13 @@ static void val(int col, int row)
 int ui_nav(int ch)
 {
     ch = in_up(ch);
-    if (!qq12) {                                       /* en vuelo */
+    if (!qq12) {                                       /* in flight */
         switch (ch) {
         case '1': return SC_VIEW0;
         case '2': return SC_VIEW1;
         case '3': return SC_VIEW2;
         case '4': return SC_VIEW3;
-        case '5': return SC_GALCHART;                  /* 5-0 iguales en vuelo y atracado */
+        case '5': return SC_GALCHART;                  /* 5-0 the same in flight and docked */
         case '6': return SC_LOCCHART;
         case '7': return SC_DATA;
         case '8': return SC_MARKET;
@@ -144,7 +144,7 @@ int ui_nav(int ch)
         case 'h': return SC_HYPER;
         case 'g': return SC_GHYPER;
 #ifdef DEBUG
-        case '!': return SC_DBG_BUY;                   /* SHIFT-1/2/3 (el UK de los menus) */
+        case '!': return SC_DBG_BUY;                   /* SHIFT-1/2/3 (the UK of the menus) */
         case '@': return SC_DBG_SELL;
         case '#': return SC_DBG_EQUIP;
 #endif
@@ -160,20 +160,20 @@ int ui_nav(int ch)
     case 'u': return SC_LAUNCH;                        /* U = undock */
     case '1': return SC_BUY;
     case '2': return SC_SELL;
-    case '3': return SC_EQUIP;                         /* 4 no hace nada atracado (son las vistas del espacio) */
-    case '5': return SC_GALCHART;                      /* 5-0 iguales en vuelo y atracado */
+    case '3': return SC_EQUIP;                         /* 4 does nothing when docked (they are the space views) */
+    case '5': return SC_GALCHART;                      /* 5-0 the same in flight and docked */
     case '6': return SC_LOCCHART;
     case '7': return SC_DATA;
     case '8': return SC_MARKET;
     case '9': return SC_STATUS;
     case '0': return SC_INVENTORY;
     case 'i': return SC_DISK;
-    case 'h': case 'g': ui_msg("DOCKED", 1); return -1;    /* dockEd: no se puede saltar atracado */
+    case 'h': case 'g': ui_msg("DOCKED", 1); return -1;    /* dockEd: cannot jump when docked */
     }
     return -1;
 }
 
-/* ESC: atracado vuelve al estado; en vuelo, a la vista espacial */
+/* ESC: docked returns to the status; in flight, to the space view */
 static int back_sc(void) { return qq12 ? SC_STATUS : SC_FLIGHT; }
 
 static char unit_char(int good)
@@ -182,7 +182,7 @@ static char unit_char(int good)
     return u[uni_goods[good].units];
 }
 
-/* Espera una tecla de navegacion (u otra tecla que la pantalla no use). Devuelve SC_* o SC_QUIT; ESC vuelve al estado. */
+/* Waits for a navigation key (or another key the screen does not use). Returns SC_* or SC_QUIT; ESC returns to the status. */
 static int wait_nav(void)
 {
     int ch, sc;
@@ -195,20 +195,20 @@ static int wait_nav(void)
     }
 }
 
-/* ---------------------------------------------------------------- estado */
+/* ---------------------------------------------------------------- status */
 
 int scr_status(void)
 {
     missions_set_ink(C_WHITE);
     missions_set_title_ink(C_YELLOW);
     status_mode();
-    missions_set_title_ink(0);                                     /* STATUS del original con el motor de fichas */
+    missions_set_title_ink(0);                                     /* STATUS of the original with the token engine */
     txt_color(C_WHITE, C_BLACK);
     ui_footer();
     return wait_nav();
 }
 
-/* ---------------------------------------------------------------- inventario y mercado */
+/* ---------------------------------------------------------------- inventory and market */
 
 int scr_inventory(void)
 {
@@ -271,7 +271,7 @@ int scr_market(void)
     return wait_nav();
 }
 
-/* ---------------------------------------------------------------- compra y venta (lista con cursor) */
+/* ---------------------------------------------------------------- buying and selling (list with cursor) */
 
 static void trade_info(int buying, int sel, const char *entry)
 {
@@ -345,7 +345,7 @@ int scr_buy(void)  { return trade_screen(1, 0); }
 int scr_sell(void) { return trade_screen(0, 0); }
 
 #ifdef DEBUG
-/* DEBUG: compra gratis, venta sin quitar carga y equipo completo gratis (titulo en rojo) */
+/* DEBUG: free buying, selling without removing cargo and all equipment free (title in red) */
 static int scr_dbg_trade(int buying)
 {
     int r;
@@ -367,7 +367,7 @@ static int scr_dbg_equip(void)
 }
 #endif
 
-/* ---------------------------------------------------------------- equipo */
+/* ---------------------------------------------------------------- equipment */
 
 static void equip_row(int i, int row, int hl)
 {
@@ -405,7 +405,7 @@ static int equip_screen(int dbg)
                 equip_row(old, 2 + old, 0);
                 equip_row(sel, 2 + sel, 1);
             } else if (ch == KC_ENTER) break;
-            else {                                     /* las teclas de pantalla (1-9, 0, U, I...) navegan sin pasar por ESC */
+            else {                                     /* the screen keys (1-9, 0, U, I...) navigate without going through ESC */
                 int sc = ui_nav(ch);
                 if (sc >= 0 && sc != SC_EQUIP) return sc;
             }
@@ -413,7 +413,7 @@ static int equip_screen(int dbg)
         view = 0;
         if (equip_is_laser(sel)) {
             txt_clear_rows(26, 3, C_BLACK);
-            for (;;) {                                 /* vista con los cursores: izquierda/derecha (o arriba/abajo) y ENTER */
+            for (;;) {                                 /* view with the cursors: left/right (or up/down) and ENTER */
                 txt_color(C_CYAN, C_BLACK);
                 txt_print_at(0, 26, "VIEW? <> ENTER ESC:");
                 txt_color(C_YELLOW, C_BLACK);
@@ -452,7 +452,7 @@ static int equip_screen(int dbg)
 
 int scr_equip(void) { return equip_screen(0); }
 
-/* ---------------------------------------------------------------- datos del sistema */
+/* ---------------------------------------------------------------- system data */
 
 int scr_data(void)
 {
@@ -463,19 +463,19 @@ int scr_data(void)
     missions_set_ink(C_WHITE);
     missions_set_title_ink(C_YELLOW);
     tt25(tgt_sys);
-    missions_set_title_ink(0);                                     /* TT25 del original con el motor de fichas (y PDESC) */
+    missions_set_title_ink(0);                                     /* TT25 of the original with the token engine (and PDESC) */
     txt_color(C_WHITE, C_BLACK);
     ui_footer();
     return wait_nav();
 }
 
-/* ---------------------------------------------------------------- cartas */
+/* ---------------------------------------------------------------- charts */
 
 
 static void chart_info(int local)
 {
     unsigned d = jump_distance(tgt_sys);
-    int r0 = local ? 21 : 19;                          /* la carta local es mas grande: el texto baja 3 filas; la galactica 1 (el marco acaba en y = 143) */
+    int r0 = local ? 21 : 19;                          /* the local chart is bigger: the text moves down 3 rows; the galactic one 1 (the frame ends at y = 143) */
     txt_clear_rows(r0, local ? 5 : 6, C_BLACK);
     txt_color(C_CYAN, C_BLACK);
     txt_print_at(0, r0, "Target:"); txt_color(C_WHITE, C_BLACK); txt_puts(" "); txt_puts(uni_galaxy[tgt_sys].name);
@@ -491,8 +491,8 @@ static void chart_info(int local)
     txt_color(C_WHITE, C_BLACK);
 }
 
-/* El dibujo de las cartas esta en chart.c (TT22/TT23/TT14/TT103/TT105 con SUN y CIRCLE). Aqui, el teclado: la mira se mueve con
-   TT16/TT123 (QQ9, QQ10 libres, como el original) y el objetivo que se muestra abajo es el sistema mas cercano (TT111; propio). */
+/* The chart drawing is in chart.c (TT22/TT23/TT14/TT103/TT105 with SUN and CIRCLE). Here, the keyboard: the crosshair moves with
+   TT16/TT123 (QQ9, QQ10 free, as in the original) and the target shown below is the nearest system (TT111; own). */
 static int scr_chart_run(int local)
 {
     int ch, dx, dy, sc, step = local ? 1 : 2, idx;
@@ -511,15 +511,15 @@ static int scr_chart_run(int local)
         else if (ch < 0) {
             if (in_held(KC_LEFT)) dx = -step; else if (in_held(KC_RIGHT)) dx = step;
             if (in_held(KC_UP)) dy = -step; else if (in_held(KC_DOWN)) dy = step;
-        } else if (in_up(ch) == 'o') {                          /* O: ping, el cursor vuelve al sistema actual */
+        } else if (in_up(ch) == 'o') {                          /* O: ping, the cursor returns to the current system */
             chart_ping(local);
             chart_info(local);
             continue;
-        } else if (in_up(ch) == 'd') {                          /* D: hm, sistema mas cercano a la cruz, con nombre y distancia */
+        } else if (in_up(ch) == 'd') {                          /* D: hm, system nearest the cross, with name and distance */
             chart_hm(local);
             chart_info(local);
             continue;
-        } else if (in_up(ch) == 'f' && qq12) {                  /* F: HME2, buscar un sistema por nombre (solo atracado) */
+        } else if (in_up(ch) == 'f' && qq12) {                  /* F: HME2, search for a system by name (docked only) */
             char name[9];
             int k, found;
             for (k = 0; k < 9; k++) name[k] = 0;
@@ -529,7 +529,7 @@ static int scr_chart_run(int local)
                 found = chart_find_system(name);
                 if (found >= 0) {
                     chart_cursor(local);
-                    game_set_target(found);              /* HME5: QQ9/QQ10 del encontrado */
+                    game_set_target(found);              /* HME5: QQ9/QQ10 of the one found */
                     game_tt111();                        /* y TT111 */
                     chart_cursor(local);
                     chart_info(local);
@@ -546,8 +546,8 @@ static int scr_chart_run(int local)
             if (sc >= 0) return sc;
         }
         if (dx || dy) {
-            chart_tt16(local, (u8)dx, (u8)(-dy));               /* TT16: la mira se mueve sola (QQ9, QQ10), sin pegarse a un sistema */
-            idx = uni_nearest(qq9, qq10);                       /* propio: el objetivo que daria TT111, para la informacion de abajo */
+            chart_tt16(local, (u8)dx, (u8)(-dy));               /* TT16: the crosshair moves by itself (QQ9, QQ10), without sticking to a system */
+            idx = uni_nearest(qq9, qq10);                       /* own: the target TT111 would give, for the information below */
             if (idx != tgt_sys) {
                 game_target_only(idx);
                 chart_info(local);
@@ -556,7 +556,7 @@ static int scr_chart_run(int local)
     }
 }
 
-/* la carta se dibuja con la transformacion de pantalla (sun.c: local mas ancha que alta y centrada, galactica 8 puntos abajo) */
+/* the chart is drawn with the screen transformation (sun.c: local wider than tall and centred, galactic 8 dots down) */
 int scr_chart(int local)
 {
     int r;
@@ -566,9 +566,9 @@ int scr_chart(int local)
     return r;
 }
 
-/* ---------------------------------------------------------------- nombre y disco */
+/* ---------------------------------------------------------------- name and disk */
 
-/* Editor de linea: devuelve la longitud (0 = cancelado con ESC). buf >= maxlen + 1; admite letras, cifras, _ y - (en mayusculas) */
+/* Line editor: returns the length (0 = cancelled with ESC). buf >= maxlen + 1; accepts letters, digits, _ and - (in capitals) */
 static int edit_text(int row, const char *prompt, char *buf, int maxlen)
 {
     int n = 0, ch;
@@ -577,7 +577,7 @@ static int edit_text(int row, const char *prompt, char *buf, int maxlen)
     txt_print_at(0, row, prompt);
     txt_color(C_WHITE, C_BLACK);
     while (buf[n]) n++;
-    txt_at(0, row + 1); txt_puts("> "); txt_puts(buf); txt_puts("_\b");          /* raya como cursor */
+    txt_at(0, row + 1); txt_puts("> "); txt_puts(buf); txt_puts("_\b");          /* underscore as cursor */
     for (;;) {
         ch = in_wait();
         if (ch == KC_QUIT) { txt_puts(" \b"); in_quit = 1; return 0; }
@@ -623,11 +623,11 @@ int scr_disk(void)
         if (ch == KC_QUIT) return SC_QUIT;
         if (ch == KC_ESC) return back_sc();
         ch = in_up(ch);
-        if (ch == '5') return back_sc();                     /* volver al juego sin cargar ni guardar */
+        if (ch == '5') return back_sc();                     /* return to the game without loading or saving */
         if (ch == '1') {
             for (i = 0; i < CMDR_NAMELEN + 1; i++) name[i] = 0;
             if (edit_name(15, "LOAD WHICH COMMANDER?", name) > 0) {
-                snd_off();                                       /* BEEP durante E/S de disco puede colgar el QL */
+                snd_off();                                       /* BEEP during disk I/O can hang the QL */
                 ui_msg("LOADING...", 0);
                 r = load_commander(name);
                 if (r == SAVE_OK) { game_after_load(); return SC_STATUS; }
@@ -673,14 +673,14 @@ int scr_disk(void)
     }
 }
 
-/* ---------------------------------------------------------------- titulo */
+/* ---------------------------------------------------------------- title */
 
 static u8 title_heap[SHIPVIEW_HEAP];
 
-#define TITLE_Z 506L                             /* distancia final del Cobra Mk III (como el original: 1 * 256 + 250) */
-#define TITLE_FAR 4096L                          /* distancia de la que parte cada nave */
-#define TITLE_HOLD 500                           /* fotogramas que dura cada modelo (~10 s a 50 fps; provisional) */
-#define TITLE_CY 92                              /* centro del hueco entre el titulo (fila 1) y la opcion 1 (fila 21) */
+#define TITLE_Z 506L                             /* final distance of the Cobra Mk III (as in the original: 1 * 256 + 250) */
+#define TITLE_FAR 4096L                          /* distance each ship starts from */
+#define TITLE_HOLD 500                           /* frames each model lasts (~10 s at 50 fps; provisional) */
+#define TITLE_CY 92                              /* centre of the gap between the title (row 1) and option 1 (row 21) */
 #define TITLE_CLIP 164
 #define TITLE_NSHIPS 10
 
@@ -689,8 +689,8 @@ static const u8 title_ships[TITLE_NSHIPS] = {
     SHIPT_FER_DE_LANCE, SHIPT_ASP_MK_2, SHIPT_ADDER, SHIPT_ANACONDA, SHIPT_THARGOID
 };
 
-/* Cabeceo de la nave del titulo (otro eje, ademas del giro): una onda triangular lenta de -6 a +6 pasos de 64 (unos +-34 grados), de modo que
-   se ve la parte de abajo y la de arriba (con 10 fijos solo se veia la de abajo). t = unidades de 40 ms (periodo 8 s) o fotogramas del titulo */
+/* Pitch of the title ship (another axis, besides the spin): a slow triangular wave from -6 to +6 steps of 64 (about +-34 degrees), so that
+   both the underside and the top are seen (with a fixed 10 only the underside was seen). t = units of 40 ms (period 8 s) or title frames */
 #define TITLE_PITCH_PERIOD 200
 static int title_pitch(int t)
 {
@@ -706,18 +706,18 @@ static int title_loop(void)
     u8 type = title_ships[0];
     char name[CMDR_NAMELEN + 1];
     ui_clear();
-    state_clear();                                   /* LL9 trabaja sobre INWK/K%: el titulo usa su propio estado */
+    state_clear();                                   /* LL9 works on INWK/K%: the title uses its own state */
     txt_color(C_YELLOW, C_BLACK);
-    txt_print_at(6, 1, "---- E L I T E ----");         /* TITLE: la ficha 30 del original (plf) en la columna 6 de la fila 1 */
+    txt_print_at(6, 1, "---- E L I T E ----");         /* TITLE: token 30 of the original (plf) at column 6 of row 1 */
     txt_color(C_WHITE, C_BLACK);
     txt_print_at(4, 21, "1  NEW COMMANDER (JAMESON)");
     txt_print_at(4, 22, "2  LOAD COMMANDER");
     txt_print_at(4, 23, "Q  QUIT");
     txt_color(C_CYAN, C_BLACK);
-    if (patg) txt_print_at(0, 27, "BY D.BRABEN & I.BELL");      /* PATG: autores (ficha 13 del original) */
+    if (patg) txt_print_at(0, 27, "BY D.BRABEN & I.BELL");      /* PATG: authors (token 13 of the original) */
     txt_print_at(0, 28, "QL Port from Original 6502 Code");
     txt_print_at(0, 29, "by A.Alea & Claude 2026 R " ELITE_VERSION);
-    if (!dash_loaded()) {                            /* la carga correcta es invisible; solo se avisa si falta el fichero */
+    if (!dash_loaded()) {                            /* a correct load is invisible; it only warns if the file is missing */
         txt_color(C_RED, C_BLACK);
         txt_print_at(0, 30, "NO ELITE_DASH FILE (BASIC PANEL)");
     }
@@ -727,20 +727,20 @@ static int title_loop(void)
     for (;;) {
         ch = in_poll();
         if (ch == KC_QUIT) return TITLE_QUIT;
-        if (ch < 0) {                                /* la nave gira mientras se espera */
+        if (ch < 0) {                                /* the ship spins while waiting */
             ay = (ay + 1) & (SHIPVIEW_ANG - 1);
             ++ft;
-            ax = title_pitch((!in_script && plat_ticks() != 0UL) ? (int)(plat_ticks() / 2UL % 1000UL) : ft);       /* por tiempo (periodo 8 s) si hay reloj */
+            ax = title_pitch((!in_script && plat_ticks() != 0UL) ? (int)(plat_ticks() / 2UL % 1000UL) : ft);       /* by time (period 8 s) if there is a clock */
             if (in_script == 0 || (in_frames() & 7) == 0) {
-                if (phase == 0) {                    /* se acerca frenando */
+                if (phase == 0) {                    /* approaches, braking */
                     z -= (z - zend) / 10 + 4;
                     if (z <= zend) { z = zend; phase = 1; t = 0; }
-                } else if (phase == 1) {             /* quieta girando */
+                } else if (phase == 1) {             /* still, spinning */
                     if (++t >= TITLE_HOLD) phase = 2;
-                } else {                             /* se aleja; al perderse entra otro modelo */
+                } else {                             /* moves away; when it is lost another model enters */
                     z += (z - zend) / 8 + 12;
                     if (z >= TITLE_FAR) {
-                        zxx19 = title_heap; zlsnum = 1; zlsnum2 = title_heap[0]; ship_lsclr();   /* borra las lineas de la ultima */
+                        zxx19 = title_heap; zlsnum = 1; zlsnum2 = title_heap[0]; ship_lsclr();   /* erases the lines of the last one */
                         state_clear();
                         idx = (idx + 1) % TITLE_NSHIPS;
                         type = title_ships[idx];
@@ -775,14 +775,14 @@ static int title_loop(void)
 int scr_title(void)
 {
     int svc = view_cy, svh = clip_h, svy = view_yscale, r;
-    plat_mode(gfx_hires_opt);                                     /* el titulo va en modo 4 si esta la opcion de 512 (y si no, en modo 8) */
-    view_cy = TITLE_CY; clip_h = TITLE_CLIP; view_yscale = 1;     /* centro del hueco libre y aspecto 1,2 del monitor */
+    plat_mode(gfx_hires_opt);                                     /* the title uses mode 4 if the 512 option is on (otherwise, mode 8) */
+    view_cy = TITLE_CY; clip_h = TITLE_CLIP; view_yscale = 1;     /* centre of the free gap and 1.2 aspect of the monitor */
     r = title_loop();
     view_cy = svc; clip_h = svh; view_yscale = svy;
     return r;
 }
 
-/* ---------------------------------------------------------------- despacho */
+/* ---------------------------------------------------------------- dispatch */
 
 int scr_dispatch(int sc)
 {

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_dk4.txt con el codigo ORIGINAL de DK4 (FREEZE) y DKS3 en el emulador de 6502: RDKEY devuelve una secuencia
-de teclas (0 = ninguna), WSCAN, DELAY y BELL son stubs (BELL cuenta). Salida: las 9 opciones de configuracion (DAMP..DISK), DNOIZ,
-como acaba (tecla '-' o ESC = DEATH2) y cuantas teclas se leyeron. Se comprueba con tests/test_dk4 (make test_dk4).
-Uso: python3 tools/gen_keys.py [n] [semilla]"""
+"""Generates tests/vectors_dk4.txt with the ORIGINAL DK4 (FREEZE) and DKS3 code in the 6502 emulator: RDKEY returns a sequence
+of keys (0 = none), WSCAN, DELAY and BELL are stubs (BELL counts). Output: the 9 configuration options (DAMP..DISK), DNOIZ,
+how it ends (key '-' or ESC = DEATH2) and how many keys were read. Checked with tests/test_dk4 (make test_dk4).
+Usage: python3 tools/gen_keys.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -10,7 +10,7 @@ from frag6502 import *
 n = int(sys.argv[1]) if len(sys.argv) > 1 else 2000
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 48)
 src = routine('DK4') + routine('DKS3')
-# DKS3 va justo antes de U%/DOKEY en la fuente; DK4 acaba en RTS (DK2)
+# DKS3 goes just before U%/DOKEY in the source; DK4 ends in RTS (DK2)
 src += ['.TGINT', ' EQUB ' + ','.join(str(ord(c)) for c in 'DAXFYJKUT')]
 src += ['.DAMP'] + [' EQUB 0'] * 8 + ['.DISK', ' EQUB 0', '.DNOIZ', ' EQUB 0']
 src = [l for l in src if code(l) != 'SKIP 0' and not re.match(r'^(PRINT|SAVE)\b', code(l))]

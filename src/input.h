@@ -1,4 +1,4 @@
-/* Entrada del juego: teclas de menu (caracteres y cursores) con un gancho para pruebas guiadas por guion. */
+/* Game input: menu keys (characters and cursors) with a hook for script-driven tests. */
 #ifndef INPUT_H
 #define INPUT_H
 #include "platform.h"
@@ -11,15 +11,15 @@
 #define KC_DOWN  257
 #define KC_LEFT  258
 #define KC_RIGHT 259
-#define KC_QUIT  260                 /* SHIFT+ESC: salida de emergencia (pone in_quit) */
+#define KC_QUIT  260                 /* SHIFT+ESC: emergency exit (sets in_quit) */
 
-extern int in_quit;                  /* !=0 tras SHIFT+ESC: las pantallas terminan y el programa sale */
-extern int (*in_script)(void);       /* pruebas: si no es NULL, devuelve la siguiente tecla (o -1) y no se toca el teclado */
+extern int in_quit;                  /* !=0 after SHIFT+ESC: the screens end and the program exits */
+extern int (*in_script)(void);       /* tests: if not NULL, returns the next key (or -1) and the keyboard is not touched */
 
 void in_init(void);
-int  in_poll(void);                  /* tecla pendiente o -1; en cada llamada avanza un fotograma (teclado, cola de la consola, sonido) */
-int  in_wait(void);                  /* espera una tecla */
-int  in_held(int code);              /* KC_UP/DOWN/LEFT/RIGHT mantenida (0 con guion) */
-int  in_up(int ch);                  /* mayusculas -> minusculas (solo letras) */
-unsigned long in_frames(void);       /* fotogramas desde in_init (semilla para el generador aleatorio) */
+int  in_poll(void);                  /* pending key or -1; each call advances a frame (keyboard, console queue, sound) */
+int  in_wait(void);                  /* waits for a key */
+int  in_held(int code);              /* KC_UP/DOWN/LEFT/RIGHT held (0 with a script) */
+int  in_up(int ch);                  /* capitals -> lower case (letters only) */
+unsigned long in_frames(void);       /* frames since in_init (seed for the random generator) */
 #endif

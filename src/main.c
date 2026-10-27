@@ -1,4 +1,4 @@
-/* Elite QL: punto de entrada. */
+/* Elite QL: entry point. */
 #include "config.h"
 #include "platform.h"
 #include "text.h"
@@ -8,7 +8,7 @@
 #include "dash.h"
 #include "save.h"
 
-/* dir terminado en '_' (QDOS) en out; 1 si es un dispositivo valido (en el PC vale cualquier prefijo, p. ej. "data/") */
+/* dir ending in '_' (QDOS) into out; 1 if it is a valid device (on the PC any prefix is valid, e.g. "data/") */
 static int norm_dir(const char *dir, char *out)
 {
     int n = 0;
@@ -30,9 +30,9 @@ static int try_dir(const char *dir)
     return dash_load() != DASH_E_OPEN;
 }
 
-/* Unidad del juego (panel y comandantes): 1) el argumento, EXEC_W flp1_elite;"flp1_" (Toolkit II, SMSQ/E);
-   2) si no hay, donde este elite_dash: DATA_USE y PROG_USE de Toolkit II y luego las unidades habituales.
-   Si no aparece, flp1_ (el panel se dibuja sin el fondo). Lee el panel de paso. */
+/* Game drive (panel and commanders): 1) the argument, EXEC_W flp1_elite;"flp1_" (Toolkit II, SMSQ/E);
+   2) otherwise, where elite_dash is: Toolkit II DATA_USE and PROG_USE and then the usual drives.
+   If it does not appear, flp1_ (the panel is drawn without the background). Reads the panel on the way. */
 static void find_drive(int argc, char **argv)
 {
     static const char *drives[] = { "flp1_", "flp2_", "win1_", "mdv1_", "mdv2_", 0 };
@@ -56,14 +56,14 @@ int main(int argc, char **argv)
 {
     plat_init();
     txt_init();
-    plat_mode(gfx_hires_opt);                       /* por defecto se arranca en modo 8; con la opcion de 512 (menu de opciones del vuelo), titulo y vuelo van en modo 4 (512 x 256, rojo, verde y blanco) */
+    plat_mode(gfx_hires_opt);                       /* by default it starts in mode 8; with the 512 option (flight options menu), title and flight go in mode 4 (512 x 256, red, green and white) */
     in_init();
-    config_apply();                                 /* joystick CTL1 (cursores y espacio) siempre seleccionado */
+    config_apply();                                 /* CTL1 joystick (cursors and space) always selected */
     snd_init();
-    find_drive(argc, argv);                           /* lo primero: busca la unidad y lee el panel una sola vez (sin mensajes); se queda en memoria */
+    find_drive(argc, argv);                           /* first thing: finds the drive and reads the panel just once (no messages); it stays in memory */
     game_run();
     snd_off();
     plat_shutdown();
-    plat_exit();                                      /* QL: sin "Press a key to exit" */
+    plat_exit();                                      /* QL: without "Press a key to exit" */
     return 0;
 }

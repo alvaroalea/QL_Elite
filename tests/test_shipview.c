@@ -1,4 +1,4 @@
-/* Redibujado de naves con LL9 (XOR): animar una nave debe dejar la pantalla igual que dibujarla desde cero. */
+/* Redrawing ships with LL9 (XOR): animating a ship must leave the screen the same as drawing it from scratch. */
 #include <stdio.h>
 #include <string.h>
 #include "shipview.h"

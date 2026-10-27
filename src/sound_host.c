@@ -1,4 +1,4 @@
-/* Backend de pruebas: guarda los bloques IPC enviados. */
+/* Test backend: stores the IPC blocks sent. */
 #include "sound.h"
 u8 host_ipc_log[16][24];
 int host_ipc_len[16];

@@ -1,7 +1,7 @@
-# Compara el volcado del oraculo (TXTELITE.C 1.5) con el de universe.c.
-# Sistemas (S), descripciones (D) y mercados (M): deben ser identicos.
-# Distancias (T): universe.c sigue el algoritmo del 6502; se comprueba contra una version independiente en Python
-# y se informa de cuanto se aparta el calculo en coma flotante de Text Elite.
+# Compares the oracle dump (TXTELITE.C 1.5) with universe.c's.
+# Systems (S), descriptions (D) and markets (M): must be identical.
+# Distances (T): universe.c follows the 6502 algorithm; it is checked against an independent Python version
+# and a report is given of how far Text Elite's floating-point calculation deviates.
 import math,sys,collections
 o=open(sys.argv[1]).read().split('\n'); u=open(sys.argv[2]).read().split('\n')
 ok=True

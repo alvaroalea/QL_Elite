@@ -9,7 +9,7 @@ int tgt_sys = 0;
 uni_market mkt;
 u8 game_visit_rnd = 0;
 
-/* ---------------- dinero ---------------- */
+/* ---------------- money ---------------- */
 
 unsigned long cash_get(void)
 {
@@ -37,14 +37,14 @@ void cash_earn(unsigned long v)
     cash_set(c);
 }
 
-/* ---------------- partida ---------------- */
+/* ---------------- game ---------------- */
 
 static int find_system(u8 x, u8 y)
 {
     int i;
     for (i = 0; i < UNI_NSYS; i++)
         if (uni_galaxy[i].x == x && uni_galaxy[i].y == y) return i;
-    return uni_nearest(x, y);                        /* partida con coordenadas que no existen: el mas cercano */
+    return uni_nearest(x, y);                        /* game with coordinates that do not exist: the nearest one */
 }
 
 static void make_market(void)
@@ -59,9 +59,9 @@ void game_set_target(int idx)
     qq8[1] = (u8)(jump_distance(idx) >> 8); qq8[0] = (u8)jump_distance(idx);
 }
 
-/* TT111: el sistema mas cercano a (QQ9, QQ10) pasa a ser el elegido (y la mira se coloca en el). Con un sistema elegido, QQ9/QQ10
-   son sus coordenadas: si otro de menor indice esta a distancia 0 (un "gemelo", 38 de los 2.048 sistemas) la seleccion pasa a
-   ese, como en el original. NOTA (futuro): decidir si se hace algo con los gemelos; hoy se deja igual que el original */
+/* TT111: the system nearest (QQ9, QQ10) becomes the chosen one (and the crosshair is placed on it). With a chosen system, QQ9/QQ10
+   are its coordinates: if another with a lower index is at distance 0 (a "twin", 38 of the 2,048 systems) the selection passes to
+   that one, as in the original. NOTE (future): decide whether to do anything about the twins; today it is left as in the original */
 void game_tt111(void) { game_set_target(uni_nearest(qq9, qq10)); }
 
 void game_target_only(int idx)
@@ -97,10 +97,10 @@ void game_new(void)
     uni_build_galaxy(1);
     uni_galaxy_seed(1, qq21);
     cur_sys = find_system(qq0, qq1);
-    game_enter_system(cur_sys, 0);                   /* el comandante de fabrica trae su mercado (avl) y qq26 = 0 */
+    game_enter_system(cur_sys, 0);                   /* the factory commander brings its market (avl) and qq26 = 0 */
     make_market();
     for (i = 0; i < NGOODS; i++) mkt.quantity[i] = avl[i];
-    qq12 = 0xFF;                                     /* atracado */
+    qq12 = 0xFF;                                     /* docked */
     game_tt111();                                    /* QU5: ping (game_enter_system) y TT111 */
 }
 
@@ -112,12 +112,12 @@ void game_after_load(void)
     cur_sys = find_system(qq0, qq1);
     game_enter_system(cur_sys, 0);
     make_market();
-    for (i = 0; i < NGOODS; i++) mkt.quantity[i] = avl[i];     /* existencias tal como se guardaron */
+    for (i = 0; i < NGOODS; i++) mkt.quantity[i] = avl[i];     /* stock as saved */
     qq12 = 0xFF;
     game_tt111();                                    /* QU5: ping y TT111 */
 }
 
-/* ---------------- comercio ---------------- */
+/* ---------------- trade ---------------- */
 
 int trade_hold_t(void)
 {
@@ -126,8 +126,8 @@ int trade_hold_t(void)
     return t + tribble[1];
 }
 
-/* tnpr: toneladas (mercancias 0..12): cabe si cantidad + ocupado + 1 < CRGO (el +1 es el acarreo que deja CPX).
-   kg/g (13..16): cantidad + lo que ya llevas < 200. */
+/* tnpr: tonnes (commodities 0..12): fits if quantity + occupied + 1 < CRGO (the +1 is the carry left by CPX).
+   kg/g (13..16): quantity + what you already carry < 200. */
 int trade_room(int good)
 {
     int room;
@@ -136,8 +136,8 @@ int trade_room(int good)
     return room < 0 ? 0 : room;
 }
 
-/* tnpr del original, transcrito: A = cantidad; t (mercancias 0..12): A = qty + C(=1, deja CPX) + QQ20[12..0] + TRIBBLE+1 con acarreo
-   entre sumas; "no cabe" si A >= CRGO. kg/g: A = qty + QQ20[good] (C=0); "no cabe" si A >= 200. */
+/* tnpr of the original, transcribed: A = quantity; t (commodities 0..12): A = qty + C(=1, left by CPX) + QQ20[12..0] + TRIBBLE+1 with carry
+   between additions; "does not fit" if A >= CRGO. kg/g: A = qty + QQ20[good] (C=0); "does not fit" if A >= 200. */
 int trade_fits(int good, unsigned qty)
 {
 #if TRADE_FAITHFUL
@@ -165,7 +165,7 @@ unsigned trade_max_buy(int good)
     unsigned long afford;
     if (mkt.price[good] == 0) afford = 255; else afford = cash_get() / mkt.price[good];
     if (afford < n) n = (unsigned)afford;
-    while (n > 0 && !trade_fits(good, n)) n--;       /* con TRADE_FAITHFUL "cabe" no es monotono: se busca hacia abajo */
+    while (n > 0 && !trade_fits(good, n)) n--;       /* with TRADE_FAITHFUL "fits" is not monotonic: search downwards */
     return n;
 }
 
@@ -181,7 +181,7 @@ int trade_buy(int good, unsigned qty)
     if (!trade_fits(good, qty)) return TR_NOROOM;
     cost = (unsigned long)mkt.price[good] * qty;
 #if TRADE_FAITHFUL
-    cost &= 0xFFFFUL;                                 /* GCASH: (Y X) = precio * cantidad * 4 en 16 bits */
+    cost &= 0xFFFFUL;                                 /* GCASH: (Y X) = price * quantity * 4 in 16 bits */
 #endif
 #ifdef DEBUG
     if (!dbg_free)
@@ -204,14 +204,14 @@ int trade_sell(int good, unsigned qty)
     {
         unsigned long amount = (unsigned long)mkt.price[good] * qty;
 #if TRADE_FAITHFUL
-        amount &= 0xFFFFUL;                           /* GCASH del 6502: importe de 16 bits (verificado contra el original) */
+        amount &= 0xFFFFUL;                           /* GCASH of the 6502: 16-bit amount (verified against the original) */
 #endif
         cash_earn(amount);
     }
-    return TR_OK;                                     /* como en el original, vender no repone las existencias */
+    return TR_OK;                                     /* as in the original, selling does not replenish the stock */
 }
 
-/* ---------------- equipo ---------------- */
+/* ---------------- equipment ---------------- */
 
 const char *eq_names[NEQUIP] = {
     "Fuel", "Missile", "Large Cargo Bay", "E.C.M.System", "Pulse Lasers", "Beam Lasers", "Fuel Scoops",
@@ -234,7 +234,7 @@ unsigned equip_price(int item)
 
 int equip_is_laser(int item) { return item == 4 || item == 5 || item == 12 || item == 13; }
 
-/* refund: devuelve el precio del laser que se sustituye (POW=4, POW+128=5, militar=12, otro=13) */
+/* refund: returns the price of the laser being replaced (POW=4, POW+128=5, military=12, other=13) */
 static unsigned laser_refund(u8 old)
 {
     if (old == 0) return 0;
@@ -255,10 +255,10 @@ int equip_buy(int item, int view)
     }
     price = equip_price(item);
 #ifdef DEBUG
-    if (dbg_free) price = 0;                         /* DEBUG: todo gratis */
+    if (dbg_free) price = 0;                         /* DEBUG: everything free */
 #endif
-    if (!cash_spend(price)) return EQ_NOCASH;       /* eq: cobra primero (sin dinero se avisa aunque ya lo tengas) */
-    switch (item) {                                  /* pres: si ya lo tienes, MCASH devuelve lo cobrado */
+    if (!cash_spend(price)) return EQ_NOCASH;       /* eq: charges first (without money it warns even if you already have it) */
+    switch (item) {                                  /* pres: if you already have it, MCASH returns what was charged */
     case 1: if (nomsl >= 4) goto present; break;
     case 2: if (crgo == 37) goto present; break;
     case 3: if (ecm_fitted) goto present; break;
@@ -281,7 +281,7 @@ int equip_buy(int item, int view)
     case 9: engy = 1; break;
     case 10: dkcmp = 0xFF; break;
     case 11: ghyp = 0xFF; break;
-    default:                                         /* lasers: cobra primero y devuelve el antiguo despues, como EQSHP */
+    default:                                         /* lasers: charges first and returns the old one afterwards, like EQSHP */
 #ifdef DEBUG
         if (!dbg_free)
 #endif
@@ -295,10 +295,10 @@ present:
     return EQ_PRESENT;
 }
 
-/* ---------------- comandante ---------------- */
+/* ---------------- commander ---------------- */
 
-/* STATUS st4/st3: con TALLY alto: >=25*256 Elite, >=10*256 Deadly, >=2*256 Dangerous, si no Competent;
-   con TALLY < 256: X = 1 + numero de desplazamientos de (TALLY>>3) hasta cero ... (ver la fuente) */
+/* STATUS st4/st3: with high TALLY: >=25*256 Elite, >=10*256 Deadly, >=2*256 Dangerous, otherwise Competent;
+   with TALLY < 256: X = 1 + number of shifts of (TALLY>>3) until zero ... (see the source) */
 const char *rating_name(void)
 {
     static const char *names[9] = { "Harmless", "Mostly Harmless", "Poor", "Average", "Above Average", "Competent", "Dangerous", "Deadly", "---- E L I T E ----" };
@@ -330,13 +330,13 @@ const char *laser_name(u8 v)
     return "Laser";
 }
 
-/* ---------------- hiperespacio ---------------- */
+/* ---------------- hyperspace ---------------- */
 
 unsigned jump_distance(int idx)
 {
     uni_system here;
     if (!mj) return uni_distance(&uni_galaxy[cur_sys], &uni_galaxy[idx]);
-    here = uni_galaxy[cur_sys];                     /* en el hiperespacio (MJP) la posicion es (QQ0, QQ1), no un sistema */
+    here = uni_galaxy[cur_sys];                     /* in hyperspace (MJP) the position is (QQ0, QQ1), not a system */
     here.x = qq0; here.y = qq1;
     return uni_distance(&here, &uni_galaxy[idx]);
 }
@@ -357,7 +357,7 @@ int jump_do(int idx)
     d = jump_distance(idx);
     qq14 = (u8)(qq14 >= d ? qq14 - d : 0);
     game_enter_system(idx, 1);
-    mj = 0;                                        /* se sale del hiperespacio al llegar a un sistema */
+    mj = 0;                                        /* hyperspace is left on arriving at a system */
     return 1;
 }
 

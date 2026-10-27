@@ -10,7 +10,7 @@ u8 zxx18[9];
 u8 xx3[258];
 u8 ship_c_in;
 
-u8 ship_dbg_skip = 0;                          /* DEBUG (SHIFT-D): bit 0 = sin matematicas de LL9, bit 1 = sin dibujo de lineas */
+u8 ship_dbg_skip = 0;                          /* DEBUG (SHIFT-D): bit 0 = no LL9 maths, bit 1 = no line drawing */
 #ifdef DEBUG
 static void default_loin(void) { if (!(ship_dbg_skip & 2)) loin_draw(zx15[0], zx15[1], zx15[2], zx15[3], C_WHITE); }
 #else
@@ -23,12 +23,12 @@ void (*ship_planet_hook)(void) = 0;
 
 #define LOIN()    do { if (ship_loin_hook) ship_loin_hook(); } while (0)
 
-/* DEBUG: el coste de dibujo de un fotograma sin las matematicas: cada linea del monton se pinta dos veces (borrar y volver a dibujar),
-   como LL9 cuando dibuja la nueva y borra la vieja; la pantalla no cambia */
+/* DEBUG: the drawing cost of a frame without the maths: each line of the heap is painted twice (erase and draw again),
+   like LL9 when it draws the new one and erases the old; the screen does not change */
 void ship_redraw_heap(void)
 {
     u8 y = 1, n = zxx19[0];
-    if ((inwk[31] & 0x28) != 0x08) return;          /* sin lineas dibujadas, o explotando (el monton guarda la nube) */
+    if ((inwk[31] & 0x28) != 0x08) return;          /* no lines drawn, or exploding (the heap holds the cloud) */
     while (y < n) {
         zx15[0] = zxx19[y]; zx15[1] = zxx19[y + 1]; zx15[2] = zxx19[y + 2]; zx15[3] = zxx19[y + 3];
         LOIN(); LOIN();
@@ -36,9 +36,9 @@ void ship_redraw_heap(void)
     }
 }
 
-#define YC2M1     (clip_h - 1)              /* Y*2-1 = 135 (159 en la vista nativa) */
+#define YC2M1     (clip_h - 1)              /* Y*2-1 = 135 (159 in the native view) */
 
-/* puntero + desplazamiento de 16 bits con signo (los planos comparten datos con desplazamientos negativos) */
+/* pointer + signed 16-bit offset (the blueprints share data with negative offsets) */
 static const u8 *bp_ptr(u8 lo, u8 hi)
 {
     long off = (long)hi * 256L + lo;
@@ -46,7 +46,7 @@ static const u8 *bp_ptr(u8 lo, u8 hi)
     return zxx0 + off;
 }
 
-/* ---------- LL51: producto del vector XX15 por la matriz XX16 ---------- */
+/* ---------- LL51: product of vector XX15 by matrix XX16 ---------- */
 #ifdef ASM_LL9
 extern void ql_ll51(void);
 void ship_ll51(void) { ql_ll51(); }                /* ql_ll9.asm */
@@ -67,7 +67,7 @@ void ship_ll51(void)
 }
 #endif
 
-/* ---------- monton de lineas ---------- */
+/* ---------- line heap ---------- */
 void ship_lsclr(void)
 {
     u8 y = zlsnum;
@@ -92,8 +92,8 @@ void ship_lsput(void)
     LOIN();
 }
 
-/* ---------- LL129, LL120, LL123, LL118: pendiente de la linea y recorte contra los bordes ---------- */
-static u8 xr, yr;                              /* (Y X) devuelto por LL120/LL123 */
+/* ---------- LL129, LL120, LL123, LL118: line slope and clipping against the edges ---------- */
+static u8 xr, yr;                              /* (Y X) returned by LL120/LL123 */
 
 static u8 ll129(void)
 {
@@ -110,7 +110,7 @@ static u8 ll129(void)
     return (u8)(a ^ zx12[3]);
 }
 
-/* entry: 0 = LL120 (multiplicar), 1 = LL123 (dividir); salta de una a otra segun T como el original */
+/* entry: 0 = LL120 (multiply), 1 = LL123 (divide); jumps from one to the other according to T like the original */
 static void ll120_123(int entry)
 {
     u8 a, x, y, c, pa;
@@ -167,20 +167,20 @@ static void ll118(void)
     u8 a, x;
     unsigned s;
     a = zx15[1];
-    if (a & 0x80) {                                    /* x1 negativo: llevarlo a x = 0 */
+    if (a & 0x80) {                                    /* negative x1: bring it to x = 0 */
         zS = a; ll120_123(0);
         s = (unsigned)xr + zx15[2]; zx15[2] = (u8)s;
         s = (unsigned)yr + zx15[3] + (s >> 8); zx15[3] = (u8)s;
         zx15[0] = 0; zx15[1] = 0; a = 0;
     }
-    if (a != 0) {                                      /* LL119: x1 > 255: llevarlo a x = 255 */
+    if (a != 0) {                                      /* LL119: x1 > 255: bring it to x = 255 */
         zS = a; zS--; ll120_123(0);
         s = (unsigned)xr + zx15[2]; zx15[2] = (u8)s;
         s = (unsigned)yr + zx15[3] + (s >> 8); zx15[3] = (u8)s;
         zx15[0] = 255; zx15[1] = 0;
     }
     a = zx15[3];                                       /* LL134 */
-    if (a & 0x80) {                                    /* y1 negativo: llevarlo a y = 0 */
+    if (a & 0x80) {                                    /* negative y1: bring it to y = 0 */
         zS = a; zR = zx15[2]; ll120_123(1);
         s = (unsigned)xr + zx15[0]; zx15[0] = (u8)s;
         s = (unsigned)yr + zx15[1] + (s >> 8); zx15[1] = (u8)s;
@@ -192,7 +192,7 @@ static void ll118(void)
         int neg;
         zR = (u8)d;
         d = (int)zx15[3] - 0 - (1 - c);
-        neg = (d < 0);                                 /* antes de guardar el byte: ver nota sobre c68 -O arriba */
+        neg = (d < 0);                                 /* before storing the byte: see the note about c68 -O above */
         zS = (u8)d;
         if (neg) return;                               /* BCC LL136 */
         ll120_123(1);
@@ -245,7 +245,7 @@ ll83:
     a = (u8)(zx12[1] - (1 - cc)); a |= zx12[2];
     if (!(a & 0x80)) goto ll109;
 ll115:
-    /* TYA; PHA: Y no se usa en este puerto */
+    /* TYA; PHA: Y is not used in this port */
     d = (int)zx15[4] - zx15[0]; cc = (d >= 0); zx12[2] = (u8)d;
     d = (int)zx15[5] - zx15[1] - (1 - cc); zx12[3] = (u8)d;
     d = (int)zx12[0] - zx15[2]; cc = (d >= 0); zx12[4] = (u8)d;
@@ -274,7 +274,7 @@ ll112:
     goto ll111;
 ll113:
     zT = x;
-    if (zx12[2] >= zx12[4]) {                          /* CMP XX12+4: C si XX12+2 >= XX12+4 */
+    if (zx12[2] >= zx12[4]) {                          /* CMP XX12+4: C if XX12+2 >= XX12+4 */
         zQ = zx12[2]; em_ll28(zx12[4]);
     } else {
         zQ = zx12[4]; em_ll28(zx12[2]);
@@ -301,7 +301,7 @@ ll137:
     return 1;
 }
 
-/* ---------- SHPPT: nave lejana, un punto ---------- */
+/* ---------- SHPPT: distant ship, one dot ---------- */
 static void shpt(u8 a)
 {
     unsigned s;
@@ -327,9 +327,9 @@ void ship_shppt(void)
     ship_lsclr();
 }
 
-/* NOTA c68 -O (verificado ejecutando el codigo de c68 bajo qemu, ver tools/c68_check): en `zx15[0] = (u8)d; cc = (d >= 0);`
-   el optimizador usa los flags del move.b del byte para el sge, no los de la palabra d, y el resultado es erroneo cuando el
-   byte sale positivo con d negativo. Por eso en todo el codigo cc se calcula ANTES de guardar el byte. */
+/* NOTE c68 -O (verified by running c68's code under qemu, see tools/c68_check): in `zx15[0] = (u8)d; cc = (d >= 0);`
+   the optimizer uses the flags of the byte's move.b for the sge, not those of the word d, and the result is wrong when the
+   byte comes out positive with d negative. That is why throughout the code cc is calculated BEFORE storing the byte. */
 /* ---------- LL9 ---------- */
 static void ee51(void)
 {
@@ -338,7 +338,7 @@ static void ee51(void)
     ship_lsclr();
 }
 
-/* LL86..LL88 (las caras visibles de la nave, en XX2): v = datos de las caras del plano. Version en C (referencia de ql_ll9_faces) */
+/* LL86..LL88 (the visible faces of the ship, in XX2): v = face data of the blueprint. C version (reference for ql_ll9_faces) */
 void ship_ll9_faces_c(const u8 *v)
 {
     u8 a, x, y;
@@ -397,7 +397,7 @@ ll88:
     goto ll86;
 }
 
-/* LL48..LL50 (proyeccion de los vertices visibles a XX3). Version en C (referencia de ql_ll9_verts) */
+/* LL48..LL50 (projection of the visible vertices to XX3). C version (reference for ql_ll9_verts) */
 void ship_ll9_verts_c(void)
 {
     u8 a, c, x, y, t;
@@ -433,7 +433,7 @@ ll52:
     d = (int)inwk[1] - 0 - (1 - cc); cc = (d >= 0); zx15[1] = (u8)d;
     if (cc) goto ll53;
     zx15[1] = (u8)(zx15[1] ^ 0xFF);
-    d = 1 - (int)zx15[0] - 1; cc = (d >= 0); zx15[0] = (u8)d;   /* LDA #1; SBC XX15 con C = 0 */
+    d = 1 - (int)zx15[0] - 1; cc = (d >= 0); zx15[0] = (u8)d;   /* LDA #1; SBC XX15 with C = 0 */
     if (cc) zx15[1]++;
     zx15[2] ^= 0x80;
 ll53:
@@ -494,7 +494,7 @@ ll66:
 ll67:
     em_ll28(zx15[3]);
 ll68:
-    if (view_yscale) {                                     /* vista nativa: desplazamiento vertical x 6/5 */
+    if (view_yscale) {                                     /* native view: vertical offset x 6/5 */
         unsigned v = ((unsigned)zU << 8) | zR;
         v += v / 5;
         zR = (u8)v; zU = (u8)(v >> 8);
@@ -515,7 +515,7 @@ ll50:
     goto ll48;
 }
 
-/* LL75..LL81 (las aristas visibles: recorte y dibujo/borrado en el montón de líneas). Version en C (referencia de ql_ll9_edges) */
+/* LL75..LL81 (the visible edges: clipping and drawing/erasing in the line heap). C version (reference for ql_ll9_edges) */
 void ship_ll9_edges_c(const u8 *v)
 {
     u8 a, x;
@@ -543,8 +543,8 @@ extern void ql_ll9_faces(const u8 *v);
 extern void ql_ll9_verts(long view_cy, long view_yscale);
 #define ship_ll9_faces(v) ql_ll9_faces(v)
 #define ship_ll9_verts()  ql_ll9_verts((long)view_cy, (long)view_yscale)
-/* Bucle de aristas en ensamblador: acepta y dibuja solo las aristas que caen enteras en la vista (el caso normal); si una necesita
-   recorte devuelve 1 con XX15/XX12 cargados y en ql_edge_v la arista en curso: se recorta y dibuja en C y se continua con cont = 1 */
+/* Edge loop in assembly: accepts and draws only the edges that fall entirely inside the view (the normal case); if one needs
+   clipping it returns 1 with XX15/XX12 loaded and the edge in progress in ql_edge_v: it is clipped and drawn in C and the loop continues with cont = 1 */
 extern long ql_ll9_edges(const u8 *v, long cont, long clip_h);
 const u8 *ql_edge_v;
 static void ship_ll9_edges(const u8 *v)
@@ -575,7 +575,7 @@ void ship_ll9(void)
     if (!(inwk[31] & 0x80)) goto ee28;
     inwk[31] = (u8)((inwk[31] | 0x20) & 0x3F);
     zinf[28] = 0; zinf[30] = 0;
-    c0 = (inwk[31] & 0x08) ? 1 : ship_c_in;              /* C al volver de EE51 (LSCLR deja C = 1) */
+    c0 = (inwk[31] & 0x08) ? 1 : ship_c_in;              /* C on return from EE51 (LSCLR leaves C = 1) */
     ee51();
     zxx19[1] = 18;
     zxx19[2] = zxx0[7];
@@ -584,7 +584,7 @@ void ship_ll9(void)
     for (y = 4; y <= 6; y++) { em_rand_c = 0; zxx19[y] = em_dornd(); }
 ee28:
     a = inwk[8];
-    if (a & 0x80) goto ll14;                              /* BPL LL10 no tomado */
+    if (a & 0x80) goto ll14;                              /* BPL LL10 not taken */
     goto ll10;
 ll14:
     if (!(inwk[31] & 0x20)) goto ee51_ret;

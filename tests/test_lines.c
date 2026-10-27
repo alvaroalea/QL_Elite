@@ -1,5 +1,5 @@
-/* LOIN (loin_draw), HLOIN (gfx_hloin), VLOIN (gfx_vloin) y PIXEL (gfx_dust) contra el codigo original en el emulador (tools/gen_lines.py):
-   mismos trazos sobre una pantalla vacia y los mismos puntos encendidos, en coordenadas del juego. */
+/* LOIN (loin_draw), HLOIN (gfx_hloin), VLOIN (gfx_vloin) and PIXEL (gfx_dust) against the original code in the emulator (tools/gen_lines.py):
+   same strokes on an empty screen and the same dots lit, in game coordinates. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +22,7 @@ int main(int argc, char **argv)
         int k = (int)(strchr(nm, line[0]) - nm), x, y, bad = 0, a[4];
         long want = 0, got = 0;
         if (!sep) continue;
-        if (line[0] == 'G' || line[0] == 'R') {                /* puntos APAGADOS tras cleargrap / clearrow 15 y 16 */
+        if (line[0] == 'G' || line[0] == 'R') {                /* dots OFF after cleargrap / clearrow 15 and 16 */
             static u8 offp[256][256];
             unsigned v; int used, bad2 = 0;
             memset(buf, 0, sizeof buf);
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
             else gfx_dust_6502(a[0], a[1], (u8)a[2]);
         }
         p = sep + 1;
-        {   /* los puntos esperados estan ordenados por x y luego y; se comparan con la pantalla */
+        {   /* the expected dots are sorted by x and then y; they are compared with the screen */
             static u8 exp[256][256];
             unsigned v;
             int used;

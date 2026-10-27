@@ -1,4 +1,4 @@
-/* Pruebas propias de space.c y dash.c (no comparan con el original: ver docs/PENDIENTES.md). */
+/* Own tests of space.c and dash.c (they do not compare with the original: see docs/PENDIENTES.md). */
 #include <stdio.h>
 #include <string.h>
 #include "space.h"
@@ -24,7 +24,7 @@ static struct controls none(void) { struct controls c; memset(&c, 0, sizeof c); 
 static unsigned rnd_s = 777;
 static unsigned rnd(void) { rnd_s = rnd_s * 25173u + 13849u; return (rnd_s >> 4) & 0xFFFF; }
 
-static void set_pos(u8 *s, int ax, long x, long y, long z)    /* posicion en unidades: ax = 0 */
+static void set_pos(u8 *s, int ax, long x, long y, long z)    /* position in units: ax = 0 */
 {
     long v[3]; int i;
     v[0] = x; v[1] = y; v[2] = z;
@@ -45,7 +45,7 @@ int main(void)
     state_clear();
     game_new();
 
-    /* cntr: un paso hacia 128, salvo con la amortiguacion desactivada */
+    /* cntr: one step towards 128, except with damping off */
     check(space_cntr(128) == 128, "cntr: el centro no se mueve");
     check(space_cntr(140) == 139 && space_cntr(129) == 128, "cntr: baja hacia 128");
     check(space_cntr(100) == 101 && space_cntr(127) == 128, "cntr: sube hacia 128");
@@ -60,7 +60,7 @@ int main(void)
     check(space_redu2(200, 20) == 128, "redu2 desde la mitad alta se detiene en el centro (DJD = 0)");
     djd = 1; check(space_redu2(200, 20) == 180, "redu2 con DJD != 0"); djd = 0;
 
-    /* controles: valores de alabeo y cabeceo tras un fotograma (transcripcion del bucle principal) */
+    /* controls: roll and pitch values after one frame (transcription of the main loop) */
     space_reset(); jstx = 128;
     c = none(); c.roll_left = 1; space_controls(&c);
     check(jstx == 146 && alp2[0] == 0 && alp1 == 2 && alpha == 2, "alabeo a la izquierda: JSTX 146, ALPHA 2");
@@ -81,7 +81,7 @@ int main(void)
     for (i = 0; i < 100; i++) space_controls(&c);
     check(zDELTA == 1, "la velocidad baja hasta 1 y no llega a 0");
 
-    /* movimiento del planeta: z baja DELTA por fotograma (MV45/MVT1) */
+    /* planet movement: z drops DELTA per frame (MV45/MVT1) */
     space_reset();
     memset(state_slot(0), 0, NI); frin[0] = 128;
     set_pos(state_slot(0), 0, 0, 0, 0x1000L);
@@ -93,7 +93,7 @@ int main(void)
     space_step();
     check(state_slot(0)[6] == 5 && state_slot(0)[7] == 0 && (state_slot(0)[8] & 0x80), "planeta: cruzar z = 0 deja z = -5");
 
-    /* rotacion por el alabeo: y' = y - x * ALPHA / 256 (ALPHA positivo = bit 7 limpio) */
+    /* rotation by the roll: y' = y - x * ALPHA / 256 (positive ALPHA = bit 7 clear) */
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0x2000L, 0, 0x4000L);
     alpha = 20; beta = 0; zDELTA = 0;
@@ -102,7 +102,7 @@ int main(void)
         long y = (long)state_slot(0)[3] | ((long)state_slot(0)[4] << 8);
         check((state_slot(0)[5] & 0x80) && y >= 638 && y <= 642, "alabeo: y baja x * 20 / 256 = 640");
     }
-    /* altitud: cada 32 fotogramas (MCNT mod 32 = 10, el valor que ve M%; MCNT baja despues, en TT100), solo si el planeta esta cerca */
+    /* altitude: every 32 frames (MCNT mod 32 = 10, the value M% sees; MCNT drops afterwards, in TT100), only if the planet is near */
     memset(state_slot(0), 0, NI);
     set_pos(state_slot(0), 0, 0, 0, 0x7800L);
     alpha = 0; beta = 0; zDELTA = 0; mcnt = 10; altit = 255;
@@ -118,16 +118,16 @@ int main(void)
     mcnt = 10; space_step();
     check(altit == 255, "altitud: lejos = 255");
 
-    /* despegue (TT110): planeta delante (z_sign = 1) y estacion justo detras (z = -256); velocidad 12 */
+    /* launch (TT110): planet ahead (z_sign = 1) and station just behind (z = -256); speed 12 */
     space_launch();
     check(sspr == 1 && frin[1] == SHIPT_CORIOLIS && state_slot(1)[8] == 0x80 && state_slot(1)[7] == 1 && state_slot(1)[6] == 0 &&
           state_slot(0)[8] == 1 && state_slot(0)[7] == 0 && zDELTA == 12, "despegue: estacion detras (z = -256), planeta delante (z = 65536), DELTA = 12");
-    /* hacia atras, lejos del planeta: la estacion se quita al pasar de 224 * 256 (FAROF) y en su ranura aparece el sol (KS4) */
-    zDELTA = 40; alpha = 0; beta = 0; state_slot(0)[8] = 0x81;            /* planeta detras: la parte 14 no la vuelve a poner */
+    /* backwards, far from the planet: the station is removed on passing 224 * 256 (FAROF) and the sun appears in its slot (KS4) */
+    zDELTA = 40; alpha = 0; beta = 0; state_slot(0)[8] = 0x81;            /* planet behind: part 14 does not put it back */
     for (i = 0; i < 2000 && sspr; i++) { space_step(); mcnt--; }
     check(sspr == 0 && frin[1] == 129 && state_slot(1)[5] == 6, "al alejarse la estacion se quita y aparece el sol (y_sign = 6)");
 
-    /* panel: dibujar en XOR deja la pantalla igual que dibujar desde cero con el ultimo estado */
+    /* panel: drawing in XOR leaves the screen the same as drawing from scratch with the last state */
     for (k = 0; k < 2; k++) {
         if (k == 1) { game_new(); }
         gfx_clear(C_BLACK);
@@ -145,8 +145,8 @@ int main(void)
         }
         memcpy(snap, screen, 32768);
         gfx_clear(C_BLACK);
-        dash_show();                                   /* repinta el fondo y reinicia las memorias */
-        dash_update();                                 /* con el ultimo estado */
+        dash_show();                                   /* repaints the background and resets the memories */
+        dash_update();                                 /* with the last state */
         {
             int bad = 0;
             for (j = 0; j < 32768L; j++) if (snap[j] != screen[j]) { bad = 1; break; }
@@ -154,12 +154,12 @@ int main(void)
         }
     }
 
-    /* radar (SCAN): posicion del punto y del palo, color, y que lo dibujado se borra del todo */
+    /* radar (SCAN): position of the dot and the stick, colour, and that what was drawn is fully erased */
     game_new(); gfx_clear(C_BLACK); dash_show(); space_launch();
     {
         u8 base[32768];
         int s2, k2;
-        space_step();                                      /* dibuja la estacion */
+        space_step();                                      /* draws the station */
         space_scanner_clear();
         memcpy(base, screen, 32768);
         gfx_clear(C_BLACK); dash_show();
@@ -171,23 +171,23 @@ int main(void)
         space_scanner_clear();
         {
             int bad = 0;
-            for (j = 136L * 128L; j < 192L * 128L; j++) if (base[j] != screen[j]) { bad = 1; break; }      /* solo el panel (el radar) */
+            for (j = 136L * 128L; j < 192L * 128L; j++) if (base[j] != screen[j]) { bad = 1; break; }      /* only the panel (the radar) */
             check(!bad, "radar: tras mover los contactos y borrar el radar el panel queda como estaba");
         }
     }
-    /* posiciones exactas: delante y detras */
+    /* exact positions: ahead and behind */
     game_new(); gfx_clear(C_BLACK); space_launch();
     for (i = 0; i <= NOSH; i++) frin[i] = 0;
     sspr = 0; many[SHIPT_VIPER] = 0;
     memset(state_slot(2), 0, NI);
-    set_pos(state_slot(2), 0, 10L * 256, 0, 0);            /* x = +10 (unidades altas), y = 0, z = 0 */
-    frin[2] = SHIPT_VIPER; state_slot(2)[I_STATE] = 0x10;  /* ya dibujada: space_scan la dibuja ahora */
+    set_pos(state_slot(2), 0, 10L * 256, 0, 0);            /* x = +10 (high units), y = 0, z = 0 */
+    frin[2] = SHIPT_VIPER; state_slot(2)[I_STATE] = 0x10;  /* already drawn: space_scan draws it now */
     for (i = 0; i < NI; i++) inwk[i] = state_slot(2)[i];
     space_scan(SHIPT_VIPER);
     check(gfx_get(132, 164) == C_CYAN && gfx_get(133, 164) == C_CYAN && gfx_get(134, 164) == C_CYAN && gfx_get(135, 164) == C_BLACK, "radar: cabeza de 2 puntos (132, 133) y palo de 1 punto (134) en y = 164 para x = +10, y = z = 0");
     check(gfx_get(131, 164) == C_BLACK && gfx_get(136, 164) == C_BLACK && gfx_get(134, 163) == C_BLACK && gfx_get(135, 165) == C_BLACK, "radar: el punto no se sale de ahi (palo de 1 punto)");
     gfx_clear(C_BLACK);
-    set_pos(inwk, 0, 0, 0, -(0x20L * 256));                /* detras: z = -32 (unidades altas) */
+    set_pos(inwk, 0, 0, 0, -(0x20L * 256));                /* behind: z = -32 (high units) */
     inwk[I_STATE] = 0x10;
     space_scan(SHIPT_VIPER);
     check(gfx_get(122, 172) == C_CYAN && gfx_get(123, 172) == C_CYAN && gfx_get(124, 172) == C_CYAN && gfx_get(125, 172) == C_BLACK, "radar: detras (z negativo) el punto baja 8 lineas (y = 172)");
@@ -197,7 +197,7 @@ int main(void)
     inwk[I_STATE] = 0x10; space_scan(128);
     check(gfx_get(124, 172) == C_BLACK, "radar: los planetas (tipo con el bit 7) no salen");
 
-    /* polvo estelar: dibujar en XOR deja la pantalla igual que redibujar todas las particulas, en las 4 vistas, y los signos se restauran */
+    /* stardust: drawing in XOR leaves the screen the same as redrawing all the particles, in the 4 views, and the signs are restored */
     for (k = 0; k < 4; k++) {
         u8 a0, a1, b0, b1;
         game_new(); space_reset();
@@ -224,7 +224,7 @@ int main(void)
             check(!bad, "polvo: animar = redibujar todas las particulas en su sitio");
         }
     }
-    /* FLIP: dos veces es la identidad */
+    /* FLIP: twice is the identity */
     {
         u8 sx0[NOST + 1], sy0[NOST + 1];
         game_new(); gfx_clear(C_BLACK); stars_new();
@@ -233,7 +233,7 @@ int main(void)
         check(memcmp(sx0, sx, sizeof sx0) == 0 && memcmp(sy0, sy, sizeof sy0) == 0, "FLIP dos veces devuelve las particulas a su sitio");
     }
 
-    /* tunel de hiperespacio: dibujar dos veces con el mismo paso borra todo (XOR) y no se sale de la vista */
+    /* hyperspace tunnel: drawing twice with the same step erases everything (XOR) and does not leave the view */
     {
         int lit = 0;
         gfx_clear(C_BLACK); sun_col = C_WHITE;
@@ -253,7 +253,7 @@ int main(void)
         check(lit > 100, "tunel de lanzamiento (paso 8)");
     }
 
-    /* mira del laser: solo si la vista tiene laser; color segun el tipo */
+    /* laser sight: only if the view has a laser; colour according to the type */
     game_new();
     gfx_clear(C_BLACK);
     chart_sight(1);
@@ -275,7 +275,7 @@ int main(void)
         check(lit == 0, "mira: dibujarla dos veces la borra (XOR)");
     }
 
-    /* indicadores de misil y bombillas */
+    /* missile indicators and bulbs */
     game_new(); gfx_clear(C_BLACK); dash_show();
     nomsl = 3; dash_msblob();
     check(gfx_get(40, 185) == C_GREEN && gfx_get(45, 188) == C_GREEN && gfx_get(24, 186) == C_GREEN && gfx_get(16, 185) == C_BLACK, "misiles: 3 indicadores verdes (x 40, 32, 24) y el cuarto apagado");
@@ -288,7 +288,7 @@ int main(void)
         check(memcmp(b2, screen, 32768) == 0, "bombillas S y E: encender y apagar (XOR) deja el panel igual");
     }
 
-    /* relleno y copia rapidos: iguales que poner pixel a pixel, con recorte y para los 8 colores */
+    /* fast fill and copy: equal to setting pixel by pixel, with clipping and for the 8 colours */
     {
         int col, y0, nn, x, y, bad = 0;
         static u8 ref[32768];
@@ -329,9 +329,9 @@ int main(void)
         }
     }
 
-    /* ---- naves: MVEIT, PLUT, explosion (DOEXP), planeta y sol (PLANET), alta y baja (NWSHP, KILLSHP) ---- */
+    /* ---- ships: MVEIT, PLUT, explosion (DOEXP), planet and sun (PLANET), add and remove (NWSHP, KILLSHP) ---- */
     game_new(); gfx_clear(C_BLACK); ships_clear(); ships_hooks();
-    /* MVEIT: avance por el morro (velocidad 10, morro hacia nosotros): z baja velocidad * 4 * 96 / 256 = 15 */
+    /* MVEIT: advance along the nose (speed 10, nose towards us): z drops speed * 4 * 96 / 256 = 15 */
     ship_zinf();
     set_pos(inwk, 0, 0, 0, 0x2000L);
     inwk[27] = 10; inwk[32] = 0;
@@ -340,21 +340,21 @@ int main(void)
     mveit();
     zQ = 40;
     {
-        u8 dec = em_fmltu(96);                             /* FMLTU: 96 * 40 / 256 (aproximado con logaritmos: 14) */
+        u8 dec = em_fmltu(96);                             /* FMLTU: 96 * 40 / 256 (approximate with logarithms: 14) */
         check(inwk[6] == (u8)(0x2000 - dec) && inwk[7] == 0x1F && inwk[27] == 10 && dec >= 14 && dec <= 15, "MVEIT: z baja FMLTU(96) con velocidad 10 y el morro hacia nosotros");
     }
-    /* la velocidad se limita al maximo del plano y la aceleracion se consume */
+    /* speed is limited to the blueprint's maximum and acceleration is consumed */
     ship_zinf(); inwk[27] = 200; inwk[28] = 100; set_pos(inwk, 0, 0, 0, 0x2000L);
     mveit();
     check(inwk[27] == SHIP_BP(SHIPT_VIPER)[15] && inwk[28] == 0, "MVEIT: velocidad limitada por el plano y aceleracion a 0");
-    /* contador de alabeo: baja de uno en uno y gira los vectores */
+    /* roll counter: drops one by one and rotates the vectors */
     ship_zinf(); set_pos(inwk, 0, 0, 0, 0x2000L); inwk[29] = 40; inwk[27] = 0;
     mveit();
     check((inwk[29] & 0x7F) == 39 && (inwk[15] | inwk[16]) != 0, "MV45: el contador de alabeo baja a 39 y el techo gira");
     ship_zinf(); set_pos(inwk, 0, 0, 0, 0x2000L); inwk[29] = 0x7F; inwk[27] = 0;
     mveit();
     check((inwk[29] & 0x7F) == 0x7F, "MV45: un contador a 127 no baja (giro continuo)");
-    /* PLUT: vistas trasera, izquierda y derecha */
+    /* PLUT: rear, left and right views */
     ship_zinf(); set_pos(inwk, 0, 100L, 200L, 300L);
     plut(0);
     check(inwk[0] == 100 && inwk[3] == 200 && inwk[6] == 44 && inwk[7] == 1, "PLUT 0: sin cambios");
@@ -364,7 +364,7 @@ int main(void)
     plut(2);
     check(inwk[0] == 44 && inwk[1] == 1 && inwk[6] == 100 && inwk[7] == 0 && inwk[3] == 200, "PLUT 2: izquierda intercambia x y z");
 
-    /* altas y bajas */
+    /* additions and removals */
     ships_clear();
     ship_zinf(); set_pos(inwk, 0, 0, 0, 0x3000L);
     check(ship_new(SHIPT_VIPER) == 0 && ship_new(SHIPT_PYTHON) == 1 && ship_new(SHIPT_COBRA_MK_3) == 2, "NWSHP: ranuras 0, 1 y 2");
@@ -379,7 +379,7 @@ int main(void)
     check(i == 4, "NWSHP: el monton de lineas del original (SLSP) solo deja 4 Cobras");
     ships_clear();
 
-    /* planeta y sol: dibujar dos veces es lo mismo que una, y quitarlos deja la vista vacia */
+    /* planet and sun: drawing twice is the same as once, and removing them leaves the view empty */
     {
         static u8 one[32768];
         int lit = 0;
@@ -391,7 +391,7 @@ int main(void)
         check(lit > 20, "PLANET: el planeta de frente se dibuja (circulo)");
         planet();
         check(memcmp(one, screen, 32768) == 0, "PLANET: volver a dibujar el planeta no cambia nada (borra y dibuja)");
-        set_pos(inwk, 0, 0, 0, 0x300000L);                    /* muy lejos: se quita */
+        set_pos(inwk, 0, 0, 0, 0x300000L);                    /* very far: removed */
         planet();
         lit = 0;
         for (j = 0; j < 32768L; j++) if (screen[j]) lit++;
@@ -409,7 +409,7 @@ int main(void)
         check(lit == 0, "PLANET: el sol demasiado lejos se borra (WPLS)");
     }
 
-    /* explosion: la nave explota, la nube crece y al final se quita; la vista queda igual que en una ejecucion sin la nave */
+    /* explosion: the ship explodes, the cloud grows and at the end it is removed; the view ends up the same as in a run without the ship */
     {
         static u8 withship[32768];
         int frames = 0, k3, n, bad;
@@ -440,7 +440,7 @@ int main(void)
         }
     }
 
-    /* la estacion se pierde de vista al alejarse y vuelve el sol; cerca del planeta, la parte 14 la vuelve a poner */
+    /* the station is lost from sight as it moves away and the sun returns; near the planet, part 14 puts it back */
     game_new(); gfx_clear(C_BLACK); space_view = 0; space_launch();
     zDELTA = 40; alpha = 0; beta = 0; state_slot(0)[8] = 0x81;
     for (i = 0; i < 2000; i++) { u8 ev = space_step(); mcnt--; if (ev & SPACE_EV_STATION) break; }
@@ -449,11 +449,11 @@ int main(void)
         for (i = 0; i < NOSH; i++) { if (frin[i] == 129) sun++; if (frin[i] == SHIPT_CORIOLIS) stn++; }
         check(sspr == 0 && sun == 1 && stn == 0, "estacion: al alejarse se quita y reaparece el sol");
     }
-    /* parte 14: con el planeta delante y cerca, cada 32 vueltas aparece la estacion en planeta + 2 * morro y se borra el sol */
+    /* part 14: with the planet ahead and near, every 32 iterations the station appears at planet + 2 * nose and the sun is erased */
     {
         int k2;
         memset(state_slot(0), 0, NI); set_pos(state_slot(0), 0, 0, 0, 0x8000L);
-        state_slot(0)[14] = 0x60 | 0x80; state_slot(0)[18] = 0x60; state_slot(0)[22] = 0x60;   /* morro hacia nosotros */
+        state_slot(0)[14] = 0x60 | 0x80; state_slot(0)[18] = 0x60; state_slot(0)[22] = 0x60;   /* nose towards us */
         zDELTA = 0; mcnt = 1;
         for (k2 = 0; k2 < 3 && !sspr; k2++) { space_step(); mcnt--; }
         if (!(sspr == 1 && frin[1] == SHIPT_CORIOLIS && state_slot(1)[7] == 0x40 && state_slot(1)[8] == 0x80))

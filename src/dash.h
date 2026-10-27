@@ -1,34 +1,34 @@
-/* Panel de instrumentos (dashboard) del Elite de Apple II, port sin verificar (ver docs/PENDIENTES.md).
-   El fondo es un bitmap que el original carga del disco (A.SCREEN): aqui se convierte con tools/gen_dashboard.py a
-   data/elite_dash (tira de 256 x 56 pixeles en modo 8) y se carga de <unidad>elite_dash. Si falta el fichero se dibuja un panel
-   minimo (marco, pistas y etiquetas) para que los instrumentos funcionen igual.
-   Instrumentos (DIALS): velocidad, alabeo, cabeceo, 4 bancos de energia, escudos delantero y trasero, combustible, altitud,
-   temperatura de cabina y de los lasers, y la brujula (COMPAS). Todo se dibuja en XOR: borrar = redibujar. */
+/* Instrument panel (dashboard) of Apple II Elite, unverified port (see docs/PENDIENTES.md).
+   The background is a bitmap the original loads from disk (A.SCREEN): here it is converted with tools/gen_dashboard.py to
+   data/elite_dash (a 256 x 56 pixel strip in mode 8) and loaded from <drive>elite_dash. If the file is missing a minimal panel
+   (frame, tracks and labels) is drawn so the instruments work the same.
+   Instruments (DIALS): speed, roll, pitch, 4 energy banks, front and rear shields, fuel, altitude,
+   cabin and laser temperature, and the compass (COMPAS). Everything is drawn in XOR: erase = redraw. */
 #ifndef DASH_H
 #define DASH_H
 #include "platform.h"
 
-#define DASH_Y0     160                 /* primera linea del panel en pantalla (la vista ocupa 0..159; el original lo tiene en 136, ver view_set_native y gfx_yoff_set) */
+#define DASH_Y0     160                 /* first line of the panel on screen (the view takes 0..159; the original has it at 136, see view_set_native and gfx_yoff_set) */
 #define DASH_LINES  56
-#define DASH_BYTES  (DASH_LINES * 128)  /* 7168 bytes: 56 lineas de 128 bytes (modo 8) */
+#define DASH_BYTES  (DASH_LINES * 128)  /* 7168 bytes: 56 lines of 128 bytes (mode 8) */
 
 #define DASH_OK        0
 #define DASH_E_OPEN   (-1)
 #define DASH_E_FORMAT (-2)
 
-int  dash_load(void);                   /* lee <unidad>elite_dash; DASH_OK, DASH_E_OPEN o DASH_E_FORMAT */
-int  dash_loaded(void);                 /* 1 si el bitmap esta en memoria */
-int  dash_loads(void);                  /* veces que se ha leido el fichero del disco: una vez cargado se queda en memoria */
-void dash_show(void);                   /* dibuja el fondo (o el panel minimo) y reinicia los instrumentos */
-void dash_reset(void);                  /* borra la memoria de lo ultimo dibujado (tras repintar el fondo) */
-void dash_update(void);                 /* DIALS: actualiza los instrumentos y la brujula */
-void dash_msbar(u8 x, u8 color);         /* MSBAR: indicador X (1..4) con el color del original (0 = apagado) */
-void dash_msblob(void);                 /* msblob: indicadores de misil (NOMSL en verde, el resto apagados) */
-extern u8 dash_comz;                    /* z (signo-magnitud, 96 = 1) del vector hacia la estacion que calcula COMPAS */
-void dash_spblb(void);                  /* SPBLB: enciende o apaga (XOR) la bombilla S de estacion cerca */
-void dash_mblb(u8 on);                  /* propio: bombilla roja M (salto J bloqueado) en la esquina libre del radar; solo pinta si cambia */
-void dash_mblb_forget(void);            /* el panel se ha repintado: la M no figura como encendida */
-void dash_ecblb(void);                  /* ECBLB: enciende o apaga (XOR) la bombilla E del ECM */
-extern void (*dash_trace)(char kind, u8 a, u8 b, u8 c, u8 d);   /* pruebas: 'h' x1 x2 y col, 'v' x y1 y2 col, 'p' x y zz, 'c' x y col (colores del original) */
-extern u8 dash_dials[13], dash_dialc[13], dash_comx, dash_comy, dash_comc, dash_mscol[4];   /* dials, dialc, COMX, COMY, COMC y mscol del original */
+int  dash_load(void);                   /* reads <drive>elite_dash; DASH_OK, DASH_E_OPEN or DASH_E_FORMAT */
+int  dash_loaded(void);                 /* 1 if the bitmap is in memory */
+int  dash_loads(void);                  /* times the file has been read from disk: once loaded it stays in memory */
+void dash_show(void);                   /* draws the background (or the minimal panel) and resets the instruments */
+void dash_reset(void);                  /* clears the memory of what was drawn last (after repainting the background) */
+void dash_update(void);                 /* DIALS: updates the instruments and the compass */
+void dash_msbar(u8 x, u8 color);         /* MSBAR: indicator X (1..4) with the original colour (0 = off) */
+void dash_msblob(void);                 /* msblob: missile indicators (NOMSL in green, the rest off) */
+extern u8 dash_comz;                    /* z (sign-magnitude, 96 = 1) of the vector towards the station calculated by COMPAS */
+void dash_spblb(void);                  /* SPBLB: switches (XOR) the station-near S bulb on or off */
+void dash_mblb(u8 on);                  /* own: red M bulb (J jump blocked) in the free corner of the radar; only paints if it changes */
+void dash_mblb_forget(void);            /* the panel has been repainted: the M does not count as lit */
+void dash_ecblb(void);                  /* ECBLB: switches (XOR) the ECM E bulb on or off */
+extern void (*dash_trace)(char kind, u8 a, u8 b, u8 c, u8 d);   /* tests: 'h' x1 x2 y col, 'v' x y1 y2 col, 'p' x y zz, 'c' x y col (original colours) */
+extern u8 dash_dials[13], dash_dialc[13], dash_comx, dash_comy, dash_comc, dash_mscol[4];   /* dials, dialc, COMX, COMY, COMC and mscol of the original */
 #endif

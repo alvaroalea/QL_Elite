@@ -1,5 +1,5 @@
-# Genera tests/vectors3.txt: una linea por caso, "op in:nombre=hex,... out:nombre=hex,..."
-# La salida sale de la transcripcion literal del 6502 (tools/ref6502_state.py).
+# Generates tests/vectors3.txt: one line per case, "op in:name=hex,... out:name=hex,..."
+# The output comes from the literal 6502 transcription (tools/ref6502_state.py).
 import sys, random
 sys.path.insert(0, 'tools')
 from ref6502_state import *
@@ -41,7 +41,7 @@ for _ in range(N):
     m = newm(ks=bytearray(ks)); a = mas2(m, 0, Y)
     emit('mas2m', [('ks', hx(ks)), ('iy', h1(Y))], [('ra', h1(a))])
     ksm = bytearray(ks)
-    if random.random() < 0.7:                      # coordenadas pequenas para no desbordar siempre
+    if random.random() < 0.7:                      # small coordinates so as not to overflow every time
         for o in (1, 4, 7): ksm[Y + o] = random.randrange(0, 12) if random.random() < 0.8 else B()
     m = newm(ks=bytearray(ksm)); a = mas3(m, Y)
     emit('mas3', [('ks', hx(ksm)), ('iy', h1(Y))], [('ra', h1(a)), ('r', h1(m.R))])
@@ -81,7 +81,7 @@ for _ in range(N):
     if wq[10 + Y] == 0: wq[10 + Y] = 1
     m = newm(inwk=bytearray(wq)); a = tis3(m, A, X, Y)
     emit('tis3', [('inwk', hx(wq)), ('ia', h1(A)), ('ix', h1(X)), ('iy', h1(Y))], [('ra', h1(a)), ('p1', h1(m.P1))])
-    # --- tidy: matriz casi ortonormal con ruido, y matrices aleatorias ---
+    # --- tidy: nearly orthonormal matrix with noise, and random matrices ---
     wt = bytearray(w)
     if random.random() < 0.6:
         for o in (10, 12, 14, 16, 18, 20): wt[o] = random.choice([0, 0, 0, 96, 0xE0, 20, 0x80 | 20, 70, B()])
@@ -101,7 +101,7 @@ for _ in range(N):
     # --- pls6 / proj ---
     wp = bytearray(w)
     if random.random() < 0.8:
-        wp[1] = random.randrange(0, 3); wp[4] = random.randrange(0, 3)       # x_hi, y_hi pequenos
+        wp[1] = random.randrange(0, 3); wp[4] = random.randrange(0, 3)       # small x_hi, y_hi
         wp[7] = random.randrange(1, 256); wp[2] &= 0x7F if random.random() < 0.7 else 0xFF
         wp[8] &= 0x7F if random.random() < 0.9 else 0xFF
     p0, p1, A = B(), B(), B()
@@ -112,7 +112,7 @@ for _ in range(N):
     k3 = blob(16)
     m = newm(inwk=bytearray(wp), K3=bytearray(k3)); c = proj(m)
     emit('proj', [('inwk', hx(wp)), ('k3', hx(k3))], [('rc', h1(c)), ('k3', hx(m.K3)), ('k', hx(bytes(m.K)))])
-    # --- dinero ---
+    # --- money ---
     cs = blob(4); X, Y = B(), B()
     if random.random() < 0.5: cs[0] = 0; cs[1] = 0
     m = newm(cash=bytearray(cs)); c = lcash(m, X, Y)

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_start.txt con el codigo ORIGINAL de Start and end en el emulador de 6502:
-  R  RESET (ZERO real; SPBLB, ECMOF y WPSHPS registran)
+"""Generates tests/vectors_start.txt with the ORIGINAL Start and end code in the 6502 emulator:
+  R  RESET (real ZERO; SPBLB, ECMOF and WPSHPS log)
   S  RES2  (idem)
-  F  DFAULT (CHECK y CHECK2 reales; con sumas de comprobacion buenas o malas)
-Se comprueba con tests/test_start (make test_start). Uso: python3 tools/gen_start.py [n] [semilla]"""
+  F  DFAULT (real CHECK and CHECK2; with good or bad checksums)
+Checked with tests/test_start (make test_start). Usage: python3 tools/gen_start.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -13,7 +13,7 @@ random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 170)
 src = []
 for r in ('RESET', 'ZERO'): src += routine(r)
 src = [l for l in src if code(l) != 'SKIP 0' and not re.match(r'^(PRINT|SAVE)\b', code(l)) and not re.match(r'^(CODE|LOAD)_\w+%\s*=', code(l))]
-# RESET cae en RES2 (el bloque de RES2 va justo detras); RES2 acaba con WPSHPS (stub)
+# RESET falls into RES2 (the RES2 block goes right after it); RES2 ends with WPSHPS (stub)
 src = routine('RESET')
 src = [l for l in src if code(l) != 'SKIP 0']
 src += routine('RES2') + routine('ZINF') + routine('ZERO') + routine('ECMOF')
@@ -39,7 +39,7 @@ for k in range(n):
         cpu.log = []
         cpu.run(S[ent])
         out.append('%s %s : %s : %s' % (name, ' '.join('%d' % v for v in before), lg(cpu), ' '.join('%d' % m[a] for a in OUT)))
-# DFAULT con CHECK y CHECK2 reales: NA% (8 de nombre + 76) con suma buena; CHK2 bien o mal (marca de datos alterados)
+# DFAULT with real CHECK and CHECK2: NA% (8 of name + 76) with a good sum; CHK2 right or wrong (tampered-data marker)
 src2 = routine('DFAULT') + routine('CHECK') + routine('CHECK2')
 cpu2, S2 = build(src2, None)
 m2 = cpu2.mem
@@ -47,9 +47,9 @@ NA = S2['NA%']; NAME = S2['NAME']
 print('DFAULT: NA%%=%d NAME=%d CHK=%d CHK2=%d CHK3=%d COK=%d' % (NA, NAME, S2['CHK'], S2['CHK2'], S2['CHK3'], S2['COK']), file=sys.stderr)
 for k in range(n):
     for i in range(84): m2[NA + i] = random.randrange(256)
-    for i in list(range(47 + 8, 51 + 8)) + [20 + 8, 21 + 8]: m2[NA + i] = 0     # bytes sin uso (EQUW 0 tras los lasers, EQUD 0 tras ESCP)
-    for i in range(84): m2[NAME + i] = random.randrange(256)       # estado actual cualquiera: se pisa
-    # CHECK real sobre NA% para obtener CHK y CHK3 buenos
+    for i in list(range(47 + 8, 51 + 8)) + [20 + 8, 21 + 8]: m2[NA + i] = 0     # unused bytes (EQUW 0 after the lasers, EQUD 0 after ESCP)
+    for i in range(84): m2[NAME + i] = random.randrange(256)       # any current state: overwritten
+    # real CHECK on NA% to obtain good CHK and CHK3
     cpu2.run(S2['CHECK']); m2[S2['CHK']] = cpu2.a
     chk = cpu2.a
     cpu2.run(S2['CHECK2']); m2[S2['CHK3']] = cpu2.a

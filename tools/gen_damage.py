@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_damage.txt ejecutando en el emulador de 6502 el codigo ORIGINAL de los danos a nuestra nave:
-   O  OOPS (+ OUCH, ou2, ou3, DORND reales; DEATH, EXNO3 y MESS registran; MESS guarda tambien "de")
-   C  partes 9 y 10 del bucle de vuelo (choques, recogida con tnpr1/tnpr, ISDK con SPS1, OOPS y OUCH reales;
-      MESS, EXNO3, DEATH y DOENTRY registran)
-   P  parte 15 (MA22..MA23: ENERGY LOW, altitud con MAS2/MAS3/LL5, cabina y combustible; MESS y DEATH registran)
-   X  una vuelta de D1 de DEATH (Ze, DORND, ZINF y fq1 reales; NWSHP registra INWK y el tipo)
-Los sonidos (EXNO3 -> SOEXPL) se sustituyen por stubs: en el original SOEXPL llama a DORND (el ruido) y gasta numeros
-aleatorios cuando el sonido esta activado; el port no reproduce eso (ver docs/HALLAZGOS.md).
-Requiere ELITE_SRC. Uso: python3 tools/gen_damage.py [n] [semilla]"""
+"""Generates tests/vectors_damage.txt by running the ORIGINAL code for damage to our ship in the 6502 emulator:
+   O  OOPS (+ real OUCH, ou2, ou3, DORND; DEATH, EXNO3 and MESS log; MESS also stores "de")
+   C  parts 9 and 10 of the flight loop (collisions, scooping with tnpr1/tnpr, ISDK with SPS1, real OOPS and OUCH;
+      MESS, EXNO3, DEATH and DOENTRY log)
+   P  part 15 (MA22..MA23: ENERGY LOW, altitude with MAS2/MAS3/LL5, cabin and fuel; MESS and DEATH log)
+   X  one iteration of DEATH's D1 (real Ze, DORND, ZINF and fq1; NWSHP logs INWK and the type)
+The sounds (EXNO3 -> SOEXPL) are replaced by stubs: in the original SOEXPL calls DORND (the noise) and consumes random
+numbers when sound is on; the port does not reproduce that (see docs/HALLAZGOS.md).
+Requires ELITE_SRC. Usage: python3 tools/gen_damage.py [n] [seed]"""
 import sys, random
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -19,16 +19,16 @@ def rb(): return random.randrange(256)
 def pick(*v): return random.choice(v)
 out = []
 
-ouchr = ['.out', 'RTS'] + preprocess(L[nl('OUCH') - 1:nx(nl('ou3')) - 1])   # out (RTS) esta lejos, antes de me1
+ouchr = ['.out', 'RTS'] + preprocess(L[nl('OUCH') - 1:nx(nl('ou3')) - 1])   # out (RTS) is far away, before me1
 oopsr = routine('OOPS')
 
 def log_hooks(cpu, S):
-    """MESS registra (A, de); los demas stubs ya registran (nombre, A, X, Y)"""
+    """MESS logs (A, de); the other stubs already log (name, A, X, Y)"""
     if 'MESS' in S:
         cpu.hooks[S['MESS']] = lambda c: c.log.append(('MESS', c.a, c.mem[S['de']], 0))
 
 def log_tables(cpu, S):
-    """tablas log/logL/alogh con las formulas de la fuente (como orig.ll9_image), donde los stubs las dejaron"""
+    """log/logL/alogh tables with the source's formulas (like orig.ll9_image), where the stubs left them"""
     import math
     lg = [0x0803] + [int(0x2000 * math.log(i) / math.log(2) + 0.5) for i in range(1, 256)]
     for i in range(256):
@@ -48,7 +48,7 @@ def logs(cpu, names):
 # ---------------------------------------------------------------- O: OOPS
 cpu, S = build(oopsr + ouchr + dornd, None); log_hooks(cpu, S)
 NI = S['NI%']; k2 = S['K%'] + 2 * NI
-for _ in range(5 * n):                               # OUCH pierde algo pocas veces: mas casos
+for _ in range(5 * n):                               # OUCH rarely loses anything: more cases
     t, c = pick(5, 128, 200, 255, rb()), rb() & 1
     zs = pick(0, 0x80, rb())
     f, a, e = pick(0, 1, 5, 200, 255, rb()), pick(0, 1, 5, 200, 255, rb()), pick(1, 2, 50, 128, 255, rb())
@@ -77,13 +77,13 @@ for _ in range(n):
     for k in (1, 4, 7): iw[k] = pick(0, 0, 0, 0, 1)
     for k in (0, 3, 6): iw[k] = pick(random.randrange(64), random.randrange(64), random.randrange(128), rb())
     iw[31] = pick(0, 0, 0x08, 0x20, 0x80, rb() & 0x5F)
-    scoop = typ in (3, 4, 5, 8, 30) and random.random() < 0.7               # recogidas: BST (QQ20+18) y la nave por debajo
+    scoop = typ in (3, 4, 5, 8, 30) and random.random() < 0.7               # scooped: BST (QQ20+18) and the ship below
     if scoop: iw[5] |= 0x80
     if typ == 2 and random.random() < 0.6: iw[14] = pick(214, 213, 255, random.randrange(200, 256)); iw[16] = pick(80, 79, 0xD0, rb())
     bst, delta = pick(0, 0xFF, 0xFF), pick(1, 4, 5, 12, 40)
     pl = [rb() for _ in range(9)]
     if random.random() < 0.7: pl[1], pl[4], pl[7] = random.randrange(4), random.randrange(4), random.randrange(4)
-    st36 = pick(0, 4, rb()); b0 = pick(0x20, 0x80, 0xB0, 0xF0, 0x28, 0x88, 0xB8, 0, rb() & 0x77, rb() & 0xE7)   # mercancia <= 16 como en los planos reales
+    st36 = pick(0, 4, rb()); b0 = pick(0x20, 0x80, 0xB0, 0xF0, 0x28, 0x88, 0xB8, 0, rb() & 0x77, rb() & 0xE7)   # commodity <= 16 as in the real blueprints
     f, a, e = pick(0, 5, 200, 255, rb()), pick(0, 5, 200, 255, rb()), pick(1, 2, 128, 255, rb())
     it = rand_items(); dl = pick(0, 0, 0, 5); rnd = [rb() for _ in range(4)]; c = rb() & 1
     if scoop: it[18] = 0xFF
@@ -113,7 +113,7 @@ for _ in range(n):
     mj, mc = pick(0, 0, 0, 0, 1), pick(10, 10, 15, 20, 20, 20, 42, 52, rb() & 0xF7 or 1)
     e, au, sspr, bst = pick(50, 51, 10, 200), pick(0, 0, 1), pick(0, 0, 1), pick(0, 0xFF)
     delta, q14, cab = pick(0, 3, 12, 40), pick(0, 30, 69, 70), rb()
-    q = rb()                                         # Q queda de antes: LL5 calcula SQRT(R Q) con el Q que hubiera
+    q = rb()                                         # Q is left over from before: LL5 computes SQRT(R Q) with whatever Q there was
     pl = [rb() for _ in range(9)]; su = [rb() for _ in range(9)]
     for s_ in (pl, su):
         if random.random() < 0.7:
@@ -130,9 +130,9 @@ for _ in range(n):
                cpu.mem[S['ALTIT']], cpu.mem[S['CABTMP']], cpu.mem[S['QQ14']], int(any(x[0] == 'DEATH' for x in cpu.log)),
                logs(cpu, ('MESS',)), q))
 
-# ---------------------------------------------------------------- X: una vuelta de D1 (DEATH)
+# ---------------------------------------------------------------- X: one iteration of D1 (DEATH)
 i1 = [k for k in range(lab('D1'), len(L)) if code(L[k]) == 'LDA FRIN+4'][0]
-d1 = rng(lab('D1'), i1) + ['RTS'] + routine('Ze') + dornd + routine('ZINF') + rng(lab('fq1'), lab('FRMIS'))   # Ze cae en DORND2
+d1 = rng(lab('D1'), i1) + ['RTS'] + routine('Ze') + dornd + routine('ZINF') + rng(lab('fq1'), lab('FRMIS'))   # Ze falls into DORND2
 cpu, S = build(d1, None)
 xx21 = S.get('XX21')
 for _ in range(n):
@@ -142,7 +142,7 @@ for _ in range(n):
         got.append((cc.a, bytes(cc.mem[S['INWK']:S['INWK'] + NI])))
         k3 = S['K%'] + 3 * NI; cc.mem[S['INF']] = k3 & 255; cc.mem[S['INF'] + 1] = k3 >> 8; cc.c = 1
     cpu.hooks[S['NWSHP']] = nw
-    if xx21 is not None: cpu.mem[xx21 - 1 + 2 * 4] = 0x12          # el plano de la placa existe
+    if xx21 is not None: cpu.mem[xx21 - 1 + 2 * 4] = 0x12          # the plate's blueprint exists
     cpu.mem[S['RAND']:S['RAND'] + 4] = bytes(rnd); cpu.mem[S['DELTA']] = delta; cpu.c = c
     cpu.run(S['D1'])
     k3 = S['K%'] + 3 * NI

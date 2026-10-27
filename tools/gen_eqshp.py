@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_eqshp.txt con el codigo ORIGINAL de Equipment en el emulador de 6502: EQSHP (con eq, prx, refund, PRXS,
-LCASH y MCASH reales; la pantalla, gnum y qv's TT217 son stubs que devuelven la eleccion):
-  Q  EQSHP con el articulo elegido (0..13) y la vista del laser (0..3): final (ok / sin dinero / ya lo tienes / cancelado), dinero y
-     equipo a la salida
-  P  prx de cada articulo (precio de PRXS; el combustible depende de QQ14)
-Se comprueba con tests/test_eqshp (make test_eqshp). Requiere ELITE_SRC. Uso: python3 tools/gen_eqshp.py [n] [semilla]"""
+"""Generates tests/vectors_eqshp.txt with the ORIGINAL Equipment code in the 6502 emulator: EQSHP (with real eq, prx, refund, PRXS,
+LCASH and MCASH; the screen, gnum and TT217's qv are stubs that return the choice):
+  Q  EQSHP with the chosen item (0..13) and the laser view (0..3): outcome (ok / no money / already have it / cancelled), money and
+     equipment on exit
+  P  prx of each item (price from PRXS; fuel depends on QQ14)
+Checked with tests/test_eqshp (make test_eqshp). Requires ELITE_SRC. Usage: python3 tools/gen_eqshp.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -58,7 +58,7 @@ for _ in range(n):
     m[S['CASH']:S['CASH'] + 4] = cash.to_bytes(4, 'big')
     cnt = min(tek + 3, 14) if tek + 3 >= 12 or True else 0
     cnt = tek + 3 if tek + 3 < 12 else 14
-    k = random.choice([0] + list(range(1, cnt + 1)))        # 0: cancelar (gnum devuelve 0)
+    k = random.choice([0] + list(range(1, cnt + 1)))        # 0: cancel (gnum returns 0)
     view = random.randrange(4); st['k'] = k; st['v'] = view; st['log'] = []; st['end'] = None
     pre = state()
     try: cpu.run(S['EQSHP'])
@@ -66,7 +66,7 @@ for _ in range(n):
     out.append('Q %d %d %d %d %s : %s %s : %s' % (tek, k, view, 1, pre, st['end'], ' '.join(str(x) for x in st['log']), state()))
 for _ in range(200):
     q14 = random.randrange(71); m[S['QQ14']] = q14; m[S['PRXS']] = 0
-    # prx lee PRXS; EQSHP lo pone: el combustible es (70 - QQ14) * 2
+    # prx reads PRXS; EQSHP sets it: fuel is (70 - QQ14) * 2
     m[S['PRXS']] = ((70 - q14) * 2) & 255
     res = []
     for it in range(14):

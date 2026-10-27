@@ -58,10 +58,10 @@ void state_clear(void)
     zero(tribble, 2); tallyl = nomsl = fist = 0; zero(avl, 17); zero(tally, 2); tp = cok = svc = 0;
     for (i = 0; i <= NOSH; i++) univ[i] = state_slot(i);
 }
-u8  enc_ev;                   /* EV: retraso de las naves extra (encounters.c; ZERO lo pone a 0) */
+u8  enc_ev;                   /* EV: delay of the extra ships (encounters.c; ZERO sets it to 0) */
 
-/* ---- vista de vuelo nativa (160 lineas) ---- */
-u8 dash_comz = 0;                  /* XX15+2 de COMPAS (dash.c): lo lee la mira en aspa (chart.c); aqui para no enlazar dash.c */
+/* ---- native flight view (160 lines) ---- */
+u8 dash_comz = 0;                  /* XX15+2 of COMPAS (dash.c): read by the X-shaped sight (chart.c); here so as not to link dash.c */
 int view_native = 0, view_yscale = 0, view_cy = 68, clip_h = 136;
 
 void view_set_native(int on)

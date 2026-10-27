@@ -3,7 +3,7 @@
 
 char cmdr_name[CMDR_NAMELEN + 1] = "JAMESON";
 
-/* CHECK: A = NT-3; para x = NT-3 .. 1:  A = A + b[x-1] + C;  A ^= b[x]  (C es el acarreo del ADC anterior, empieza en 0) */
+/* CHECK: A = NT-3; for x = NT-3 .. 1:  A = A + b[x-1] + C;  A ^= b[x]  (C is the carry from the previous ADC, starting at 0) */
 u8 cmdr_check(const u8 *b)
 {
     unsigned a = CMDR_NT - 3, c = 0, t;
@@ -16,7 +16,7 @@ u8 cmdr_check(const u8 *b)
     return (u8)a;
 }
 
-/* CHECK2: igual, pero antes de sumar hace A ^= x y un ROR A (el bit 0 sale al acarreo y el acarreo entra por el bit 7) */
+/* CHECK2: the same, but before adding it does A ^= x and a ROR A (bit 0 goes out to the carry and the carry enters at bit 7) */
 u8 cmdr_check2(const u8 *b)
 {
     unsigned a = CMDR_NT - 3, c = 0, t, nc;
@@ -69,7 +69,7 @@ int cmdr_unpack(const u8 *b)
     if (c != b[CB_CHK]) return -1;
     if (cmdr_check2(b) != b[CB_CHK3]) return -1;
     k = b[CB_COK];
-    if ((u8)(c ^ 0xA9) != b[CB_CHK2]) k |= 0x80;     /* tZ de DFAULT: marca de datos alterados */
+    if ((u8)(c ^ 0xA9) != b[CB_CHK2]) k |= 0x80;     /* tZ of DFAULT: tampered-data marker */
     k |= 0x08;
     tp = b[CB_TP]; qq0 = b[CB_QQ0]; qq1 = b[CB_QQ1];
     cp(qq21, b + CB_SEED, 6);
@@ -88,30 +88,30 @@ int cmdr_unpack(const u8 *b)
     return 0;
 }
 
-/* Bloque de fabrica de JAMESON (Q% = FALSE en la fuente): 100 Cr, 70 de combustible, laser de pulsos frontal, bodega de 22 */
+/* Factory block for JAMESON (Q% = FALSE in the source): 100 Cr, 70 fuel, front pulse laser, 22-unit hold */
 static const u8 default_blk[CMDR_SIZE] = {
     0,                                  /* TP */
     20, 173,                            /* Lave */
-    0x4A, 0x5A, 0x48, 0x02, 0x53, 0xB7, /* semilla de la galaxia 1 */
-    0x00, 0x00, 0x03, 0xE8,             /* 1000 decimas = 100 Cr */
-    70, 0, 0,                           /* combustible, COK, galaxia */
+    0x4A, 0x5A, 0x48, 0x02, 0x53, 0xB7, /* galaxy 1 seed */
+    0x00, 0x00, 0x03, 0xE8,             /* 1000 tenths = 100 Cr */
+    70, 0, 0,                           /* fuel, COK, galaxy */
     LASER_POW, 0, 0, 0,
     0, 0,
     22,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0,                /* ECM, BST, BOMB, ENGY, DKCMP, GHYP, ESCP */
     0, 0, 0, 0,
-    3, 0,                               /* misiles, FIST */
+    3, 0,                               /* missiles, FIST */
     16, 15, 17, 0, 3, 28, 14, 0, 0, 10, 0, 17, 58, 7, 9, 8, 0,
     0,                                  /* QQ26 */
     0, 0,                               /* TALLY */
     128,                                /* SVC */
-    0xAA, 0x27, 0x03                    /* CHK2, CHK3, CHK de fabrica */
+    0xAA, 0x27, 0x03                    /* CHK2, CHK3, factory CHK */
 };
 
 void cmdr_default(void)
 {
-    cmdr_unpack(default_blk);           /* los tres checksums del original estan en el bloque: la prueba los verifica */
+    cmdr_unpack(default_blk);           /* the three checksums of the original are in the block: the test verifies them */
     cmdr_name[0] = 0;
     cmdr_set_name("JAMESON");
 }

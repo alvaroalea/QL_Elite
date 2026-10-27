@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Vectores para CHECK y CHECK2 del comandante: transcripcion literal del 6502 (acarreo explicito en cada ADC/ROR).
-Formato de cada linea: <77 bytes en hex> <CHECK> <CHECK2>.  Los bloques incluyen el comandante de fabrica."""
+"""Vectors for the commander's CHECK and CHECK2: literal 6502 transcription (explicit carry in each ADC/ROR).
+Format of each line: <77 bytes in hex> <CHECK> <CHECK2>.  The blocks include the factory commander."""
 import random, sys
 NT = 76
 
@@ -31,7 +31,7 @@ def check2(b):                     # .CHECK2: ... QU2L2: STX T ; EOR T ; ROR A ;
 default = [0, 20, 173, 0x4A, 0x5A, 0x48, 0x02, 0x53, 0xB7, 0, 0, 3, 0xE8, 70, 0, 0, 15, 0, 0, 0, 0, 0, 22] + [0] * 17 + \
           [0] * 7 + [0, 0, 0, 0, 3, 0] + [16, 15, 17, 0, 3, 28, 14, 0, 0, 10, 0, 17, 58, 7, 9, 8, 0] + [0, 0, 0, 128, 0xAA, 0x27, 0x03]
 assert len(default) == 77, len(default)
-assert check(default) == 0x03 and check2(default) == 0x27     # constantes de fabrica de la fuente
+assert check(default) == 0x03 and check2(default) == 0x27     # factory constants from the source
 rnd = random.Random(1985)
 out = []
 blocks = [default] + [[0] * 77, [255] * 77]

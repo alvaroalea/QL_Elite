@@ -24,12 +24,12 @@ void save_set_device(const char *dev)
 {
     int i;
     scopy(save_dev, dev, SAVE_DEV_MAX + 1);
-    for (i = 0; i < 4; i++)                        /* save_next_device sigue desde la unidad elegida */
+    for (i = 0; i < 4; i++)                        /* save_next_device continues from the chosen drive */
         if (save_dev[0] == devs[i][0] && save_dev[1] == devs[i][1] && save_dev[2] == devs[i][2] && save_dev[3] == devs[i][3] && !save_dev[5])
             dev_idx = i;
 }
 
-/* 3 letras, 1 cifra, '_' y luego lo que sea (letras, cifras, '_'), acabando en '_' */
+/* 3 letters, 1 digit, '_' and then anything (letters, digits, '_'), ending in '_' */
 int save_valid_device(const char *d)
 {
     int i, n = 0;
@@ -50,7 +50,7 @@ int save_next_device(void)
     return dev_idx;
 }
 
-/* nombre de fichero: <dispositivo>elite_<nombre en minusculas> */
+/* file name: <device>elite_<name in lower case> */
 void save_filename(const char *name, char *out)
 {
     int n = 0, i = 0;
@@ -65,7 +65,7 @@ void save_filename(const char *name, char *out)
     out[n] = 0;
 }
 
-/* secuencia de cifrado: un generador congruencial de 16 bits a partir de la semilla; solo se usa su byte alto */
+/* encryption sequence: a 16-bit linear congruential generator from the seed; only its high byte is used */
 static void cipher(u8 *p, int n, u8 seed)
 {
     unsigned long s = 0x1234UL + (unsigned long)seed * 257UL;
@@ -118,7 +118,7 @@ int save_commander(void)
     char fn[48];
     int r;
     if (!cmdr_name[0]) return SAVE_E_NAME;
-    svc >>= 1;                                   /* LSR SVC del original */
+    svc >>= 1;                                   /* LSR SVC of the original */
     cmdr_pack(blk);
     cmdr_seal(blk);
     r = save_encode(blk, cmdr_name, f);

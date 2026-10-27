@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_stars.txt: polvo estelar del codigo ORIGINAL en el emulador de 6502: STARS (vistas 0 a 3: STARS1,
-STARS6, STARS2 con ST2), nWq y FLIP, con PIXEL2 y PIXEL reales (sobre la pantalla hires; PIXEL registra X, A y ZZ al entrar). Entradas al azar: NOSTM, SX..SZL, ALPHA,
-ALP1, ALP2, BETA, BET1, BET2, DELT4 y RAND. Salidas: cada PIXEL, las tablas, RAND y ALPHA/ALP2/BET2 (ST2 los restaura).
-Se comprueba con tests/test_stars (make test_stars). Uso: python3 tools/gen_stars.py [n] [semilla]"""
+"""Generates tests/vectors_stars.txt: stardust of the ORIGINAL code in the 6502 emulator: STARS (views 0 to 3: STARS1,
+STARS6, STARS2 with ST2), nWq and FLIP, with real PIXEL2 and PIXEL (on the hires screen; PIXEL logs X, A and ZZ on entry). Random inputs: NOSTM, SX..SZL, ALPHA,
+ALP1, ALP2, BETA, BET1, BET2, DELT4 and RAND. Outputs: each PIXEL, the tables, RAND and ALPHA/ALP2/BET2 (ST2 restores them).
+Checked with tests/test_stars (make test_stars). Usage: python3 tools/gen_stars.py [n] [seed]"""
 import sys, random, re, math
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -17,15 +17,15 @@ for i, l in enumerate(L):
     for j in range(i, min(i + 8, len(L))):
         cc = re.match(r'^;\s+Category: (.*)$', L[j])
         if cc:
-            if cc.group(1).strip().startswith('Maths (Arithmetic)') and m.group(1) != 'PIX1':   # PIX1 cae en PIXEL2: va con el
+            if cc.group(1).strip().startswith('Maths (Arithmetic)') and m.group(1) != 'PIX1':   # PIX1 falls into PIXEL2: goes with it
                 bl = preprocess(L[i:nx(i + 1) - 1])
                 if not any(re.match(r'^FOR\b', code(x)) for x in bl): maths += bl
             break
 src = maths
 for r in ('STARS', 'STARS1', 'STARS6', 'STARS2', 'nWq'): src += routine(r)
-src += ['.WPSHPS', ' RTS']                         # nWq cae en WPSHPS (borrar las naves del radar): aparte
+src += ['.WPSHPS', ' RTS']                         # nWq falls into WPSHPS (erase the ships from the radar): apart
 for r in ('FLIP', 'PIX1', 'PIXEL2'): src += routine(r)
-src += routine('PIXEL') + routine('TWOS3')             # PIXEL real (el acarreo con que vuelve importa), sobre la pantalla hires
+src += routine('PIXEL') + routine('TWOS3')             # real PIXEL (the carry it returns with matters), on the hires screen
 for t in ('SCTBL', 'SCTBH', 'SCTBH2'): src += routine(t)
 src += ['.SCTBX1'] + [' EQUB %d' % ((i + 8) % 7) for i in range(256)] + ['.SCTBX2'] + [' EQUB %d' % ((i + 8) // 7) for i in range(256)]
 src = [re.sub(r'\s+AND\s+(?=\d)', ' & ', l) for l in src if code(l) != 'SKIP 0']

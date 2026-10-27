@@ -1,4 +1,4 @@
-/* Cartas (TT22/TT23 con SUN y CIRCLE) desde 24 sistemas distintos y con distinto combustible: hash de la pantalla. */
+/* Charts (TT22/TT23 with SUN and CIRCLE) from 24 different systems and with different fuel: screen hash. */
 #include "platform.h"
 #include "text.h"
 #include "chart.h"

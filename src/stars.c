@@ -10,16 +10,16 @@ u8 delt4[2];
 
 #define X1 zx15[0]
 #define Y1 zx15[1]
-#define YHALF 68                          /* Y: mitad de la altura de la vista (136 / 2) */
+#define YHALF 68                          /* Y: half the height of the view (136 / 2) */
 
-static u8 c;                              /* acarreo del 6502 */
+static u8 c;                              /* 6502 carry */
 #ifdef DEBUG
-u8 stars_dbg_nodraw = 0;                        /* DEBUG (SHIFT-F): 1 = las estrellas se calculan pero no se pintan */
+u8 stars_dbg_nodraw = 0;                        /* DEBUG (SHIFT-F): 1 = the stars are computed but not painted */
 #endif
-void (*stars_pixel_hook)(u8 x, u8 y, u8 zz) = 0;   /* pruebas: cada PIXEL de PIXEL2 (X, A, ZZ) */
-static u8 xx[2], yy[2];                   /* XX, YY (16 bits, byte bajo primero) */
+void (*stars_pixel_hook)(u8 x, u8 y, u8 zz) = 0;   /* tests: each PIXEL of PIXEL2 (X, A, ZZ) */
+static u8 xx[2], yy[2];                   /* XX, YY (16 bits, low byte first) */
 static u8 zz;                             /* ZZ */
-static u8 rat, rat2, newzp;               /* RAT, RAT2 y newzp de STARS2 */
+static u8 rat, rat2, newzp;               /* RAT, RAT2 and newzp of STARS2 */
 
 static u8 adcc(u8 a, u8 m) { unsigned s = (unsigned)a + m + c; c = (u8)(s >> 8); return (u8)s; }
 static u8 sbcc(u8 a, u8 m) { int d = (int)a - m - (1 - c); c = (u8)(d >= 0); return (u8)d; }
@@ -27,7 +27,7 @@ static u8 lsrc(u8 v) { c = (u8)(v & 1); return (u8)(v >> 1); }
 static u8 rorc(u8 v) { u8 n = (u8)((v >> 1) | (c << 7)); c = (u8)(v & 1); return n; }
 static u8 rolc(u8 v) { u8 n = (u8)((v << 1) | c); c = (u8)(v >> 7); return n; }
 
-/* DORND con el acarreo del 6502 como entrada y salida (la semilla usa el acarreo) */
+/* DORND with the 6502 carry as input and output (the seed uses the carry) */
 static u8 dornd(void)
 {
     u8 a;
@@ -46,7 +46,7 @@ void stars_set_speed(u8 delta)
     delt4[1] = a;
 }
 
-/* PIXEL2: dibuja (XOR) la particula de X1, Y1 (signo-magnitud respecto al centro) con distancia ZZ */
+/* PIXEL2: draws (XOR) the particle at X1, Y1 (sign-magnitude relative to the centre) with distance ZZ */
 static void pixel2(void)
 {
     u8 a, x, t;
@@ -56,7 +56,7 @@ static void pixel2(void)
     a = (u8)(Y1 & 0x7F);
     if (a >= YHALF) { c = 1; return; }     /* CMP #Y; BCS PXR1 (C = 1) */
     a = Y1;
-    c = 0;                                 /* el CMP deja el acarreo limpio */
+    c = 0;                                 /* the CMP leaves the carry clear */
     if (a & 0x80) { a = (u8)(a ^ 0x7F); a = adcc(a, 1); }
     t = a;
     a = sbcc(YHALF + 1, t);
@@ -64,20 +64,20 @@ static void pixel2(void)
 #ifdef DEBUG
     if (stars_dbg_nodraw) { c = 1; return; }
 #endif
-    if (view_native) {                     /* vista nativa: la fila del original se lleva a la de pantalla (centro 80, x 6/5) */
+    if (view_native) {                     /* native view: the original's row is brought to the screen's (centre 80, x 6/5) */
         int ny = view_ty(a);
         if (ny >= 1 && ny < clip_h) gfx_dust(x, ny, zz);
     } else gfx_dust(x, a, zz);
-    /* acarreo con que vuelve PIXEL: ZZ >= 80 -> CPY #80 deja C = 1 (PX4 no lo toca); si no, dos filas: con y mod 8 != 0 el
-       SBC #3 del byte alto de la direccion no pide prestado (C = 1); con y mod 8 = 0 va por PX6 y queda el C = 0 del CPY */
+    /* carry with which PIXEL returns: ZZ >= 80 -> CPY #80 leaves C = 1 (PX4 does not touch it); otherwise, two rows: with y mod 8 != 0 the
+       SBC #3 of the address high byte does not borrow (C = 1); with y mod 8 = 0 it goes through PX6 and the C = 0 of the CPY remains */
     c = (u8)(zz >= 80 || (a & 7) != 0);
 }
 
-/* MLS1 / MLS2 / MUT1 / MUT2 / MULTS-2: envoltorios de la multiplicacion con signo */
+/* MLS1 / MLS2 / MUT1 / MUT2 / MULTS-2: wrappers of the signed multiplication */
 static u8 mls1(u8 a) { zP = alp1; return em_mults(a); }
 static u8 mls2(u8 a) { zR = xx[0]; zS = xx[1]; zP = alp1; return em_mults(a); }
 
-/* ---------------------------------------------------------------- vista frontal */
+/* ---------------------------------------------------------------- front view */
 static void stars1(void)
 {
     u8 y = stars_nostm, a, x;
@@ -91,7 +91,7 @@ static void stars1(void)
         a = sz[y]; zz = a;
         a = sbcc(a, delt4[1]); sz[y] = a;
         a = em_mlu1(sy[y], &Y1);                       /* (A P) = |y| * Q; Y1 = y */
-        c = 0;                                         /* MLU1 sale con C = 0 */
+        c = 0;                                         /* MLU1 returns with C = 0 */
         yy[1] = a;
         a = zP; a = adcc(a, syl[y]); yy[0] = a; zR = a;
         a = Y1; a = adcc(a, yy[1]); yy[1] = a; zS = a;
@@ -122,11 +122,11 @@ static void stars1(void)
         zR = yy[0]; zS = yy[1]; zP = 0;
         a = (u8)(beta ^ 0x80);
         a = em_add(a); x = em_x; yy[1] = a; syl[y] = x;                    /* PIX1 */
-        pixel2();                                      /* borra la particula vieja (X1, Y1, ZZ siguen siendo los viejos) */
+        pixel2();                                      /* erases the old particle (X1, Y1, ZZ are still the old ones) */
         a = xx[1]; X1 = a; sx[y] = a;
-        if ((u8)(a & 0x7F) >= 120) { c = 1; goto kill1; }     /* CMP #120; BCS: C = 1 para el DORND */
+        if ((u8)(a & 0x7F) >= 120) { c = 1; goto kill1; }     /* CMP #120; BCS: C = 1 for the DORND */
         a = yy[1]; sy[y] = a; Y1 = a;
-        if ((u8)(a & 0x7F) >= 120) { c = 1; goto kill1; }     /* CMP #120; BCS: C = 1 para el DORND */
+        if ((u8)(a & 0x7F) >= 120) { c = 1; goto kill1; }     /* CMP #120; BCS: C = 1 for the DORND */
         a = sz[y];
         if (a < 16) { c = 0; goto kill1; }                /* CMP #16; BCC: C = 0 */
         zz = a;
@@ -143,7 +143,7 @@ kill1:
     }
 }
 
-/* ---------------------------------------------------------------- vista trasera */
+/* ---------------------------------------------------------------- rear view */
 static void stars6(void)
 {
     u8 y = stars_nostm, a, x;
@@ -185,7 +185,7 @@ static void stars6(void)
         a = (u8)(a | zT);
         a = em_add(a); x = em_x; xx[1] = a; sxl[y] = x;
         zR = yy[0]; zS = yy[1]; zP = 0;
-        a = em_add(beta); x = em_x; yy[1] = a; syl[y] = x;                 /* PIX1 con BETA sin invertir */
+        a = em_add(beta); x = em_x; yy[1] = a; syl[y] = x;                 /* PIX1 with BETA not inverted */
         pixel2();
         a = xx[1]; X1 = a; sx[y] = a;
         a = yy[1]; sy[y] = a; Y1 = a;
@@ -216,7 +216,7 @@ st4:
     }
 }
 
-/* ST2: invierte los signos de ALPHA, ALP2 y BET2 segun RAT (se llama al entrar y al salir de STARS2) */
+/* ST2: inverts the signs of ALPHA, ALP2 and BET2 according to RAT (called on entering and leaving STARS2) */
 static void st2(void)
 {
     alpha = (u8)(alpha ^ rat);
@@ -226,7 +226,7 @@ static void st2(void)
     bet2[1] = (u8)(bet2[0] ^ 0x80);
 }
 
-/* ---------------------------------------------------------------- vistas izquierda y derecha */
+/* ---------------------------------------------------------------- left and right views */
 static void stars2(u8 xreg)
 {
     u8 y, a, x;
@@ -274,7 +274,7 @@ static void stars2(u8 xreg)
         pixel2();
         a = xx[1]; X1 = a; sx[y] = a;
         a = (u8)((a & 0x7F) ^ 0x7F);
-        if (a <= newzp) { c = (u8)(a == newzp); goto kill2; }   /* BCC (C = 0) o BEQ (C = 1) */
+        if (a <= newzp) { c = (u8)(a == newzp); goto kill2; }   /* BCC (C = 0) or BEQ (C = 1) */
         a = yy[1]; sy[y] = a; Y1 = a;
         a = (u8)(a & 0x7F);
         if (a >= 116) { c = 1; goto st5; }
@@ -300,13 +300,13 @@ void stars_update(u8 view)
 {
     if (view == 0) stars1();
     else if (view == 1) stars6();
-    else stars2((u8)(view - 1));                       /* DEX; BNE ST11 -> STARS2 con X = VIEW - 1 */
+    else stars2((u8)(view - 1));                       /* DEX; BNE ST11 -> STARS2 with X = VIEW - 1 */
 }
 
 void stars_new(void)
 {
     u8 y = stars_nostm, a;
-    c = em_rand_c;                                     /* el primer DORND usa el acarreo de entrada */
+    c = em_rand_c;                                     /* the first DORND uses the incoming carry */
     do {                                               /* SAL4 */
         a = dornd(); a |= 8; sz[y] = a; zz = a;
         a = dornd(); sx[y] = a; X1 = a;
@@ -330,7 +330,7 @@ void stars_flip(void)
     } while (y != 0);
 }
 
-/* Ayuda de pruebas: dibuja (XOR) todas las particulas en sus posiciones actuales, sin moverlas */
+/* Test aid: draws (XOR) all the particles at their current positions, without moving them */
 void stars_draw_all(void)
 {
     u8 y = stars_nostm;

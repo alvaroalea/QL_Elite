@@ -1,15 +1,15 @@
-; envsetup_orig.asm - transcripcion FIEL del modulo _envsetup de libc.a (runtime c68 4.24f), sintaxis as68.
-; Desensamblado a mano (capstone) del ejecutable enlazado y traducido a simbolos con el mapa de qld.
-; Sirve para comprobar que el desensamblado es correcto: enlazado en lugar del de la biblioteca debe dar
-; un ejecutable identico byte a byte (make -C experimentos/libc_envsetup check).
+; envsetup_orig.asm - FAITHFUL transcription of the _envsetup module of libc.a (c68 4.24f runtime), as68 syntax.
+; Disassembled by hand (capstone) from the linked executable and translated to symbols with qld's map.
+; It serves to check that the disassembly is correct: linked in place of the library's one it must give
+; a byte-identical executable (make -C experimentos/libc_envsetup check).
 ;
-; void _envsetup(char *env)   (lo llama Cinit antes de main con el entorno que pasa el trabajo padre)
-;  1) si env apunta a $4AFC, la lista de entorno es *(env+2); si no, busca en la tabla de nombres de
-;     SuperBASIC un procedimiento de codigo maquina (tipo 8) llamado *ENV* (extension ENV_BIN) y toma la
-;     lista de la palabra larga que sigue a su primera instruccion.
-;  2) putenv("") y putenv de cada cadena de la lista (terminada en cadena vacia).
-;  3) PROG_USE, DATA_USE y SPL_USE desde los punteros de Toolkit II en SV+$AC, $B0 y $B4 (cadenas QDOS),
-;     si no estan ya en el entorno.  FALLO: no comprueba el puntero ni la longitud (ver envsetup.asm).
+; void _envsetup(char *env)   (called by Cinit before main with the environment passed by the parent job)
+;  1) if env points to $4AFC, the environment list is *(env+2); otherwise, it looks in SuperBASIC's name table
+;     for a machine-code procedure (type 8) called *ENV* (extension ENV_BIN) and takes the
+;     list from the long word that follows its first instruction.
+;  2) putenv("") and putenv of each string in the list (terminated by an empty string).
+;  3) PROG_USE, DATA_USE and SPL_USE from the Toolkit II pointers at SV+$AC, $B0 and $B4 (QDOS strings),
+;     if they are not already in the environment.  BUG: it checks neither the pointer nor the length (see envsetup.asm).
 
 	.text
 envname:
@@ -32,7 +32,7 @@ e_bas:
 	jsr	__super
 	move.l	__sys_var,a0
 	move.l	16(a0),d0		; SV_BASIC
-	add.l	#104,d0			; + $68: variables de BASIC
+	add.l	#104,d0			; + $68: BASIC variables
 	move.l	d0,a4
 	move.l	24(a4),d0		; BV_NTBAS
 	add.l	a4,d0
@@ -133,7 +133,7 @@ e_s3:
 	unlk	a5
 	rts
 
-; e_set(char *nombre, char *cadena_qdos): si nombre no esta en el entorno, nombre=cadena
+; e_set(char *name, char *qdos_string): if name is not in the environment, name=string
 e_set:
 	link	a5,#-50
 	move.l	a2,-(a7)
@@ -145,11 +145,11 @@ e_set:
 	tst.b	(a2)
 	bne	e_sfin
 	move.l	12(a5),a0
-	tst.w	(a0)			; longitud de la cadena QDOS (sin comprobar el puntero)
+	tst.w	(a0)			; length of the QDOS string (pointer not checked)
 	beq	e_sfin
 	move.l	12(a5),-(a7)
 	move.l	a2,-(a7)
-	jsr	_qlstr_to_c		; copia la longitud que diga en el bufer de 50 bytes
+	jsr	_qlstr_to_c		; copies whatever length it says into the 50-byte buffer
 	addq.w	#8,a7
 	move.l	a2,-(a7)
 	move.l	8(a5),-(a7)

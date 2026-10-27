@@ -1,8 +1,8 @@
-/* Compara con el 6502 original (tests/vectors_missions.txt, de tools/gen_missions.py):
-   T  motor de fichas (detok.c): DETOK, DETOK3 y TT27 con la salida de CHPR (letra, columna, fila) y los ganchos
+/* Compares with the original 6502 (tests/vectors_missions.txt, from tools/gen_missions.py):
+   T  token engine (detok.c): DETOK, DETOK3 and TT27 with the CHPR output (letter, column, row) and the hooks
    P  PDESC (missions.c)
-   M  decision de DOENTRY, BRIEF2/BRIEF3/DEBRIEF/DEBRIEF2 y el bucle de BRIEF
-   E  partes 2 a 4 del bucle principal (encounters.c) */
+   M  DOENTRY decision, BRIEF2/BRIEF3/DEBRIEF/DEBRIEF2 and the BRIEF loop
+   E  parts 2 to 4 of the main loop (encounters.c) */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -188,7 +188,7 @@ static void b_case(char **a, const char *l)
 
 static void e_case(char **a, const char *l)
 {
-    /* E rnd c0 mj junk sspr cops con tp gc q0 q1 gov c3 c6 c10 fist ev k0 | frin bloques rnd ev junk cops con */
+    /* E rnd c0 mj junk sspr cops con tp gc q0 q1 gov c3 c6 c10 fist ev k0 | frin blocks rnd ev junk cops con */
     int k, i, k0;
     char g[3000], rs[16];
     state_clear(); ships_clear();
@@ -362,7 +362,7 @@ static void q_case(char **a, const char *l)
     /* Q FRIN=1 MANY=1 JUNK=1 auto=1 ECMP=1 MJ=1 CABTMP=1 LAS2=1 MSAR=1 VIEW=1 LASCT=1 GNTMP=1 HFX=1 EV=1 DLY=1 de=1 */
     int i, ok = 1, n;
     extern u8 las2, lasct, dly;
-    for (i = 1; i < 17; i++) ok = ok && strstr(a[i], "=1") != 0;                      /* el 6502 pone a 0 los 16 grupos */
+    for (i = 1; i < 17; i++) ok = ok && strstr(a[i], "=1") != 0;                      /* the 6502 zeroes the 16 groups */
     for (n = 0; n <= NOSH; n++) frin[n] = (u8)(n + 1);
     for (n = 0; n <= NTY; n++) many[n] = (u8)(n + 1);
     junk_count = 1; dock_auto = 2; ecmp = 3; mj = 4; cabtmp = 5; las2 = 6; msar = 7; space_view = 8; lasct = 9; gntmp = 10;

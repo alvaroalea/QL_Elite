@@ -1,9 +1,9 @@
 #!/bin/sh
-# Compara el codigo que genera c68 (con -int=16 -O, como qcc) con el del PC, ejecutandolo bajo qemu.
-# Para cada sonda de tests/c68/*.c: se compila con gcc (PC) y con c68 -> ensamblador -> GNU as -> qemu-m68k; ambas dejan
-# hashes en la "pantalla" y se comparan byte a byte. Encontro un fallo real de c68 -O (ver la nota en src/ship3d.c).
-# Requisitos: c68 compilado en el PC (git clone https://github.com/stronnag/xtc68; meson setup build; ninja -C build c68),
-#             gcc-m68k-linux-gnu (as, ld) y qemu-user. Variables: XTC68=<dir con c68> (por defecto /tmp/qlsdk/bin o tmp/xtc68_src/build)
+# Compares the code c68 generates (with -int=16 -O, like qcc) with the PC's, running it under qemu.
+# For each probe in tests/c68/*.c: it is compiled with gcc (PC) and with c68 -> assembler -> GNU as -> qemu-m68k; both leave
+# hashes in the "screen" and they are compared byte by byte. It found a real c68 -O bug (see the note in src/ship3d.c).
+# Requirements: c68 built on the PC (git clone https://github.com/stronnag/xtc68; meson setup build; ninja -C build c68),
+#             gcc-m68k-linux-gnu (as, ld) and qemu-user. Variables: XTC68=<dir with c68> (default /tmp/qlsdk/bin or tmp/xtc68_src/build)
 set -e
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 XTC68=${XTC68:-$( [ -x /tmp/qlsdk/bin/c68 ] && echo /tmp/qlsdk/bin || echo $ROOT/tmp/xtc68_src/build )}
@@ -12,7 +12,7 @@ mkdir -p $W; cd $W
 S=$ROOT/src
 cp $ROOT/tools/c68_check/conv.py $ROOT/tools/c68_check/rt.s .
 m68k-linux-gnu-as -m68020 --register-prefix-optional -o rt.o rt.s
-buildc68() {          # salida fuentes...
+buildc68() {          # output sources...
   out=$1; shift; objs=""
   for f in "$@"; do
     b=$(basename $f .c)
@@ -34,7 +34,7 @@ fail=0
 MISS="$S/config.c $S/detok.c $S/missions.c $S/encounters.c $S/menu.c $S/shipview.c $S/input.c $S/keys.c $S/keys_host.c $DASHM"
 for p in gfxfast:"$GFX" emath:"$S/emath.c $S/state.c" keys:"$S/keys.c $S/keys_host.c $GFX" ships:"$SHIP" game:"$GAME" charts:"$CHARTS" dash:"$DASHM" flight:"$DASHM" session:"$FULL" missions:"$MISS" lines:"$S/lines.c $S/emath.c $GFX"; do
   name=${p%%:*}; mods=${p#*:}; src=$ROOT/tests/c68/probe_$name.c
-  if [ $# -gt 0 ]; then case " $* " in *" $name "*) ;; *) continue ;; esac; fi        # make c68_check: solo las sondas indicadas
+  if [ $# -gt 0 ]; then case " $* " in *" $name "*) ;; *) continue ;; esac; fi        # make c68_check: only the indicated probes
   gcc -std=gnu89 -O1 -I$S -o host_$name $src $mods $S/plat_host.c -lm 2>/dev/null
   rm -f screen.bin; ./host_$name; cp screen.bin host_$name.bin
   buildc68 c68_$name $src $mods

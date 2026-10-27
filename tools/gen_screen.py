@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_screen.txt con el codigo ORIGINAL de Drawing the screen en el emulador de 6502:
-  T  TT66 (TTX66, TTX66K, HGR/TEXT reales; MT2, cleargrap, cleartext, BOX, FLFLLS, ee3 y TT27 registran; TT162 real)
-  C  CLYNS (CHPR y clearrow registran)
-  B  BOX (HLOIN registra X1, X2, Y1, COL; las esquinas de la fila 0 en $2001 y $2025)
-Salidas: la secuencia registrada y QQ11, LSP, QQ17, DTW2, XC, YC, LAS2, DLY, de y text.
-Se comprueba con tests/test_screen (make test_screen). Uso: python3 tools/gen_screen.py [n] [semilla]"""
+"""Generates tests/vectors_screen.txt with the ORIGINAL Drawing the screen code in the 6502 emulator:
+  T  TT66 (real TTX66, TTX66K, HGR/TEXT; MT2, cleargrap, cleartext, BOX, FLFLLS, ee3 and TT27 log; real TT162)
+  C  CLYNS (CHPR and clearrow log)
+  B  BOX (HLOIN logs X1, X2, Y1, COL; the row 0 corners at $2001 and $2025)
+Outputs: the logged sequence and QQ11, LSP, QQ17, DTW2, XC, YC, LAS2, DLY, de and text.
+Checked with tests/test_screen (make test_screen). Usage: python3 tools/gen_screen.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -13,8 +13,8 @@ n = int(sys.argv[1]) if len(sys.argv) > 1 else 2000
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 66)
 src = []
 for r in ('TT66', 'TTX66', 'TTX66K', 'HGR', 'TEXT', 'TT162', 'CLYNS'): src += routine(r)
-src += [' JMP clearrow', '.DTW2', ' EQUB 0']          # CLYNS cae en clearrow (registra); DTW2 es un byte del codigo
-src += ['.BOXR', ' JSR BOX', ' LDA $2001', ' LDX $2025', ' RTS']          # BOX esta en el bloque de TTX66K
+src += [' JMP clearrow', '.DTW2', ' EQUB 0']          # CLYNS falls into clearrow (logs); DTW2 is a byte of the code
+src += ['.BOXR', ' JSR BOX', ' LDA $2001', ' LDX $2025', ' RTS']          # BOX is in the TTX66K block
 src = [l for l in src if code(l) != 'SKIP 0' and not re.match(r'^(PRINT|SAVE)\b', code(l)) and not re.match(r'^(CODE|LOAD)_\w+%\s*=', code(l))]
 cpu, S = build(src, None)
 print('stubs:', sorted(k for k, v in S.items() if 0x3E00 <= v < 0x3F00), file=sys.stderr)

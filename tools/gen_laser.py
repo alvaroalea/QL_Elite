@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_laser.txt ejecutando en el emulador de 6502 el codigo ORIGINAL del laser y los danos:
-   H  HITCH                          (con SQUA2/MU11 reales)
-   A  ANGRY                          (INF = ranura 2 de K%; la estacion es la ranura 1)
-   L  LASLI (+ DORND, DENGY reales; LL30 registra las lineas)
-   F  disparo de la parte 3 (MA68..MA3; LASNOISE y LASLI registran la llamada)
-   M  MLOOP: enfriamiento (GNTMP) y cuenta del pulso (LASCT)
-   E  parte 16 MA77..paen1 (SHD real): escudos y energia
-   D  danos MA47..MA8 (SPIN, SPIN2, EXNO2, ANGRY, DORND reales; SFS1, EXNO, SOEXPL, MESS registran)
-   K  recompensa MA15..MAC1 (MCASH real; MESS y KS1 registran)
-   S  SFS1/SFS2 (+ MVT1 y DORND reales; NWSHP registra INWK y el tipo)
-Requiere ELITE_SRC. Uso: python3 tools/gen_laser.py [n] [semilla]"""
+"""Generates tests/vectors_laser.txt by running the ORIGINAL laser and damage code in the 6502 emulator:
+   H  HITCH                          (with real SQUA2/MU11)
+   A  ANGRY                          (INF = K% slot 2; the station is slot 1)
+   L  LASLI (+ real DORND, DENGY; LL30 logs the lines)
+   F  part 3 firing (MA68..MA3; LASNOISE and LASLI log the call)
+   M  MLOOP: cooling (GNTMP) and pulse count (LASCT)
+   E  part 16 MA77..paen1 (real SHD): shields and energy
+   D  damage MA47..MA8 (real SPIN, SPIN2, EXNO2, ANGRY, DORND; SFS1, EXNO, SOEXPL, MESS log)
+   K  reward MA15..MAC1 (real MCASH; MESS and KS1 log)
+   S  SFS1/SFS2 (+ real MVT1 and DORND; NWSHP logs INWK and the type)
+Requires ELITE_SRC. Usage: python3 tools/gen_laser.py [n] [seed]"""
 import sys, random
 sys.path.insert(0, "tools")
 from frag6502 import *
@@ -29,7 +29,7 @@ for _ in range(n):
     st = pick(0, 0, 0x20, 0x80, 0x08, rb())
     typ = pick(1, 7, 11, 16, 29, 31, 128, 130, rb())
     a1, a2 = rb(), pick(0, 1, 2, 4, 8, 16, rb())
-    if random.random() < 0.4:                        # en el borde del area de impacto
+    if random.random() < 0.4:                        # at the edge of the hit area
         sm = iw[0] * iw[0] + iw[3] * iw[3] + pick(0, 0, 1, -1, 256, -256)
         if 0 <= sm < 65536: a1, a2 = sm & 255, sm >> 8
     cpu.mem[S['INWK']:S['INWK'] + 9] = bytes(iw); cpu.mem[S['INWK'] + 31] = st; cpu.mem[S['TYPE']] = typ
@@ -65,11 +65,11 @@ for _ in range(n):
     cpu.hooks[S['LL30']] = lambda cc: lines.append(tuple(cc.mem[S[v]] for v in ('X1', 'Y1', 'X2', 'Y2')))
     cpu.run(S['LASLI'])
     exp = [(cpu.mem[S['LASX']], cpu.mem[S['LASY']], x, 135) for x in (32, 224, 48, 208)]
-    assert lines == exp, (lines, exp)          # LL30 recibe siempre estas cuatro lineas
+    assert lines == exp, (lines, exp)          # LL30 always receives these four lines
     out.append('L %s %d %d %d %d %d %d %d %s' % (hx(rnd), c, g, e, cpu.mem[S['LASX']], cpu.mem[S['LASY']],
                cpu.mem[S['GNTMP']], cpu.mem[S['ENERGY']], hx(cpu.mem[S['RAND']:S['RAND'] + 4])))
 
-# ---------------------------------------------------------------- F: disparo (MA68..MA3)
+# ---------------------------------------------------------------- F: firing (MA68..MA3)
 cpu, S = build(rng(lab('MA68'), lab('MA3')) + ['RTS'], None)
 for _ in range(n):
     lasct = pick(0, 0, 0, 1, 2, 10, rb()); ky7 = pick(0, 0xFF, 0xFF, 1); g = pick(0, 100, 241, 242, 243, rb())
@@ -94,7 +94,7 @@ for g in list(range(0, 256, 7)) + [0, 1, 255]:
         cpu.run(S['MLOOP'])
         out.append('M %d %d %d %d' % (g, lc, cpu.mem[S['GNTMP']], cpu.mem[S['LASCT']]))
 
-# ---------------------------------------------------------------- E: energia (MA77..paen1)
+# ---------------------------------------------------------------- E: energy (MA77..paen1)
 cpu, S = build(rng(lab('MA77'), lab('paen1')) + ['.paen1', 'RTS', '.MA22', 'RTS'] + routine('SHD') + routine('DENGY'), None)
 for _ in range(n):
     e, a, f, eg = pick(0, 127, 128, 254, 255, rb()), pick(0, 254, 255, rb()), pick(0, 254, 255, rb()), pick(0, 1, 2, rb())
@@ -103,13 +103,13 @@ for _ in range(n):
     cpu.run(S['MA77'])
     out.append('E %d %d %d %d %d %d %d %d' % (e, a, f, eg, mc, cpu.mem[S['ENERGY']], cpu.mem[S['ASH']], cpu.mem[S['FSH']]))
 
-# ---------------------------------------------------------------- D: danos (MA47..MA8)
+# ---------------------------------------------------------------- D: damage (MA47..MA8)
 kwl, kwh = table('KWL%'), table('KWH%')
 dmg = rng(lab('MA47'), lab('MA8')) + ['.MA8', 'RTS'] + preprocess(L[nl('SPIN') - 1:nx(nl('SPIN')) - 1]) + dornd + \
       rng(lab('HITCH'), lab('FRS1')) + routine('ANGRY') + sq + rng(lab('SFS1'), lab('LL164')) + routine('MVT1') + routine('EXNO2')
 cpu, S = build(dmg, None)
 nw = [0]
-def nwshp(cc):                                       # NWSHP: C = 1 si cabe (5 ranuras libres en la prueba en C)
+def nwshp(cc):                                       # NWSHP: C = 1 if it fits (5 free slots in the C test)
     nw[0] += 1; cc.c = int(nw[0] <= 5)
 cpu.hooks[S['NWSHP']] = (lambda f0: (lambda cc: (f0(cc), nwshp(cc))))(cpu.hooks[S['NWSHP']])
 cpu.mem[S['KWL%']:S['KWL%'] + 32] = bytes(kwl); cpu.mem[S['KWH%']:S['KWH%'] + 32] = bytes(kwh)
@@ -139,7 +139,7 @@ for _ in range(n):
         hx(slot), cpu.mem[S['INWK'] + 35], cpu.mem[S['INWK'] + 31], cpu.mem[S['TALLYL']], cpu.mem[S['TALLY']],
         cpu.mem[S['TALLY'] + 1], cpu.mem[S['K%'] + NIw + 36], 0, hx(cpu.mem[k2:k2 + NIw]), ls) + ' ' + hx(cpu.mem[S['RAND']:S['RAND'] + 4]))
 
-# ---------------------------------------------------------------- K: recompensa (MA15..MAC1)
+# ---------------------------------------------------------------- K: reward (MA15..MAC1)
 i0 = lab('MA15'); i1 = lab('MAC1')
 kil = rng(i0, i1) + ['.MAC1', 'RTS'] + preprocess(L[nl('LCASH') - 1:nl('GCASH') - 1])
 cpu, S = build(kil, None)
@@ -178,7 +178,7 @@ for _ in range(n):
     cpu.hooks[S['NWSHP']] = lambda cc: (got.append((cc.a, bytes(cc.mem[S['INWK']:S['INWK'] + NIw]))), setattr(cc, 'c', 1))
     cpu.a = ai; cpu.x = child; cpu.c = c
     cpu.run(S['SFS1'])
-    assert bytes(cpu.mem[S['INWK']:S['INWK'] + NIw]) == bytes(iw)       # INWK restituido
+    assert bytes(cpu.mem[S['INWK']:S['INWK'] + NIw]) == bytes(iw)       # INWK restored
     out.append('S %d %d %d %s %s %d %d %s %s' % (parent, child, ai, hx(slot), hx(rnd), c, got[0][0], hx(got[0][1]),
                hx(cpu.mem[S['RAND']:S['RAND'] + 4])))
 

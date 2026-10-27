@@ -8,7 +8,7 @@ for l in src:
     if m: ext.add(m.group(1))
 for l in src:
     m = re.match(r'^(_[A-Za-z0-9_]*):', l)
-    if m and m.group(1) in ext: glob.add(m.group(1))     # c68 solo declara .extern lo que no es static
+    if m and m.group(1) in ext: glob.add(m.group(1))     # c68 only declares .extern for what is not static
 for g in sorted(glob): out.append('\t.globl\t' + g)
 for l in src:
     s = l.rstrip()

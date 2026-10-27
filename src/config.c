@@ -6,7 +6,7 @@
 
 int (*config_options_hook)(void) = 0;
 u8 config_options_used = 0;
-u8 patg = 0, jstk = 0, uptog = 0, disk_opt = 0;      /* JSTGY y JSTE estan en keys.c (los usa ctl_read) */
+u8 patg = 0, jstk = 0, uptog = 0, disk_opt = 0;      /* JSTGY and JSTE are in keys.c (used by ctl_read) */
 const char tgint[9] = { 'D', 'A', 'X', 'F', 'Y', 'J', 'K', 'U', 'T' };
 
 u8 *config_opt(u8 y)
@@ -28,7 +28,7 @@ static void delay(int n) { int i; if (in_script) return; for (i = 0; i < n; i++)
 
 void config_apply(void)
 {
-    if (ctl_joystick == 0) ctl_joystick = 1;     /* propio: el joystick CTL1 (cursores) esta siempre seleccionado; K ya no lo apaga */
+    if (ctl_joystick == 0) ctl_joystick = 1;     /* own: the CTL1 joystick (cursors) is always selected; K no longer turns it off */
 }
 
 void dks3(u8 x, u8 y)
@@ -37,13 +37,13 @@ void dks3(u8 x, u8 y)
     if (x != (u8)tgint[y]) return;               /* CMP TGINT,Y; BNE Dk3 */
     p = config_opt(y);
     *p = (u8)(*p ^ 0xFF);
-    if (*p & 0x80) snd_bell();                   /* encendida: dos pitidos */
+    if (*p & 0x80) snd_bell();                   /* on: two beeps */
     snd_bell();
     delay(20);                                   /* DELAY 20 */
     config_apply();
 }
 
-/* FREEZE (DK4 con '='): bucle de pausa; cada vuelta, WSCAN y RDKEY */
+/* FREEZE (DK4 with '='): pause loop; each iteration, WSCAN and RDKEY */
 int freeze(void)
 {
     int ch;
@@ -53,7 +53,7 @@ int freeze(void)
         if (in_quit) return 0;
         if (ch < 0) continue;
         x = (u8)((ch >= 'a' && ch <= 'z') ? ch - 32 : ch);
-        if (x == 'O' && config_options_hook) {   /* propio: ventana de opciones; devuelve 1 (ESC) o 0 ('-') */
+        if (x == 'O' && config_options_hook) {   /* own: options window; returns 1 (ESC) or 0 ('-') */
             config_options_used = 1;
             return config_options_hook();
         }

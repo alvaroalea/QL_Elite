@@ -1,6 +1,6 @@
-# Utilidades para leer la fuente de referencia (Mark Moxon, elite-source-code-apple-ii) SOLO para verificar:
-# tabla de simbolos (variables), ensamblado de rutinas con un ensamblador 6502 minimo y datos de naves.
-# La fuente no se incluye en el proyecto; hay que clonarla (ver tools/README_ref.txt) y apuntar ELITE_SRC.
+# Utilities to read the reference source (Mark Moxon, elite-source-code-apple-ii) ONLY to verify:
+# symbol table (variables), assembly of routines with a minimal 6502 assembler and ship data.
+# The source is not included in the project; it must be cloned (see tools/README_ref.txt) and ELITE_SRC pointed at it.
 import os, re
 SRC_DIR = os.environ.get('ELITE_SRC', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'ref', 'moxon-appleII', '1-source-files', 'main-sources'))
 
@@ -27,7 +27,7 @@ class Syms(dict):
         return int(eval(e, {'__builtins__': {}}, env))
 
 def parse_vars(upto_marker='ORG CODE%'):
-    """Recorre la fuente hasta el codigo y devuelve los simbolos de variables y constantes."""
+    """Walks the source up to the code and returns the symbols of variables and constants."""
     L = read('elite-source.asm')
     S = Syms(); pc = 0
     for l in L:

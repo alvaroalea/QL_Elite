@@ -1,41 +1,41 @@
-/* Espacio local (sin verificar, ver docs/PENDIENTES.md): giro de la nave (roll/pitch con amortiguacion), planeta y estacion
-   respecto a la nave para la brujula, altitud. Transcripcion de DOKEY (parte de giro), BUMP2, REDU2, cntr, la parte del bucle
-   principal que calcula ALPHA/BETA, MV40, MVT1 y MV45 (traslacion por la velocidad), y el calculo de ALTIT. */
+/* Local space (unverified, see docs/PENDIENTES.md): ship turning (roll/pitch with damping), planet and station
+   relative to the ship for the compass, altitude. Transcription of DOKEY (turning part), BUMP2, REDU2, cntr, the part of the main
+   loop that computes ALPHA/BETA, MV40, MVT1 and MV45 (translation by speed), and the ALTIT calculation. */
 #ifndef SPACE_H
 #define SPACE_H
 #include "platform.h"
 #include "keys.h"
 
-extern u8 jstx, jsty;                /* "joystick" X e Y: 128 = centro; el teclado los mueve de 20 en 20 */
-extern u8 alpha, beta;               /* velocidad de alabeo y de cabeceo (signo-magnitud: bit 7 = signo) */
-extern u8 alp1, bet1;                /* magnitudes para el indicador */
-extern u8 alp2[2], bet2[2];          /* signos (ALP2, ALP2+1, BET2, BET2+1) */
-extern u8 mcnt;                      /* MCNT: contador de fotogramas del bucle principal */
-extern u8 flh;                       /* FLH: 0 = barras fijas (por defecto), $FF = barras parpadeantes */
-extern u8 damp;                      /* DAMP: 0 = amortiguacion de los giros activada (por defecto), $FF = desactivada */
-extern u8 djd;                       /* DJD: 0 = al cruzar el centro el giro se detiene en 128 (por defecto) */
-extern u8 space_view;                /* VIEW: vista actual; PLUT la usa para los ejes de las naves */
-extern u8 energy, fsh, ash;          /* energia y escudos delantero y trasero (255 = lleno) */
-extern u8 altit, cabtmp, gntmp;      /* altitud sobre el planeta (255 = lejos), temperatura de cabina y de los lasers */
+extern u8 jstx, jsty;                /* X and Y "joystick": 128 = centre; the keyboard moves them in steps of 20 */
+extern u8 alpha, beta;               /* roll and pitch rate (sign-magnitude: bit 7 = sign) */
+extern u8 alp1, bet1;                /* magnitudes for the indicator */
+extern u8 alp2[2], bet2[2];          /* signs (ALP2, ALP2+1, BET2, BET2+1) */
+extern u8 mcnt;                      /* MCNT: frame counter of the main loop */
+extern u8 flh;                       /* FLH: 0 = fixed bars (default), $FF = flashing bars */
+extern u8 damp;                      /* DAMP: 0 = turn damping enabled (default), $FF = disabled */
+extern u8 djd;                       /* DJD: 0 = on crossing the centre the turn stops at 128 (default) */
+extern u8 space_view;                /* VIEW: current view; PLUT uses it for the ship axes */
+extern u8 energy, fsh, ash;          /* energy and front and rear shields (255 = full) */
+extern u8 altit, cabtmp, gntmp;      /* altitude above the planet (255 = far), cabin and laser temperature */
 
-void space_reset_all(void);         /* RESET: ZERO + valores de fabrica de vuelo + RES2 */
-void space_reset(void);              /* RES2: valores iniciales de los giros y la velocidad */
-void space_launch(void);             /* planeta y estacion respecto a la nave al despegar (SOLAR simplificado) */
-void space_controls(const struct controls *c);   /* teclas -> JSTX/JSTY -> ALPHA/BETA y velocidad */
-#define SPACE_EV_STATION 1           /* space_step: la estacion se ha perdido de vista */
-#define SPACE_EV_DOCK 2              /* space_step: hemos entrado por la ranura de la estacion */
-#define SPACE_EV_DEATH 4             /* space_step: muerte (choque, planeta, sol o sin energia) */
-u8   space_bad(void);                /* BAD: nivel de carga ilegal */
-u8   space_step(void);               /* un fotograma: MV40 de cada nave, radar (SCAN), altitud; devuelve los SPACE_EV_* */
-extern void (*space_scan_hook)(u8 type); /* pruebas: sustituye a SCAN (registra la llamada) */
-void space_scan(u8 type);            /* SCAN: dibuja (XOR) la nave de INWK en el radar */
-void space_scanner_reset(void);      /* tras repintar el panel: ninguna nave figura como dibujada */
-void space_scanner_clear(void);      /* borra del radar todo lo dibujado (antes de cambiar de sistema) */
-void space_arrive(void);             /* llegada tras el hiperespacio: planeta lejos y sin estacion */
-int  space_spawn(u8 type);           /* contacto de prueba en una ranura libre; -1 si no hay sitio */
+void space_reset_all(void);         /* RESET: ZERO + factory flight values + RES2 */
+void space_reset(void);              /* RES2: initial values of the turns and speed */
+void space_launch(void);             /* planet and station relative to the ship on launch (simplified SOLAR) */
+void space_controls(const struct controls *c);   /* keys -> JSTX/JSTY -> ALPHA/BETA and speed */
+#define SPACE_EV_STATION 1           /* space_step: the station has gone out of sight */
+#define SPACE_EV_DOCK 2              /* space_step: we have entered through the station slot */
+#define SPACE_EV_DEATH 4             /* space_step: death (collision, planet, sun or no energy) */
+u8   space_bad(void);                /* BAD: illegal cargo level */
+u8   space_step(void);               /* one frame: MV40 of each ship, radar (SCAN), altitude; returns the SPACE_EV_* */
+extern void (*space_scan_hook)(u8 type); /* tests: replaces SCAN (logs the call) */
+void space_scan(u8 type);            /* SCAN: draws (XOR) the ship in INWK on the radar */
+void space_scanner_reset(void);      /* after repainting the panel: no ship counts as drawn */
+void space_scanner_clear(void);      /* clears from the radar everything drawn (before changing system) */
+void space_arrive(void);             /* arrival after hyperspace: planet far away and no station */
+int  space_spawn(u8 type);           /* test contact in a free slot; -1 if there is no room */
 u8   space_bump2(u8 x, u8 a);        /* BUMP2 */
 u8   space_redu2(u8 x, u8 a);        /* REDU2 */
-u8   space_cntr(u8 x);               /* cntr: un paso de amortiguacion hacia 128 */
-int  space_signed(u8 v);             /* signo-magnitud -> entero */
-u8 space_scacol(u8 type);                 /* scacol: COL del original para el tipo de nave (pruebas) */
+u8   space_cntr(u8 x);               /* cntr: one damping step towards 128 */
+int  space_signed(u8 v);             /* sign-magnitude -> integer */
+u8 space_scacol(u8 type);                 /* scacol: the original's COL for the ship type (tests) */
 #endif

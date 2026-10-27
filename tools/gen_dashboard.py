@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Convierte el panel de instrumentos (dashboard) del volcado de pantalla del Apple II (A.SCREEN.bin, hires 280 x 192)
-en un fichero para el QL: tira de 256 x 56 pixeles en modo 8 (lineas 136..191 de la pantalla, x de Elite 0..255).
-El panel del original es un bitmap que se carga del disco; el juego del QL lo carga de <unidad>elite_dash.
+"""Converts the instrument panel (dashboard) from the Apple II screen dump (A.SCREEN.bin, hires 280 x 192)
+into a file for the QL: a 256 x 56 pixel strip in mode 8 (screen lines 136..191, Elite x 0..255).
+The original's panel is a bitmap loaded from disk; the QL game loads it from <drive>elite_dash.
 
-Formato de salida (data/elite_dash): cabecera de 8 bytes 'E','L','Q','D', version 1, lineas 56, y0 hi, y0 lo (136); despues
-56 lineas de 128 bytes en formato de pantalla del QL modo 8 (por palabra, 4 pixeles: byte par = verde y flash,
-byte impar = rojo y azul).
-Colores: el hires del Apple II da color por artefactos NTSC: un punto con vecino encendido es blanco; aislado: x par =
-violeta (azul si el bit 7 del byte), x impar = verde (naranja si el bit 7). Violeta -> magenta, naranja ("RED" en Elite) -> rojo.
-Uso: python3 tools/gen_dashboard.py [ruta A.SCREEN.bin] [salida]   (ELITE_SRC apunta a main-sources de la fuente de referencia)"""
+Output format (data/elite_dash): 8-byte header 'E','L','Q','D', version 1, lines 56, y0 hi, y0 lo (136); then
+56 lines of 128 bytes in QL mode 8 screen format (per word, 4 pixels: even byte = green and flash,
+odd byte = red and blue).
+Colours: Apple II hires gives colour by NTSC artefacts: a dot with a lit neighbour is white; isolated: even x =
+violet (blue if the byte's bit 7), odd x = green (orange if bit 7). Violet -> magenta, orange ("RED" in Elite) -> red.
+Usage: python3 tools/gen_dashboard.py [path A.SCREEN.bin] [output]   (ELITE_SRC points to main-sources of the reference source)"""
 import os, sys, glob
 
-Y0, LINES, DOT0, WIDTH = 136, 56, 8, 256            # el pixel x de Elite es el punto x + 8 del Apple II
+Y0, LINES, DOT0, WIDTH = 136, 56, 8, 256            # Elite's pixel x is Apple II dot x + 8
 BLACK, BLUE, RED, MAGENTA, GREEN, CYAN, YELLOW, WHITE = range(8)
 
 def find_default():
@@ -40,13 +40,13 @@ def dot_colors(data, y):
     return out
 
 def ql_line(colors):
-    """256 colores -> 128 bytes de modo 8 (como gfx_pixel de gfx.c)"""
+    """256 colours -> 128 bytes of mode 8 (like gfx_pixel in gfx.c)"""
     line = bytearray(128)
     for x, c in enumerate(colors):
         k = x & 3; s = 2 * (3 - k); w = (x >> 2) * 2
         g, r, b = (c >> 2) & 1, (c >> 1) & 1, c & 1
-        line[w] |= g << (s + 1)                      # byte par: verde (bit s+1), flash (bit s)
-        line[w + 1] |= (r << (s + 1)) | (b << s)     # byte impar: rojo (bit s+1), azul (bit s)
+        line[w] |= g << (s + 1)                      # even byte: green (bit s+1), flash (bit s)
+        line[w + 1] |= (r << (s + 1)) | (b << s)     # odd byte: red (bit s+1), blue (bit s)
     return bytes(line)
 
 def main():

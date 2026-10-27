@@ -1,18 +1,18 @@
 #include "platform.h"
 
-/* Modo 8: cada palabra = 4 pixeles. Para el pixel k (0..3, izq a der), sea s=2*(3-k):
-   byte0: bit s+1 = Verde, bit s = Flash ; byte1: bit s+1 = Rojo, bit s = Azul.
-   Modo 4: cada palabra = 8 puntos fisicos (byte0 = verde, byte1 = rojo, bit 7 = el de la izquierda). Un punto del juego (x de 0 a 255) son
-   2 puntos fisicos seguidos, que caen exactamente en las parejas de bits s+1 y s del modo 8: por eso las rutinas de punto, tramo y
-   relleno son las mismas en los dos modos y solo cambian las mascaras de color (el bit "flash" hace de segundo punto del verde y el
-   bit "azul" del rojo; ver gfx_ccode). Las lineas y las elipses de la vista de vuelo usan los 512 puntos (sufijo _hr). */
+/* Mode 8: each word = 4 pixels. For pixel k (0..3, left to right), let s=2*(3-k):
+   byte0: bit s+1 = Green, bit s = Flash ; byte1: bit s+1 = Red, bit s = Blue.
+   Mode 4: each word = 8 physical dots (byte0 = green, byte1 = red, bit 7 = leftmost). A game dot (x from 0 to 255) is
+   2 consecutive physical dots, which fall exactly on the bit pairs s+1 and s of mode 8: that is why the dot, span and
+   fill routines are the same in both modes and only the colour masks change (the "flash" bit acts as the second green dot and the
+   "blue" bit as the red one; see gfx_ccode). The lines and ellipses of the flight view use the 512 dots (suffix _hr). */
 #define OFF(x,y) ((long)(y) * SCR_STRIDE + (((x) >> 2) << 1))
 
 u8 gfx_m4 = 0;
 u8 gfx_hires_opt = 0;
 void (*gfx_mode_hook)(void) = 0;
 
-static const u8 ccm4[8] = { 0, 15, 3, 15, 12, 15, 15, 15 };   /* modo 4: negro, rojo (2) y verde (4) tal cual; todo lo demas, blanco */
+static const u8 ccm4[8] = { 0, 15, 3, 15, 12, 15, 15, 15 };   /* mode 4: black, red (2) and green (4) as they are; everything else, white */
 #define CC(c) (gfx_m4 ? ccm4[(c) & 7] : (u8)((c) & 7))
 
 u8 gfx_ccode(u8 c) { return CC(c); }
@@ -57,8 +57,8 @@ static void xor1(int x, int y, u8 c)
 }
 #endif
 
-/* Desplazamiento vertical de lo dibujado en XOR: el panel del original esta en las lineas 136..191; con la vista de vuelo de 160
-   lineas baja a 160..215 y sus rutinas (DIALS, radar, bombillas...) siguen trabajando en las coordenadas del original. */
+/* Vertical offset of what is drawn in XOR: the original's panel is on lines 136..191; with the 160-line flight view
+   it moves down to 160..215 and its routines (DIALS, radar, bulbs...) keep working in the original's coordinates. */
 static int yoff = 0;
 void gfx_yoff_set(int off) { yoff = off; }
 
@@ -73,8 +73,8 @@ void gfx_xor_pixel(int x, int y, u8 c)
 #endif
 }
 
-/* Modo 4: un punto fisico (x de 0 a 511) en XOR, con el mismo desplazamiento vertical que gfx_xor_pixel. En modo 8 no hay resolucion
-   doble: es el punto del juego x / 2 */
+/* Mode 4: one physical dot (x from 0 to 511) in XOR, with the same vertical offset as gfx_xor_pixel. In mode 8 there is no double
+   resolution: it is the game dot x / 2 */
 void gfx_xor_pixel_hr(int x, int y, u8 c)
 {
     u8 *p, m, cc;
@@ -97,13 +97,13 @@ u8 gfx_get(int x, int y)
     p = screen + OFF(x, y);
     s = 2 * (3 - (x & 3));
     g = (p[0] >> (s + 1)) & 1; r = (p[1] >> (s + 1)) & 1;
-    if (gfx_m4) return (u8)((g << 2) | (r << 1) | (g & r));       /* blanco = verde y rojo */
+    if (gfx_m4) return (u8)((g << 2) | (r << 1) | (g & r));       /* white = green and red */
     return (u8)((g << 2) | (r << 1) | ((p[1] >> s) & 1));
 }
 
-/* Relleno rapido de n lineas completas (128 bytes cada una) desde la linea y con el color c. En el QL se escribe de 4 en 4 bytes y
-   desenrollado de 8 en 8 palabras largas (68008: unas 20 veces mas rapido que poner pixel a pixel); el PC usa bytes para no depender
-   de reglas de alias. La pantalla y las lineas estan en direcciones pares. */
+/* Fast fill of n whole lines (128 bytes each) from line y with colour c. On the QL it is written 4 bytes at a time and
+   unrolled 8 long words at a time (68008: about 20 times faster than setting pixel by pixel); the PC uses bytes so as not to depend
+   on aliasing rules. The screen and the lines are at even addresses. */
 void gfx_fill_lines(int y, int n, u8 c)
 {
     u8 cc = CC(c);
@@ -122,7 +122,7 @@ void gfx_fill_lines(int y, int n, u8 c)
     {
         unsigned long v = ((unsigned long)g << 24) | ((unsigned long)rb << 16) | ((unsigned long)g << 8) | rb;
         unsigned long *p = (unsigned long *)(screen + (long)y * 128L);
-        long cnt = (long)n * 32L;                       /* palabras largas: 32 por linea */
+        long cnt = (long)n * 32L;                       /* long words: 32 per line */
         while (cnt >= 8) {
             p[0] = v; p[1] = v; p[2] = v; p[3] = v; p[4] = v; p[5] = v; p[6] = v; p[7] = v;
             p += 8; cnt -= 8;
@@ -131,7 +131,7 @@ void gfx_fill_lines(int y, int n, u8 c)
 #endif
 }
 
-/* Copia rapida de n bytes (multiplo de 4) a la pantalla o desde ella; por palabras largas si las dos direcciones son pares */
+/* Fast copy of n bytes (multiple of 4) to or from the screen; by long words if both addresses are even */
 void gfx_copy(u8 *dst, const u8 *src, long n)
 {
 #ifndef __GNUC__
@@ -175,7 +175,7 @@ extern void ql_hline(long x0, long x1, long y, long c, long scr);
 extern void ql_vline(long x, long y0, long y1, long c, long scr);
 extern void ql_frame(long *blk);
 extern void ql_ellrows(long *blk);                                          /* ql_ellrows.asm */
-extern void ql_ellrows4(long *blk);                                         /* modo 4, a los 512 puntos */
+extern void ql_ellrows4(long *blk);                                         /* mode 4, at the 512 dots */
 extern void ql_clearcells(long col, long row, long ncols, long nrows, long scr);
 #endif
 
@@ -184,7 +184,7 @@ void gfx_hline_xor(int x0, int x1, int y, u8 c)
     int x, t;
     if (x0 > x1) { t = x0; x0 = x1; x1 = t; }
 #ifdef ASM_LINE
-    y += yoff;                                           /* como gfx_xor_pixel */
+    y += yoff;                                           /* like gfx_xor_pixel */
     if (y < 0 || y > 255 || x1 < 0 || x0 > 255) return;
     if (x0 < 0) x0 = 0;
     if (x1 > 255) x1 = 255;
@@ -195,13 +195,13 @@ void gfx_hline_xor(int x0, int x1, int y, u8 c)
     (void)x;
 }
 
-/* Columna de puntos (x, y0..y1) en XOR (una columna de un punto de ancho) */
+/* Column of dots (x, y0..y1) in XOR (a column one dot wide) */
 void gfx_vline_xor(int x, int y0, int y1, u8 c)
 {
     int y, t;
     if (y0 > y1) { t = y0; y0 = y1; y1 = t; }
 #ifdef ASM_LINE
-    y0 += yoff; y1 += yoff;                              /* como gfx_xor_pixel */
+    y0 += yoff; y1 += yoff;                              /* like gfx_xor_pixel */
     if (x < 0 || x > 255 || y1 < 0 || y0 > 255) return;
     if (y0 < 0) y0 = 0;
     if (y1 > 255) y1 = 255;
@@ -212,8 +212,8 @@ void gfx_vline_xor(int x, int y0, int y1, u8 c)
     (void)y;
 }
 
-/* HLOIN del original (Apple II): X1 y X2 se enmascaran a pares (granularidad de 2 puntos del modo hires), se ordenan y la linea
-   cubre de X1 a X2-1; si quedan iguales no dibuja nada. Siempre en XOR. */
+/* HLOIN of the original (Apple II): X1 and X2 are masked to even values (2-dot granularity of the hires mode), sorted and the line
+   covers X1 to X2-1; if they end up equal it draws nothing. Always in XOR. */
 void gfx_hloin(int x1, int x2, int y, u8 c)
 {
     int t;
@@ -223,21 +223,21 @@ void gfx_hloin(int x1, int x2, int y, u8 c)
     gfx_hline_xor(x1, x2 - 1, y, c);
 }
 
-/* CPIX del original: un "pixel" de color de Elite = 2 puntos del Apple II de ancho (aqui x y x+1), en XOR */
-void gfx_cpix(int x, int y, u8 c) { gfx_hline_xor(x, x + 1, y, c); }       /* dos puntos de ancho (x, x + 1) */
+/* CPIX of the original: an Elite colour "pixel" = 2 Apple II dots wide (here x and x+1), in XOR */
+void gfx_cpix(int x, int y, u8 c) { gfx_hline_xor(x, x + 1, y, c); }       /* two dots wide (x, x + 1) */
 
-/* VLOIN del original: linea vertical de pixeles CPIX de y1 a y2 (en cualquier orden), ambos extremos incluidos */
+/* VLOIN of the original: vertical line of CPIX pixels from y1 to y2 (in either order), both ends included */
 void gfx_vloin(int x, int y1, int y2, u8 c)
 {
     int t;
     if (y1 > y2) { t = y1; y1 = y2; y2 = t; }
-    gfx_vline_xor(x, y1, y2, c);                         /* CPIX = 2 puntos de ancho: las columnas x y x + 1 */
+    gfx_vline_xor(x, y1, y2, c);                         /* CPIX = 2 dots wide: columns x and x + 1 */
     gfx_vline_xor(x + 1, y1, y2, c);
 }
 
-/* PIXEL del original: un "punto" de polvo/compas en XOR. El ancho y las lineas dependen de la distancia ZZ:
-   ZZ >= 128: 2 puntos en una linea; 80 <= ZZ < 128: 3 puntos; ZZ < 80: 3 puntos en esta linea y en la de encima. */
-/* PIXEL del original tal cual (3 puntos de ancho, dos lineas si zz < 80): lo usa la brujula y lo verifica test_lines */
+/* PIXEL of the original: a dust/compass "dot" in XOR. The width and lines depend on the distance ZZ:
+   ZZ >= 128: 2 dots on one line; 80 <= ZZ < 128: 3 dots; ZZ < 80: 3 dots on this line and on the one above. */
+/* PIXEL of the original as is (3 dots wide, two lines if zz < 80): used by the compass and verified by test_lines */
 void gfx_dust_6502(int x, int y, u8 zz)
 {
     int w = (zz & 0x80) ? 2 : 3, i;
@@ -245,9 +245,9 @@ void gfx_dust_6502(int x, int y, u8 zz)
     if (zz < 80) for (i = 0; i < w; i++) gfx_xor_pixel(x + i, y - 1, C_WHITE);
 }
 
-/* Polvo estelar del juego (solo estetico): el tamano depende de la distancia ZZ: lejos (ZZ >= 128) 1 punto; entre 80 y 127, 1 de
-   ancho por 2 de alto; cerca (ZZ < 80) 2 de ancho por 3 de alto (los puntos del QL son mas anchos que altos). La esquina inferior
-   izquierda es (x, y) y crece hacia arriba y a la derecha. Columnas con gfx_vline_xor (ensamblador en el QL). */
+/* Game stardust (cosmetic only): the size depends on the distance ZZ: far (ZZ >= 128) 1 dot; between 80 and 127, 1 wide
+   by 2 high; near (ZZ < 80) 2 wide by 3 high (QL dots are wider than they are tall). The lower left
+   corner is (x, y) and it grows up and to the right. Columns with gfx_vline_xor (assembly on the QL). */
 void gfx_dust(int x, int y, u8 zz)
 {
     int w = 1, h = 1, i;
@@ -267,15 +267,15 @@ void gfx_hline(int x0, int x1, int y, u8 c)
 void gfx_rect(int x, int y, int w, int h, u8 c)
 {
     int j;
-    if (x <= 0 && x + w >= SCR_W) { gfx_fill_lines(y, h, c); return; }       /* ancho completo: relleno rapido */
+    if (x <= 0 && x + w >= SCR_W) { gfx_fill_lines(y, h, c); return; }       /* full width: fast fill */
     for (j = 0; j < h; j++) gfx_hline(x, x + w - 1, y + j, c);
 }
 
-/* Elipse de punto medio (Bresenham, variante entera de A. Zingl): centro (cx, cy), semiejes rx y ry, contorno de un punto en XOR.
-   Solo se recorre un cuadrante (sumas y comparaciones; las multiplicaciones son de la preparacion) y se refleja en los cuatro. Los
-   puntos de los ejes se dibujan UNA vez (en XOR dos veces se borrarian). Es determinista: volver a llamarla con los mismos datos
-   borra lo dibujado, asi que no hace falta guardar los puntos. Todo en long (en c68 int es de 16 bits): con rx <= 300 y ry <= 360 los
-   terminos de error caben en 32 bits. Recorta al rectangulo (clx0, cly0)-(clx1, cly1); si cabe entero va sin comprobar cada punto. */
+/* Midpoint ellipse (Bresenham, integer variant by A. Zingl): centre (cx, cy), semi-axes rx and ry, one-dot outline in XOR.
+   Only one quadrant is traversed (additions and comparisons; the multiplications are in the set-up) and mirrored into the four. The
+   points on the axes are drawn ONCE (in XOR twice would erase them). It is deterministic: calling it again with the same data
+   erases what was drawn, so there is no need to store the points. All in long (in c68 int is 16 bits): with rx <= 300 and ry <= 360 the
+   error terms fit in 32 bits. Clips to the rectangle (clx0, cly0)-(clx1, cly1); if it fits entirely it goes without checking each point. */
 static u8 el_col;
 static int el_x0, el_y0, el_x1, el_y1, el_clip, el_hr;
 
@@ -287,13 +287,13 @@ static void el_plot(int x, int y)
 
 static void ellipse_core(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly0, int clx1, int cly1, int hr);
 
-/* En modo 4 la elipse se dibuja a los 512 puntos: el semieje horizontal es 2 rx puntos fisicos (rx y ry son los del juego, con el
-   aspecto del monitor ya aplicado a ry: los puntos fisicos de modo 4 son la mitad de anchos que los de modo 8, el mismo 2 x que las lineas) */
+/* In mode 4 the ellipse is drawn at the 512 dots: the horizontal semi-axis is 2 rx physical dots (rx and ry are the game's, with the
+   monitor aspect already applied to ry: the physical dots of mode 4 are half as wide as those of mode 8, the same 2 x as the lines) */
 void gfx_ellipse_xor(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly0, int clx1, int cly1)
 {
     if (gfx_m4) {
         if (rx < 0) rx = -rx;
-        if (cx + rx < clx0 || cx - rx > clx1) return;      /* antes de doblar: cx puede ser grande y en c68 int es de 16 bits */
+        if (cx + rx < clx0 || cx - rx > clx1) return;      /* before doubling: cx can be large and in c68 int is 16 bits */
         ellipse_core(2 * cx, cy, 2 * rx, ry, c, 2 * clx0, cly0, 2 * clx1 + 1, cly1, 1);
     } else ellipse_core(cx, cy, rx, ry, c, clx0, cly0, clx1, cly1, 0);
 }
@@ -304,10 +304,10 @@ static void ellipse_core(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly
     int x0, x1, y0, y1;
     if (rx < 0) rx = -rx;
     if (ry < 0) ry = -ry;
-    if (cx + rx < clx0 || cx - rx > clx1 || cy + ry < cly0 || cy - ry > cly1) return;       /* fuera del todo */
+    if (cx + rx < clx0 || cx - rx > clx1 || cy + ry < cly0 || cy - ry > cly1) return;       /* entirely outside */
     el_col = c; el_x0 = clx0; el_y0 = cly0; el_x1 = clx1; el_y1 = cly1; el_hr = hr;
     el_clip = !(cx - rx >= clx0 && cx + rx <= clx1 && cy - ry >= cly0 && cy + ry <= cly1);
-    if (rx == 0 || ry == 0) {                          /* degenerada: un punto o un segmento */
+    if (rx == 0 || ry == 0) {                          /* degenerate: a point or a segment */
         for (y0 = cy - ry; y0 <= cy + ry; y0++) for (x0 = cx - rx; x0 <= cx + rx; x0++) el_plot(x0, y0);
         return;
     }
@@ -319,7 +319,7 @@ static void ellipse_core(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly
     err = dx + dy;
     a8 = 8L * a * a; b8 = 8L * b * b;
 #ifdef ASM_LINE
-    {                                                    /* bucle completo en ensamblador (ql_ell.asm): bloque de parametros */
+    {                                                    /* whole loop in assembly (ql_ell.asm): parameter block */
         static long blk[19];
         blk[0] = a8; blk[1] = b8;
         blk[2] = (long)GFX_GM(CC(c));
@@ -344,7 +344,7 @@ static void ellipse_core(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly
         if (e2 <= dy) { y0++; y1--; dy += a8; err += dy; }
         if (e2 >= dx || 2L * err > dy) { x0++; x1--; dx += b8; err += dx; }
     } while (x0 <= x1);
-    if (y0 - y1 < 2 * ry) while (y0 - y1 <= 2 * ry) {   /* elipses estrechas: el bucle acabo antes de llegar arriba; termina la parte vertical */
+    if (y0 - y1 < 2 * ry) while (y0 - y1 <= 2 * ry) {   /* narrow ellipses: the loop ended before reaching the top; finishes the vertical part */
         el_plot(x0 - 1, y0);
         if (x1 + 1 != x0 - 1) el_plot(x1 + 1, y0);
         if (y1 != y0) { el_plot(x0 - 1, y1); if (x1 + 1 != x0 - 1) el_plot(x1 + 1, y1); }
@@ -352,8 +352,8 @@ static void ellipse_core(int cx, int cy, int rx, int ry, u8 c, int clx0, int cly
     }
 }
 
-/* Semianchos de la elipse fila a fila (para rellenarla): el mismo recorrido de punto medio que gfx_ellipse_xor, sin dibujar; en cada
-   fila dy (0 = la del centro) el primer punto del recorrido es el mas a la derecha. half[dy] = x - cx para dy = 0..ry (ry < 512). */
+/* Half-widths of the ellipse row by row (to fill it): the same midpoint traversal as gfx_ellipse_xor, without drawing; in each
+   row dy (0 = the centre one) the first point of the traversal is the rightmost. half[dy] = x - cx for dy = 0..ry (ry < 512). */
 void gfx_ellipse_rows(int rx, int ry, u8 *half)
 {
     long a, b, dx, dy, err, e2, a8, b8;
@@ -368,7 +368,7 @@ void gfx_ellipse_rows(int rx, int ry, u8 *half)
     err = dx + dy;
     a8 = 8L * a * a; b8 = 8L * b * b;
     {
-        int x0 = -rx, xe = rx;                          /* x0, x1 relativos al centro */
+        int x0 = -rx, xe = rx;                          /* x0, x1 relative to the centre */
         x1 = xe;
         do {
             if (y0 != last && y0 <= ry) { half[y0] = (u8)(x1 > 255 ? 255 : x1); last = y0; }
@@ -376,14 +376,14 @@ void gfx_ellipse_rows(int rx, int ry, u8 *half)
             if (e2 <= dy) { y0++; dy += a8; err += dy; }
             if (e2 >= dx || 2L * err > dy) { x0++; x1--; dx += b8; err += dx; }
         } while (x0 <= x1);
-        for (d = y0; d <= ry; d++) {                    /* cola de las estrechas (como en gfx_ellipse_xor) */
+        for (d = y0; d <= ry; d++) {                    /* tail of the narrow ones (as in gfx_ellipse_xor) */
             int v = x1 + 1 > 255 ? 255 : (x1 + 1 < 0 ? 0 : x1 + 1);
             if (d > last || half[d] < v) half[d] = (u8)v;
         }
     }
 }
 
-/* Modo 4, a los 512 puntos: igual que gfx_ellipse_rows pero con el semieje rx ya en puntos fisicos (hasta 510) y semianchos de 16 bits */
+/* Mode 4, at the 512 dots: like gfx_ellipse_rows but with the semi-axis rx already in physical dots (up to 510) and 16-bit half-widths */
 static void ell_rows_hr(int rx, int ry, unsigned short *half)
 {
     long a, b, dx, dy, err, e2, a8, b8;
@@ -408,12 +408,12 @@ static void ell_rows_hr(int rx, int ry, unsigned short *half)
     }
 }
 
-/* Tabla de tramos del contorno de una elipse de semiejes rx, ry (ry <= 303): para cada distancia dy = 0..ry del centro, tab[2 * dy] = lo y
-   tab[2 * dy + 1] = hi: el contorno de esa fila es cx + lo .. cx + hi (y su reflejo a la izquierda; con lo = 0, un unico tramo cx - hi .. cx + hi).
-   Sale de la tabla de semianchos half[] (gfx_ellipse_rows): fila dy < ry: de half[dy + 1] + 1 a half[dy] si half[dy + 1] < half[dy], si no el
-   punto half[dy]; fila dy = ry: de 0 a half[ry]. Es el mismo contorno que dibuja gfx_ellipse_xor (punto medio): comprobado punto a punto en
-   make test_ellrows. Mide 2 * (ry + 1) bytes. En modo 4 la tabla es de palabras de 16 bits (unsigned short, direccion par; 4 * (ry + 1)
-   bytes) y en puntos fisicos: rx es el semieje del juego y el contorno sale con 2 rx. */
+/* Table of outline spans of an ellipse of semi-axes rx, ry (ry <= 303): for each distance dy = 0..ry from the centre, tab[2 * dy] = lo and
+   tab[2 * dy + 1] = hi: the outline of that row is cx + lo .. cx + hi (and its reflection on the left; with lo = 0, a single span cx - hi .. cx + hi).
+   It comes from the half-width table half[] (gfx_ellipse_rows): row dy < ry: from half[dy + 1] + 1 to half[dy] if half[dy + 1] < half[dy], otherwise the
+   point half[dy]; row dy = ry: from 0 to half[ry]. It is the same outline gfx_ellipse_xor draws (midpoint): checked point by point in
+   make test_ellrows. It takes 2 * (ry + 1) bytes. In mode 4 the table is of 16-bit words (unsigned short, even address; 4 * (ry + 1)
+   bytes) and in physical dots: rx is the game's semi-axis and the outline comes out with 2 rx. */
 void gfx_ell_spans(int rx, int ry, u8 *tab)
 {
     static u8 half[304];
@@ -436,7 +436,7 @@ void gfx_ell_spans(int rx, int ry, u8 *tab)
     }
 }
 
-/* Tramo de la fila y (tabla de gfx_ell_spans; cy = centro, ry = semialto, -1 = no hay elipse): 0 si no toca la fila, si no 1 con *lo y *hi */
+/* Span of row y (gfx_ell_spans table; cy = centre, ry = half-height, -1 = no ellipse): 0 if it does not touch the row, otherwise 1 with *lo and *hi */
 static int ell_span(int y, int cy, int ry, const u8 *tab, int *lo, int *hi)
 {
     int dy = y - cy;
@@ -447,7 +447,7 @@ static int ell_span(int y, int cy, int ry, const u8 *tab, int *lo, int *hi)
 }
 
 #ifndef ASM_LINE
-/* Modo 4 (puntos fisicos): la misma tabla en palabras de 16 bits */
+/* Mode 4 (physical dots): the same table in 16-bit words */
 static int ell_span_hr(int y, int cy, int ry, const unsigned short *tab, int *lo, int *hi)
 {
     int dy = y - cy;
@@ -457,7 +457,7 @@ static int ell_span_hr(int y, int cy, int ry, const unsigned short *tab, int *lo
     return 1;
 }
 
-static void hline_hr(int x0, int x1, int y, u8 c)       /* x0 <= x1, 0 a 511 recortado */
+static void hline_hr(int x0, int x1, int y, u8 c)       /* x0 <= x1, 0 to 511 clipped */
 {
     if (x0 < 0) x0 = 0;
     if (x1 > 511) x1 = 511;
@@ -479,11 +479,11 @@ static void ell_xor_spans(int cx, int lo, int hi, int y, u8 c)
     gfx_hline_xor(cx + lo, cx + hi, y, c);
 }
 
-/* Cambia una elipse (centro ocx, ocy, semialto ory, tabla de tramos otab; ory = -1 si no habia ninguna) por otra (ncx, ncy, nry, ntab; nry = -1 para
-   borrarla), recortadas a x 0..255 e y 0..cly1, FILA A FILA: en cada linea se borra lo viejo y se dibuja lo nuevo seguidos (y se salta si
-   no cambia), asi la elipse nunca desaparece entera. El resultado en pantalla es el mismo que gfx_ellipse_xor(vieja) + gfx_ellipse_xor(nueva)
-   (XOR). yoff debe ser 0. En el QL va en ensamblador (ql_ellrows.asm). En modo 4 las tablas son de 16 bits y en puntos fisicos
-   (gfx_ell_spans), los centros siguen siendo del juego (x fisica = 2 x) y se recorta a 0..511. */
+/* Replaces one ellipse (centre ocx, ocy, half-height ory, span table otab; ory = -1 if there was none) with another (ncx, ncy, nry, ntab; nry = -1 to
+   erase it), clipped to x 0..255 and y 0..cly1, ROW BY ROW: on each line the old is erased and the new drawn consecutively (and skipped if
+   unchanged), so the ellipse never disappears entirely. The result on screen is the same as gfx_ellipse_xor(old) + gfx_ellipse_xor(new)
+   (XOR). yoff must be 0. On the QL it is in assembly (ql_ellrows.asm). In mode 4 the tables are 16-bit and in physical dots
+   (gfx_ell_spans), the centres are still the game's (physical x = 2 x) and it clips to 0..511. */
 void gfx_ell_update(int ocx, int ocy, int ory, const u8 *otab, int ncx, int ncy, int nry, const u8 *ntab, u8 c, int cly1)
 {
     int top = 32767, bot = -32768, y;
@@ -528,7 +528,7 @@ void gfx_ell_update(int ocx, int ocy, int ory, const u8 *otab, int ncx, int ncy,
     (void)y;
 }
 
-/* Contorno de rectangulo (centro, semiancho hw, semialto hh) en XOR: cada punto una sola vez, recortado */
+/* Rectangle outline (centre, half-width hw, half-height hh) in XOR: each point only once, clipped */
 #ifndef ASM_LINE
 static void fr_row(int x0, int x1, int y, u8 c, int clx0, int cly0, int clx1, int cly1)
 {
@@ -544,7 +544,7 @@ void gfx_frame_xor(int cx, int cy, int hw, int hh, u8 c, int clx0, int cly0, int
     if (hw < 0) hw = -hw;
     if (hh < 0) hh = -hh;
 #ifdef ASM_LINE
-    {                                                    /* entero en ensamblador (ql_frame, ql_ell.asm): bloque de parametros */
+    {                                                    /* all in assembly (ql_frame, ql_ell.asm): parameter block */
         static long blk[11];
         blk[0] = cx - hw; blk[1] = cy - hh; blk[2] = cx + hw; blk[3] = cy + hh;
         blk[4] = clx0; blk[5] = cly0; blk[6] = clx1; blk[7] = cly1;
@@ -556,9 +556,9 @@ void gfx_frame_xor(int cx, int cy, int hw, int hh, u8 c, int clx0, int cly0, int
 #else
     {
         int y;
-        fr_row(cx - hw, cx + hw, cy - hh, c, clx0, cly0, clx1, cly1);                 /* arriba */
-        if (hh > 0) fr_row(cx - hw, cx + hw, cy + hh, c, clx0, cly0, clx1, cly1);     /* abajo */
-        for (y = cy - hh + 1; y <= cy + hh - 1; y++) {                                 /* lados, sin las esquinas */
+        fr_row(cx - hw, cx + hw, cy - hh, c, clx0, cly0, clx1, cly1);                 /* top */
+        if (hh > 0) fr_row(cx - hw, cx + hw, cy + hh, c, clx0, cly0, clx1, cly1);     /* bottom */
+        for (y = cy - hh + 1; y <= cy + hh - 1; y++) {                                 /* sides, without the corners */
             if (y < cly0 || y > cly1) continue;
             if (cx - hw >= clx0 && cx - hw <= clx1) gfx_xor_pixel(cx - hw, y, c);
             if (hw > 0 && cx + hw >= clx0 && cx + hw <= clx1) gfx_xor_pixel(cx + hw, y, c);
@@ -567,8 +567,8 @@ void gfx_frame_xor(int cx, int cy, int hw, int hh, u8 c, int clx0, int cly0, int
 #endif
 }
 
-/* Vacia (negro) un rectangulo de celdas de texto: ncols columnas desde col, nrows filas desde row (0..31; se recorta). Los textos que
-   cambian de longitud no se borran escribiendo espacios: se calcula el rectangulo sobrante y se vacia de una vez. */
+/* Empties (black) a rectangle of text cells: ncols columns from col, nrows rows from row (0..31; clipped). Texts that
+   change length are not erased by writing spaces: the leftover rectangle is calculated and emptied at once. */
 void gfx_clear_cells(int col, int row, int ncols, int nrows)
 {
     if (col < 0) { ncols += col; col = 0; }

@@ -1,4 +1,4 @@
-/* Sonda de c68: LOIN (loin_draw, con em_logdiv), HLOIN y VLOIN; la pantalla final se compara con la del PC */
+/* c68 probe: LOIN (loin_draw, with em_logdiv), HLOIN and VLOIN; the final screen is compared with the PC's */
 #include "platform.h"
 #include "lines.h"
 #include "emath.h"

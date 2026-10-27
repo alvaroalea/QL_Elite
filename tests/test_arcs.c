@@ -1,5 +1,5 @@
-/* Meridianos y crater del planeta (vista nativa): con orientaciones al azar, dibujar y quitar deja la pantalla vacia, mover el planeta
-   no deja restos, las figuras se dibujan solo en la cara visible y el volcado de pantalla (argumento) sirve para verlas. */
+/* Meridians and crater of the planet (native view): with random orientations, drawing and removing leaves the screen empty, moving the planet
+   leaves no leftovers, the figures are drawn only on the visible face and the screen dump (argument) is useful to view them. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -25,7 +25,7 @@ static void put_vec(int off, double x, double y, double z)
         inwk[off + 2 * i] = (u8)(c & 255); inwk[off + 2 * i + 1] = (u8)((c >> 8) & 0x7F) | (v[i] < 0 ? 0x80 : 0);
     }
 }
-/* planeta en (x, y) del espacio del original con orientacion de angulos a, b, c */
+/* planet at (x, y) of the original's space with orientation of angles a, b, c */
 static void put_planet(int type, int xhi, int xs, int yhi, int ys, int zhi, double a, double b, double c)
 {
     double ca = cos(a), sa = sin(a), cb = cos(b), sb = sin(b), cc = cos(c), sc = sin(c);
@@ -51,16 +51,16 @@ int main(int argc, char **argv)
     sun_forget();
     srand(11);
     for (t = 128; t <= 130; t += 2) {
-        /* quitar tras dibujar: nada de restos */
+        /* removing after drawing: no leftovers */
         for (f = 0; f < 200; f++) {
             put_planet(t, rand() % 0x50, (rand() & 1) << 7, rand() % 0x30, (rand() & 1) << 7, 1 + rand() % 5,
                        rand() * 6.28 / RAND_MAX, rand() * 6.28 / RAND_MAX, rand() * 6.28 / RAND_MAX);
             planet();
         }
-        put_planet(t, 0x41, 0x80, 0x20, 0, 60, 0, 0, 0);               /* z fuera de rango: se quita */
+        put_planet(t, 0x41, 0x80, 0x20, 0, 60, 0, 0, 0);               /* z out of range: it is removed */
         planet();
         check(blank(), t == 128 ? "meridianos: al quitar el planeta no queda nada" : "crater: al quitar el planeta no queda nada");
-        /* orientaciones: la figura aparece (mas puntos que el circulo solo) */
+        /* orientations: the figure appears (more dots than the circle alone) */
         put_planet(t, 0, 0, 0, 0, 3, 0.3, 0.4, 0.5);
         planet(); n = count_on();
         put_planet(t, 0, 0, 0, 0, 3, 0.3, 0.4, 0.5);
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
         if (t == 128 && argc > 1) { FILE *fp = fopen(argv[1], "wb"); fwrite(screen, 1, 32768, fp); fclose(fp); }
         put_planet(t, 0x41, 0x80, 0x20, 0, 60, 0, 0, 0); planet();
         check(blank(), "vacia otra vez");
-        /* crater: cara oculta (roofv_z < 0) no dibuja la figura */
+        /* crater: hidden face (roofv_z < 0) does not draw the figure */
         if (t == 130) {
             put_planet(t, 0, 0, 0, 0, 3, 0, 0, 0);
             planet(); base = count_on();

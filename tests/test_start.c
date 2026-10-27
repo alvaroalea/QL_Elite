@@ -1,5 +1,5 @@
-/* RESET y RES2 (space_reset_all, space_reset) contra el codigo original en el emulador (tools/gen_start.py): estado de
-   las variables despues y llamadas a SPBLB, ECBLB (de ECMOF) y WPSHPS (WPSHPS lo hace quien llama: clear_view). */
+/* RESET and RES2 (space_reset_all, space_reset) against the original code in the emulator (tools/gen_start.py): state of
+   the variables afterwards and calls to SPBLB, ECBLB (from ECMOF) and WPSHPS (WPSHPS is done by the caller: clear_view). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,7 +36,7 @@ static u8 *ref(const char *n)
         case 5: return &las2; case 6: return &msar; case 7: return &space_view; case 8: return &lasct; case 9: return &gntmp;
         case 11: return &enc_ev; case 12: return &dly; case 13: return &mess_de;
         }
-        return 0;                                            /* HFX: no existe en el port */
+        return 0;                                            /* HFX: does not exist in the port */
     }
     if (n[0] == 'I') return &inwk[atoi(n + 1)];
     if (!strcmp(n, "SLSPL") || !strcmp(n, "SLSPH")) return 0;
@@ -65,7 +65,7 @@ static u8 *ref(const char *n)
     if (!strcmp(n, "LSY2")) return &circ_lsy2[0];
     if (!strcmp(n, "JSTGY")) return &jstgy;
     (void)dummy;
-    return 0;                                                /* dontclip, Yx2M1 (constantes) y KEY2 */
+    return 0;                                                /* dontclip, Yx2M1 (constants) and KEY2 */
 }
 
 int main(int argc, char **argv)
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
         char msg[300] = "";
         if (!c1) continue;
         *c1 = 0; c2 = strchr(c1 + 1, ':'); if (c2) *c2 = 0; else c2 = c1;
-        if (line[0] == 'F') {                                 /* DFAULT: cmdr_unpack y cmdr_pack */
+        if (line[0] == 'F') {                                 /* DFAULT: cmdr_unpack and cmdr_pack */
             u8 b[CMDR_SIZE], o[CMDR_SIZE];
             q = line + 2;
             for (i = 0; i < CMDR_SIZE; i++) b[i] = (u8)strtol(q, &q, 10);
@@ -103,9 +103,9 @@ int main(int argc, char **argv)
         q = line + 2;
         for (i = 0; i < nn; i++) { before[i] = (u8)strtol(q, &q, 10);
     if (ref(nm[i])) *ref(nm[i]) = before[i]; }
-        sp = many[2] != 0; em = ecma != 0;                    /* SSPR = many[SHIP_SST]; el original mira SSPR antes de RES2 */
+        sp = many[2] != 0; em = ecma != 0;                    /* SSPR = many[SHIP_SST]; the original looks at SSPR before RES2 */
         if (k) space_reset(); else space_reset_all();
-        /* llamadas: SPBLB si SSPR != 0 (solo RES2), ECMOF si ECMA != 0 (solo RES2), y WPSHPS (de quien llama) */
+        /* calls: SPBLB if SSPR != 0 (RES2 only), ECMOF if ECMA != 0 (RES2 only), and WPSHPS (the caller's) */
         if (strstr(c1 + 1, "SPBLB") != 0 && !(k && sp)) bad = 1, strcat(msg, " SPBLB");
         if (strstr(c1 + 1, "SPBLB") == 0 && (k && sp)) bad = 1, strcat(msg, " noSPBLB");
         if (strstr(c1 + 1, "ECBLB") != 0 && !(k && em)) bad = 1, strcat(msg, " ECBLB");

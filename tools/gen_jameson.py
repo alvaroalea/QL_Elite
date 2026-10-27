@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_jameson.txt: los bytes de NA2% (el comandante JAMESON de fabrica, Q% = FALSE) ensamblados desde la fuente
-original, que copia JAMESON en NA%. Se comprueba con tests/test_jameson (make test_jameson). Requiere ELITE_SRC."""
+"""Generates tests/vectors_jameson.txt: the bytes of NA2% (the factory JAMESON commander, Q% = FALSE) assembled from the original
+source, which copies JAMESON into NA%. Checked with tests/test_jameson (make test_jameson). Requires ELITE_SRC."""
 import sys, re
 sys.path.insert(0, 'tools')
 from frag6502 import *

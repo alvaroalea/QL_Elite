@@ -1,5 +1,5 @@
-/* TT15, SIGHT, NLIN2/NLIN4, BOMBEFF2 y DOEXP contra el codigo original en el emulador (tools/gen_draw.py): las mismas llamadas
-   a las primitivas de dibujo (HLOIN, VLOIN, LOIN, CPIX) con los mismos argumentos y color, y el mismo estado a la salida. */
+/* TT15, SIGHT, NLIN2/NLIN4, BOMBEFF2 and DOEXP against the original code in the emulator (tools/gen_draw.py): the same calls
+   to the drawing primitives (HLOIN, VLOIN, LOIN, CPIX) with the same arguments and colour, and the same state on exit. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
         } else if (k == 2) {                                   /* N 2 a / N 4 0 */
             sscanf(p, "%d %d", &a[0], &a[1]);
             if (a[0] == 2) nlin2((u8)a[1]); else nlin4();
-        } else if (k == 3) {                                   /* B rnd qq11 dnoiz c tbx tby : rnd tbx tby : lineas */
+        } else if (k == 3) {                                   /* B rnd qq11 dnoiz c tbx tby : rnd tbx tby : lines */
             char *c2 = strchr(want, ':'), s1[80];
             int q11, dn, cc;
             u8 r[4], b[10];

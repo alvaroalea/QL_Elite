@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Compara src/ql_ellrows.asm (ql_ellrows, ejecutada con tools/m68k_mini.py) con gfx_ell_update en C (tests/ellrows_dump): la misma pantalla
-(partiendo de $FF) en miles de elipses con recorte, sin vieja o sin nueva, y las que apenas cambian. uso: test_ellrowsasm.py [casos] [semilla]"""
+"""Compares src/ql_ellrows.asm (ql_ellrows, run with tools/m68k_mini.py) with gfx_ell_update in C (tests/ellrows_dump): the same screen
+(starting from $FF) over thousands of ellipses with clipping, with no old or no new one, and those that barely change. usage: test_ellrowsasm.py [cases] [seed]"""
 import os, re, subprocess, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import m68k_mini

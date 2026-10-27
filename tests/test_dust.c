@@ -1,5 +1,5 @@
-/* Polvo estelar (gfx_dust): 1 punto lejos (zz >= 128), 1 x 2 entre 80 y 127 y 2 x 3 (ancho x alto) cerca (zz < 80), con la esquina
-   inferior izquierda en (x, y); borrar = volver a dibujar; recorte en los bordes; y PIXEL del original intacto (gfx_dust_6502). */
+/* Stardust (gfx_dust): 1 dot far (zz >= 128), 1 x 2 between 80 and 127 and 2 x 3 (width x height) near (zz < 80), with the lower
+   left corner at (x, y); erase = draw again; clipping at the edges; and the original PIXEL intact (gfx_dust_6502). */
 #include <stdio.h>
 #include <string.h>
 #include "platform.h"
@@ -26,7 +26,7 @@ int main(void)
         for (k = 0; k < 32768 && buf[k] == 0; k++) ;
         check(k == 32768, "dibujar dos veces borra");
     }
-    memset(buf, 0, sizeof buf);                                    /* bordes: no escribe fuera ni se cuelga */
+    memset(buf, 0, sizeof buf);                                    /* edges: does not write outside nor hang */
     gfx_dust(0, 0, 10); gfx_dust(255, 255, 10); gfx_dust(-3, 5, 10); gfx_dust(300, 5, 10); gfx_dust(10, -5, 10); gfx_dust(10, 300, 10);
     check(count() >= 1, "en los bordes pinta lo que cabe");
     memset(buf, 0, sizeof buf);

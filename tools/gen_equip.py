@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_equip.txt ejecutando en el emulador de 6502 el codigo ORIGINAL de:
-   B  BOMBON + BOMBOFF (DORND real; LOIN y CLICK registran)
-   W  WARP (MAS2, ADD reales; BOOP y LOOK1 registran)
-   D  DOCKIT (con VCSU1, TAS1-4, TAS6, TA2/NORM, SPS1, DCS1/TAS7, TA151/TA15..TA9, GOPL, MVT3, MAD... reales)
-   K  DOKEY con el ordenador de atraque (ZINF y DOCKIT reales; desde LDA auto hasta DK15)
-   G  GTHG (Ze, DORND reales; NWSHP registra INWK y el tipo)
-   F  FRS1 (NWSHP registra)
-   R  FRMIS y FR1 (FRS1, GINF, ANGRY y ABORT reales; NWSHP, MESS, MSBAR y SOHISS registran)
-Requiere ELITE_SRC. Uso: python3 tools/gen_equip.py [n] [semilla]"""
+"""Generates tests/vectors_equip.txt by running the ORIGINAL code for the following in the 6502 emulator:
+   B  BOMBON + BOMBOFF (real DORND; LOIN and CLICK log)
+   W  WARP (real MAS2, ADD; BOOP and LOOK1 log)
+   D  DOCKIT (with real VCSU1, TAS1-4, TAS6, TA2/NORM, SPS1, DCS1/TAS7, TA151/TA15..TA9, GOPL, MVT3, MAD...)
+   K  DOKEY with the docking computer (real ZINF and DOCKIT; from LDA auto to DK15)
+   G  GTHG (real Ze, DORND; NWSHP logs INWK and the type)
+   F  FRS1 (NWSHP logs)
+   R  FRMIS and FR1 (real FRS1, GINF, ANGRY and ABORT; NWSHP, MESS, MSBAR and SOHISS log)
+Requires ELITE_SRC. Usage: python3 tools/gen_equip.py [n] [seed]"""
 import sys, random
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -19,14 +19,14 @@ def rb(): return random.randrange(256)
 def pick(*v): return random.choice(v)
 out = []
 
-def noskip(lines):                       # SKIP n -> n bytes a cero (el ensamblador no conoce SKIP)
+def noskip(lines):                       # SKIP n -> n zero bytes (the assembler does not know SKIP)
     o = []
     for l in lines:
         m = re.match(r'^SKIP\s+(\d+)$', code(l))
         o.append(' EQUB ' + ','.join(['0'] * int(m.group(1))) if m else l)
     return o
 
-# ---------------------------------------------------------------- B: bomba
+# ---------------------------------------------------------------- B: bomb
 bombl = noskip(rng(nl('BOMBOFF') - 1, nx(nl('BOMBTBY')) - 1)) + dornd
 cpu, S = build(bombl, None)
 lines = []
@@ -61,7 +61,7 @@ for _ in range(n):
     out.append('W %d %d %d %d %s %s %d %d %d %d %d' % (junk, f2, sspr, mj, hx(pl), hx(su), cpu.mem[S['K%'] + 8],
                cpu.mem[S['K%'] + NI + 8], did, cpu.mem[S['QQ11']], cpu.mem[S['MCNT']]))
 
-# ---------------------------------------------------------------- D y K: DOCKIT y DOKEY
+# ---------------------------------------------------------------- D and K: DOCKIT and DOKEY
 dock = rng(nl('TACTICS', 6) - 1, nx(nl('DCS1')) - 1) + ['.GOPL', ' JSR SPS1', ' JMP TA151'] + \
        rng(nl('SPS1') - 1, nx(nl('NORM')) - 1) + routine('MVT3') + math_ + sq + routine('TIS2') + routine('ZINF') + \
        rng(nl('LL28') - 1, nx(nl('LL28')) - 1) + routine('SPS3') + rng(nl('LL5') - 1, nx(nl('LL5')) - 1) + dornd
@@ -78,7 +78,7 @@ print('stubs:', sorted(k for k, v in S.items() if 0x3E00 <= v < 0x3F00), file=sy
 def coord(r):
     v = random.randrange(-r, r + 1); m = abs(v)
     return [m & 255, (m >> 8) & 255, ((m >> 16) & 0x7F) | (0x80 if v < 0 else 0)]
-def vec():                               # vector de orientacion: 3 componentes de 16 bits signo-magnitud (96 << 8 = 1)
+def vec():                               # orientation vector: 3 sign-magnitude 16-bit components (96 << 8 = 1)
     o = []
     for _ in range(3):
         v = random.choice([random.randrange(-0x6000, 0x6001), 0x6000, -0x6000, 0, random.randrange(-0x1000, 0x1000)])
@@ -117,7 +117,7 @@ for _ in range(n):
     out.append('K %s %s %d %d %d %d %s %d %d %d %s' % (hx(st), hx(pl), delta, jx, jy, k10, ''.join('%02x' % v for v in keys),
                cpu.mem[S['DELTA']], cpu.mem[S['JSTX']], cpu.mem[S['JSTY']], ''.join('%02x' % cpu.mem[S[k]] for k in KY)))
 
-# ---------------------------------------------------------------- G y F: GTHG y FRS1
+# ---------------------------------------------------------------- G and F: GTHG and FRS1
 cpu, S = build(routine('GTHG') + routine('Ze') + dornd + routine('ZINF') + rng(lab('FRS1'), lab('FRMIS')), None)
 got = []
 cpu.hooks[S['NWSHP']] = lambda c: got.append((c.a, bytes(c.mem[S['INWK']:S['INWK'] + NI])))
@@ -134,7 +134,7 @@ for _ in range(n // 4):
     cpu.run(S['FRS1'])
     out.append('F %d %d %d %d %s' % (typ, mstg, delta, got[0][0], hx(got[0][1])))
 
-# ---------------------------------------------------------------- R: FRMIS (con FR1, ANGRY y ABORT)
+# ---------------------------------------------------------------- R: FRMIS (with FR1, ANGRY and ABORT)
 frmc = rng(lab('FRMIS'), lab('FR1')) + routine('FR1') + routine('ABORT') + routine('ABORT2') + routine('GINF') + ['.UNIV'] + [' EQUW K%% + %d' % (i * 37) for i in range(9)]
 cpu, S = build(routine('Ze') + dornd + routine('ZINF') + rng(lab('FRS1'), lab('FRMIS')) + frmc, None)
 NI = S['NI%']
@@ -144,7 +144,7 @@ def nw_ok(c):
 st_ok = [1]
 cpu.hooks[S['NWSHP']] = nw_ok
 cpu.hooks[S['MESS']] = lambda c: evl.append('M%d' % c.a)
-# MSBAR con color BLACK (0): MSBAR2 sale por coolkey con A = 0 (mscol = 0) y Y = 0; FRMIS cae luego en ANGRY con esa A
+# MSBAR with colour BLACK (0): MSBAR2 exits through coolkey with A = 0 (mscol = 0) and Y = 0; FRMIS then falls into ANGRY with that A
 cpu.hooks[S['MSBAR']] = lambda c: (evl.append('B%d.%d' % (c.x, c.y)), setattr(c, 'y', 0), setattr(c, 'a', 0))
 cpu.hooks[S['SOHISS']] = lambda c: evl.append('S%d' % c.y)
 kb = S['K%']
@@ -157,7 +157,7 @@ for _ in range(n // 2):
     fr = S['FRIN']
     for k in range(S['NOSH'] + 1): cpu.mem[fr + k] = 0
     cpu.mem[fr] = 128; cpu.mem[fr + 1] = 130; cpu.mem[fr + 2] = pick(2, 2, 1)
-    for k in (3, 4, 5):                                       # naves que ya estaban: el blanco y las demas
+    for k in (3, 4, 5):                                       # ships that were already there: the target and the rest
         cpu.mem[fr + k] = pick(0, 1, 7, 10, 16, 17, 25, 2)
         for j in range(37): cpu.mem[kb + k * 37 + j] = rb()
     for k in (0, 1, 2):

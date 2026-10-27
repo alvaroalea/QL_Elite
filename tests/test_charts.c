@@ -1,5 +1,5 @@
-/* Cartas (TT22, TT23, TT16, hm, con TT14, TT15, TT103, TT105, TT128) contra el codigo original en el emulador
-   (tools/gen_charts.py): la misma secuencia de HLOIN, VLOIN, PIXEL, CIRCLE2, SUN y cpl con sus argumentos, y QQ9/QQ10. */
+/* Charts (TT22, TT23, TT16, hm, with TT14, TT15, TT103, TT105, TT128) against the original code in the emulator
+   (tools/gen_charts.py): the same sequence of HLOIN, VLOIN, PIXEL, CIRCLE2, SUN and cpl with their arguments, and QQ9/QQ10. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         k = (int)(strchr(kinds, line[0]) - kinds);
         if (k >= 2 && k < 4) { char *c2 = strchr(want, ':'); *c2 = 0; fin = trim(c2 + 1); }
         want = trim(want);
-        if (k == 4) {                                          /* F g nombre : indice o -1 */
+        if (k == 4) {                                          /* F g name : index or -1 */
             char nm[32] = "";
             int g, r;
             sscanf(line + 2, "%d %31s", &g, nm);

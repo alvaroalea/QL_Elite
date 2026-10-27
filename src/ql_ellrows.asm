@@ -1,16 +1,16 @@
-; ql_ellrows.asm - actualiza el contorno de una elipse FILA A FILA: en cada linea de pantalla se borra (XOR) lo que habia de la elipse vieja y se
-; dibuja lo de la nueva, una a continuacion de la otra, de modo que la elipse nunca desaparece del todo (solo la linea en curso esta a medias)
-; y las filas que no cambian no se tocan. El contorno de cada fila sale de una tabla de tramos (gfx_ell_spans en gfx.c: 2 bytes por fila a dy lineas
-; del centro, lo y hi: el contorno de la fila es cx + lo .. cx + hi y su reflejo; con lo = 0 un unico tramo cx - hi .. cx + hi), derivada de la tabla de
-; semianchos de la elipse (half[dy]: fila dy < ry de half[dy + 1] + 1 a half[dy] si half[dy + 1] < half[dy], si no el punto half[dy]; fila ry de 0 a half[ry]). Es IDENTICO punto a punto al contorno de punto
-; medio de gfx_ellipse_xor (comprobado en make test_ellrows). Sintaxis de as68; tools/test_ellrowsasm.py la ejecuta con tools/m68k_mini.py.
+; ql_ellrows.asm - updates the outline of an ellipse ROW BY ROW: on each screen line what was there of the old ellipse is erased (XOR) and that of the new one
+; is drawn, one right after the other, so the ellipse never disappears completely (only the current line is half done)
+; and the rows that do not change are not touched. The outline of each row comes from a span table (gfx_ell_spans in gfx.c: 2 bytes per row at dy lines
+; from the centre, lo and hi: the row's outline is cx + lo .. cx + hi and its reflection; with lo = 0 a single span cx - hi .. cx + hi), derived from the
+; ellipse half-width table (half[dy]: row dy < ry from half[dy + 1] + 1 to half[dy] if half[dy + 1] < half[dy], otherwise the point half[dy]; row ry from 0 to half[ry]). It is IDENTICAL point by point to the midpoint
+; outline of gfx_ellipse_xor (checked in make test_ellrows). as68 syntax; tools/test_ellrowsasm.py runs it with tools/m68k_mini.py.
 ;
-; void ql_ellrows(long *blk)    bloque de palabras largas (desplazamiento en bytes; solo se usan las palabras bajas de las coordenadas):
-;   0 y (primera fila)  4 yfin (ultima fila, ya recortadas a la vista)
-;   8 ocx  12 ocy  16 ory (-1 = no habia elipse vieja)  20 otab (tabla vieja)
-;   24 ncx  28 ncy  32 nry (-1 = no hay elipse nueva)   36 ntab (tabla nueva)
-;   40 GB (mascara del byte par de un punto lleno)  44 RB (del impar)  48 pantalla
-; Registros: a2 = pantalla, a3 = tabla vieja, a4 = tabla nueva, a5 = inicio de la fila, a6 = bloque, d5/d6 = mascaras GB/RB.
+; void ql_ellrows(long *blk)    block of long words (offset in bytes; only the low words of the coordinates are used):
+;   0 y (first row)  4 yfin (last row, already clipped to the view)
+;   8 ocx  12 ocy  16 ory (-1 = there was no old ellipse)  20 otab (old table)
+;   24 ncx  28 ncy  32 nry (-1 = there is no new ellipse)   36 ntab (new table)
+;   40 GB (even byte mask of a full dot)  44 RB (of the odd one)  48 screen
+; Registers: a2 = screen, a3 = old table, a4 = new table, a5 = start of the row, a6 = block, d5/d6 = GB/RB masks.
 	.globl	_ql_ellrows
 	.text
 _ql_ellrows:
@@ -25,22 +25,22 @@ rowlp:
 	move.w	2(a6),d0		; y
 	move.w	d0,d1
 	lsl.w	#7,d1
-	lea	0(a2,d1.w),a5		; inicio de la fila y
-	move.w	14(a6),d1		; elipse vieja: ocy, ory, tabla
+	lea	0(a2,d1.w),a5		; start of row y
+	move.w	14(a6),d1		; old ellipse: ocy, ory, table
 	move.w	18(a6),d2
 	move.l	a3,a0
 	bsr	getspan
-	move.w	d2,d4			; vieja: hi en d4, lo en d7
+	move.w	d2,d4			; old: hi in d4, lo in d7
 	move.w	d3,d7
 	move.w	2(a6),d0
-	move.w	30(a6),d1		; elipse nueva: ncy, nry, tabla
+	move.w	30(a6),d1		; new ellipse: ncy, nry, table
 	move.w	34(a6),d2
 	move.l	a4,a0
-	bsr	getspan			; nueva: hi en d2, lo en d3
+	bsr	getspan			; new: hi in d2, lo in d3
 	tst.w	d4
 	bpl	have
 	tst.w	d2
-	bmi	nextrow			; ninguna de las dos toca esta fila
+	bmi	nextrow			; neither touches this row
 have:
 	cmp.w	d4,d2
 	bne	draw
@@ -48,9 +48,9 @@ have:
 	bne	draw
 	move.w	10(a6),d0
 	cmp.w	26(a6),d0
-	beq	nextrow			; mismo tramo y mismo centro: nada que cambiar
+	beq	nextrow			; same span and same centre: nothing to change
 draw:
-	move.w	d2,-(sp)		; la nueva se guarda mientras se borra la vieja
+	move.w	d2,-(sp)		; the new one is saved while the old one is erased
 	move.w	d3,-(sp)
 	tst.w	d4
 	bmi	dnew
@@ -74,8 +74,8 @@ nextrow:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; getspan: d0 = y, d1 = cy, d2 = ry (-1 = sin elipse), a0 = tabla de tramos (2 bytes por fila: lo, hi)  ->  d2 = hi (-1 si la elipse no toca
-; la fila), d3 = lo; destruye d1
+; getspan: d0 = y, d1 = cy, d2 = ry (-1 = no ellipse), a0 = span table (2 bytes per row: lo, hi)  ->  d2 = hi (-1 if the ellipse does not touch
+; the row), d3 = lo; destroys d1
 getspan:
 	move.w	d0,d3
 	sub.w	d1,d3
@@ -95,8 +95,8 @@ gnone:
 	moveq	#-1,d2
 	rts
 
-; spans: d1 = cx (con signo), d2 = hi, d3 = lo (>= 0), a5 = fila: XOR de los tramos [cx - hi, cx - lo] y [cx + lo, cx + hi] (uno solo
-; [cx - hi, cx + hi] si lo = 0); destruye d0-d4, d7, a0
+; spans: d1 = cx (signed), d2 = hi, d3 = lo (>= 0), a5 = row: XOR of the spans [cx - hi, cx - lo] and [cx + lo, cx + hi] (a single one
+; [cx - hi, cx + hi] if lo = 0); destroys d0-d4, d7, a0
 spans:
 	tst.w	d3
 	bne	s1
@@ -109,7 +109,7 @@ spans:
 s1:
 	cmp.w	d2,d3
 	bne	s2
-	move.w	d1,d4			; lo = hi: un punto a cada lado (cx - hi y cx + hi)
+	move.w	d1,d4			; lo = hi: one dot on each side (cx - hi and cx + hi)
 	sub.w	d2,d4
 	bmi	s2
 	add.w	d2,d1
@@ -121,24 +121,24 @@ s1:
 	move.w	d2,d1
 	bra	r_pt
 s2b:
-	sub.w	d2,d1			; (se deshace la suma: fuera de la vista, camino general)
+	sub.w	d2,d1			; (the sum is undone: outside the view, general path)
 s2:
 	move.w	d1,d0
-	add.w	d3,d0			; x0 del tramo derecho = cx + lo
+	add.w	d3,d0			; x0 of the right span = cx + lo
 	move.w	d1,d4
 	add.w	d2,d4			; x1 = cx + hi
 	move.w	d0,-(sp)
 	move.w	d4,-(sp)
 	move.w	d1,d0
-	sub.w	d3,d0			; x1 del tramo izquierdo = cx - lo
+	sub.w	d3,d0			; x1 of the left span = cx - lo
 	sub.w	d2,d1			; x0 = cx - hi
 	move.w	d0,d2
 	bsr	run
 	move.w	(sp)+,d2
 	move.w	(sp)+,d1
-				; sigue en run
+				; continues in run
 
-; run: d1 = x0, d2 = x1 (con signo): recorta a 0..255 y dibuja
+; run: d1 = x0, d2 = x1 (signed): clips to 0..255 and draws
 run:
 	tst.w	d2
 	bmi	rdone
@@ -154,8 +154,8 @@ r1:
 r2:
 	cmp.w	d1,d2
 	bne	r_hrun
-				; un solo punto: sigue en r_pt
-; r_pt: XOR de un punto (d1 = x, 0..255) en la fila a5; destruye d0, d1, d7, a0
+				; a single dot: continues in r_pt
+; r_pt: XOR of a dot (d1 = x, 0..255) in row a5; destroys d0, d1, d7, a0
 r_pt:
 	move.w	d1,d0
 	lsr.w	#2,d0
@@ -174,12 +174,12 @@ r_pt:
 rdone:
 	rts
 
-; r_hrun: XOR de los puntos d1..d2 (0 <= d1 < d2 <= 255) de la fila a5; destruye d0-d4, d7, a0
+; r_hrun: XOR of the dots d1..d2 (0 <= d1 < d2 <= 255) of row a5; destroys d0-d4, d7, a0
 r_hrun:
 	move.w	d1,d3
-	lsr.w	#2,d3			; palabra del primer punto
+	lsr.w	#2,d3			; word of the first dot
 	move.w	d2,d4
-	lsr.w	#2,d4			; palabra del ultimo
+	lsr.w	#2,d4			; word of the last
 	move.w	d3,d0
 	add.w	d0,d0
 	lea	0(a5,d0.w),a0
@@ -187,14 +187,14 @@ r_hrun:
 	and.w	#3,d0
 	add.w	d0,d0
 	move.b	#$FF,d7
-	lsr.b	d0,d7			; mascara izquierda
+	lsr.b	d0,d7			; left mask
 	move.w	d2,d0
 	and.w	#3,d0
 	add.w	d0,d0
 	neg.w	d0
 	add.w	#6,d0
 	move.b	#$FF,d1
-	lsl.b	d0,d1			; mascara derecha
+	lsl.b	d0,d1			; right mask
 	cmp.w	d3,d4
 	bne	h_multi
 	and.b	d1,d7
@@ -232,9 +232,9 @@ h_last:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; void ql_ellrows4(long *blk)    modo 4, a los 512 puntos fisicos: el mismo bloque que ql_ellrows, pero ocx y ncx ya son x fisicas (2 x del
-; juego), las tablas de tramos son de palabras de 16 bits (lo, hi: 4 bytes por fila, gfx_ell_spans en modo 4), los tramos se recortan a
-; 0..511 y GB/RB valen $FF o 0. Es ql_ellrows con 8 puntos por palabra.
+; void ql_ellrows4(long *blk)    mode 4, at the 512 physical dots: the same block as ql_ellrows, but ocx and ncx are already physical x (2 x the
+; game's), the span tables are 16-bit words (lo, hi: 4 bytes per row, gfx_ell_spans in mode 4), the spans are clipped to
+; 0..511 and GB/RB are $FF or 0. It is ql_ellrows with 8 dots per word.
 	.globl	_ql_ellrows4
 _ql_ellrows4:
 	movem.l	d2-d7/a2-a6,-(sp)
@@ -248,22 +248,22 @@ rowlp4:
 	move.w	2(a6),d0		; y
 	move.w	d0,d1
 	lsl.w	#7,d1
-	lea	0(a2,d1.w),a5		; inicio de la fila y
-	move.w	14(a6),d1		; elipse vieja: ocy, ory, tabla
+	lea	0(a2,d1.w),a5		; start of row y
+	move.w	14(a6),d1		; old ellipse: ocy, ory, table
 	move.w	18(a6),d2
 	move.l	a3,a0
 	bsr	getspan4
-	move.w	d2,d4			; vieja: hi en d4, lo en d7
+	move.w	d2,d4			; old: hi in d4, lo in d7
 	move.w	d3,d7
 	move.w	2(a6),d0
-	move.w	30(a6),d1		; elipse nueva: ncy, nry, tabla
+	move.w	30(a6),d1		; new ellipse: ncy, nry, table
 	move.w	34(a6),d2
 	move.l	a4,a0
-	bsr	getspan4			; nueva: hi en d2, lo en d3
+	bsr	getspan4			; new: hi in d2, lo in d3
 	tst.w	d4
 	bpl	have4
 	tst.w	d2
-	bmi	nextrow4			; ninguna de las dos toca esta fila
+	bmi	nextrow4			; neither touches this row
 have4:
 	cmp.w	d4,d2
 	bne	draw4
@@ -271,9 +271,9 @@ have4:
 	bne	draw4
 	move.w	10(a6),d0
 	cmp.w	26(a6),d0
-	beq	nextrow4			; mismo tramo y mismo centro: nada que cambiar
+	beq	nextrow4			; same span and same centre: nothing to change
 draw4:
-	move.w	d2,-(sp)		; la nueva se guarda mientras se borra la vieja
+	move.w	d2,-(sp)		; the new one is saved while the old one is erased
 	move.w	d3,-(sp)
 	tst.w	d4
 	bmi	dnew4
@@ -297,8 +297,8 @@ nextrow4:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; getspan4: d0 = y, d1 = cy, d2 = ry (-1 = sin elipse), a0 = tabla de tramos (2 bytes por fila: lo, hi)  ->  d2 = hi (-1 si la elipse no toca
-; la fila), d3 = lo; destruye d1
+; getspan4: d0 = y, d1 = cy, d2 = ry (-1 = no ellipse), a0 = span table (2 bytes per row: lo, hi)  ->  d2 = hi (-1 if the ellipse does not touch
+; the row), d3 = lo; destroys d1
 getspan4:
 	move.w	d0,d3
 	sub.w	d1,d3
@@ -316,8 +316,8 @@ gnone4:
 	moveq	#-1,d2
 	rts
 
-; spans4: d1 = cx (con signo), d2 = hi, d3 = lo (>= 0), a5 = fila: XOR de los tramos [cx - hi, cx - lo] y [cx + lo, cx + hi] (uno solo
-; [cx - hi, cx + hi] si lo = 0); destruye d0-d4, d7, a0
+; spans4: d1 = cx (signed), d2 = hi, d3 = lo (>= 0), a5 = row: XOR of the spans [cx - hi, cx - lo] and [cx + lo, cx + hi] (a single one
+; [cx - hi, cx + hi] if lo = 0); destroys d0-d4, d7, a0
 spans4:
 	tst.w	d3
 	bne	s14
@@ -330,7 +330,7 @@ spans4:
 s14:
 	cmp.w	d2,d3
 	bne	s24
-	move.w	d1,d4			; lo = hi: un punto a cada lado (cx - hi y cx + hi)
+	move.w	d1,d4			; lo = hi: one dot on each side (cx - hi and cx + hi)
 	sub.w	d2,d4
 	bmi	s24
 	add.w	d2,d1
@@ -342,24 +342,24 @@ s14:
 	move.w	d2,d1
 	bra	r_pt4
 s2b4:
-	sub.w	d2,d1			; (se deshace la suma: fuera de la vista, camino general)
+	sub.w	d2,d1			; (the sum is undone: outside the view, general path)
 s24:
 	move.w	d1,d0
-	add.w	d3,d0			; x0 del tramo derecho = cx + lo
+	add.w	d3,d0			; x0 of the right span = cx + lo
 	move.w	d1,d4
 	add.w	d2,d4			; x1 = cx + hi
 	move.w	d0,-(sp)
 	move.w	d4,-(sp)
 	move.w	d1,d0
-	sub.w	d3,d0			; x1 del tramo izquierdo = cx - lo
+	sub.w	d3,d0			; x1 of the left span = cx - lo
 	sub.w	d2,d1			; x0 = cx - hi
 	move.w	d0,d2
 	bsr	run4
 	move.w	(sp)+,d2
 	move.w	(sp)+,d1
-				; sigue en run4
+				; continues in run4
 
-; run4: d1 = x0, d2 = x1 (con signo): recorta a 0..255 y dibuja
+; run4: d1 = x0, d2 = x1 (signed): clips to 0..255 and draws
 run4:
 	tst.w	d2
 	bmi	rdone4
@@ -375,8 +375,8 @@ r14:
 r24:
 	cmp.w	d1,d2
 	bne	r_hrun4
-				; un solo punto: sigue en r_pt4
-; r_pt4: XOR de un punto (d1 = x, 0..255) en la fila a5; destruye d0, d1, d7, a0
+				; a single dot: continues in r_pt4
+; r_pt4: XOR of a dot (d1 = x, 0..255) in row a5; destroys d0, d1, d7, a0
 r_pt4:
 	move.w	d1,d0
 	lsr.w	#3,d0
@@ -394,25 +394,25 @@ r_pt4:
 rdone4:
 	rts
 
-; r_hrun4: XOR de los puntos d1..d2 (0 <= d1 < d2 <= 255) de la fila a5; destruye d0-d4, d7, a0
+; r_hrun4: XOR of the dots d1..d2 (0 <= d1 < d2 <= 255) of row a5; destroys d0-d4, d7, a0
 r_hrun4:
 	move.w	d1,d3
-	lsr.w	#3,d3			; palabra del primer punto
+	lsr.w	#3,d3			; word of the first dot
 	move.w	d2,d4
-	lsr.w	#3,d4			; palabra del ultimo
+	lsr.w	#3,d4			; word of the last
 	move.w	d3,d0
 	add.w	d0,d0
 	lea	0(a5,d0.w),a0
 	move.w	d1,d0
 	and.w	#7,d0
 	move.b	#$FF,d7
-	lsr.b	d0,d7			; mascara izquierda
+	lsr.b	d0,d7			; left mask
 	move.w	d2,d0
 	and.w	#7,d0
 	neg.w	d0
 	add.w	#7,d0
 	move.b	#$FF,d1
-	lsl.b	d0,d1			; mascara derecha
+	lsl.b	d0,d1			; right mask
 	cmp.w	d3,d4
 	bne	h_multi4
 	and.b	d1,d7

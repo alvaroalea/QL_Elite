@@ -3,11 +3,11 @@
 #include "platform.h"
 #define SHIP_TYPES 32
 #define SHIP_BLOB_SIZE 7154L
-/* ship_blob: todos los planos; ship_off[tipo] (1..32): desplazamiento del plano del tipo dentro del bloque */
+/* ship_blob: all the blueprints; ship_off[type] (1..32): offset of the type's blueprint inside the block */
 extern const u8 ship_blob[7154];
 extern const unsigned short ship_off[SHIP_TYPES + 1];
 #define SHIP_BP(t) (ship_blob + ship_off[t])
-/* tipos de nave (nombres de la fuente, sin el prefijo SHIP_) */
+/* ship types (names from the source, without the SHIP_ prefix) */
 #define SHIPT_MISSILE 1
 #define SHIPT_CORIOLIS 2
 #define SHIPT_ESCAPE_POD 3

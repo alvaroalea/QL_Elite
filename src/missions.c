@@ -21,16 +21,16 @@
 #include "config.h"
 #include "cmdr.h"
 
-#define CONHIEGHT 80                             /* conhieght: hueco que se deja al Constrictor que gira */
+#define CONHIEGHT 80                             /* conhieght: gap left for the spinning Constrictor */
 
-/* ---------------------------------------------------------------- ganchos de pantalla del motor de fichas */
+/* ---------------------------------------------------------------- screen hooks of the token engine */
 
 static u8 mis_ink = C_WHITE;
-static u8 mis_title_ink = 0;                     /* tinta de la primera linea (fila 1: el titulo) de STATUS y DATA; 0 = la normal */
+static u8 mis_title_ink = 0;                     /* ink of the first line (row 1: the title) of STATUS and DATA; 0 = the normal one */
 
 static void letter(u8 ch, u8 xc, u8 yc)
 {
-    if ((uptog & 0x80) && ch >= '[') ch = (u8)(ch - 0x20);      /* RR5: UPTOG, solo mayusculas (pantallas de texto) */
+    if ((uptog & 0x80) && ch >= '[') ch = (u8)(ch - 0x20);      /* RR5: UPTOG, capitals only (text screens) */
     txt_color((mis_title_ink && yc == 1) ? mis_title_ink : mis_ink, C_BLACK);
     txt_at(xc, yc);
     txt_putc(ch);
@@ -39,20 +39,20 @@ static void letter(u8 ch, u8 xc, u8 yc)
 static void clss(void) { gfx_clear(C_BLACK); }
 static void beep(void) { snd_bell(); }
 
-static void pause2(void)                         /* PAUSE2: se suelta y se pulsa una tecla */
+static void pause2(void)                         /* PAUSE2: a key is released and pressed */
 {
     int k;
     do k = in_wait(); while (k < 0 && !in_quit);
 }
 
-static void delay(u8 n)                          /* DELAY: unos 20 ms cada vuelta (un fotograma) */
+static void delay(u8 n)                          /* DELAY: about 20 ms per iteration (one frame) */
 {
     u8 i;
     if (in_script) return;
     for (i = 0; i < n; i++) in_poll();
 }
 
-/* nombres de sistema por TT27 (cpl y ypl): las letras pasan por TT27 una a una, como las fichas de dos letras */
+/* system names through TT27 (cpl and ypl): the letters go through TT27 one by one, like the two-letter tokens */
 static void name(u8 which)
 {
     const char *s = uni_galaxy[which == 3 ? tgt_sys : cur_sys].name;
@@ -66,32 +66,32 @@ static void name(u8 which)
 
 /* ---------------------------------------------------------------- Drawing the screen: TT66, TTX66, TTX66K, BOX, CLYNS */
 
-u8 scr_text = 0;                                 /* text: bit 7 = vista de texto (modo texto del Apple II) */
-u8 scr_viewdir = 0;                              /* VIEW: vista del espacio (0 delante, 1 atras, 2 izq., 3 der.) para TTX66 */
-void (*scr_clear_hook)(int graphics) = 0;        /* borrar la pantalla (cleargrap o cleartext); 0 = el borrado por defecto */
-void (*scr_tt27)(u8 a) = dt_tt27;                /* pruebas: las fichas que imprime TTX66 */
-void (*scr_clearrow_hook)(u8 row) = 0;           /* pruebas: cada clearrow de CLYNS */
-void (*scr_chpr)(u8 a) = dt_chpr;                /* pruebas: los espacios de CLYNS */
-void (*scr_trace)(char k, u8 a) = 0;             /* pruebas: MT2 (m), FLFLLS (f) y ee3 (e) de TTX66 */
+u8 scr_text = 0;                                 /* text: bit 7 = text view (Apple II text mode) */
+u8 scr_viewdir = 0;                              /* VIEW: space view (0 front, 1 rear, 2 left, 3 right) for TTX66 */
+void (*scr_clear_hook)(int graphics) = 0;        /* screen clearing (cleargrap or cleartext); 0 = the default clear */
+void (*scr_tt27)(u8 a) = dt_tt27;                /* tests: the tokens TTX66 prints */
+void (*scr_clearrow_hook)(u8 row) = 0;           /* tests: each clearrow of CLYNS */
+void (*scr_chpr)(u8 a) = dt_chpr;                /* tests: the spaces of CLYNS */
+void (*scr_trace)(char k, u8 a) = 0;             /* tests: MT2 (m), FLFLLS (f) and ee3 (e) of TTX66 */
 
-/* BOX: linea azul de 0 a 255 en la fila 0 (HLOIN: cubre 0..253) y las esquinas (bytes 1 y 37 de la fila, %10101010: el
-   punto 254 tambien queda encendido) */
+/* BOX: blue line from 0 to 255 on row 0 (HLOIN: covers 0..253) and the corners (bytes 1 and 37 of the row, %10101010: dot 254
+   also stays lit) */
 void scr_box(void)
 {
-    if (view_native) return;                   /* vista de vuelo de 160 lineas: sin la linea azul de arriba (propio) */
+    if (view_native) return;                   /* 160-line flight view: without the blue line at the top (own) */
     lines_hloin(0, 255, 0, C_BLUE);
     gfx_pixel(254, 0, C_BLUE);
 }
 
-/* TTX66K: las vistas graficas (espacio, QQ11 = 13 y las cartas) borran la parte de arriba (cleargrap, 17 filas de texto) y
-   dibujan BOX; las de texto borran la pantalla de texto (el QL no tiene modo texto: se borra la pantalla entera) */
+/* TTX66K: the graphic views (space, QQ11 = 13 and the charts) clear the top part (cleargrap, 17 text rows) and
+   draw BOX; the text ones clear the text screen (the QL has no text mode: the whole screen is cleared) */
 static void ttx66k(void)
 {
     int graphics = (qq11 == 0 || qq11 == 13 || (qq11 & 0xC0));
     if (scr_clear_hook) scr_clear_hook(graphics);
     else if (!graphics) gfx_clear(C_BLACK);
     else {
-        if (qq11 == 13) gfx_clear(C_BLACK);      /* el titulo y la mision 1 del port ocupan toda la pantalla */
+        if (qq11 == 13) gfx_clear(C_BLACK);      /* the title and mission 1 of the port take up the whole screen */
         else gfx_fill_lines(0, clip_h, C_BLACK);
         scr_box();
     }
@@ -99,8 +99,8 @@ static void ttx66k(void)
     else scr_text = 0x80;                                       /* TEXT */
 }
 
-/* TT66 / TTX66: vista A; borra, reinicia el texto (MT2, Sentence Case, XC = YC = 1), FLFLLS en las graficas, LAS2, DLY y de a 0,
-   el contador del hiperespacio en (1, 1) si esta contando, y en la vista del espacio el nombre ("FRONT VIEW") en la columna 11 */
+/* TT66 / TTX66: view A; clears, resets the text (MT2, Sentence Case, XC = YC = 1), FLFLLS on the graphic ones, LAS2, DLY and de to 0,
+   the hyperspace counter at (1, 1) if it is counting, and in the space view the name ("FRONT VIEW") at column 11 */
 void tt66(u8 view)
 {
     qq11 = view;
@@ -111,22 +111,22 @@ void tt66(u8 view)
     dtw2 = 0x80;
     dt_xc = 1; dt_yc = 1;
     ttx66k();
-    if (!(scr_text & 0x80)) {                    /* FLFLLS (y el port olvida lo dibujado) */
+    if (!(scr_text & 0x80)) {                    /* FLFLLS (and the port forgets what was drawn) */
         if (scr_trace) scr_trace('f', 0);
         sun_flflls(); ships_forget_lines(); sun_forget();
-        circ_lsp = 0;                            /* sun_forget pone LSP = 1; TTX66 lo deja a 0 */
+        circ_lsp = 0;                            /* sun_forget sets LSP = 1; TTX66 leaves it at 0 */
     }
     laser_forget();                              /* LAS2 = 0 */
     dly = 0;
     mess_de = 0;
-    if (qq22[1]) {                               /* ee3: el contador con 3 cifras en (1, 1) */
+    if (qq22[1]) {                               /* ee3: the counter with 3 digits at (1, 1) */
         if (scr_trace) scr_trace('e', qq22[1]);
         else { dt_xc = 1; dt_yc = 1; dt_tt11(3, qq22[1], 0, 0); }
     }
     dt_yc = 1;                                   /* OLDBOX */
-    if (qq11 == 0 && !view_native) {             /* en la vista nativa de vuelo el nombre ya sale bajo el panel (propio) */
+    if (qq11 == 0 && !view_native) {             /* in the native flight view the name already appears under the panel (own) */
         dt_xc = 11;
-        scr_tt27((u8)(scr_viewdir | 0x60));      /* FRONT, REAR, LEFT o RIGHT */
+        scr_tt27((u8)(scr_viewdir | 0x60));      /* FRONT, REAR, LEFT or RIGHT */
         scr_tt27(' ');                           /* TT162 */
         scr_tt27(175);                           /* VIEW */
     }
@@ -136,8 +136,8 @@ void tt66(u8 view)
 
 void mis_tt66(u8 view) { tt66(view); }
 
-/* CLYNS: DLY = de = 0; en las vistas de texto, 64 espacios desde (1, 21); en las graficas se borran las filas de texto 15 y 16
-   (y = 120..135) y el cursor queda en (1, 15). DTW2 = $FF y QQ17 = $80 */
+/* CLYNS: DLY = de = 0; in the text views, 64 spaces from (1, 21); in the graphic ones text rows 15 and 16 are erased
+   (y = 120..135) and the cursor stays at (1, 15). DTW2 = $FF and QQ17 = $80 */
 void clyns(void)
 {
     u8 x;
@@ -171,21 +171,21 @@ void missions_hooks(void)
     dt_clyns_hook = clyns;
 }
 
-/* ---------------------------------------------------------------- rutinas de las misiones */
+/* ---------------------------------------------------------------- mission routines */
 
 void pas1(void) { mis_tt66(1); }                 /* PAS1 */
 void mis_pause(void) { pause2(); pas1(); }       /* PAUSE */
-void bris(void) { detok(216); delay(100); }      /* BRIS: INCOMING MESSAGE y 2 segundos */
+void bris(void) { detok(216); delay(100); }      /* BRIS: INCOMING MESSAGE and 2 seconds */
 
-static int brp(u8 a) { detok(a); return bay(); }      /* BRP: la ficha y BAY (pantalla de estado) */
+static int brp(u8 a) { detok(a); return bay(); }      /* BRP: the token and BAY (status screen) */
 
 int brief2(void) { tp = (u8)(tp | 0x04); return brp(11); }
 int brief3(void) { tp = (u8)((tp & 0xF0) | 0x0A); return brp(222); }
 
 int debrief2(void)
 {
-    tp = (u8)(tp | 0x04);                        /* mision 2 terminada */
-    engy = 2;                                    /* unidad de energia de la marina */
+    tp = (u8)(tp | 0x04);                        /* mission 2 completed */
+    engy = 2;                                    /* navy energy unit */
     tally[1]++;
     return brp(223);
 }
@@ -200,7 +200,7 @@ int debrief(void)
 void (*mis_ll9_hook)(void) = ship_ll9;
 void (*mis_mveit_hook)(void) = mveit;
 
-static void frame(void)                          /* LL9 y MVEIT del Constrictor de INWK */
+static void frame(void)                          /* LL9 and MVEIT of the Constrictor from INWK */
 {
     if (!in_script) in_poll();
     mis_ll9_hook();
@@ -211,7 +211,7 @@ int brief(void)
 {
     int n;
     u8 x;
-    tp = (u8)((tp & 0xFE) | 1);                  /* LSR TP; SEC; ROL TP: mision 1 en curso */
+    tp = (u8)((tp & 0xFE) | 1);                  /* LSR TP; SEC; ROL TP: mission 1 in progress */
     bris();
     ship_zinf();
     ztype = SHIPT_CONSTRICTOR;
@@ -224,13 +224,13 @@ int brief(void)
     zxx0 = ship_bp_for(SHIPT_CONSTRICTOR);
     move_xsav = 0;
     ships_hooks();
-    do {                                         /* BRL1: gira 64 vueltas */
+    do {                                         /* BRL1: spins 64 iterations */
         inwk[29] = 0x7F;
         inwk[30] = 0x7F;
         frame();
         mcnt--;
     } while (mcnt && !in_quit);
-    for (;;) {                                   /* BRL2: se aleja hacia arriba */
+    for (;;) {                                   /* BRL2: moves away upwards */
         if (in_quit) break;
         inwk[0] = (u8)(inwk[0] >> 1);
         if (++inwk[6] == 0) break;
@@ -246,8 +246,8 @@ int brief(void)
     return brp(10);
 }
 
-/* DOENTRY (la parte de las misiones): que sesion toca (MIS_*). Mision 1 en las galaxias 1 y 2 con rango Competent;
-   mision 2 en la galaxia 3 */
+/* DOENTRY (the missions part): which session applies (MIS_*). Mission 1 in galaxies 1 and 2 with Competent rank;
+   mission 2 in galaxy 3 */
 int missions_choose(void)
 {
     u8 a = (u8)(tp & 3);
@@ -260,12 +260,12 @@ int missions_choose(void)
     if (gcnt != 2) return MIS_NONE;              /* EN2 */
     a = (u8)(tp & 0x0F);
     if (a == 0x02) return tally[1] < 5 ? MIS_NONE : MIS_BRIEF2;
-    if (a == 0x06) return (qq0 == 215 && qq1 == 84) ? MIS_BRIEF3 : MIS_NONE;      /* EN3: en Ceerdi */
-    if (a == 0x0A) return (qq0 == 63 && qq1 == 72) ? MIS_DEBRIEF2 : MIS_NONE;     /* EN5: en Birera con los planos */
+    if (a == 0x06) return (qq0 == 215 && qq1 == 84) ? MIS_BRIEF3 : MIS_NONE;      /* EN3: at Ceerdi */
+    if (a == 0x0A) return (qq0 == 63 && qq1 == 72) ? MIS_DEBRIEF2 : MIS_NONE;     /* EN5: at Birera with the plans */
     return MIS_NONE;                             /* EN4: BAY */
 }
 
-int bay(void) { qq12 = 0xFF; return SC_STATUS; }       /* BAY: atracados y a la pantalla de estado (FRCE con f8) */
+int bay(void) { qq12 = 0xFF; return SC_STATUS; }       /* BAY: docked and to the status screen (FRCE with f8) */
 
 int missions_doentry(void)
 {
@@ -283,9 +283,9 @@ int missions_doentry(void)
     return bay();
 }
 
-/* PDESC (la parte de RUPLA/RUGAL/RUTOK): descripcion especial del sistema zz si estamos atracados en el. Devuelve 1 si la
-   ha impreso (en dt_xc/dt_yc); 0 si toca la descripcion normal. RUPLA tiene 26 entradas: el original pone NRU% = 0 y
-   recorre 256 posiciones de memoria (fallo que lo cuelga en algunos sistemas); aqui se recorren solo las 26 */
+/* PDESC (the RUPLA/RUGAL/RUTOK part): special description of system zz if we are docked in it. Returns 1 if it
+   printed it (in dt_xc/dt_yc); 0 if the normal description applies. RUPLA has 26 entries: the original sets NRU% = 0 and
+   walks 256 memory positions (a bug that hangs it in some systems); here only the 26 are walked */
 int pdesc(u8 zz, const u8 *q15)
 {
     u8 y, g, x;
@@ -297,9 +297,9 @@ int pdesc(u8 zz, const u8 *q15)
         if ((u8)(g & 0x7F) != gcnt) continue;
         if (g & 0x80) detok2(176);               /* PD3 */
         else {
-            if (!(tp & 1)) goto pd1;             /* solo durante la mision 1 */
+            if (!(tp & 1)) goto pd1;             /* only during mission 1 */
             dt_mt14();
-            detok2(1);                           /* LDA #1 (salta el LDA #176): DETOK2 con la ficha de salto 1 (MT1) */
+            detok2(1);                           /* LDA #1 (skips the LDA #176): DETOK2 with jump token 1 (MT1) */
         }
         detok3(y);
         detok(177);                              /* PD4 */
@@ -308,19 +308,19 @@ int pdesc(u8 zz, const u8 *q15)
 pd1:
     if (!q15) return 0;
     for (x = 0; x < 4; x++) em_rand[x] = q15[2 + x];   /* PD1: RAND = QQ15+2..5 */
-    detok(5);                                    /* la descripcion ("goat soup") con el motor de fichas */
+    detok(5);                                    /* the description ("goat soup") with the token engine */
     return 0;
 }
 
 
-/* ---------------------------------------------------------------- TT25: datos del sistema */
+/* ---------------------------------------------------------------- TT25: system data */
 
 
-/* TT25 con los datos del sistema en bruto (QQ3..QQ7, QQ15, QQ8, ZZ) */
+/* TT25 with the raw system data (QQ3..QQ7, QQ15, QQ8, ZZ) */
 void tt25_raw(const u8 *q15, u8 q3, u8 q4, u8 q5, u8 q6, u8 p7lo, u8 p7hi, u8 d8lo, u8 d8hi, u8 zz)
 {
     u8 a, q19;
-    if (dt_tt66_hook) dt_tt66_hook(1);           /* TRADEMODE con la vista 1 */
+    if (dt_tt66_hook) dt_tt66_hook(1);           /* TRADEMODE with view 1 */
     dt_xc = 9;
     dt_tt27(163);                                /* NLIN3: "DATA ON <sistema>" */
     if (dt_nlin4_hook) dt_nlin4_hook();
@@ -348,7 +348,7 @@ void tt25_raw(const u8 *q15, u8 q3, u8 q4, u8 q5, u8 q6, u8 p7lo, u8 p7hi, u8 d8
     dt_pr2(q6, 1);
     dt_tt60(198);
     dt_tt27('(');
-    if (q15[4] & 0x80) {                         /* TT75: especie alienigena */
+    if (q15[4] & 0x80) {                         /* TT75: alien species */
         a = (u8)(q15[5] >> 2);
         if ((a & 7) < 3) dt_spc((u8)((a & 7) + 227));
         a = (u8)(a >> 3);
@@ -374,14 +374,14 @@ void tt25_raw(const u8 *q15, u8 q3, u8 q4, u8 q5, u8 q6, u8 p7lo, u8 p7hi, u8 d8
     pdesc(zz, q15);
 }
 
-/* TT25 del sistema n de la galaxia actual, con la distancia de QQ8 */
+/* TT25 of system n of the current galaxy, with the distance in QQ8 */
 void tt25(int n)
 {
     const uni_system *p = &uni_galaxy[n];
     u8 q15[6];
     q15[0] = (u8)(p->seed0 & 255); q15[1] = (u8)(p->seed0 >> 8);
     q15[2] = p->goatsoupseed.a; q15[3] = p->goatsoupseed.b; q15[4] = p->goatsoupseed.c; q15[5] = p->goatsoupseed.d;
-    dt_nojustify = 1;                                  /* pantalla de datos: texto normal, cortando entre palabras */
+    dt_nojustify = 1;                                  /* data screen: normal text, breaking between words */
     tt25_raw(q15, p->economy, p->govtype, p->techlev, p->population, (u8)(p->productivity & 255), (u8)(p->productivity >> 8),
              qq8[0], qq8[1], (u8)n);
     dt_nojustify = 0;
@@ -390,18 +390,18 @@ void tt25(int n)
 void missions_set_ink(u8 c) { mis_ink = c; }
 void missions_set_title_ink(u8 c) { mis_title_ink = c; }
 
-/* ---------------------------------------------------------------- STATUS (pantalla de estado) */
+/* ---------------------------------------------------------------- STATUS (status screen) */
 
 static void mis_tt111_default(void) { game_tt111(); }
-void (*mis_tt111_hook)(void) = mis_tt111_default;      /* TT111: las pruebas lo sustituyen */
+void (*mis_tt111_hook)(void) = mis_tt111_default;      /* TT111: the tests replace it */
 
-/* STATUS: transcripcion del 6502 con el motor de fichas (cmn, BAY y el titulo "COMMANDER <nombre>" vienen de las fichas) */
+/* STATUS: 6502 transcription with the token engine (cmn, BAY and the title "COMMANDER <name>" come from tokens) */
 void status_mode(void)
 {
     u8 a, x, k, y;
     u8 *eq[4];
-    eq[0] = &bomb; eq[1] = &engy; eq[2] = &dkcmp; eq[3] = &ghyp;      /* BOMB, ENGY, DKCMP, GHYP: contiguos en el original */
-    if (dt_tt66_hook) dt_tt66_hook(8);           /* TRADEMODE con la vista 8 */
+    eq[0] = &bomb; eq[1] = &engy; eq[2] = &dkcmp; eq[3] = &ghyp;      /* BOMB, ENGY, DKCMP, GHYP: contiguous in the original */
+    if (dt_tt66_hook) dt_tt66_hook(8);           /* TRADEMODE with view 8 */
     if (mis_tt111_hook) mis_tt111_hook();        /* TT111 */
     dt_xc = 7;
     dt_tt27(126);                                /* NLIN3 */
@@ -410,12 +410,12 @@ void status_mode(void)
         detok(205);
         dt_tt67();
     } else {
-        a = 230;                                 /* verde; con naves cerca: amarillo o rojo segun ENERGY */
+        a = 230;                                 /* green; with ships nearby: yellow or red according to ENERGY */
         if (frin[2 + junk_count]) a = (u8)(a + 1 + (energy >= 128));
         dt_plf(a);                               /* st6 */
     }
     dt_spc(125);
-    a = 19;                                      /* estado legal */
+    a = 19;                                      /* legal status */
     if (fist) a = (u8)(20 + (fist >= 50));
     dt_plf(a);                                   /* st5 */
     dt_spc(16);
@@ -426,7 +426,7 @@ void status_mode(void)
         x = 0; a = (u8)(tally[0] >> 2);
         do { x++; a = (u8)(a >> 1); } while (a);
     }
-    dt_plf((u8)(x + 21));                        /* st3: rango */
+    dt_plf((u8)(x + 21));                        /* st3: rank */
     dt_plf2(18);
     if (escp) dt_plf2(112);
     if (bst) dt_plf2(111);

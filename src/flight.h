@@ -1,12 +1,12 @@
-/* Vuelo (PROVISIONAL): vista espacial con polvo estelar, panel de instrumentos basico, controles de velocidad,
-   cambio de vista, hiperespacio y atraque. Todavia no hay MVEIT, TACTICS, STARS ni DIALS del original:
-   el polvo es un sustituto simple y el atraque no exige llegar a la estacion. */
+/* Flight (PROVISIONAL): space view with stardust, basic instrument panel, speed controls,
+   view change, hyperspace and docking. There is still no MVEIT, TACTICS, STARS or DIALS of the original:
+   the dust is a simple substitute and docking does not require reaching the station. */
 #ifndef FLIGHT_H
 #define FLIGHT_H
-#define FL_DOCK 1                    /* el piloto ha atracado */
-#define FL_QUIT 2                    /* salida de emergencia */
-#define FL_DEATH 3                   /* hemos muerto (DEATH): se vuelve al titulo (DEATH2) */
-extern int flight_testkeys;          /* pruebas: N (nave), K (explotar) y C (atraque sin ordenador) */
+#define FL_DOCK 1                    /* the pilot has docked */
+#define FL_QUIT 2                    /* emergency exit */
+#define FL_DEATH 3                   /* we have died (DEATH): back to the title (DEATH2) */
+extern int flight_testkeys;          /* tests: N (ship), K (explode) and C (docking without computer) */
 int flight_run(void);
-void misjump(void);                  /* MJP: salto fallido al espacio entre sistemas (para las pruebas) */
+void misjump(void);                  /* MJP: failed jump into the space between systems (for the tests) */
 #endif

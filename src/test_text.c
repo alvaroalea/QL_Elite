@@ -8,7 +8,7 @@ int main(void)
     double r;
     plat_init(); txt_init(); gfx_clear(C_BLACK);
 
-    /* fondo de lineas para probar el papel transparente */
+    /* line background to test the transparent paper */
     for (a = 0; a < 360; a += 10) {
         r = a * 3.14159265 / 180.0;
         gfx_line(128, 150, 128 + (int)(100 * cos(r)), 150 + (int)(70 * sin(r)), (u8)((a / 10) % 7 + 1), 0);
@@ -19,7 +19,7 @@ int main(void)
     txt_print_at(0, 2, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     txt_print_at(0, 3, "abcdefghijklmnopqrstuvwxyz");
     txt_print_at(0, 4, "0123456789 !\"#$%&'()*+,-./:;<=>?@");
-    for (c = 1; c < 8; c++) {                         /* una linea por color de tinta */
+    for (c = 1; c < 8; c++) {                         /* one line per ink colour */
         txt_color((u8)c, C_BLACK);
         txt_at(c * 4, 6); s[0] = 'A' + c; s[1] = 0; txt_puts("TXT"); txt_puts(s);
     }
@@ -32,6 +32,6 @@ int main(void)
     plat_present();
     plat_wait_key();
     plat_shutdown();
-    plat_exit();                                  /* QL: sin "Press a key to exit" */
+    plat_exit();                                  /* QL: without "Press a key to exit" */
     return 0;
 }

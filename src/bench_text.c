@@ -1,12 +1,12 @@
-/* Cronometraje de la impresion de texto: caracteres por segundo y microsegundos por caracter.
-   Cada prueba imprime N caracteres y mide cuadros de 50 Hz (plat_ticks, resolucion 20 ms). Resultados en pantalla. */
+/* Timing of text printing: characters per second and microseconds per character.
+   Each test prints N characters and measures 50 Hz ticks (plat_ticks, 20 ms resolution). Results on screen. */
 #include "text.h"
 #include <stdlib.h>
 
 #define N 2000L
 
 static const char line32[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
-static int use_sub = 0;                    /* 0: cifras con % y / (como era ui_num); 1: restas de potencias de 10 (dec_digits) */
+static int use_sub = 0;                    /* 0: digits with % and / (as ui_num was); 1: subtractions of powers of 10 (dec_digits) */
 
 static void put_num(unsigned long v)
 {
@@ -25,10 +25,10 @@ static void put_num(unsigned long v)
         while (i) o[n++] = b[--i];
     }
     o[n] = 0;
-    txt_puts(o);                                    /* como ui_num: la cadena de una vez */
+    txt_puts(o);                                    /* like ui_num: the string at once */
 }
 
-/* imprime en la fila 'row' "nombre cuadros us/car"; nchars = caracteres impresos en la prueba */
+/* prints on row 'row' "name ticks us/char"; nchars = characters printed in the test */
 static void report(int row, const char *name, unsigned long t, unsigned long nchars)
 {
     txt_color(C_WHITE, C_BLACK);
@@ -46,7 +46,7 @@ static unsigned long run_putc(int transp)
     t0 = plat_ticks();
     for (i = 0; i < N; i++) {
         txt_putc('A' + (int)(i & 15));
-        if ((i & 31) == 31) txt_at(0, ((int)(i >> 5) & 7));          /* vuelve a las filas 0..7 */
+        if ((i & 31) == 31) txt_at(0, ((int)(i >> 5) & 7));          /* back to rows 0..7 */
     }
     return plat_ticks() - t0;
 }
@@ -61,7 +61,7 @@ static unsigned long run_puts(void)
     return plat_ticks() - t0;
 }
 
-/* 15 caracteres por vuelta: 7 cifras y 8 espacios */
+/* 15 characters per iteration: 7 digits and 8 spaces */
 static unsigned long run_num(void)
 {
     long i;
@@ -72,14 +72,14 @@ static unsigned long run_num(void)
     return plat_ticks() - t0;
 }
 
-/* Calibracion: tiempo de un bucle de C trivial (velocidad de la maquina sin texto ni pantalla) */
+/* Calibration: time of a trivial C loop (machine speed without text or screen) */
 static unsigned long run_loop(long n)
 {
     long i;
     unsigned long t0, s = 0;
     t0 = plat_ticks();
     for (i = 0; i < n; i++) s += (unsigned long)i;
-    if (s == 1UL) txt_putc(' ');                                  /* para que no se descarte */
+    if (s == 1UL) txt_putc(' ');                                  /* so it is not optimised away */
     return plat_ticks() - t0;
 }
 
@@ -97,7 +97,7 @@ int main(void)
     t_n2 = run_num();
     use_sub = 0;
     t_ram = 0;
-    ram = (u8 *)malloc(32768L);                 /* el mismo putc opaco, pero escribiendo en RAM normal y no en la de video */
+    ram = (u8 *)malloc(32768L);                 /* the same opaque putc, but writing to normal RAM and not video RAM */
     if (ram) {
         video = screen; screen = ram;
         t_ram = run_putc(0);

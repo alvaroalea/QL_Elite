@@ -33,14 +33,14 @@ int in_poll(void)
     int ch;
     frames++;
     if (in_script) {
-        key_scan();                                       /* con guion tambien se lee la matriz (pruebas: host_matrix) para los controles de vuelo */
+        key_scan();                                       /* with a script the matrix is also read (tests: host_matrix) for the flight controls */
         ch = in_script();
         if (ch == KC_QUIT) in_quit = 1;
         return ch;
     }
     key_scan();
-    plat_present();                                   /* QL: vacia la cola de teclado de la consola */
-    snd_tick(20);                                     /* ~50 fotogramas por segundo: provisional */
+    plat_present();                                   /* QL: empties the console keyboard queue */
+    snd_tick(20);                                     /* ~50 frames per second: provisional */
     ch = key_getchar();
     if (ch >= 0) return ch;
     if (key_pressed(K_UP)) return KC_UP;

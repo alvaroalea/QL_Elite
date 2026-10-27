@@ -1,4 +1,4 @@
-# Transcripcion literal (con acarreo explicito) de mas rutinas aritmeticas de Elite Apple II.
+# Literal transcription (with explicit carry) of more arithmetic routines of Apple II Elite.
 import math,sys
 sys.path.insert(0,'tools')
 exec(open('tools/gen_tables.py').read().split("def arr")[0])
@@ -20,7 +20,7 @@ def ll5(R,Q):
             X=((X<<1)|c2)&255
     return Q
 def ll28(A,Q,check=True):
-    # devuelve (R, carry)
+    # returns (R, carry)
     if check and A>=Q: return 255,1
     if A==0: return 0,0
     lo=LOGL[A]-LOGL[Q]; b=1 if lo<0 else 0
@@ -43,7 +43,7 @@ def ll61(A,Q,U):
         if X==0: break
     return A,U
 def ll38(A,S,Q,R):
-    # devuelve (A,S,carry)
+    # returns (A,S,carry)
     if not ((A^S)&0x80):
         s=Q+R; return s&255,S,s>>8
     d=R-Q
@@ -51,7 +51,7 @@ def ll38(A,S,Q,R):
     S^=0x80; a=(d&255)^255; s=a+1
     return s&255,S,s>>8
 def dvid4(A,Q):
-    # devuelve (P, R)
+    # returns (P, R)
     c=A>>7; P=(A<<1)&255; A=0
     for _ in range(8):
         # ROL A
@@ -60,15 +60,15 @@ def dvid4(A,Q):
         else: c=0
         # ROL P
         nc=P>>7; P=((P<<1)|c)&255; c=nc
-    # ROL A siguiente iteracion usa c: se maneja en el bucle; tras la ultima, c es el bit sacado de P
+    # ROL A next iteration uses c: handled in the loop; after the last one, c is the bit shifted out of P
     R,_=ll28(A,Q,False) if A!=0 or True else (0,0)
     return P,R
 def dvidt(A,P,Q):
-    # (P+1 A) = (A P)/Q  signo-magnitud, Q con signo
+    # (P+1 A) = (A P)/Q  sign-magnitude, signed Q
     P1=A; T=(A^Q)&0x80
     A=0
     c=P>>7; P=(P<<1)&255; P1=((P1<<1)|c)&255
-    c2=0                       # ASL Q; LSR Q deja C = 0: el bit que sale de P+1 se pierde
+    c2=0                       # ASL Q; LSR Q leaves C = 0: the bit shifted out of P+1 is lost
     Q=Q&0x7F
     for _ in range(16):
         nc=A>>7; A=((A<<1)|c2)&255; c2=nc
@@ -134,7 +134,7 @@ def dvid3b(P0,P1,P2,Qin,Rin,Sin):
         K[0]=A; K[3]=T
     return K
 if __name__=='__main__':
-    # formas cerradas
+    # closed forms
     bad=sum(1 for v in range(65536) if ll5(v>>8,v&255)!=math.isqrt(v)); print('LL5 = isqrt(R*256+Q): fallos',bad)
     bad=0
     for A in range(256):

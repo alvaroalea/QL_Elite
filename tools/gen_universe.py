@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_univ.txt ejecutando en el emulador de 6502 el codigo ORIGINAL de:
-   G  las 8 galaxias: semillas de galaxia (G1 de Ghy), TT81, TT20/TT54, TT24 y cpl (nombre) de los 256 sistemas
-   N  TT111 (sistema mas cercano a un punto, distancia QQ8 con SQUA2 y LL5) y jmp
-   V  GVL (QQ26 con DORND y disponibilidad AVL) y TT151 (precio QQ24 y GC2)
-   W  secuencias de NWSHP y KILLSHP (con KS2) sobre K%, FRIN, MANY, JUNK y el monton de lineas (SHIPS.bin de los binarios
-      de referencia en $A300); ZINF
-Requiere ELITE_SRC. Uso: python3 tools/gen_universe.py [n] [semilla]"""
+"""Generates tests/vectors_univ.txt by running the ORIGINAL code for the following in the 6502 emulator:
+   G  the 8 galaxies: galaxy seeds (G1 of Ghy), TT81, TT20/TT54, TT24 and cpl (name) of the 256 systems
+   N  TT111 (system nearest a point, distance QQ8 with SQUA2 and LL5) and jmp
+   V  GVL (QQ26 with DORND and AVL availability) and TT151 (price QQ24 and GC2)
+   W  sequences of NWSHP and KILLSHP (with KS2) on K%, FRIN, MANY, JUNK and the line heap (SHIPS.bin from the reference
+      binaries at $A300); ZINF
+Requires ELITE_SRC. Usage: python3 tools/gen_universe.py [n] [seed]"""
 import sys, random, re, os
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -18,9 +18,9 @@ def pick(*v): return random.choice(v)
 out = []
 SRC = os.environ['ELITE_SRC']
 REF = os.path.join(SRC, '..', '..', '4-reference-binaries', 'ib-disk')
-QQ21_0 = [0x4A, 0x5A, 0x48, 0x02, 0x53, 0xB7]       # semillas de la galaxia 1 (JAMESON)
+QQ21_0 = [0x4A, 0x5A, 0x48, 0x02, 0x53, 0xB7]       # seeds of galaxy 1 (JAMESON)
 
-# ---------------------------------------------------------------- G: galaxias
+# ---------------------------------------------------------------- G: galaxies
 gal = ['.GALX', ' LDX #5'] + rng(lab('G1'), lab('zZ')) + [' RTS']
 math_ = rng(nl('SQUA2') - 1, nx(nl('MU11')) - 1) + rng(nl('LL5') - 1, nx(nl('LL5')) - 1)
 uni = gal + routine('TT81') + routine('TT20') + routine('TT54') + routine('TT24') + routine('cpl') + routine('TT111') + math_ + routine('jmp') + routine('ping') + rng(lab('hyp1'), lab('GVL')) + ['.GVL', ' RTS']
@@ -51,7 +51,7 @@ for g in range(8):
                    m[S['QQ6']], m[S['QQ7']], m[S['QQ7'] + 1], name()))
         cpu.run(S['TT20'])
 
-# ---------------------------------------------------------------- N: TT111 y jmp
+# ---------------------------------------------------------------- N: TT111 and jmp
 seeds = []
 cpu.mem[S['QQ21']:S['QQ21'] + 6] = bytes(QQ21_0)
 for g in range(8):
@@ -67,23 +67,23 @@ for _ in range(n):
     r = '%d %s %d %d %d %d' % (m[S['ZZ']], hx(m[S['QQ15']:S['QQ15'] + 6]), m[S['QQ9']], m[S['QQ10']], m[S['QQ8']] | (m[S['QQ8'] + 1] << 8), m[S['QQ3']])
     cpu.run(S['jmp'])
     j0, j1 = cpu.mem[S['QQ0']], cpu.mem[S['QQ1']]
-    cpu.run(S['TT111'])                                  # otra vez desde las coordenadas del elegido (hyp, TT110, STATUS...): gemelos
+    cpu.run(S['TT111'])                                  # again from the chosen one's coordinates (hyp, TT110, STATUS...): twins
     out.append('N %d %d %d %d %d | %s %d %d %d' % (g, x, y, x0, y0, r, j0, j1, cpu.mem[S['ZZ']]))
 
 
-# ---------------------------------------------------------------- H y P: hyp1+3 (la entrada que usa TT18: jmp, safehouse) y ping
+# ---------------------------------------------------------------- H and P: hyp1+3 (the entry used by TT18: jmp, safehouse) and ping
 for _ in range(n // 2):
     g = random.randrange(8)
     x, y, x0, y0 = rb(), rb(), rb(), rb()
     cpu.mem[S['QQ21']:S['QQ21'] + 6] = seeds[g]
     cpu.mem[S['QQ9']] = x; cpu.mem[S['QQ10']] = y; cpu.mem[S['QQ0']] = x0; cpu.mem[S['QQ1']] = y0
     cpu.mem[S['ZZ']] = 0xEE; cpu.mem[S['QQ19']:S['QQ19'] + 6] = bytes(6)
-    cpu.run(S['TT111'])                                  # TTX111 deja en safehouse las semillas del sistema elegido
+    cpu.run(S['TT111'])                                  # TTX111 leaves the chosen system's seeds in safehouse
     cpu.mem[S['safehouse']:S['safehouse'] + 6] = cpu.mem[S['QQ15']:S['QQ15'] + 6]
     ev0 = rb(); q2 = [rb() for _ in range(6)]
     cpu.mem[S['EV']] = ev0; cpu.mem[S['QQ2']:S['QQ2'] + 6] = bytes(q2)
     cpu.mem[S['QQ0']] = x0; cpu.mem[S['QQ1']] = y0
-    cpu.run(S['hyp1'] + 3)                               # TT18 llama a hyp1+3: sin el JSR TT111
+    cpu.run(S['hyp1'] + 3)                               # TT18 calls hyp1+3: without the JSR TT111
     m = cpu.mem
     out.append('H %d %d %d %d %d %d | %d %d %s %d %d %d %d' % (g, x, y, x0, y0, ev0, m[S['QQ0']], m[S['QQ1']], hx(m[S['QQ2']:S['QQ2'] + 6]), m[S['EV']],
                m[S['QQ28']], m[S['tek']], m[S['gov']]))
@@ -93,7 +93,7 @@ for _ in range(n // 8):
     cpu.run(S['ping'])
     out.append('P %d %d %d %d | %d %d' % (x0, y0, x, y, cpu.mem[S['QQ9']], cpu.mem[S['QQ10']]))
 
-# ---------------------------------------------------------------- V: GVL y TT151
+# ---------------------------------------------------------------- V: GVL and TT151
 def items(lines):                                  # macro ITEM price, factor, units, quantity, mask
     o = []
     for l in lines:
@@ -125,7 +125,7 @@ for _ in range(n):
         pr.append(price[0] if price else -1)
     out.append('V %s %d %d | %d %s %s %s' % (hx(rnd), c0, eco, q26, hx(avl), hx(cpu.mem[S['RAND']:S['RAND'] + 4]), ','.join(map(str, pr))))
 
-# ---------------------------------------------------------------- W: NWSHP, KILLSHP (KS2) y ZINF
+# ---------------------------------------------------------------- W: NWSHP, KILLSHP (KS2) and ZINF
 ks = routine('NWSHP') + routine('GINF') + ['.UNIV'] + [' EQUW K%% + %d' % (i * 37) for i in range(9)] + routine('KS4') + routine('KILLSHP') + routine('KS2') + routine('KS3') + routine('ZINF')
 cpu, S = build(ks, None)
 cpu.hooks[S['ABORT']] = lambda c: c.wr(S['MSTG'], 0xFF)          # ABORT: MSTG = $FF
@@ -145,7 +145,7 @@ def state():
     blk = []
     for k in range(NOSH_):
         b = bytearray(m[S['K%'] + k * NI_:S['K%'] + (k + 1) * NI_])
-        if m[S['FRIN'] + k] == 0: b = bytearray(NI_)             # ranura libre: lo que quede en K% no cuenta
+        if m[S['FRIN'] + k] == 0: b = bytearray(NI_)             # free slot: whatever is left in K% does not count
         blk.append(hx(b))
     return s + ','.join(blk) + ' %d' % (m[S['SLSP']] | (m[S['SLSP'] + 1] << 8))
 fails = 0
@@ -167,7 +167,7 @@ for _ in range(n // 4):
             if cpu.mem[S['FRIN'] + x] == S['SST']: continue
             if random.random() < 0.3: cpu.mem[S['MSTG']] = random.choice(occ)
             ops.append('k%d:%d' % (x, cpu.mem[S['MSTG']]))
-            t = cpu.mem[S['FRIN'] + x]                # quien llama (KS1, en el bucle de vuelo) tiene INF y XX0 de esa nave
+            t = cpu.mem[S['FRIN'] + x]                # the caller (KS1, in the flight loop) has INF and XX0 of that ship
             inf = S['K%'] + x * NI_
             cpu.mem[S['INF']] = inf & 255; cpu.mem[S['INF'] + 1] = inf >> 8
             cpu.mem[S['XX0']] = cpu.mem[S['XX21'] + 2 * t - 2]; cpu.mem[S['XX0'] + 1] = cpu.mem[S['XX21'] + 2 * t - 1]
@@ -181,7 +181,7 @@ for _ in range(20):
     cpu.run(S['ZINF'])
     out.append('Z %s | %s' % (hx(iw), hx(cpu.mem[S['INWK']:S['INWK'] + NI_])))
 
-# ---------------------------------------------------------------- F: fuente (FONT del Apple II, la que dibuja letter)
+# ---------------------------------------------------------------- F: font (Apple II FONT, the one letter draws)
 fnt = open(os.path.join(SRC, '..', 'fonts', 'A.FLOWY.bin'), 'rb').read()
 for c in range(32, 128): out.append('F %d %s' % (c, hx(fnt[(c - 32) * 8:(c - 31) * 8])))
 

@@ -18,7 +18,7 @@ int main(void)
             for (j = 0; j < 32768L; j++) h = (unsigned short)(((h << 5) | (h >> 11)) ^ screen[j]);
             screen[40000 - 40000 + 0] = screen[0];
             n++;
-            /* guarda el hash en un area aparte: usamos un array estatico */
+            /* stores the hash in a separate area: we use a static array */
             {
                 static unsigned short hs[200];
                 hs[t * 6 + k - 6] = h;

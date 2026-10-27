@@ -1,5 +1,5 @@
-/* Dashboard contra el codigo original en el emulador (tools/gen_dash.py): DIALS completo (DIS1, DIS2, DIS5, COMPAS, SP1, SP2, DOT),
-   MSBAR, msblob, SCAN, cntr, BUMP2 y REDU2. Las primitivas (HLOIN, VLOIN, PIXEL, CPIX) se comparan por sus argumentos. */
+/* Dashboard against the original code in the emulator (tools/gen_dash.py): full DIALS (DIS1, DIS2, DIS5, COMPAS, SP1, SP2, DOT),
+   MSBAR, msblob, SCAN, cntr, BUMP2 and REDU2. The primitives (HLOIN, VLOIN, PIXEL, CPIX) are compared by their arguments. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +27,7 @@ static void tr(char k, u8 a, u8 b, u8 c, u8 d)
 static void hexs(char *d, const u8 *b, int n) { int i; for (i = 0; i < n; i++) sprintf(d + 2 * i, "%02x", b[i]); }
 static void rdh(const char *s, u8 *b, int n) { int i; char t[3]; t[2] = 0; for (i = 0; i < n; i++) { t[0] = s[2 * i]; t[1] = s[2 * i + 1]; b[i] = (u8)strtol(t, 0, 16); } }
 static char *trim(char *s) { char *e; while (*s == ' ') s++; e = s + strlen(s); while (e > s && (e[-1] == ' ' || e[-1] == '\n')) *--e = 0; return s; }
-/* quita de una traza del original las llamadas con color 0 (el port no dibuja lo que no se ve) */
+/* removes from an original trace the calls with colour 0 (the port does not draw what cannot be seen) */
 static void drop0(char *t)
 {
     char out[4000], *p = t, *q;
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         if (line[0] == 'P') line[0] = 'E', pflag = 1; else pflag = 0;
         k = (int)(strchr(kinds, line[0]) - kinds);
         got[0] = 0; st[0] = 0;
-        if (k == 7) {                                   /* bombillas: E (ECBLB) y S (SPBLB) en XOR sobre una pantalla negra */
+        if (k == 7) {                                   /* bulbs: E (ECBLB) and S (SPBLB) in XOR on a black screen */
             char exp[2000] = "", have[2000] = "";
             int x, y;
             gfx_clear(C_BLACK);

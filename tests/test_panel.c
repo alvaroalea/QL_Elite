@@ -1,5 +1,5 @@
-/* Texto bajo el panel de vuelo: pintar un estado nuevo encima de otro (solo se vacia el rectangulo que sobra, con gfx_clear_cells)
-   deja la pantalla igual que pintarlo desde cero. Se incluye flight.c para llegar a sus funciones internas. */
+/* Text under the flight panel: painting a new state over another (only the leftover rectangle is emptied, with gfx_clear_cells)
+   leaves the screen the same as painting it from scratch. flight.c is included to reach its internal functions. */
 #include <stdio.h>
 #include <string.h>
 #include "../src/flight.c"
@@ -8,7 +8,7 @@ static int fails, total;
 static void check(int ok, const char *m) { total++; if (!ok) { fails++; printf("FALLO: %s\n", m); } }
 static u8 snap[32768];
 
-static void fresh(void)                                  /* pantalla vacia y todo pintado de cero */
+static void fresh(void)                                  /* empty screen and everything painted from scratch */
 {
     memset(screen, 0, 32768);
     panel_static();
@@ -25,16 +25,16 @@ int main(void)
         int sa = (a * 37) % 200, sb = (b * 53) % 200, ta = (a * 11) % 200, tb = (b * 29) % 200;
         view = a & 3;
         cur_sys = sa; tgt_sys = ta; cash_set(cashes[a]);
-        fresh();                                         /* estado A */
+        fresh();                                         /* state A */
         view = b & 3;
         cur_sys = sb; tgt_sys = tb; cash_set(cashes[b]);
-        panel_update();                                  /* A -> B encima */
+        panel_update();                                  /* A -> B on top */
         memcpy(snap, screen, 32768);
-        fresh();                                         /* B desde cero */
+        fresh();                                         /* B from scratch */
         for (k = 0; k < 32768 && snap[k] == screen[k]; k++) ;
         check(k == 32768, "estado nuevo sobre el viejo = estado nuevo desde cero");
     }
-    /* el cobro de una recompensa solo cambia la linea de creditos */
+    /* collecting a reward only changes the credits line */
     cur_sys = 7; tgt_sys = 9; view = 0; cash_set(1000UL);
     fresh();
     memcpy(snap, screen, 32768);

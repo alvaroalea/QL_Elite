@@ -1,6 +1,6 @@
-; ql_ipc.asm - llamada a MT.IPCOM (trap #1, D0=$11), sintaxis de as68 (XTC68).
-; long ql_ipc(char *blk)  -> D1.B de la respuesta (0..255) o codigo de error negativo
-; Convencion de c68: argumentos en la pila; el resultado va en D0.
+; ql_ipc.asm - call to MT.IPCOM (trap #1, D0=$11), as68 syntax (XTC68).
+; long ql_ipc(char *blk)  -> D1.B of the reply (0..255) or negative error code
+; c68 convention: arguments on the stack; the result goes in D0.
 	.globl	_ql_ipc
 	.text
 _ql_ipc:
@@ -16,10 +16,10 @@ ipcfin:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; ql_trap3.asm (misma unidad) - llamada generica a un trap #3 de QDOS (E/S de canal), sintaxis as68.
+; ql_trap3.asm (same unit) - generic call to a QDOS trap #3 (channel I/O), as68 syntax.
 ; long ql_trap3(long d0, long d1, long d2, long d3, long a0, long a1)
-; Carga los registros, ejecuta trap #3 y devuelve D0 (0 = ok, negativo = error QDOS, p. ej. -1 = ERR.NC).
-; Los argumentos estan tras 11 registros guardados (44 bytes) + direccion de retorno: primero en 48(sp).
+; Loads the registers, executes trap #3 and returns D0 (0 = ok, negative = QDOS error, e.g. -1 = ERR.NC).
+; The arguments are after 11 saved registers (44 bytes) + return address: first at 48(sp).
 	.globl	_ql_trap3
 _ql_trap3:
 	movem.l	d2-d7/a2-a6,-(sp)
@@ -33,10 +33,10 @@ _ql_trap3:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; ql_trap1 (misma unidad) - llamada generica a un trap #1 de QDOS (gestor de trabajos), sintaxis as68.
+; ql_trap1 (same unit) - generic call to a QDOS trap #1 (job manager), as68 syntax.
 ; long ql_trap1(long d0, long d1, long d2, long d3)
-; Carga D0..D3, ejecuta trap #1 y devuelve D0. Se usa con D0=5 (MT.FRJOB), D1=-1 (este trabajo), D3=0 para
-; terminar el programa sin pasar por la salida del runtime de c68 (que escribe "Press a key to exit" y espera una tecla).
+; Loads D0..D3, executes trap #1 and returns D0. Used with D0=5 (MT.FRJOB), D1=-1 (this job), D3=0 to
+; end the program without going through the c68 runtime's exit (which writes "Press a key to exit" and waits for a key).
 	.globl	_ql_trap1
 _ql_trap1:
 	movem.l	d2-d7/a2-a6,-(sp)
@@ -48,10 +48,10 @@ _ql_trap1:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; Reloj de 50 Hz (misma unidad): una tarea enlazada a la interrupcion de cuadro de QDOS (MT.LPOLL, trap #1, D0=$1C) suma 1 a
-; tk_count en cada cuadro (50 por segundo; 60 en un QL americano). void ql_tick_on(void) la enlaza, void ql_tick_off(void) la quita
-; (MT.RPOLL, D0=$1D; hay que hacerlo antes de terminar: el codigo de la tarea desaparece con el trabajo) y long ql_ticks(void)
-; devuelve la cuenta. Bloque de enlace: +0 enlace (lo usa QDOS), +4 direccion de la rutina.
+; 50 Hz clock (same unit): a task linked to the QDOS frame interrupt (MT.LPOLL, trap #1, D0=$1C) adds 1 to
+; tk_count on every frame (50 per second; 60 on an American QL). void ql_tick_on(void) links it, void ql_tick_off(void) removes it
+; (MT.RPOLL, D0=$1D; it must be done before ending: the task's code disappears with the job) and long ql_ticks(void)
+; returns the count. Link block: +0 link (used by QDOS), +4 address of the routine.
 	.globl	_ql_tick_on
 _ql_tick_on:
 	movem.l	d2-d7/a2-a6,-(sp)

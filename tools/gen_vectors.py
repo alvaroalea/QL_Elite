@@ -1,4 +1,4 @@
-# Genera tests/vectors.txt con la salida de la transcripcion literal de las rutinas (referencia).
+# Generates tests/vectors.txt with the output of the literal transcription of the routines (reference).
 import sys,random,math; sys.path.insert(0,'tools')
 from ref6502 import *
 exec(open('tools/gen_tables.py').read().split("def arr")[0])
@@ -53,7 +53,7 @@ for _ in range(60000):
     out.append("dvid96 %d %d"%(A,dvid96(A)))
     a,c=fmltu(A,Q); out.append("fmltu %d %d %d %d"%(A,Q,a,c))
     a,p1,p0=mltu2(A,P,Q); out.append("mltu2 %d %d %d %d %d %d"%(A,P,Q,a,p1,p0))
-# aleatorio: semilla y 300 salidas
+# random: seed and 300 outputs
 st=[0x11,0x22,0x33,0x44]
 def dornd(st,c):
     a=st[0]; carry=(a>>7)&1; a=((a<<1)|c)&255; x=a

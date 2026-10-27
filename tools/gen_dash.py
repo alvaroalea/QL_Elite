@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_dash.txt con el codigo ORIGINAL del grupo Dashboard en el emulador de 6502 (Maths real; HLOIN, VLOIN, PIXEL y
-CPIX registran sus argumentos):
-  D  DIALS completo (DIS1, DIS2, DIS5, COMPAS, DOT, SP1, SP2, SPS1, SPS2, SPS4...) a partir de un estado anterior al azar
-  M  MSBAR (X, Y) y msblob con mscol al azar
+"""Generates tests/vectors_dash.txt with the ORIGINAL Dashboard group code in the 6502 emulator (real Maths; HLOIN, VLOIN, PIXEL and
+CPIX log their arguments):
+  D  full DIALS (DIS1, DIS2, DIS5, COMPAS, DOT, SP1, SP2, SPS1, SPS2, SPS4...) from a random previous state
+  M  MSBAR (X, Y) and msblob with random mscol
   S  SCAN (INWK, TYPE)
-  C  cntr, BUMP2 y REDU2 (X, A, DAMP, DJD, auto)
-Se comprueba con tests/test_dash (make test_dash). Requiere ELITE_SRC. Uso: python3 tools/gen_dash.py [n] [semilla]"""
+  C  cntr, BUMP2 and REDU2 (X, A, DAMP, DJD, auto)
+Checked with tests/test_dash (make test_dash). Requires ELITE_SRC. Usage: python3 tools/gen_dash.py [n] [seed]"""
 import sys, random, re, os
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -33,7 +33,7 @@ for a, b in blocks:
 dash = rng(nl('DIALS') - 1, nl('ESCAPE') - 1) + routine('COMPAS') + routine('SP1') + routine('SP2') + [l.replace('COR1', 'DOTRTS') for l in routine('DOT')] + ['.DOTRTS', ' RTS'] + rng(nl('MSBARS') - 1, nl('HLOIN') - 1) + [' JMP HLOIN']
 dash += rng(nl('msblob') - 1, nx(nl('msblob')) - 1) + rng(nl('MSBAR') - 1, nl('msloc') - 1) + ['.coolkey', ' CLC', ' RTS'] + rng(nl('msloc') - 1, nx(nl('msloc')) - 1) + rng(nl('SCAN') - 1, nl('HGR') - 1 if False else nx(nl('SCAN')) - 1)
 dash += preprocess(L[nl('cntr') - 1:nx(nl('REDU2')) - 1])
-def fix(lines):                                   # EQUD %binario o $hex o decimal -> 4 EQUB (little endian)
+def fix(lines):                                   # EQUD %binary or $hex or decimal -> 4 EQUB (little endian)
     out = []
     for l in lines:
         mm = re.match(r'^EQUD\s+([%$]?)([0-9A-Fa-f]+)$', code(l))
@@ -60,7 +60,7 @@ rec('HLOIN', lambda c: 'h %d %d %d %d' % (m[S['X1']], m[S['X2']], m[S['Y1']], m[
 rec('VLOIN', lambda c: 'v %d %d %d %d' % (m[S['X1']], m[S['Y1']], m[S['Y2']], m[S['COL']]))
 rec('PIXEL', lambda c: 'p %d %d %d' % (c.x, c.a, m[S['ZZ']]))
 def cpix(c):
-    log.append('c %d %d %d' % (c.x, c.a, m[S['COL']])); m[S['Y1']] = c.a        # CPIX empieza con STA Y1
+    log.append('c %d %d %d' % (c.x, c.a, m[S['COL']])); m[S['Y1']] = c.a        # CPIX starts with STA Y1
 cpu.hooks[S['CPIX']] = cpix
 def hx(b): return ''.join('%02x' % v for v in b)
 SPEC = [0, 1, 2, 3, 0x1F, 0x20, 0x3F, 0x40, 0x5F, 0x60, 0x7F, 0x80, 0x81, 0xBF, 0xC0, 0xE0, 0xFF]
@@ -85,7 +85,7 @@ for _ in range(n):
     m[S['SSPR']] = random.choice([0, 0, 1])
     for k in range(S['K%'], S['K%'] + 2 * NI): m[k] = B()
     if random.random() < 0.5:
-        for k in (1, 4, 7): m[S['K%'] + k] = random.randrange(64)          # posiciones razonables
+        for k in (1, 4, 7): m[S['K%'] + k] = random.randrange(64)          # reasonable positions
     ks = hx(m[S['K%']:S['K%'] + 2 * NI])
     inp = ' '.join('%d' % m[S[nm]] for nm in ('DELTA', 'ALP1', 'BET1', 'ENERGY', 'FSH', 'ASH', 'QQ14', 'ALTIT', 'CABTMP', 'GNTMP', 'MCNT')) + ' %d %d %d %d' % (m[S['ALP2'] + 1], m[S['BET2']], m[S['FLH']], m[S['SSPR']])
     pre = dstate()
@@ -131,7 +131,7 @@ for _ in range(n):
 open('tests/vectors_dash.txt', 'w').write('\n'.join(out) + '\n')
 print(len(out), 'vectores')
 
-# ---------------------------------------------------------------- bombillas E y S (BULB + letter2 en la pantalla hires)
+# ---------------------------------------------------------------- E and S bulbs (BULB + letter2 on the hires screen)
 def fixd(lines):
     o = []
     for l in lines:

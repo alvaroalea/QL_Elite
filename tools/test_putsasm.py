@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Compara src/ql_text.asm (ql_puts, ejecutada con tools/m68k_mini.py) con su version en C (text.c): dibuja celdas seguidas mientras el
-caracter sea imprimible (32..127) y no se llegue a maxn; cada linea r del glifo es pp ^ (fm[b] & dd), palabra larga en dst + 128 * r (la celda
-siguiente, 4 bytes mas alla); devuelve cuantas dibujo. Tablas, cadenas, colores, maxn y direcciones aleatorios; no debe tocar nada mas de
-la memoria ni cambiar la pila. Uso: python3 tools/test_putsasm.py [casos]"""
+"""Compares src/ql_text.asm (ql_puts, run with tools/m68k_mini.py) with its C version (text.c): draws consecutive cells while the
+character is printable (32..127) and maxn is not reached; each glyph line r is pp ^ (fm[b] & dd), a long word at dst + 128 * r (the next
+cell, 4 bytes further on); returns how many it drew. Random tables, strings, colours, maxn and addresses; it must not touch anything else in
+memory nor change the stack. Usage: python3 tools/test_putsasm.py [cases]"""
 import os, random, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import m68k_mini
@@ -22,9 +22,9 @@ for k in range(n):
     kind = k % 4
     L = rnd.randrange(0, 33)
     s = [rnd.randrange(32, 128) for _ in range(L)]
-    if kind == 1 and L: s[rnd.randrange(L)] = rnd.choice([0, 10, 13, 8, 31, 128, 200, 255])     # un caracter que corta la tira
-    if kind == 2: s = [32, 127, 32, 127][:L]                                                    # los extremos del rango
-    s += [0, 65, 66]                                                                              # fin de cadena y lo que sigue
+    if kind == 1 and L: s[rnd.randrange(L)] = rnd.choice([0, 10, 13, 8, 31, 128, 200, 255])     # a character that cuts the strip
+    if kind == 2: s = [32, 127, 32, 127][:L]                                                    # the ends of the range
+    s += [0, 65, 66]                                                                              # end of string and whatever follows
     maxn = rnd.choice([0, 1, 2, 5, 32, 100, rnd.randrange(0, 40)])
     ncell = 32
     dst = SCR + 1024 * rnd.randrange(31) + 4 * rnd.randrange(32 - min(maxn, 32) if maxn < 32 else 1)
@@ -33,7 +33,7 @@ for k in range(n):
         for r in range(8): cpu.wr(FONT + 16 * g + 2 * r, 2, fi[g][r])
     cpu.mem[STR:STR + len(s)] = bytes(s)
     cpu.mem[SCR:SCR + 32768] = bytes(rnd.randrange(256) for _ in range(32768))
-    for v in (maxn, dd, pp, FM, FONT, STR, dst):         # argumentos: dst, s, font, fm, pp, dd, maxn (el primero queda arriba)
+    for v in (maxn, dd, pp, FM, FONT, STR, dst):         # arguments: dst, s, font, fm, pp, dd, maxn (the first one on top)
         cpu.a[7] -= 4; cpu.wr(cpu.a[7], 4, v)
     sp0 = cpu.a[7]
     before = bytes(cpu.mem)

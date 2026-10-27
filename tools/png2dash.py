@@ -1,36 +1,36 @@
 #!/usr/bin/env python3
-"""Panel de instrumentos (cabina) del QL <-> PNG, para editarlo con un programa de dibujo del PC.
+"""QL instrument panel (cockpit) <-> PNG, to edit it with a PC drawing program.
 
-  Convertir un PNG en data/elite_dash:
-      python3 tools/png2dash.py cabina.png [data/elite_dash]
-  Exportar el elite_dash actual a PNG (para tener la plantilla de partida):
-      python3 tools/png2dash.py --export [data/elite_dash] [cabina.png] [--scale K]
+  Convert a PNG into data/elite_dash:
+      python3 tools/png2dash.py cockpit.png [data/elite_dash]
+  Export the current elite_dash to PNG (to have the starting template):
+      python3 tools/png2dash.py --export [data/elite_dash] [cockpit.png] [--scale K]
 
-El panel es una tira de 256 x 56 pixeles en modo 8 del QL (lineas 136..191 de la pantalla), con los 8 colores del QL:
-    negro (0,0,0)       azul (0,0,255)      rojo (255,0,0)      magenta (255,0,255)
-    verde (0,255,0)     cian (0,255,255)    amarillo (255,255,0) blanco (255,255,255)
+The panel is a strip of 256 x 56 pixels in QL mode 8 (screen lines 136..191), with the 8 QL colours:
+    black (0,0,0)       blue (0,0,255)      red (255,0,0)      magenta (255,0,255)
+    green (0,255,0)     cyan (0,255,255)    yellow (255,255,0) white (255,255,255)
 
-El PNG puede tener cualquier tamano multiplo de 256 x 56 (cada pixel del QL es un bloque de sx x sy puntos del PNG; se
-toma el color del centro del bloque). En el QL los pixeles del modo 8 son el doble de anchos que de altos, asi que la
-exportacion por defecto es de 1024 x 112 (bloques de 4 x 2) para que en el PC se vea con la proporcion del QL; con
---scale 1 sale de 512 x 56 y con --scale 0 de 256 x 56 sin escalar. El PNG puede ser de paleta o RGB/RGBA (la
-transparencia se toma como negro). Los colores que no sean exactamente uno de los 8 se llevan al mas cercano (cada canal
->= 128 cuenta como encendido) y se avisa de cuantos hubo.
+The PNG can be any size that is a multiple of 256 x 56 (each QL pixel is a block of sx x sy PNG dots; the colour of the
+block's centre is taken). On the QL mode 8 pixels are twice as wide as tall, so the default
+export is 1024 x 112 (blocks of 4 x 2) so that on the PC it looks with the QL's proportion; with
+--scale 1 it comes out 512 x 56 and with --scale 0 256 x 56 unscaled. The PNG can be palette or RGB/RGBA (transparency
+is taken as black). Colours that are not exactly one of the 8 are brought to the nearest (each channel
+>= 128 counts as on) and a warning says how many there were.
 
-Cuidado al dibujar: el juego pinta encima del fondo, en XOR o borrando su zona, las barras de los indicadores (velocidad,
-alabeo, cabeceo, energia, escudos, combustible, altitud, temperaturas), la brujula, el radar (puntos y palos de las naves,
-lineas 146..190), los indicadores de misil (lineas 185..188) y las bombillas S y E (lineas 176..183). Conviene dejar esas
-zonas como en la plantilla exportada para que se vean bien.
+Careful when drawing: the game paints over the background, in XOR or erasing its area, the indicator bars (speed,
+roll, pitch, energy, shields, fuel, altitude, temperatures), the compass, the radar (dots and sticks of the
+ships, lines 146..190), the missile indicators (lines 185..188) and the S and E bulbs (lines 176..183). It is advisable to leave those
+areas as in the exported template so they show up well.
 
-Formato de data/elite_dash: cabecera de 8 bytes 'E','L','Q','D', version 1, numero de lineas (56), y0 alto y bajo (136), y
-56 lineas de 128 bytes en formato de pantalla del QL modo 8 (por palabra, 4 pixeles: byte par = verde (bit s+1) y flash
-(bit s), byte impar = rojo (bit s+1) y azul (bit s), con s = 2 * (3 - k) para el pixel k de la palabra).
-Requiere Pillow (pip install pillow)."""
+Format of data/elite_dash: 8-byte header 'E','L','Q','D', version 1, number of lines (56), y0 high and low (136), and
+56 lines of 128 bytes in QL mode 8 screen format (per word, 4 pixels: even byte = green (bit s+1) and flash
+(bit s), odd byte = red (bit s+1) and blue (bit s), with s = 2 * (3 - k) for pixel k of the word).
+Requires Pillow (pip install pillow)."""
 import os, sys
 
 Y0, LINES, WIDTH = 136, 56, 256
 HEADER = b'ELQD' + bytes([1, LINES, Y0 >> 8, Y0 & 255])
-# indice de color del QL: bit 2 = verde, bit 1 = rojo, bit 0 = azul (como C_* en platform.h)
+# QL colour index: bit 2 = green, bit 1 = red, bit 0 = blue (like C_* in platform.h)
 PALETTE = [(0, 0, 0), (0, 0, 255), (255, 0, 0), (255, 0, 255), (0, 255, 0), (0, 255, 255), (255, 255, 0), (255, 255, 255)]
 NAMES = ['negro', 'azul', 'rojo', 'magenta', 'verde', 'cian', 'amarillo', 'blanco']
 
@@ -42,13 +42,13 @@ def need_pil():
         raise SystemExit('falta Pillow: pip install pillow')
 
 def color_index(rgb):
-    """(r, g, b) -> (indice QL, exacto?)"""
+    """(r, g, b) -> (QL index, exact?)"""
     r, g, b = rgb[:3]
     exact = (r, g, b) in PALETTE
     return ((g >= 128) << 2) | ((r >= 128) << 1) | (b >= 128), exact
 
 def ql_line(colors):
-    """256 indices de color -> 128 bytes de modo 8 (como gfx_pixel de gfx.c)"""
+    """256 colour indices -> 128 bytes of mode 8 (like gfx_pixel in gfx.c)"""
     line = bytearray(128)
     for x, c in enumerate(colors):
         k = x & 3; s = 2 * (3 - k); w = (x >> 2) * 2
@@ -58,7 +58,7 @@ def ql_line(colors):
     return bytes(line)
 
 def ql_colors(line):
-    """128 bytes de modo 8 -> 256 indices de color"""
+    """128 bytes of mode 8 -> 256 colour indices"""
     out = []
     for x in range(WIDTH):
         k = x & 3; s = 2 * (3 - k); w = (x >> 2) * 2
@@ -88,7 +88,7 @@ def png_to_dash(png, out):
         for x in range(WIDTH):
             c, ok = color_index(px[x * sx + sx // 2, y * sy + sy // 2])
             if not ok: inexact += 1
-            if sx > 1 or sy > 1:                     # avisa si el bloque no es de un solo color
+            if sx > 1 or sy > 1:                     # warns if the block is not a single colour
                 c0 = px[x * sx, y * sy]
                 if any(px[x * sx + i, y * sy + j] != c0 for i in range(sx) for j in range(sy)): mixed += 1
             used[c] += 1

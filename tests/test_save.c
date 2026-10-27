@@ -1,4 +1,4 @@
-/* Pruebas de cmdr.c y save.c: sumas de comprobacion contra el 6502 literal, ida y vuelta por fichero, corrupcion. */
+/* Tests of cmdr.c and save.c: checksums against the literal 6502, file round trip, corruption. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -21,7 +21,7 @@ int main(void)
     int i, k, n = 0, r;
     unsigned chk, chk2;
 
-    /* 1. CHECK y CHECK2 contra vectores del 6502 literal (incluye el comandante de fabrica: $03 y $27) */
+    /* 1. CHECK and CHECK2 against literal 6502 vectors (includes the factory commander: $03 and $27) */
     f = fopen("tests/vectors_chk.txt", "r");
     if (!f) { printf("falta tests/vectors_chk.txt (make test_save lo genera)\n"); return 2; }
     while (fgets(line, sizeof line, f)) {
@@ -34,10 +34,10 @@ int main(void)
     fclose(f);
     check(n > 3000, "vectores leidos");
 
-    /* 2. el comandante por defecto sellado reproduce las tres constantes de la fuente */
+    /* 2. the sealed default commander reproduces the three constants of the source */
     state_clear();
     cmdr_default();
-    snap(b1); b1[CB_COK] = 0;                                  /* la fabrica lleva COK = 0; cok = 8 solo vive en memoria */
+    snap(b1); b1[CB_COK] = 0;                                  /* the factory has COK = 0; cok = 8 only lives in memory */
     cmdr_seal(b1);
     check(b1[CB_CHK] == 0x03 && b1[CB_CHK3] == 0x27 && b1[CB_CHK2] == 0xAA, "default: CHK=03 CHK3=27 CHK2=AA");
     check(cash[2] == 3 && cash[3] == 0xE8 && cash[0] == 0 && cash[1] == 0, "cash 100 Cr (1000 decimas, big-endian)");
@@ -47,7 +47,7 @@ int main(void)
     check(strcmp(cmdr_name, "JAMESON") == 0, "default: nombre");
     check(cok == 0x08, "default: cok = 8 (CHK2 correcta)");
 
-    /* 3. pack/unpack redondo con valores arbitrarios */
+    /* 3. round-trip pack/unpack with arbitrary values */
     srand(7);
     for (k = 0; k < 200; k++) {
         for (i = 0; i < CMDR_SIZE; i++) b1[i] = (u8)(rand() & 255);
@@ -55,22 +55,22 @@ int main(void)
         cmdr_seal(b1);
         check(cmdr_unpack(b1) == 0, "unpack de bloque sellado");
         snap(b2);
-        b1[CB_COK] |= 0x08;                                  /* DFAULT pone el bit 3 */
+        b1[CB_COK] |= 0x08;                                  /* DFAULT sets bit 3 */
         for (i = 0; i <= CB_SVC; i++) {
-            if (i >= 47 && i <= 50) continue;                /* bytes sin uso: no se guardan */
+            if (i >= 47 && i <= 50) continue;                /* unused bytes: not saved */
             if (i == 20 || i == 21) continue;
             if (b1[i] != b2[i]) { check(0, "pack(unpack(b)) == b"); break; }
         }
     }
 
-    /* 4. CHK o CHK3 mal: rechazado y sin tocar el estado; solo CHK2 mal: aceptado con cok bit 7 */
+    /* 4. bad CHK or CHK3: rejected and state untouched; only bad CHK2: accepted with cok bit 7 */
     state_clear(); cmdr_default();
     snap(b1); cmdr_seal(b1);
     b1[CB_CHK] ^= 1; check(cmdr_unpack(b1) == -1, "CHK mal"); b1[CB_CHK] ^= 1;
     b1[CB_CHK3] ^= 0x80; check(cmdr_unpack(b1) == -1, "CHK3 mal"); b1[CB_CHK3] ^= 0x80;
     b1[CB_CHK2] ^= 4; r = cmdr_unpack(b1); check(r == 0 && (cok & 0x80), "CHK2 mal: acepta y marca cok"); b1[CB_CHK2] ^= 4;
-    {   /* CHECK/CHECK2 del original NO detectan todos los cambios de un bit (cada byte se suma en un paso y se combina por XOR
-           en el siguiente, y a veces se cancelan): se mide la tasa, y se exige que sea la del algoritmo, no mas baja */
+    {   /* the original's CHECK/CHECK2 do NOT detect every one-bit change (each byte is added in one step and combined by XOR
+           in the next, and sometimes they cancel): the rate is measured, and it is required to be the algorithm's, no lower */
         int det = 0, tot = 0;
         for (i = 0; i <= CB_SVC; i++) {
             for (k = 0; k < 8; k++) {
@@ -85,12 +85,12 @@ int main(void)
         check(det * 100 / tot >= 50, "al menos la mitad de los cambios de un bit se detectan");
     }
 
-    /* 5. nombres */
+    /* 5. names */
     check(cmdr_set_name("bob smith!") == 7 && strcmp(cmdr_name, "BOBSMIT") == 0, "nombre recortado a 7 y limpio");
     check(cmdr_set_name("  ") == 0 && cmdr_name[0] == 0, "nombre vacio");
     check(cmdr_set_name("a_b-9") == 5 && strcmp(cmdr_name, "A_B-9") == 0, "caracteres permitidos");
 
-    /* 6. nombre de fichero */
+    /* 6. file name */
     save_set_device("flp1_"); save_filename("JAMESON", fn);
     check(strcmp(fn, "flp1_elite_jameson") == 0, "nombre de fichero QL");
     save_set_device("tests/tmp/"); save_filename("BOB", fn);
@@ -102,7 +102,7 @@ int main(void)
     check(strcmp(save_dev, "flp1_") == 0, "los dispositivos dan la vuelta");
     save_set_device("tests/tmp/");
 
-    /* 7. ida y vuelta por fichero */
+    /* 7. file round trip */
     state_clear(); cmdr_default();
     cmdr_set_name("Cmdr7");
     cash[2] = 0x12; cash[3] = 0x34; qq14 = 33; qq20[3] = 5; qq20[12] = 200; ecm_fitted = 255; laser[1] = LASER_BEAM;
@@ -128,7 +128,7 @@ int main(void)
     check(save_commander() == SAVE_E_OPEN, "directorio inexistente");
     save_set_device("tests/tmp/");
 
-    /* 8. el fichero esta cifrado y distintas semillas dan ficheros distintos */
+    /* 8. the file is encrypted and different seeds give different files */
     state_clear(); cmdr_default();
     cmdr_pack(b1); cmdr_seal(b1);
     save_seed = 1; save_encode(b1, "AB", file);
@@ -137,7 +137,7 @@ int main(void)
     check(memcmp(file + 17, b1, CMDR_SIZE) != 0, "el bloque no va en claro");
     check(save_decode(file, nm, b2) == SAVE_OK && memcmp(b1, b2, CMDR_SIZE) == 0 && strcmp(nm, "AB") == 0, "decode(encode(x)) == x");
 
-    /* 9. corrupcion de un fichero: el cifrado no pierde ni inventa deteccion (el veredicto es el del bloque en claro) */
+    /* 9. corruption of a file: the encryption neither loses nor invents detection (the verdict is that of the plaintext block) */
     {
         int bad_format = 0, mism = 0, kk;
         for (i = 0; i < SAVE_FILE_SIZE; i++) {
@@ -148,7 +148,7 @@ int main(void)
                 tmp[i] ^= (u8)(1 << kk);
                 r = save_decode(tmp, nm, sv);
                 if (r == SAVE_E_FORMAT) { bad_format++; continue; }
-                if (i < 17) continue;                                             /* nombre: sin comprobacion */
+                if (i < 17) continue;                                             /* name: no check */
                 memcpy(pl, b1, CMDR_SIZE);
                 pl[i - 17] ^= (u8)(1 << kk);
                 via_file = cmdr_unpack(sv);
@@ -161,7 +161,7 @@ int main(void)
         check(bad_format >= 8 * 9 - 8, "cabecera protegida");
     }
 
-    /* 10. ficheros truncados o ajenos */
+    /* 10. truncated or foreign files */
     save_set_device("tests/tmp/");
     f = fopen("tests/tmp/elite_corto", "wb"); fwrite("ELQL", 1, 4, f); fclose(f);
     check(load_commander("CORTO") == SAVE_E_IO, "fichero truncado");

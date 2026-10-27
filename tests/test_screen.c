@@ -1,5 +1,5 @@
-/* TT66/TTX66/TTX66K/BOX y CLYNS (missions.c) contra el codigo original en el emulador (tools/gen_screen.py): la misma
-   secuencia (MT2, borrado grafico o de texto, BOX, FLFLLS, ee3, fichas con XC/YC, espacios, clearrow) y las variables. */
+/* TT66/TTX66/TTX66K/BOX and CLYNS (missions.c) against the original code in the emulator (tools/gen_screen.py): the same
+   sequence (MT2, graphic or text clearing, BOX, FLFLLS, ee3, tokens with XC/YC, spaces, clearrow) and the variables. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
             strcpy(buf, wst);
         } else {
             gfx_clear(C_BLACK); put("b"); scr_box();
-            sprintf(st, "%s", wst);               /* las esquinas: %10101010 en los bytes 1 y 37 (punto 254 encendido) */
+            sprintf(st, "%s", wst);               /* the corners: %10101010 in bytes 1 and 37 (dot 254 lit) */
             strcpy(buf, wst);
             if (!gfx_get(254, 0) || !gfx_get(0, 0)) strcpy(st, "esquina");
         }

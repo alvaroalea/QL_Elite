@@ -1,16 +1,16 @@
 #include "sound.h"
 
-/* Apple II: CPU a 1.0205 MHz; cada clic invierte el altavoz, asi que frecuencia = 1.0205e6 / (2 * ciclos_por_clic).
-   QL (8049 del IPC, 22.917 pasos por segundo; sQLux, que modela el protocolo real): medio periodo = (pitch - 1 + 10,6) pasos, es decir
-   frecuencia = 22917 / (2 * (pitch + 9,6)) Hz  =>  pitch = 0.022457 * ciclos - 9.6.
-   Duracion e intervalo en pasos de 1/22917 s = 43,64 us (no los 72 us del manual): clics * ciclos / 1.0205e6 * 22917 = clics * ciclos * 0.022457. */
-#define SND_NOISE_FUZZ 12   /* ajustar de oido en el QL real */
+/* Apple II: CPU at 1.0205 MHz; each click flips the speaker, so frequency = 1.0205e6 / (2 * cycles_per_click).
+   QL (IPC 8049, 22,917 steps per second; sQLux, which models the real protocol): half period = (pitch - 1 + 10.6) steps, i.e.
+   frequency = 22917 / (2 * (pitch + 9.6)) Hz  =>  pitch = 0.022457 * cycles - 9.6.
+   Duration and interval in steps of 1/22917 s = 43.64 us (not the 72 us of the manual): clicks * cycles / 1.0205e6 * 22917 = clicks * cycles * 0.022457. */
+#define SND_NOISE_FUZZ 12   /* tune by ear on a real QL */
 #define SND_NOISE_RND  12
 
 static int enabled = 1;
 void (*snd_dornd_hook)(void) = 0;
 
-/* los DORND que gastan los sonidos con retardo aleatorio, solo si el sonido esta activo (BIT DNOIZ; BMI SOUR) */
+/* the DORNDs consumed by the sounds with random delay, only if sound is on (BIT DNOIZ; BMI SOUR) */
 static void dornds(long n) { if (enabled && snd_dornd_hook) while (n--) snd_dornd_hook(); }
 static long clock_ms = 0;
 static long busy_until = 0;
@@ -42,7 +42,7 @@ void snd_off(void)
 {
     static u8 blk[8];
     blk[0] = 11; blk[1] = 0; blk[2] = 0; blk[3] = 0; blk[4] = 0; blk[5] = 0;
-    blk[6] = 1;                                  /* respuesta %01 = ninguna (con 0 = %00, MT.IPCOM leia 4 bits que el 8049 no envia) */
+    blk[6] = 1;                                  /* reply %01 = none (with 0 = %00, MT.IPCOM read 4 bits that the 8049 does not send) */
     snd_ipc(blk, 7);
     busy_until = 0; busy_prio = 0;
 }
@@ -59,18 +59,18 @@ void snd_tick(long ms)
     if (clock_ms >= busy_until) busy_prio = 0;
 }
 
-/* Bloque MT.IPCOM de BEEP (15 bytes), como lo espera el 8049 (64 bits de parametros; sQLux, ejemplo de ChibiAkumas): orden 10,
-   8 bytes de parametros, especificador $0000AAAA (2 bits por byte: %10 = 8 bits), pitch 1, pitch 2, intervalo y duracion de 16 bits
-   CON EL BYTE BAJO PRIMERO (el 8049 es little-endian; en big-endian una duracion de $00E6 llegaba como $E600: pitidos larguisimos),
-   byte paso/vuelta (paso en el nibble alto), byte aleatorio/difuso (aleatorio en el alto) y la longitud de la respuesta: 1 = %01 =
-   ninguna. Con 0 (%00 = 4 bits) MT.IPCOM leia 4 bits que el 8049 no manda y el enlace se desincronizaba: tras varios BEEP seguidos
-   el QL se colgaba. */
+/* BEEP MT.IPCOM block (15 bytes), as the 8049 expects it (64 parameter bits; sQLux, ChibiAkumas example): command 10,
+   8 parameter bytes, specifier $0000AAAA (2 bits per byte: %10 = 8 bits), pitch 1, pitch 2, 16-bit interval and duration
+   LOW BYTE FIRST (the 8049 is little-endian; in big-endian a duration of $00E6 arrived as $E600: extremely long beeps),
+   step/wrap byte (step in the high nibble), random/fuzzy byte (random in the high one) and the reply length: 1 = %01 =
+   none. With 0 (%00 = 4 bits) MT.IPCOM read 4 bits that the 8049 does not send and the link went out of sync: after several
+   BEEPs in a row the QL hung. */
 void snd_send(const struct snd_params *p, int prio)
 {
     static u8 blk[16];
     long dur_ms;
     if (!enabled) return;
-    if (clock_ms < busy_until && prio < busy_prio) return;       /* no pisar un sonido mas importante */
+    if (clock_ms < busy_until && prio < busy_prio) return;       /* do not overwrite a more important sound */
     blk[0] = 10; blk[1] = 8;
     blk[2] = 0; blk[3] = 0; blk[4] = 0xAA; blk[5] = 0xAA;
     blk[6] = p->pitch1; blk[7] = p->pitch2;
@@ -80,7 +80,7 @@ void snd_send(const struct snd_params *p, int prio)
     blk[13] = (u8)(((p->rnd & 15) << 4) | (p->fuzz & 15));
     blk[14] = 1;
     snd_ipc(blk, 15);
-    dur_ms = (long)p->duration * 4364L / 100000L;                /* 43,64 us por paso */
+    dur_ms = (long)p->duration * 4364L / 100000L;                /* 43.64 us per step */
     busy_until = clock_ms + dur_ms;
     busy_prio = prio;
 }
@@ -93,8 +93,8 @@ static void tone(long pitch, long units, int prio)
     snd_send(&p, prio);
 }
 
-/* Barrido de pitch_a (inicio) a pitch_b (final). Pitch menor = tono mas agudo.
-   Tono que baja: pitch1=a, pitch2=b, paso positivo. Tono que sube: pitch1=b, pitch2=a, paso negativo (16-paso). */
+/* Sweep from pitch_a (start) to pitch_b (end). Lower pitch = higher tone.
+   Falling tone: pitch1=a, pitch2=b, positive step. Rising tone: pitch1=b, pitch2=a, negative step (16-step). */
 static void sweep(long a, long b, long units, int noisy, int prio)
 {
     struct snd_params p;
@@ -113,7 +113,7 @@ static void sweep(long a, long b, long units, int noisy, int prio)
     snd_send(&p, prio);
 }
 
-/* Ruido: muchas notas cortas aleatorias dentro de [lo, hi] */
+/* Noise: many short random notes within [lo, hi] */
 static void noise(long lo, long hi, long units, int prio)
 {
     struct snd_params p;
@@ -122,14 +122,14 @@ static void noise(long lo, long hi, long units, int prio)
     snd_send(&p, prio);
 }
 
-/* SOBEEP: por clic 4 + 3 + 5*(x-1) + 4 + 2 + 3 = 5x + 11 ciclos */
+/* SOBEEP: per click 4 + 3 + 5*(x-1) + 4 + 2 + 3 = 5x + 11 cycles */
 void snd_sobeep(int x, int y)
 {
     long cyc = 5L * x + 11;
     tone(snd_pitch_from_cycles(cyc), snd_units_from(y ? y : 256, cyc), SND_P_UI);
 }
 
-/* SOBLIP: el periodo baja un paso por clic (DEC): ciclos = 7*T + 14, de T = x-1 a x-y */
+/* SOBLIP: the period drops one step per click (DEC): cycles = 7*T + 14, from T = x-1 to x-y */
 void snd_soblip(int x, int y)
 {
     long t0 = x - 1, t1 = x - y, c0, c1;
@@ -139,7 +139,7 @@ void snd_soblip(int x, int y)
     sweep(snd_pitch_from_cycles(c0), snd_pitch_from_cycles(c1), snd_units_from(y, (c0 + c1) / 2), 0, SND_P_BLIP);
 }
 
-/* SOEXPL: T sube de 51 a 50+y (sin pasar de 256); ciclos ~ 9*T + 1010 (retardo aleatorio medio ~900) */
+/* SOEXPL: T rises from 51 to 50+y (not past 256); cycles ~ 9*T + 1010 (average random delay ~900) */
 void snd_soexpl(int y)
 {
     long t1 = 50 + y, c0, c1;
@@ -150,7 +150,7 @@ void snd_soexpl(int y)
     dornds(y ? y : 256);                         /* DEY; BNE BEEPL4 */
 }
 
-/* SOHISS: ~965 ciclos por clic (retardo aleatorio medio). y = 0 significa 256 clics */
+/* SOHISS: ~965 cycles per click (average random delay). y = 0 means 256 clicks */
 void snd_sohiss(int y)
 {
     long n = y ? y : 256;
@@ -159,7 +159,7 @@ void snd_sohiss(int y)
     dornds(n);
 }
 
-/* SOBOMB: 25 clics con retardo de 7*(224..255) ciclos: ~1745 por clic */
+/* SOBOMB: 25 clicks with a delay of 7*(224..255) cycles: ~1745 per click */
 void snd_sobomb(void)
 {
     long p = snd_pitch_from_cycles(1745);
@@ -167,7 +167,7 @@ void snd_sobomb(void)
     dornds(25);
 }
 
-/* LASNOISE: 11 clics, T de 152 a 172 (+2 por clic), ciclos = 5*T + 21 */
+/* LASNOISE: 11 clicks, T from 152 to 172 (+2 per click), cycles = 5*T + 21 */
 void snd_lasnoise(void)
 {
     long c0 = 5L * 152 + 21, c1 = 5L * 172 + 21;
@@ -176,7 +176,7 @@ void snd_lasnoise(void)
 
 void snd_beep(void) { snd_sobeep(110, 30); }
 void snd_boop(void) { snd_sobeep(255, 99); }
-void snd_bell(void) { tone(SND_MIN_PITCH, 2292, SND_P_UI); }      /* ~1 kHz durante ~100 ms (2292 pasos de 43,64 us) */
+void snd_bell(void) { tone(SND_MIN_PITCH, 2292, SND_P_UI); }      /* ~1 kHz for ~100 ms (2292 steps of 43.64 us) */
 void snd_exno(void) { snd_soexpl(15); }
 void snd_exno3(void) { snd_soexpl(40); }
 void snd_exno2(void) { snd_soexpl(55); }

@@ -1,6 +1,6 @@
-# Construye una imagen 6502 con las rutinas ORIGINALES de la fuente de referencia (ensambladas con asm6502)
-# para comparar contra los puertos en C. Las rutinas externas se sustituyen por "stubs" con RTS que registran
-# la llamada. Requiere la fuente de referencia clonada (variable ELITE_SRC).
+# Builds a 6502 image with the ORIGINAL routines of the reference source (assembled with asm6502)
+# to compare against the C ports. External routines are replaced by RTS "stubs" that log
+# the call. Requires the cloned reference source (ELITE_SRC variable).
 import sys, re
 sys.path.insert(0, 'tools')
 import elitesrc
@@ -19,7 +19,7 @@ def name_line(name, nth=0):
     raise Exception('no existe ' + name)
 
 def build(ranges, stubs=(), org=0x4000):
-    """ranges: lista de (linea_ini, linea_fin) de elite-source.asm; stubs: nombres externos a sustituir."""
+    """ranges: list of (start_line, end_line) of elite-source.asm; stubs: external names to replace."""
     S = elitesrc.parse_vars(); cpu = CPU()
     stub_addr = 0x3F00
     cpu.stub_log = []
@@ -46,9 +46,9 @@ def next_name_after(line):
     return len(L)
 
 def ll9_image(extra_stubs=()):
-    """Imagen con LL9 y todo lo que usa, mas tablas log/alogh. Devuelve (cpu, simbolos)."""
+    """Image with LL9 and everything it uses, plus log/alogh tables. Returns (cpu, symbols)."""
     S = elitesrc.parse_vars(); cpu = CPU()
-    # tablas matematicas con las formulas de la fuente (indice 0 de log/logL como en el binario original)
+    # maths tables with the source's formulas (index 0 of log/logL as in the original binary)
     import math
     log = [0x0803] + [int(0x2000 * math.log(i) / math.log(2) + 0.5) for i in range(1, 256)]
     for i in range(256):

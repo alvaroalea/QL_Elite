@@ -1,5 +1,5 @@
-/* equip_buy / equip_price (Equipment) contra el codigo original en el emulador (tools/gen_eqshp.py): EQSHP con eq, prx, refund,
-   PRXS, LCASH y MCASH reales. Resultado (comprado / sin dinero / ya lo tienes), dinero y equipo a la salida. */
+/* equip_buy / equip_price (Equipment) against the original code in the emulator (tools/gen_eqshp.py): EQSHP with real eq, prx, refund,
+   PRXS, LCASH and MCASH. Result (bought / no money / already have it), money and equipment on exit. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -7,7 +7,7 @@ u8 em_x, em_carry;
 u8 em_rand[4] = { 0x11, 0x22, 0x33, 0x44 };
 u8 em_rand_x, em_rand_c, em_rand_v;
 
-/* DORND: dos sumas encadenadas (secuencia "feeder" + secuencia principal) con el acarreo propagado. */
+/* DORND: two chained additions ("feeder" sequence + main sequence) with the carry propagated. */
 u8 em_dornd(void)
 {
     unsigned s;
@@ -26,7 +26,7 @@ u8 em_dornd(void)
     em_rand_c = (u8)(s >> 8);
     em_rand_v = (u8)(((a ^ res) & (b ^ res) & 0x80) ? 1 : 0);
     em_rand[1] = res; em_rand[3] = a;
-    em_rand_x = a;                           /* X = valor anterior de RAND+1 */
+    em_rand_x = a;                           /* X = previous value of RAND+1 */
     return res;
 }
 
@@ -74,13 +74,13 @@ void em_mult12(u8 a)
     zR = zP;
 }
 
-/* ADD se transcribe literalmente: con desbordamiento (suma > 15 bits) el original pisa el bit de signo. */
+/* ADD is transcribed literally: with overflow (sum > 15 bits) the original overwrites the sign bit. */
 u8 em_add(u8 a)
 {
     u8 t1 = a, t = (u8)(a & 0x80), x, u, r;
     unsigned s;
     zT = t;
-    if ((a ^ zS) & 0x80) {                   /* signos distintos */
+    if ((a ^ zS) & 0x80) {                   /* different signs */
         u = (u8)(zS & 0x7F); zU = u;
         s = (unsigned)zP - zR;               /* SEC; SBC R */
         x = (u8)s;
@@ -88,7 +88,7 @@ u8 em_add(u8 a)
             int borrow = (zP < zR);
             int hi = (int)(t1 & 0x7F) - (int)u - borrow;
             r = (u8)hi;
-            if (hi < 0) {                    /* |A| < |S|: negar el resultado */
+            if (hi < 0) {                    /* |A| < |S|: negate the result */
                 u8 uu = r;
                 zU = uu;
                 s = (unsigned)(u8)(x ^ 0xFF) + 1;
@@ -126,7 +126,7 @@ u8 em_mults(u8 a)
 u8 em_fmltu(u8 a)
 {
     unsigned lo, hi;
-    if (a == 0 || zQ == 0) return 0;             /* BEQ MU3 / BEQ MU3again: el acarreo no cambia (em_carry = el de entrada) */
+    if (a == 0 || zQ == 0) return 0;             /* BEQ MU3 / BEQ MU3again: the carry does not change (em_carry = the incoming one) */
     lo = (unsigned)em_logL[a] + em_logL[zQ];
     hi = (unsigned)em_log[zQ] + em_log[a] + (lo >> 8);
     if (hi < 256) { em_carry = 0; return 0; }
@@ -150,7 +150,7 @@ u8 em_tis2(u8 a)
     if (a >= zQ) return (u8)((y & 0x80) | 96);
     t = 0xFE;
     do {
-        a = (u8)(a << 1);                    /* el acarreo de ASL se pierde, como en el 6502 */
+        a = (u8)(a << 1);                    /* the carry of ASL is lost, as on the 6502 */
         c = 0;
         if (a >= zQ) { a = (u8)(a - zQ); c = 1; }
         co = (u8)(t >> 7);
@@ -185,11 +185,11 @@ u8 em_tis1(u8 x, u8 a)
     return em_dvid96(a);
 }
 
-/* ---------------- segunda tanda ---------------- */
+/* ---------------- second batch ---------------- */
 u8 zK[4];
 u8 zU, zDELTA;
 
-/* LL5: Q = SQRT(R Q), transcripcion literal: ademas deja S, T = 0, y el acarreo de salida en em_carry (el SUN lo pasa a DORND) */
+/* LL5: Q = SQRT(R Q), literal transcription: it also leaves S, T = 0, and the output carry in em_carry (SUN passes it to DORND) */
 u8 em_ll5(void)
 {
     u8 y = zR, s = zQ, x = 0, q = 0, t = 8, c = 0, hi;
@@ -199,7 +199,7 @@ u8 em_ll5(void)
         if (x == q) {                                  /* BNE P%+6 */
             if (y < 64) { c = 0; goto ll7; }           /* CPY #64; BCC LL7 */
         }
-        c = (u8)(y >= 64);                             /* TYA; SBC #64 (C = 1 de la comparacion) */
+        c = (u8)(y >= 64);                             /* TYA; SBC #64 (C = 1 from the comparison) */
         y = (u8)(y - 64);
         d = (unsigned)x - q - (1 - c);                 /* TXA; SBC Q */
         c = (u8)(((int)x - (int)q - (int)(1 - c)) >= 0);
@@ -224,7 +224,7 @@ u8 em_logdiv(u8 a, u8 b)
     unsigned lo, hi;
     lo = (unsigned)em_logL[a] - em_logL[b];
     hi = (unsigned)em_log[a] - em_log[b] - ((lo >> 8) & 1);
-    if (!(hi & 0x100)) return 255;                 /* BCC P%+6 no salta: LDA #255 */
+    if (!(hi & 0x100)) return 255;                 /* BCC P%+6 does not jump: LDA #255 */
     return em_alogh[(u8)hi];
 }
 
@@ -235,7 +235,7 @@ u8 em_ll28_nocheck(u8 a)
     if (a == 0) { zR = 0; return 0; }
     lo = (unsigned)em_logL[a] - em_logL[zQ];
     hi = (unsigned)em_log[a] - em_log[zQ] - ((lo >> 8) & 1);
-    if (!(hi & 0x100)) { em_carry = 1; zR = 255; return 255; }   /* sin prestamo: cociente >= 1 */
+    if (!(hi & 0x100)) { em_carry = 1; zR = 255; return 255; }   /* no borrow: quotient >= 1 */
     zR = em_alogh[(u8)hi];
     return zR;
 }
@@ -323,7 +323,7 @@ u8 em_dvidt(u8 a)
     zT = (u8)((a ^ zQ) & 0x80);
     c = (u8)(zP >> 7);
     zP = (u8)(zP << 1);
-    zP1 = (u8)((zP1 << 1) | c);                  /* el bit que sale de P+1 se pierde: ASL Q; LSR Q deja C = 0 */
+    zP1 = (u8)((zP1 << 1) | c);                  /* the bit that leaves P+1 is lost: ASL Q; LSR Q leaves C = 0 */
     c2 = 0;
     q = (u8)(zQ & 0x7F);
     zQ = q;
@@ -354,7 +354,7 @@ void em_mult3(u8 a)
     em_carry = 0;
 }
 
-/* DVID3B: transcripcion literal; P(2 1 0) = (a zP1 zP), denominador (S R Q) = (z_sign z_hi z_lo) */
+/* DVID3B: literal transcription; P(2 1 0) = (a zP1 zP), denominator (S R Q) = (z_sign z_hi z_lo) */
 void em_dvid3b(u8 a, u8 z_lo, u8 z_hi, u8 z_sign)
 {
     u8 p0 = (u8)(zP | 1), p1 = zP1, p2 = a;

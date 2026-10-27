@@ -1,5 +1,5 @@
-/* Polvo estelar (STARS, nWq, FLIP con PIXEL2) contra el codigo original en el emulador (tools/gen_stars.py): cada PIXEL
-   (X, A, ZZ), las tablas SX..SZL, RAND, ALPHA, ALP2 y BET2 a la salida. */
+/* Stardust (STARS, nWq, FLIP with PIXEL2) against the original code in the emulator (tools/gen_stars.py): each PIXEL
+   (X, A, ZZ), the SX..SZL tables, RAND, ALPHA, ALP2 and BET2 on exit. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

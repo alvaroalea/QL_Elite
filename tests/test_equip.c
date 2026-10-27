@@ -1,5 +1,5 @@
-/* Equipo contra el 6502 ORIGINAL (vectores de tools/gen_equip.py): bomba (BOMBON/BOMBOFF), WARP, DOCKIT, DOKEY con el
-   ordenador de atraque, GTHG y FRS1. */
+/* Equipment against the ORIGINAL 6502 (vectors from tools/gen_equip.py): bomb (BOMBON/BOMBOFF), WARP, DOCKIT, DOKEY with the
+   docking computer, GTHG and FRS1. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -127,17 +127,17 @@ int main(void)
             hexb(a[7], fr0, 9); hexb(a[8], k0, 9 * NI); hexb(a[12], fr1, 9); for (i = 0; i < 9; i++) hexb(a[13] + i * (2 * NI + 1), sl1 + i * NI, NI);
             ships_clear();
             for (i = 0; i < 9; i++) { frin[i] = fr0[i]; memcpy(state_slot(i), k0 + i * NI, NI); }
-            if (!atoi(a[1])) for (i = 3; i < NOSH; i++) if (!frin[i]) frin[i] = 7;       /* sin ranura libre: FRS1 falla */
+            if (!atoi(a[1])) for (i = 3; i < NOSH; i++) if (!frin[i]) frin[i] = 7;       /* no free slot: FRS1 fails */
             nomsl = (u8)atoi(a[2]); zDELTA = (u8)atoi(a[3]); mstg = (u8)atoi(a[4]); ztype = (u8)atoi(a[5]); msar = (u8)atoi(a[6]);
             evn = 0; evb[0] = 0;
             tac_msbar_hook = ev_msbar; combat_mess_hook = ev_mess;
             frmis();
             tac_msbar_hook = 0; combat_mess_hook = 0;
             (void)k; (void)nf;
-            /* orden de los eventos del 6502: N (NWSHP), luego M (MESS) o B (MSBAR) y S (SOHISS) */
+            /* order of the 6502 events: N (NWSHP), then M (MESS) or B (MSBAR) and S (SOHISS) */
             sprintf(got, "N%d;%s%s", SHIPT_MISSILE, evb, atoi(a[1]) ? ";S120" : "");
             ok_ = strcmp(got, ex) == 0 && nomsl == atoi(a[11]);
-            if (atoi(a[1])) {                    /* el blanco: bytes 28, 30, 32 y 36 de su bloque; la estacion (ranura 1): byte 36 */
+            if (atoi(a[1])) {                    /* the target: bytes 28, 30, 32 and 36 of its block; the station (slot 1): byte 36 */
                 int t = atoi(a[4]);
                 u8 *e = sl1 + t * NI, *g = state_slot(t);
                 ok_ = ok_ && g[28] == e[28] && g[30] == e[30] && g[32] == e[32] && g[36] == e[36] && state_slot(1)[36] == sl1[NI + 36];
@@ -152,7 +152,7 @@ int main(void)
     }
     fclose(f);
     printf("6502: bomba %d, WARP %d, DOCKIT %d, DOKEY %d, GTHG %d, FRS1 %d, FRMIS %d\n", cnt[0], cnt[1], cnt[2], cnt[3], cnt[4], cnt[5], cnt[6]);
-    /* ---- propias: la bomba en el bucle por nave (parte 4), su ciclo (partes 3 y 16), ESCAPE y GTHG en MJP */
+    /* ---- own: the bomb in the per-ship loop (part 4), its cycle (parts 3 and 16), ESCAPE and GTHG in MJP */
     {
         int k, nv, nsst, nthg, ncon, nbomb = 0;
         u8 t0 = tally[0], tl = tallyl;
@@ -175,11 +175,11 @@ int main(void)
         check(nbomb == 7 && bomb == 0, "bomba: siete fotogramas (de $FE a 0)");
         bomb_key();
         check(bomb == 0, "bomba: gastada");
-        /* MJP: tres Thargoides con sus Thargons */
+        /* MJP: three Thargoids with their Thargons */
         ships_clear();
         do gthg(); while (many[SHIPT_THARGOID] <= 2);
         check(many[SHIPT_THARGOID] == 3 && many[SHIPT_THARGON] == 3, "MJP: tres Thargoides y tres Thargons");
-        /* ESCAPE: la Cobra se va y queda en una ranura */
+        /* ESCAPE: the Cobra leaves and stays in a slot */
         ships_clear(); zDELTA = 3;
         ships_escape();
         check(frin[0] == SHIPT_COBRA_MK_3, "ESCAPE: nuestra Cobra en la ranura 0");

@@ -1,11 +1,11 @@
 import sys,zlib,struct
-# uso: ql2png.py captura.bin salida.png [4]    (el 4 = captura en modo 4: 512 x 256, negro/rojo/verde/blanco; por defecto modo 8: 256 x 256, 8 colores)
+# usage: ql2png.py capture.bin output.png [4]    (the 4 = mode 4 capture: 512 x 256, black/red/green/white; by default mode 8: 256 x 256, 8 colours)
 d=open(sys.argv[1],'rb').read()
 m4=len(sys.argv)>3 and sys.argv[3]=='4'
 pal=[(0,0,0),(0,0,255),(255,0,0),(255,0,255),(0,255,0),(0,255,255),(255,255,0),(255,255,255)]
 rows=[]
 if m4:
-    sx,sy,W=2,3,512                       # puntos fisicos de la mitad de ancho: 1024 x 768 (4:3)
+    sx,sy,W=2,3,512                       # physical dots of half the width: 1024 x 768 (4:3)
     for y in range(256):
         row=bytearray()
         for x in range(W):

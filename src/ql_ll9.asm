@@ -1,23 +1,23 @@
-; ql_ll9.asm - las partes calientes de LL9 (ship3d.c) en ensamblador del 68000 (as68): producto de la matriz (LL51), caras visibles (LL86..LL88) y
-; proyeccion de los vertices (LL48..LL50). Bit a bit como las versiones en C (ship_ll9_faces_c y ship_ll9_verts_c); tools/test_ll9asm.py las
-; ejecuta (con tools/m68k_mini.py) contra el C con miles de entradas al azar.
+; ql_ll9.asm - the hot parts of LL9 (ship3d.c) in 68000 assembly (as68): matrix product (LL51), visible faces (LL86..LL88) and
+; projection of the vertices (LL48..LL50). Bit by bit like the C versions (ship_ll9_faces_c and ship_ll9_verts_c); tools/test_ll9asm.py runs them
+; (with tools/m68k_mini.py) against the C with thousands of random inputs.
 ;
-; OJO: los `int` de qcc son de 32 BITS (c68 por defecto, `.data4`): el ensamblador solo lee por simbolo variables de tipo u8 o puntero; los int
-; (view_cy, view_yscale, clip_h) llegan como argumentos long.
-; Convenciones: variables de C como simbolos externos (_zx15, _zx12, _zxx16, _zxx18, _zk3 = XX2, _xx3, _inwk, ...). Tablas de logaritmos
-; intercaladas en _ql_lltab (src/ql_lltab.asm, 4 bytes por entrada: log, logL, alogh, 0): a5 = tabla; el indice es i*4 (el modo indexado solo
-; tiene un desplazamiento de 8 bits). Las subrutinas trabajan en registros:
-;   fmltu: d0 = a, d1 = Q (bytes, palabra baja limpia) -> d0 = resultado (palabra limpia); destruye d1-d4.
-;   ll38 : d0 = A (signo en el bit 7), d1 = Q, d2 = R, d3 = S -> d0 = resultado, d3 = S nuevo, C = acarreo (em_carry); destruye solo d0 y d3.
-;   ll28n: d0 = a (< Q), d1 = Q -> d0 = 256 * a / Q; destruye d1-d4.
-;   ll61 : d0 = a, d1 = Q (U = 0 al entrar) -> d0 = R, d5 = U; destruye d1-d4, d6.
-; No se escriben de vuelta los temporales de C (zQ, zR, zS, zT, zU, zx12/zx15 al salir, em_carry): nadie los lee despues de LL9.
+; NOTE: qcc `int`s are 32 BITS (c68 default, `.data4`): the assembler only reads u8 or pointer variables by symbol; the ints
+; (view_cy, view_yscale, clip_h) arrive as long arguments.
+; Conventions: C variables as external symbols (_zx15, _zx12, _zxx16, _zxx18, _zk3 = XX2, _xx3, _inwk, ...). Logarithm tables
+; interleaved in _ql_lltab (src/ql_lltab.asm, 4 bytes per entry: log, logL, alogh, 0): a5 = table; the index is i*4 (indexed mode only
+; has an 8-bit displacement). The subroutines work in registers:
+;   fmltu: d0 = a, d1 = Q (bytes, low word clean) -> d0 = result (word clean); destroys d1-d4.
+;   ll38 : d0 = A (sign in bit 7), d1 = Q, d2 = R, d3 = S -> d0 = result, d3 = new S, C = carry (em_carry); destroys only d0 and d3.
+;   ll28n: d0 = a (< Q), d1 = Q -> d0 = 256 * a / Q; destroys d1-d4.
+;   ll61 : d0 = a, d1 = Q (U = 0 on entry) -> d0 = R, d5 = U; destroys d1-d4, d6.
+; The C temporaries (zQ, zR, zS, zT, zU, zx12/zx15 on exit, em_carry) are not written back: nobody reads them after LL9.
 	.globl	_ql_ll51
 	.globl	_ql_ll9_faces
 	.globl	_ql_ll9_verts
 	.text
 
-; ---------------------------------------------------------------------------------------------------------- subrutinas
+; ---------------------------------------------------------------------------------------------------------- subroutines
 fmltu:
 	tst.b	d0
 	beq	fm0
@@ -26,10 +26,10 @@ fmltu:
 	lsl.w	#2,d0
 	lsl.w	#2,d1
 	move.b	1(a5,d0.w),d2		; logL[a]
-	add.b	1(a5,d1.w),d2		; + logL[Q]: C = acarreo de la parte baja
+	add.b	1(a5,d1.w),d2		; + logL[Q]: C = carry of the low part
 	move.b	0(a5,d0.w),d3		; log[a]
 	move.b	0(a5,d1.w),d4		; log[Q]
-	addx.b	d4,d3			; hi = log[a] + log[Q] + acarreo; C = hi >= 256
+	addx.b	d4,d3			; hi = log[a] + log[Q] + carry; C = hi >= 256
 	bcc	fm0
 	moveq	#0,d4
 	move.b	d3,d4
@@ -43,15 +43,15 @@ fm0:
 
 ll38:
 	eor.b	d3,d0
-	bmi	l38d			; signos distintos
+	bmi	l38d			; different signs
 	move.b	d1,d0
-	add.b	d2,d0			; Q + R, C = acarreo
+	add.b	d2,d0			; Q + R, C = carry
 	rts
 l38d:
 	move.b	d2,d0
 	sub.b	d1,d0			; R - Q
 	bcs	l38n
-	rts				; sin prestamo: R - Q, C = 0
+	rts				; no borrow: R - Q, C = 0
 l38n:
 	eori.b	#$80,d3
 	move.b	d1,d0
@@ -64,11 +64,11 @@ ll28n:
 	lsl.w	#2,d0
 	lsl.w	#2,d1
 	move.b	1(a5,d0.w),d2		; logL[a]
-	sub.b	1(a5,d1.w),d2		; - logL[Q]: X = C = prestamo
+	sub.b	1(a5,d1.w),d2		; - logL[Q]: X = C = borrow
 	move.b	0(a5,d0.w),d3
 	move.b	0(a5,d1.w),d4
-	subx.b	d4,d3			; log[a] - log[Q] - prestamo
-	bcc	l28ff			; sin prestamo: cociente >= 1 -> 255
+	subx.b	d4,d3			; log[a] - log[Q] - borrow
+	bcc	l28ff			; no borrow: quotient >= 1 -> 255
 	moveq	#0,d4
 	move.b	d3,d4
 	lsl.w	#2,d4
@@ -90,11 +90,11 @@ l61a:
 	lsr.b	#1,d0
 	addq.b	#1,d6
 	cmp.b	d1,d0
-	bcc	l61a			; a >= Q: seguir dividiendo a entre 2
+	bcc	l61a			; a >= Q: keep dividing a by 2
 	bsr	ll28n
 	moveq	#0,d5
 l61b:
-	add.b	d0,d0			; t = a << 1: C = bit que sale
+	add.b	d0,d0			; t = a << 1: C = bit shifted out
 	addx.b	d5,d5			; U = (U << 1) | C
 	tst.b	d5
 	bmi	l61bad
@@ -106,7 +106,7 @@ l61bad:
 	moveq	#50,d5
 	rts
 
-; una fila de LL51: a0 = fila de la matriz (6 bytes), a1 = salida (2 bytes); el vector es XX15
+; one row of LL51: a0 = matrix row (6 bytes), a1 = output (2 bytes); the vector is XX15
 l51row:
 	moveq	#0,d0
 	move.b	(a0),d0
@@ -147,7 +147,7 @@ l51row:
 	move.b	d3,1(a1)
 	rts
 
-; XX12 = XX15 (vector) por la matriz XX16
+; XX12 = XX15 (vector) by the matrix XX16
 l51all:
 	lea	_zxx16,a0
 	lea	_zx12,a1
@@ -169,10 +169,10 @@ _ql_ll51:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------- void ql_ll9_faces(const u8 *v)
-; LL86..LL88: para cada cara (4 bytes en v) escribe en XX2 su visibilidad (0 = oculta; si no, el producto con la matriz de la nave)
+; LL86..LL88: for each face (4 bytes in v) writes its visibility into XX2 (0 = hidden; otherwise, the product with the ship's matrix)
 _ql_ll9_faces:
 	movem.l	d2-d7/a2-a6,-(sp)
-	move.l	48(sp),a6		; v: datos de las caras
+	move.l	48(sp),a6		; v: face data
 	lea	_ql_lltab,a5
 	lea	_zk3,a2			; XX2
 	moveq	#0,d7			; y
@@ -184,7 +184,7 @@ fl86:
 	move.b	d1,_zx12+1
 	and.b	#$1F,d1
 	cmp.b	_zxx4,d1
-	bcc	fl87			; (v[y] & $1F) >= XX4: la cara cuenta
+	bcc	fl87			; (v[y] & $1F) >= XX4: the face counts
 	lsr.w	#2,d0
 	move.b	#$FF,0(a2,d0.w)		; XX2[y >> 2] = 255
 	addq.b	#4,d7
@@ -210,7 +210,7 @@ fl87:
 	move.b	_zxx18+6,_zx15+4
 	move.b	_zxx18+8,_zx15+5
 	bra	fl89
-fl92ov:					; desbordamiento: se reduce a la mitad XX18 y se repite con x = 1
+fl92ov:					; overflow: XX18 is halved and repeated with x = 1
 	move.b	_zxx18,d0
 	lsr.b	#1,d0
 	move.b	d0,_zxx18
@@ -291,7 +291,7 @@ fl89:
 	bsr	ll38
 	tst.b	d3
 	bmi	fl89s
-	moveq	#0,d0			; S positivo: la cara no se ve (a = 0)
+	moveq	#0,d0			; S positive: the face is not visible (a = 0)
 fl89s:
 	moveq	#0,d1
 	move.b	d7,d1
@@ -300,15 +300,15 @@ fl89s:
 	addq.b	#1,d7
 fl88:
 	cmp.b	_zxx20,d7
-	bcs	fl86			; y < XX20: otra cara
+	bcs	fl86			; y < XX20: another face
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------- void ql_ll9_verts(long view_cy, long view_yscale)
-; LL48..LL50: para cada vertice (6 bytes desde XX0 + 20) con alguna cara visible, XX3 = su posicion en pantalla (x e y de 16 bits)
+; LL48..LL50: for each vertex (6 bytes from XX0 + 20) with some visible face, XX3 = its screen position (16-bit x and y)
 _ql_ll9_verts:
 	movem.l	d2-d7/a2-a6,-(sp)
-	move.l	48(sp),a3		; a3 = view_cy (bits 0..7) + 256 si view_yscale: los int de qcc son de 32 bits, asi que llegan como argumentos long
+	move.l	48(sp),a3		; a3 = view_cy (bits 0..7) + 256 if view_yscale: qcc ints are 32 bits, so they arrive as long arguments
 	move.l	52(sp),d0
 	beq	vys0
 	adda.w	#256,a3
@@ -332,7 +332,7 @@ vloop:
 	move.b	d2,_zT
 	and.b	#$1F,d2
 	cmp.b	_zxx4,d2
-	bcs	vnext			; (t & $1F) < XX4: el vertice no cuenta
+	bcs	vnext			; (t & $1F) < XX4: the vertex does not count
 	moveq	#0,d0
 	move.b	4(a0),d0
 	move.w	d0,d1
@@ -352,20 +352,20 @@ vloop:
 	tst.b	0(a2,d0.w)
 	bne	v49
 	bra	vnext
-v49:					; algun vertice con cara visible: se proyecta
+v49:					; some vertex with a visible face: it is projected
 	move.b	_zT,d0
 	move.b	d0,_zx15+1
 	add.b	d0,d0
 	move.b	d0,_zx15+3
 	add.b	d0,d0
 	move.b	d0,_zx15+5
-	bsr	l51all			; XX12 = vector por la matriz
+	bsr	l51all			; XX12 = vector by the matrix
 	move.b	_inwk+2,_zx15+2
 	move.b	_inwk+2,d0
 	move.b	_zx12+1,d1
 	eor.b	d1,d0
 	bmi	v52
-	move.b	_zx12,d0		; mismo signo: suma
+	move.b	_zx12,d0		; same sign: add
 	add.b	_inwk,d0
 	move.b	d0,_zx15
 	move.b	_inwk+1,d0
@@ -373,19 +373,19 @@ v49:					; algun vertice con cara visible: se proyecta
 	addx.b	d1,d0
 	move.b	d0,_zx15+1
 	bra	v53
-v52:					; signos distintos: resta
+v52:					; different signs: subtract
 	move.b	_inwk,d0
 	sub.b	_zx12,d0
 	move.b	d0,_zx15
 	move.b	_inwk+1,d0
 	moveq	#0,d1
 	subx.b	d1,d0
-	bcs	v52n			; (el MOVE borra C: se salta antes de guardar)
+	bcs	v52n			; (the MOVE clears C: skipped before storing)
 	move.b	d0,_zx15+1
 	bra	v53
 v52n:
 	move.b	d0,_zx15+1
-	eori.b	#$FF,_zx15+1		; negativo: se niega el valor de 16 bits y se cambia el signo
+	eori.b	#$FF,_zx15+1		; negative: the 16-bit value is negated and the sign changed
 	eori.b	#$80,_zx15+2
 	move.b	_zx15,d0
 	neg.b	d0
@@ -425,7 +425,7 @@ v54n:
 	move.b	d0,_zx15+3
 	bne	v55
 	addq.b	#1,_zx15+4
-v55:					; profundidad (d2 = U:T)
+v55:					; depth (d2 = U:T)
 	tst.b	_zx12+5
 	bmi	v56
 	move.b	_zx12+4,d2
@@ -450,14 +450,14 @@ v140:
 	moveq	#4,d2
 v56j:
 	lsl.w	#8,d3
-	move.b	d2,d3			; d3 = Z de 16 bits (U:T)
+	move.b	d2,d3			; d3 = 16-bit Z (U:T)
 	move.b	_zx15+1,d0
 	lsl.w	#8,d0
-	move.b	_zx15,d0		; d0 = X de 16 bits
+	move.b	_zx15,d0		; d0 = 16-bit X
 	move.b	_zx15+4,d1
 	lsl.w	#8,d1
-	move.b	_zx15+3,d1		; d1 = Y de 16 bits
-v57:					; mientras algun valor pase de 8 bits, los tres se dividen entre 2
+	move.b	_zx15+3,d1		; d1 = 16-bit Y
+v57:					; while any value exceeds 8 bits, all three are divided by 2
 	move.w	d0,d2
 	or.w	d1,d2
 	or.w	d3,d2
@@ -482,7 +482,7 @@ v60:
 	bra	v69
 v61a:
 	bsr	ll61
-v69:					; d5:d0 = U:R, x de pantalla = 128 +- (U:R)
+v69:					; d5:d0 = U:R, screen x = 128 +- (U:R)
 	moveq	#0,d3
 	move.b	_zcnt,d3
 	tst.b	_zx15+2
@@ -518,7 +518,7 @@ v68:
 	move.l	a3,d1
 	btst	#8,d1
 	beq	v68n
-	moveq	#0,d1			; vista nativa: el desplazamiento vertical x 6/5 (v + v / 5)
+	moveq	#0,d1			; native view: the vertical offset x 6/5 (v + v / 5)
 	move.b	d5,d1
 	lsl.w	#8,d1
 	move.b	d0,d1
@@ -554,19 +554,19 @@ vnext:
 	addq.b	#4,_zcnt
 	move.b	_zxx17,d7
 	add.b	#6,d7
-	bcs	vdone			; se pasa de 255
+	bcs	vdone			; exceeds 255
 	cmp.b	_zxx20,d7
-	bcs	vloop			; y < XX20: otro vertice
+	bcs	vloop			; y < XX20: another vertex
 vdone:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------- long ql_ll9_edges(const u8 *v, long cont, long clip_h)
-; LL75..LL81: recorre las aristas (4 bytes cada una desde v) con alguna cara visible; las que caen ENTERAS en la vista (los dos extremos con
-; el byte alto de x e y a cero y la y baja <= clip_h - 1: la salida inmediata LL146 de CLIP2) se guardan en el montón de líneas y se dibujan
-; aqui (la nueva y, si habia, la vieja que sustituye: ql_line en XOR). Si una arista necesita recorte, devuelve 1 con XX15 y XX12 cargados
-; como en LL79 y la arista en curso en ql_edge_v: el C la recorta (ship_clip2 + ship_lsput) y vuelve a llamar con cont = 1 (sigue en LL78).
-; Devuelve 0 al terminar. a6 = arista, a4 = XX3, a2 = XX2, a3 = montón de líneas (XX19), d5 = clip_h - 1.
+; LL75..LL81: walks the edges (4 bytes each from v) with some visible face; those that fall ENTIRELY in the view (both ends with
+; x and y high byte zero and low y <= clip_h - 1: the immediate exit LL146 of CLIP2) are stored in the line heap and drawn
+; here (the new one and, if there was one, the old one it replaces: ql_line in XOR). If an edge needs clipping, it returns 1 with XX15 and XX12 loaded
+; as in LL79 and the edge in progress in ql_edge_v: C clips it (ship_clip2 + ship_lsput) and calls again with cont = 1 (continues at LL78).
+; Returns 0 when done. a6 = edge, a4 = XX3, a2 = XX2, a3 = line heap (XX19), d5 = clip_h - 1.
 	.globl	_ql_ll9_edges
 _ql_ll9_edges:
 	movem.l	d2-d7/a2-a6,-(sp)
@@ -575,14 +575,14 @@ _ql_ll9_edges:
 	lea	_xx3,a4
 	lea	_zk3,a2
 	move.l	_zxx19,a3
-	move.l	56(sp),d5		; clip_h (long: argumento)
+	move.l	56(sp),d5		; clip_h (long: argument)
 	subq.w	#1,d5
 	tst.l	d0
-	bne	e78			; cont: la arista en curso ya esta hecha
+	bne	e78			; cont: the edge in progress is already done
 e75:
 	move.b	(a6),d0
 	cmp.b	_zxx4,d0
-	bcs	e78			; v[0] < XX4: la arista no cuenta
+	bcs	e78			; v[0] < XX4: the edge does not count
 	moveq	#0,d0
 	move.b	1(a6),d0
 	move.w	d0,d1
@@ -595,10 +595,10 @@ e75:
 e79:
 	moveq	#0,d0
 	move.b	2(a6),d0
-	lea	0(a4,d0.w),a0		; extremo 1: x lo, x hi, y lo, y hi
+	lea	0(a4,d0.w),a0		; end 1: x lo, x hi, y lo, y hi
 	moveq	#0,d1
 	move.b	3(a6),d1
-	lea	0(a4,d1.w),a1		; extremo 2
+	lea	0(a4,d1.w),a1		; end 2
 	move.b	1(a0),d2
 	or.b	3(a0),d2
 	bne	eslow
@@ -611,28 +611,28 @@ e79:
 	move.b	2(a1),d2
 	cmp.b	d5,d2
 	bhi	eslow
-	; LSPUT: el montón se queda con la linea nueva y la vieja (si habia) se borra
+	; LSPUT: the heap keeps the new line and the old one (if any) is erased
 	moveq	#0,d0
 	move.b	_zlsnum,d0
-	lea	0(a3,d0.w),a5		; montón + zlsnum
-	moveq	#0,d6			; d6 = 0: habia linea vieja
+	lea	0(a3,d0.w),a5		; heap + zlsnum
+	moveq	#0,d6			; d6 = 0: there was an old line
 	move.b	_zlsnum,d4
 	cmp.b	_zlsnum2,d4
 	bcs	elo
-	moveq	#1,d6			; zlsnum >= zlsnum2: no habia
+	moveq	#1,d6			; zlsnum >= zlsnum2: there was none
 elo:
-	move.b	(a5),d2			; vieja: x1, y1, x2, y2 (d2, d3, d4, d7)
+	move.b	(a5),d2			; old: x1, y1, x2, y2 (d2, d3, d4, d7)
 	move.b	1(a5),d3
 	move.b	2(a5),d4
 	move.b	3(a5),d7
-	move.b	(a0),(a5)		; nueva al montón
+	move.b	(a0),(a5)		; new one to the heap
 	move.b	2(a0),1(a5)
 	move.b	(a1),2(a5)
 	move.b	2(a1),3(a5)
 	addq.b	#4,_zlsnum
 	btst	#1,_ship_dbg_skip
-	bne	e78			; DEBUG (SHIFT-D): sin dibujo
-	move.l	_screen,-(sp)		; ql_line(x1, y1, x2, y2, c, scr): argumentos como palabras largas, el primero (x1) el ultimo en apilarse
+	bne	e78			; DEBUG (SHIFT-D): no drawing
+	move.l	_screen,-(sp)		; ql_line(x1, y1, x2, y2, c, scr): arguments as long words, the first (x1) the last one pushed
 	move.l	#7,-(sp)
 	moveq	#0,d0
 	move.b	3(a5),d0
@@ -646,7 +646,7 @@ elo:
 	jsr	_ql_line
 	lea	24(sp),sp
 	tst.b	d6
-	bne	e78			; sin linea vieja
+	bne	e78			; no old line
 	move.l	_screen,-(sp)
 	move.l	#7,-(sp)
 	moveq	#0,d0
@@ -663,7 +663,7 @@ elo:
 e78:
 	move.b	_zlsnum,d0
 	cmp.b	_zcnt,d0
-	bcc	edone			; zlsnum >= zcnt: el montón esta lleno
+	bcc	edone			; zlsnum >= zcnt: the heap is full
 	addq.l	#4,a6
 	addq.b	#1,_zxx17
 	move.b	_zxx17,d0
@@ -673,7 +673,7 @@ edone:
 	moveq	#0,d0
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
-eslow:					; arista que hay que recortar (en C): se cargan XX15 y XX12 como en LL79
+eslow:					; edge that has to be clipped (in C): XX15 and XX12 are loaded as in LL79
 	move.b	(a0),_zx15
 	move.b	1(a0),_zx15+1
 	move.b	2(a0),_zx15+2

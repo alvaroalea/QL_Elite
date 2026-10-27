@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_sound.txt con el codigo ORIGINAL del grupo Sound en el emulador de 6502 (DORND real):
-EXNO, EXNO3, SOEXPL (Y), SOHISS (X, Y), SOBOMB, BEEP, BOOP, SOBEEP (X, Y), SOBLIP (X, Y) y LASNOISE, con DNOIZ, RAND y
-acarreo al azar. Lo comprobable del sonido es lo que cambia el juego: cuantos DORND se gastan, RAND y el acarreo a la salida.
-Se comprueba con tests/test_sound_orig (make test_soundorig). Uso: python3 tools/gen_sound.py [n] [semilla]"""
+"""Generates tests/vectors_sound.txt with the ORIGINAL Sound group code in the 6502 emulator (real DORND):
+EXNO, EXNO3, SOEXPL (Y), SOHISS (X, Y), SOBOMB, BEEP, BOOP, SOBEEP (X, Y), SOBLIP (X, Y) and LASNOISE, with random DNOIZ, RAND and
+carry. What can be checked of the sound is what changes the game: how many DORNDs are consumed, RAND and the carry on exit.
+Checked with tests/test_sound_orig (make test_soundorig). Usage: python3 tools/gen_sound.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -22,7 +22,7 @@ for _ in range(n):
         rnd = [random.randrange(256) for _ in range(4)]
         dn = random.choice([0, 0, 0x7F, 0xFF, 0x80])
         x = random.choice([0, 1, 2, 255, random.randrange(256)]); y = random.choice([0, 1, 2, 15, 40, 120, 210, random.randrange(256)])
-        if ent in ('SOEXPL', 'SOHISS') and y > 120 and random.random() < 0.5: y = random.randrange(1, 60)   # acotar el tiempo
+        if ent in ('SOEXPL', 'SOHISS') and y > 120 and random.random() < 0.5: y = random.randrange(1, 60)   # bound the time
         c = random.randrange(2)
         cpu.mem[S['RAND']:S['RAND'] + 4] = bytes(rnd); cpu.mem[S['DNOIZ']] = dn
         cpu.x = x; cpu.y = y; cpu.a = random.randrange(256); cpu.c = c

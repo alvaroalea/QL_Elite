@@ -1,516 +1,516 @@
-# rutina   funcion_C   estado   (verificada | sin-verificar | propia)
-# --- verificadas contra el 6502 original (emulador) o contra transcripcion literal; ver CLAUDE.md y docs/PENDIENTES.md
+# routine   C_function   state   (verificada | sin-verificar | propia)
+# --- verified against the original 6502 (emulator) or against a literal transcription; see CLAUDE.md and docs/PENDIENTES.md
 DORND em_dornd verificada
 DORND2 em_dornd2 transcripcion
-MULTU em_multu verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MU11 em_mu11 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-SQUA em_squa verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-SQUA2 em_squa2 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MULT1 em_mult1 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MULT12 em_mult12 verificada salidas: R y S; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MAD em_mad verificada salidas: A y X; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-ADD em_add verificada salidas: A y X; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+MULTU em_multu verificada outputs: A and P; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MU11 em_mu11 verificada outputs: A and P; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+SQUA em_squa verificada outputs: A and P; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+SQUA2 em_squa2 verificada outputs: A and P; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MULT1 em_mult1 verificada outputs: A and P; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MULT12 em_mult12 verificada outputs: R and S; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MAD em_mad verificada outputs: A and X; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+ADD em_add verificada outputs: A and X; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
 MULTS em_mults transcripcion
 FMLTU em_fmltu verificada
-FMLTU2 em_fmltu2 verificada a traves de CIRCLE2 en make test_planet
-MLTU2 em_mltu2 verificada salidas: A, P+1 y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MLU1 em_mlu1 verificada salidas: A, P e Y1; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MLU2 em_mlu2 verificada salidas: A y P; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MULT3 em_mult3 verificada salidas: K(3 2 1 0); make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-TIS1 em_tis1 verificada salidas: A; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-TIS2 em_tis2 verificada salidas: A; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
+FMLTU2 em_fmltu2 verificada through CIRCLE2 in make test_planet
+MLTU2 em_mltu2 verificada outputs: A, P+1 and P; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MLU1 em_mlu1 verificada outputs: A, P and Y1; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MLU2 em_mlu2 verificada outputs: A and P; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MULT3 em_mult3 verificada outputs: K(3 2 1 0); make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+TIS1 em_tis1 verificada outputs: A; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+TIS2 em_tis2 verificada outputs: A; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
 DVID96 em_dvid96 transcripcion
-LL5 em_ll5 verificada transcripcion literal con el acarreo de salida (lo usa SUN); a traves de SUN en make test_planet
+LL5 em_ll5 verificada literal transcription with the output carry (used by SUN); through SUN in make test_planet
 LL28 em_ll28 verificada
 LL61 em_ll61 verificada
-LL38 em_ll38 verificada salidas: A, S y el acarreo; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-DVID4 em_dvid4 verificada salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-DV41 em_dv41 verificada salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-DV42 em_dv42 verificada salidas: P y R; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-DVIDT em_dvidt verificada a traves de TIS3 en make test_geom; el bit que sale de P+1 al principio se pierde (estaba mal hasta la 16.a ronda)
+LL38 em_ll38 verificada outputs: A, S and the carry; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+DVID4 em_dvid4 verificada outputs: P and R; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+DV41 em_dv41 verificada outputs: P and R; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+DV42 em_dv42 verificada outputs: P and R; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+DVIDT em_dvidt verificada through TIS3 in make test_geom; the bit shifted out of P+1 at the start is lost (was wrong until round 16)
 DVID3B em_dvid3b verificada
 LL9 ship_ll9 verificada
 LL51 ship_ll51 verificada
 SHPPT ship_shppt verificada
 CLIP ship_clip verificada
 CLIP2 ship_clip2 verificada
-PROJ sm_proj verificada make test_geom (codigo original en el emulador)
-# --- ship_math.c (transcripcion literal propia)
-PLS6 sm_pls6 verificada make test_geom (codigo original en el emulador)
-MVT3 sm_mvt3 verificada make test_geom (codigo original en el emulador)
-MAS1 sm_mas1 verificada make test_geom (codigo original en el emulador)
-MAS2 sm_mas2 verificada make test_geom (codigo original en el emulador)
-MAS3 sm_mas3 verificada make test_geom (codigo original en el emulador)
-MAS4 sm_mas4 verificada make test_geom (codigo original en el emulador)
-TAS1 sm_tas1 verificada make test_geom (codigo original en el emulador)
-VCSUB sm_vcsub verificada make test_geom (codigo original en el emulador)
-VCSU1 sm_vcsu1 verificada VCSUB con V = K% + NI: make test_geom (VCSUB)
-TAS2 sm_tas2 verificada make test_geom (codigo original en el emulador)
-TAS3 sm_tas3 verificada make test_geom (codigo original en el emulador)
-TAS4 sm_tas4 verificada make test_geom (codigo original en el emulador)
-TAS6 sm_tas6 verificada make test_geom (codigo original en el emulador)
-NORM sm_norm verificada make test_geom (codigo original en el emulador)
-TIS3 sm_tis3 verificada make test_geom (codigo original en el emulador)
-TIDY sm_tidy verificada make test_geom (codigo original en el emulador)
-SPS1 sm_sps1 verificada make test_geom (codigo original en el emulador)
-SPS2 sm_sps2 verificada make test_geom (codigo original en el emulador)
-SPS3 sm_sps3 verificada make test_geom (codigo original en el emulador)
-SPS4 sm_sps4 verificada make test_geom (codigo original en el emulador)
-LCASH sm_lcash verificada make test_geom (codigo original en el emulador)
-MCASH sm_mcash verificada make test_geom (codigo original en el emulador)
-GCASH sm_gcash verificada make test_geom (codigo original en el emulador)
-SCALEX sm_scalex verificada make test_geom (codigo original en el emulador)
-SCALEY sm_scaley verificada make test_geom (codigo original en el emulador)
-SCALEY2 sm_scaley2 verificada make test_geom (codigo original en el emulador)
-# --- port sin verificar (estrategia 2026-10-16): ver docs/PENDIENTES.md
-CHECK cmdr_check verificada make test_start (DFAULT con CHECK real: la suma del port coincide en 1.000 bloques) y make test_jameson
-CHECK2 cmdr_check2 verificada make test_start (DFAULT con CHECK2 real) y make test_jameson
-JAMESON cmdr_default verificada make test_jameson: los 76 bytes de NA2% (Q% = FALSE) ensamblados de la fuente son los de cmdr_default (COK con el bit 3 que pone DFAULT; CHK2/CHK3/CHK de fabrica = sumas del bloque)
-DFAULT cmdr_unpack,cmdr_pack verificada make test_start (1.000 bloques con CHECK/CHECK2 reales: COK con bit 7 si falla CHK2 y bit 3; el original se queda en un bucle si CHK o CHK3 fallan, el port devuelve error; CHK2/CHK3/CHK van fuera del bloque copiado en el original y en b[74..76] en el port; QQ11 = 0 lo hace quien llama)
+PROJ sm_proj verificada make test_geom (original code in the emulator)
+# --- ship_math.c (own literal transcription)
+PLS6 sm_pls6 verificada make test_geom (original code in the emulator)
+MVT3 sm_mvt3 verificada make test_geom (original code in the emulator)
+MAS1 sm_mas1 verificada make test_geom (original code in the emulator)
+MAS2 sm_mas2 verificada make test_geom (original code in the emulator)
+MAS3 sm_mas3 verificada make test_geom (original code in the emulator)
+MAS4 sm_mas4 verificada make test_geom (original code in the emulator)
+TAS1 sm_tas1 verificada make test_geom (original code in the emulator)
+VCSUB sm_vcsub verificada make test_geom (original code in the emulator)
+VCSU1 sm_vcsu1 verificada VCSUB with V = K% + NI: make test_geom (VCSUB)
+TAS2 sm_tas2 verificada make test_geom (original code in the emulator)
+TAS3 sm_tas3 verificada make test_geom (original code in the emulator)
+TAS4 sm_tas4 verificada make test_geom (original code in the emulator)
+TAS6 sm_tas6 verificada make test_geom (original code in the emulator)
+NORM sm_norm verificada make test_geom (original code in the emulator)
+TIS3 sm_tis3 verificada make test_geom (original code in the emulator)
+TIDY sm_tidy verificada make test_geom (original code in the emulator)
+SPS1 sm_sps1 verificada make test_geom (original code in the emulator)
+SPS2 sm_sps2 verificada make test_geom (original code in the emulator)
+SPS3 sm_sps3 verificada make test_geom (original code in the emulator)
+SPS4 sm_sps4 verificada make test_geom (original code in the emulator)
+LCASH sm_lcash verificada make test_geom (original code in the emulator)
+MCASH sm_mcash verificada make test_geom (original code in the emulator)
+GCASH sm_gcash verificada make test_geom (original code in the emulator)
+SCALEX sm_scalex verificada make test_geom (original code in the emulator)
+SCALEY sm_scaley verificada make test_geom (original code in the emulator)
+SCALEY2 sm_scaley2 verificada make test_geom (original code in the emulator)
+# --- unverified port (strategy 2026-10-16): see docs/PENDIENTES.md
+CHECK cmdr_check verificada make test_start (DFAULT with real CHECK: the port's sum matches in 1,000 blocks) and make test_jameson
+CHECK2 cmdr_check2 verificada make test_start (DFAULT with real CHECK2) and make test_jameson
+JAMESON cmdr_default verificada make test_jameson: the 76 bytes of NA2% (Q% = FALSE) assembled from the source are those of cmdr_default (COK with bit 3 set by DFAULT; factory CHK2/CHK3/CHK = block sums)
+DFAULT cmdr_unpack,cmdr_pack verificada make test_start (1,000 blocks with real CHECK/CHECK2: COK with bit 7 if CHK2 fails and bit 3; the original loops forever if CHK or CHK3 fail, the port returns an error; CHK2/CHK3/CHK are outside the copied block in the original and in b[74..76] in the port; QQ11 = 0 is done by the caller)
 tnpr trade_room verificada
 TT219 trade_buy verificada
 TT208 trade_sell verificada
-EQSHP equip_buy verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales): cobra primero (sin dinero se avisa aunque ya lo tengas), si ya lo tienes devuelve el importe, laser antiguo reembolsado; la pantalla es scr_equip (propia)
-refund laser_refund verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales)
-PRXS equip_price verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales)
-STATUS status_mode,scr_status,rating_name,legal_name verificada transcripcion literal con el motor de fichas (titulo, estado, rango, equipo y lasers, letra a letra con columna y fila, TRADEMODE y TT111 registran); 800 casos, make test_missions
-TT213 scr_inventory no-verificable pantalla propia (maquetacion); los datos (QQ20, unidades) se verifican en TT208/TT219
-TT167 scr_market no-verificable pantalla propia (maquetacion); precios y existencias verificados (TT151, GVL)
-SVE scr_disk no-verificable menu de disco propio; el cifrado MUTILATE y el fichero del DOS 3.3 no se portan (formato propio ELQD)
-LOD load_commander no-verificable carga de fichero de QDOS (formato propio ELQD, make test_save); validacion CHK/CHK3/CHK2 verificada con make test_start
+EQSHP equip_buy verificada make test_eqshp (3,000 EQSHP of the original with real eq, prx, refund, PRXS, LCASH and MCASH): charges first (without money it warns even if you already have it), if you already have it returns the amount, old laser refunded; the screen is scr_equip (own)
+refund laser_refund verificada make test_eqshp (3,000 EQSHP of the original with real eq, prx, refund, PRXS, LCASH and MCASH)
+PRXS equip_price verificada make test_eqshp (3,000 EQSHP of the original with real eq, prx, refund, PRXS, LCASH and MCASH)
+STATUS status_mode,scr_status,rating_name,legal_name verificada literal transcription with the token engine (title, status, rank, equipment and lasers, letter by letter with column and row, TRADEMODE and TT111 log); 800 cases, make test_missions
+TT213 scr_inventory no-verificable own screen (layout); the data (QQ20, units) are verified in TT208/TT219
+TT167 scr_market no-verificable own screen (layout); prices and stock verified (TT151, GVL)
+SVE scr_disk no-verificable own disk menu; the MUTILATE encryption and the DOS 3.3 file are not ported (own ELQD format)
+LOD load_commander no-verificable QDOS file loading (own ELQD format, make test_save); CHK/CHK3/CHK2 validation verified with make test_start
 TT102 ui_nav propia
-# --- cartas, SUN y CIRCLE (2026-10-16), sin verificar
-SUN sun_draw verificada make test_planet (secuencias de PLANET contra el 6502)
-CHKON sun_chkon verificada make test_planet (secuencias de PLANET contra el 6502)
-EDGES edges verificada make test_planet (secuencias de PLANET contra el 6502)
-FLFLLS sun_flflls verificada make test_planet (secuencias de PLANET contra el 6502)
-WPLS sun_wpls verificada make test_planet (secuencias de PLANET contra el 6502)
-HLOIN2 hloin2 verificada make test_planet (secuencias de PLANET contra el 6502)
-CIRCLE circle_draw verificada make test_planet (secuencias de PLANET contra el 6502)
-CIRCLE2 circle2_draw verificada make test_planet (secuencias de PLANET contra el 6502)
-BLINE bline verificada make test_planet (secuencias de PLANET contra el 6502)
-WPLS2 circle_wpls2 verificada make test_planet; depende de que LOIN deje SWAP como el original (loin() de sun.c)
-TT14 tt14 verificada make test_charts (TT126 en la local; cruz, K de SCALEY/SCALEY2 y TT128)
-TT15 tt15,chart_tt15 verificada make test_draw (HLOIN y VLOIN con sus argumentos y COL)
-TT22 chart_draw,tt22 verificada make test_charts (lineas, marco, cada PIXEL con ZZ = 255 = dos puntos, TT14 y TT103); el titulo es el de menu.c
-TT23 chart_draw,tt23 verificada make test_charts (filas libres de INWK, nombres con XC/YC, SUN con el acarreo de cpl, readdistnce); con Y = 255 lee INWK-1 = SC+1 (nunca 0)
+# --- charts, SUN and CIRCLE (2026-10-16), unverified
+SUN sun_draw verificada make test_planet (PLANET sequences against the 6502)
+CHKON sun_chkon verificada make test_planet (PLANET sequences against the 6502)
+EDGES edges verificada make test_planet (PLANET sequences against the 6502)
+FLFLLS sun_flflls verificada make test_planet (PLANET sequences against the 6502)
+WPLS sun_wpls verificada make test_planet (PLANET sequences against the 6502)
+HLOIN2 hloin2 verificada make test_planet (PLANET sequences against the 6502)
+CIRCLE circle_draw verificada make test_planet (PLANET sequences against the 6502)
+CIRCLE2 circle2_draw verificada make test_planet (PLANET sequences against the 6502)
+BLINE bline verificada make test_planet (PLANET sequences against the 6502)
+WPLS2 circle_wpls2 verificada make test_planet; depends on LOIN leaving SWAP like the original (loin() in sun.c)
+TT14 tt14 verificada make test_charts (TT126 in the local chart; cross, K of SCALEY/SCALEY2 and TT128)
+TT15 tt15,chart_tt15 verificada make test_draw (HLOIN and VLOIN with their arguments and COL)
+TT22 chart_draw,tt22 verificada make test_charts (lines, frame, each PIXEL with ZZ = 255 = two dots, TT14 and TT103); the title is menu.c's
+TT23 chart_draw,tt23 verificada make test_charts (free INWK rows, names with XC/YC, SUN with cpl's carry, readdistnce); with Y = 255 it reads INWK-1 = SC+1 (never 0)
 TT103 chart_cursor verificada make test_charts
 TT105 chart_cursor verificada make test_charts
-# --- cartas: HME2, hm, ping, TT114 y movimiento (2026-10-16)
-HME2 chart_find_system verificada make test_charts (busqueda con el motor de texto real: nombre completo, sin mayusculas, misma longitud); la entrada de texto (MT26) es edit_text. El original con QQ17 = $80 no encuentra el sistema 0 y con 0 o $40 ninguno (con $C0, el estado normal, todos)
-TT114 chart_draw verificada make test_charts (galactica o local segun QQ11)
+# --- charts: HME2, hm, ping, TT114 and movement (2026-10-16)
+HME2 chart_find_system verificada make test_charts (search with the real text engine: full name, case-insensitive, same length); text input (MT26) is edit_text. The original with QQ17 = $80 does not find system 0 and with 0 or $40 none (with $C0, the normal state, all)
+TT114 chart_draw verificada make test_charts (galactic or local according to QQ11)
 hm chart_hm verificada make test_charts
-TT16 chart_tt16 verificada make test_charts (borra la cruz, TT123 en y con -Y y en x, y cae en TT103); scr_chart la usa con pasos de 1 (local) o 2 (galactica) por fotograma; el objetivo que se muestra abajo es el de TT111 (propio)
-TT123 tt123 verificada make test_charts (no se mueve si daria la vuelta)
-# --- market y equipment
-tnpr1 combat_collide,trade_fits verificada recogida de cargas (make test_damage)
-gnum trade_screen no-verificable entrada de la cantidad propia (cursores, cifras, M = maximo); en el original lee el teclado del Apple II
-NWDAV4 ui_msg no-verificable mensaje de error propio con sonido
-TT210 trade_screen no-verificable lista de venta propia (mismo listado con las existencias)
-TT152 unit_char no-verificable unidad t/kg/g: el listado es propio; el dato (bits de unidad de QQ23) esta verificado
+TT16 chart_tt16 verificada make test_charts (erases the cross, TT123 in y with -Y and in x, and falls into TT103); scr_chart uses it with steps of 1 (local) or 2 (galactic) per frame; the target shown below is TT111's (own)
+TT123 tt123 verificada make test_charts (does not move if it would wrap)
+# --- market and equipment
+tnpr1 combat_collide,trade_fits verificada scooping cargo (make test_damage)
+gnum trade_screen no-verificable own quantity input (cursors, digits, M = maximum); the original reads the Apple II keyboard
+NWDAV4 ui_msg no-verificable own error message with sound
+TT210 trade_screen no-verificable own sale list (same listing with the stock)
+TT152 unit_char no-verificable unit t/kg/g: the listing is our own; the data (unit bits of QQ23) is verified
 TT160 unit_char no-verificable idem TT152
 TT161 unit_char no-verificable idem TT152
 TT16a unit_char no-verificable idem TT152
-TT163 market_header no-verificable cabecera propia del listado
-dn trade_info no-verificable redibujo del dinero tras cada operacion (pantalla propia); el cobro esta verificado
-eq cash_spend verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales)
-prx equip_price verificada make test_eqshp (3.000 EQSHP del original con eq, prx, refund, PRXS, LCASH y MCASH reales); el combustible (70 - QQ14) * 2
-qv scr_equip no-verificable pide la vista (0 a 3) con un menu propio; en el original es TT217 + pantalla
-# --- teclado
-TT17 in_held no-verificable cursores o joystick: lectura del teclado del QL (keys.c), sin equivalente comparable
-TT217 in_wait no-verificable esperar una tecla: propio de la consola del QL
-YESNO scr_disk no-verificable confirmacion Y/N propia del menu de disco
-TT214 scr_disk no-verificable pregunta Y/N propia del menu de disco
-FLKB plat_flush_input no-verificable vaciar el buffer de teclado: propio de la consola del QL
-# --- panel de instrumentos (2026-10-16), sin verificar
-DIALS dash_update verificada indicadores, barras de aviso parpadeantes, DIS2 con su cache (dials/dialc) y COMPAS; make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-DIS1 dis1 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-DIS5 dis5 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-dialY dialY verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-dialle dialle verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-dialc1 dialc1 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-dialc2 dialc2 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-MSBARS msbars verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-COMPAS compas verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-SP1 compas verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-SP2 compas verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-DOT dot verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-cntr space_cntr verificada amortiguacion con DAMP y el ordenador de atraque (auto = dock_auto); make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos). Encontro que cntr no miraba auto
-BUMP2 space_bump2 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-REDU2 space_redu2 verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-MV40 mv40,mv40_pre,mv45 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran) (MV40 hasta MV45 y MV45 por separado); K2 byte 0 vale 0 como en el original (nadie lo escribe)
-MVT1 mvt1 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
-PIXEL gfx_dust verificada make test_lines punto a punto (2 o 3 puntos segun ZZ y dos filas si ZZ < 80; el QL no muestra x >= 256)
-HLOIN gfx_hloin,hloin,lines_hloin verificada make test_lines punto a punto en blanco (pares de puntos de X1 a X2-1); los colores del Apple II son patrones de bits (MASKT): en el QL, color liso; hloin() de sun.c deja X1/X2 como el original (make test_planet)
-ABORT abort_missile verificada dentro de las teclas de misil (make test_tactics)
-ABORT2 abort2 verificada MSAR = 0 (MSBAR vuelve con Y = 0); make test_tactics
-ECMOF ecm_off verificada dentro de MA16..MA66 (make test_tactics)
-ECBLB2 ecm_on verificada a traves de TACTICS (make test_tactics)
-# --- polvo estelar, radar, mira, tunel, misiles y bombillas (2026-10-17), sin verificar
-STARS stars_update verificada make test_stars (las 4 vistas)
-STARS1 stars1 verificada make test_stars (con los acarreos de KILL1: C = 1 tras CMP #120 y C = 0 tras CMP #16)
+TT163 market_header no-verificable own listing header
+dn trade_info no-verificable redrawing the money after each operation (own screen); the charging is verified
+eq cash_spend verificada make test_eqshp (3,000 EQSHP of the original with real eq, prx, refund, PRXS, LCASH and MCASH)
+prx equip_price verificada make test_eqshp (3,000 EQSHP of the original with real eq, prx, refund, PRXS, LCASH and MCASH); fuel (70 - QQ14) * 2
+qv scr_equip no-verificable asks for the view (0 to 3) with an own menu; in the original it is TT217 + screen
+# --- keyboard
+TT17 in_held no-verificable cursors or joystick: QL keyboard reading (keys.c), no comparable equivalent
+TT217 in_wait no-verificable wait for a key: specific to the QL console
+YESNO scr_disk no-verificable own Y/N confirmation of the disk menu
+TT214 scr_disk no-verificable own Y/N question of the disk menu
+FLKB plat_flush_input no-verificable empty the keyboard buffer: specific to the QL console
+# --- instrument panel (2026-10-16), unverified
+DIALS dash_update verificada indicators, flashing warning bars, DIS2 with its cache (dials/dialc) and COMPAS; make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+DIS1 dis1 verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+DIS5 dis5 verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+dialY dialY verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+dialle dialle verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+dialc1 dialc1 verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+dialc2 dialc2 verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+MSBARS msbars verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+COMPAS compas verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+SP1 compas verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+SP2 compas verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+DOT dot verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+cntr space_cntr verificada damping with DAMP and the docking computer (auto = dock_auto); make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments). It found that cntr did not look at auto
+BUMP2 space_bump2 verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+REDU2 space_redu2 verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+MV40 mv40,mv40_pre,mv45 verificada make test_move (3,000 cases with real Maths, TIDY and FMLTU/MLTU2; SCAN and TACTICS log) (MV40 up to MV45 and MV45 separately); K2 byte 0 is 0 as in the original (nobody writes it)
+MVT1 mvt1 verificada make test_move (3,000 cases with real Maths, TIDY and FMLTU/MLTU2; SCAN and TACTICS log)
+PIXEL gfx_dust verificada make test_lines point by point (2 or 3 dots depending on ZZ and two rows if ZZ < 80; the QL does not show x >= 256)
+HLOIN gfx_hloin,hloin,lines_hloin verificada make test_lines point by point in white (dot pairs from X1 to X2-1); the Apple II colours are bit patterns (MASKT): on the QL, solid colour; hloin() in sun.c leaves X1/X2 like the original (make test_planet)
+ABORT abort_missile verificada inside the missile keys (make test_tactics)
+ABORT2 abort2 verificada MSAR = 0 (MSBAR returns with Y = 0); make test_tactics
+ECMOF ecm_off verificada inside MA16..MA66 (make test_tactics)
+ECBLB2 ecm_on verificada through TACTICS (make test_tactics)
+# --- stardust, radar, sight, tunnel, missiles and bulbs (2026-10-17), unverified
+STARS stars_update verificada make test_stars (the 4 views)
+STARS1 stars1 verificada make test_stars (with KILL1's carries: C = 1 after CMP #120 and C = 0 after CMP #16)
 STARS6 stars6 verificada make test_stars
-STARS2 stars2 verificada make test_stars (con ST2; KILL2 con C = 0 o 1 segun BCC/BEQ)
+STARS2 stars2 verificada make test_stars (with ST2; KILL2 with C = 0 or 1 depending on BCC/BEQ)
 FLIP stars_flip verificada make test_stars
-NWSTARS stars_new verificada a traves de nWq (make test_stars); el original no crea el polvo si QQ11 != 0 (va a WPSHPS): aqui solo se llama en la vista espacial
-nWq stars_new verificada make test_stars (el primer DORND con el acarreo de entrada; cae en WPSHPS, que el port hace aparte)
-PIXEL2 pixel2 verificada make test_stars (con el acarreo con que vuelve PIXEL)
-CPIX gfx_cpix verificada a traves de VLOIN en make test_lines (2 puntos de ancho en XOR); sin los patrones de color del Apple II
-VLOIN gfx_vloin verificada make test_lines punto a punto (CPIX de Y1 a Y2, ambos incluidos)
-TWOS3 - no-necesaria tabla de bytes de 2 y 3 puntos del modo hires del Apple II; gfx_dust pone los puntos directamente (make test_lines)
-TWOS - no-necesaria tabla de un punto del modo hires del Apple II; loin_draw pone el punto directamente (make test_lines)
-TWOS2 - no-necesaria tabla de dos puntos del modo hires del Apple II (CPIX); gfx_cpix pone los puntos directamente (make test_lines)
-SCAN space_scan verificada CPIX (cabeza) y VLOIN (palo) con scacol y recorte a 146..190; make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos); la llamada con color 0 no se dibuja en el port
-scacol scacol,space_scacol verificada make test_draw (tabla); CYAN y MAG son WHITE en el Apple II: el QL los muestra en cian y magenta
-WPSHPS space_scanner_reset no-verificable limpia el radar, los montones de lineas y los puntos del sol: en el port lo hacen clear_view, ships_forget_lines y space_scanner_reset (pantalla y montones propios)
-SIGHT chart_sight verificada make test_draw (con sightcol)
-HFS2 tunnel_draw verificada HFS1/HFL1 contra el 6502 (make test_planet); STP 4 hiperespacio, 8 lanzamiento; el color (blanco) es una eleccion propia
-LL164 tunnel_ll164 verificada make test_draw (nueve SOBLIP, HFS2 con STP = 4, cada SOHISS y CIRCLE2, RAND); el primer SBC #10 depende del acarreo de entrada (solo cambia el tono)
-LAUN tunnel_laun verificada make test_draw (dos SOHISS de 256, HFS2 con STP = 8; RAND); en TT110 los mismos anillos se borran despues con HFS1
-TT128 tt14 verificada make test_planet (circulo de las cartas con CIRCLE2)
-LOOK1 change_view no-verificable cambio de vista con la pantalla del port (TT66, FLIP, NWSTARS y SIGHT verificadas)
-PLUT - no-necesaria invierte ejes para las 4 vistas: hara falta cuando haya naves dibujadas en vuelo
-msblob dash_msblob verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-MSBAR msbar verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-msloc msloc verificada make test_dash (2.000 casos por rutina con Maths real; HLOIN, VLOIN, PIXEL y CPIX registran sus argumentos)
-SPBLB dash_spblb verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
-ECBLB dash_ecblb verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
-BULB bulb verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
-SPBT bulb_s verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
-ECBT bulb_e verificada pixeles de la bombilla E (X = 56) y S (X = 192) en XOR con BULB y letter2 reales sobre la pantalla hires; make test_dash (casos E y P)
-DOKEY ctl_read no-verificable lectura de las teclas de vuelo con la disposicion del QL; el tramo del ordenador de atraque esta verificado en make test_equip
-TT102 ui_nav no-verificable despacho de teclas a pantallas con la disposicion de teclas del QL
+NWSTARS stars_new verificada through nWq (make test_stars); the original does not create the dust if QQ11 != 0 (goes to WPSHPS): here it is only called in the space view
+nWq stars_new verificada make test_stars (the first DORND with the incoming carry; falls into WPSHPS, which the port does separately)
+PIXEL2 pixel2 verificada make test_stars (with the carry PIXEL returns with)
+CPIX gfx_cpix verificada through VLOIN in make test_lines (2 dots wide in XOR); without the Apple II colour patterns
+VLOIN gfx_vloin verificada make test_lines point by point (CPIX from Y1 to Y2, both included)
+TWOS3 - no-necesaria table of 2- and 3-dot bytes of the Apple II hires mode; gfx_dust sets the dots directly (make test_lines)
+TWOS - no-necesaria one-dot table of the Apple II hires mode; loin_draw sets the dot directly (make test_lines)
+TWOS2 - no-necesaria two-dot table of the Apple II hires mode (CPIX); gfx_cpix sets the dots directly (make test_lines)
+SCAN space_scan verificada CPIX (head) and VLOIN (stick) with scacol and clipping to 146..190; make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments); the call with colour 0 is not drawn in the port
+scacol scacol,space_scacol verificada make test_draw (table); CYAN and MAG are WHITE on the Apple II: the QL shows them in cyan and magenta
+WPSHPS space_scanner_reset no-verificable clears the radar, the line heaps and the sun's dots: in the port clear_view, ships_forget_lines and space_scanner_reset do it (own screen and heaps)
+SIGHT chart_sight verificada make test_draw (with sightcol)
+HFS2 tunnel_draw verificada HFS1/HFL1 against the 6502 (make test_planet); STP 4 hyperspace, 8 launch; the colour (white) is an own choice
+LL164 tunnel_ll164 verificada make test_draw (nine SOBLIP, HFS2 with STP = 4, each SOHISS and CIRCLE2, RAND); the first SBC #10 depends on the incoming carry (only the tone changes)
+LAUN tunnel_laun verificada make test_draw (two 256 SOHISS, HFS2 with STP = 8; RAND); in TT110 the same rings are erased afterwards with HFS1
+TT128 tt14 verificada make test_planet (chart circle with CIRCLE2)
+LOOK1 change_view no-verificable view change with the port's screen (TT66, FLIP, NWSTARS and SIGHT verified)
+PLUT - no-necesaria inverts axes for the 4 views: will be needed when there are ships drawn in flight
+msblob dash_msblob verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+MSBAR msbar verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+msloc msloc verificada make test_dash (2,000 cases per routine with real Maths; HLOIN, VLOIN, PIXEL and CPIX log their arguments)
+SPBLB dash_spblb verificada pixels of the E (X = 56) and S (X = 192) bulbs in XOR with real BULB and letter2 on the hires screen; make test_dash (E and P cases)
+ECBLB dash_ecblb verificada pixels of the E (X = 56) and S (X = 192) bulbs in XOR with real BULB and letter2 on the hires screen; make test_dash (E and P cases)
+BULB bulb verificada pixels of the E (X = 56) and S (X = 192) bulbs in XOR with real BULB and letter2 on the hires screen; make test_dash (E and P cases)
+SPBT bulb_s verificada pixels of the E (X = 56) and S (X = 192) bulbs in XOR with real BULB and letter2 on the hires screen; make test_dash (E and P cases)
+ECBT bulb_e verificada pixels of the E (X = 56) and S (X = 192) bulbs in XOR with real BULB and letter2 on the hires screen; make test_dash (E and P cases)
+DOKEY ctl_read no-verificable reading of the flight keys with the QL layout; the docking computer stretch is verified in make test_equip
+TT102 ui_nav no-verificable dispatch of keys to screens with the QL key layout
 TT66 tt66 verificada make test_screen
-CLYNS clyns verificada make test_screen (DLY, de, XC/YC, DTW2, QQ17; 64 espacios en las vistas de texto o clearrow 15 y 16 en las graficas)
-# --- paso 2 (proyeccion 3D) completado el 2026-10-17: movimiento, explosiones, planeta, naves en vuelo; sin verificar
-MVEIT mveit verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran); encontro que el acarreo de MLTU2 no era el bit bajo del producto: es el ultimo bit que sale de ROR P (siempre 0), ahora MLTU2 esta transcrita literalmente en move.c; TACTICS/SCAN son ganchos (move_tactics_hook, space_scan_hook)
-MV45 mv45 sin-verificar z -= DELTA, giro de los tres vectores (MVS4), contadores de alabeo y cabeceo (MVS5) y radar
-MVS4 mvs4 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
-MVS5 mvs5 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
-MVT6 mvt6 verificada make test_move (3.000 casos con Maths, TIDY y FMLTU/MLTU2 reales; SCAN y TACTICS registran)
-PLUT plut verificada ejes de INWK por vista (1.000 casos con PLUT real); make test_flight
-DOEXP doexp verificada make test_draw (CPIX con X, Y y COL; monton, INWK+31 y RAND); el color de las particulas (azul/rojo/fuzzy/otro del Apple II) se muestra como cian/rojo/amarillo/blanco
-PTCLS ptcls verificada a traves de DOEXP en make test_draw
+CLYNS clyns verificada make test_screen (DLY, de, XC/YC, DTW2, QQ17; 64 spaces in the text views or clearrow 15 and 16 in the graphic ones)
+# --- step 2 (3D projection) completed on 2026-10-17: movement, explosions, planet, ships in flight; unverified
+MVEIT mveit verificada make test_move (3,000 cases with real Maths, TIDY and FMLTU/MLTU2; SCAN and TACTICS log); it found that MLTU2's carry was not the low bit of the product: it is the last bit shifted out of ROR P (always 0), MLTU2 is now literally transcribed in move.c; TACTICS/SCAN are hooks (move_tactics_hook, space_scan_hook)
+MV45 mv45 sin-verificar z -= DELTA, rotation of the three vectors (MVS4), roll and pitch counters (MVS5) and radar
+MVS4 mvs4 verificada make test_move (3,000 cases with real Maths, TIDY and FMLTU/MLTU2; SCAN and TACTICS log)
+MVS5 mvs5 verificada make test_move (3,000 cases with real Maths, TIDY and FMLTU/MLTU2; SCAN and TACTICS log)
+MVT6 mvt6 verificada make test_move (3,000 cases with real Maths, TIDY and FMLTU/MLTU2; SCAN and TACTICS log)
+PLUT plut verificada INWK axes per view (1,000 cases with real PLUT); make test_flight
+DOEXP doexp verificada make test_draw (CPIX with X, Y and COL; heap, INWK+31 and RAND); the particle colour (blue/red/fuzzy/other of the Apple II) is shown as cyan/red/yellow/white
+PTCLS ptcls verificada through DOEXP in make test_draw
 EX2 ex2 sin-verificar
-EXS1 exs1 verificada a traves de DOEXP en make test_draw; FMLTU con A o Q = 0 no toca el acarreo (EX5 resta con C = 1)
+EXS1 exs1 verificada through DOEXP in make test_draw; FMLTU with A or Q = 0 does not touch the carry (EX5 subtracts with C = 1)
 TT48 - sin-verificar simple RTS
-PLANET planet verificada make test_planet (con PL9, PL2, WP1)
+PLANET planet verificada make test_planet (with PL9, PL2, WP1)
 PL9 planet verificada make test_planet
 PL2 planet verificada make test_planet
 PL21 planet verificada make test_planet (SEC; RTS)
-WP1 circle_wpls2 verificada make test_planet; RES2 pone LSX2 y LSY2 a $FF
+WP1 circle_wpls2 verificada make test_planet; RES2 sets LSX2 and LSY2 to $FF
 FAROF farof,sm_farof2 verificada make test_geom
-GINF - no-necesaria el puntero INF no existe en C: se indexa por ranura
-SFS2 sfs2 verificada dentro de SFS1 (make test_laser, nave madre = estacion)
-exlook - no-necesaria tabla de EXNO (sonido de explosion): el sonido ya esta en sound.c
-# --- clasificacion del inventario (2026-10-17)
-ENTRY - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
-S% - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
-DEEOR - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
-DEEORS - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
-G% - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
-F% - no-necesaria proteccion anticopia del original: suma de comprobacion, descifrado y desmezcla del codigo; en el QL no existe
-NMIpissoff - no-necesaria arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c
-COLD - no-necesaria arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c
-BEGIN - no-necesaria arranque del Apple II (interrupciones, modo de pantalla, memoria); lo hacen main.c y app.c
-MUTILATE - no-necesaria cifrado antimanipulacion del fichero de comandante del original; save.c usa su propio cifrado XOR (formato ELQD)
-UNMUTILATE - no-necesaria cifrado antimanipulacion del fichero de comandante del original; save.c usa su propio cifrado XOR (formato ELQD)
-SWAPPZERO - no-necesaria sin uso en el original (intercambio de la pagina cero)
-brkd - no-necesaria manejador de errores BRK del 6502; el runtime de C se ocupa de los errores
-BRBR - no-necesaria manejador de errores BRK del 6502; el runtime de C se ocupa de los errores
-BRKBK - no-necesaria manejador de errores BRK del 6502; el runtime de C se ocupa de los errores
-ZEBC - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
-ZES1 - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
-ZES2 - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
-ZES1k - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
-ZES2k - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
-ZESNEW - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
-mvblockK - no-necesaria relleno con ceros y copia de paginas de memoria: en C son memset, memcpy o variables estaticas
-DELAY - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
-CLDELAY - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
-WSCAN - no-necesaria retardo por bucles de instrucciones; el port espera por fotogramas (wait_frames) y por tiempo (snd_tick)
-backtonormal - no-necesaria desactiva el teclado del BBC y vuelve con A = 0; no aplica
-ZERO ships_zero,ships_clear verificada pone a 0 FRIN..de (FRIN, MANY, JUNK, auto, ECMP, MJ, CABTMP, LAS2, MSAR, VIEW, LASCT, GNTMP, HFX, EV, DLY y de): el 6502 los limpia y no toca nada fuera; ships_zero limpia todos los del C (HFX no existe en el port), make test_missions
-Disk - no-necesaria variables de las operaciones de disco y de la RWTS del DOS 3.3: el QL usa QDOS
-UP - no-necesaria variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3
-Option - no-necesaria variables de configuracion: se sustituyen por variables de C (state.c, sound.c); los interruptores se portaran con TGINT y DKS3
-ZP - no-necesaria la pagina cero se reparte en variables globales de C (state.c, emath.c): lo da el compilador
-XX3 - no-necesaria tabla de coordenadas de pantalla de los vertices: matriz xx3 de ship3d.c
-K% - no-necesaria bloques de las naves: matriz de state.c (state_slot) y un monton de lineas por ranura en ships.c
-WP - no-necesaria montones de la bola, del sol y de las naves y datos del polvo estelar: matrices de C (sun.c, stars.c, ships.c)
-newosrdch - no-necesaria rutina OSRDCH personalizada del BBC con procesador Tube; no aplica
-RDKEY key_scan no-verificable lectura del teclado del Apple II; el QL usa KEYROW por IPC
-KYTB keys.c no-verificable tabla de teclas del Apple II; las del QL estan en keys.h
-RDS1 ctl_read no-verificable joystick del Apple II (paddles); en el QL son teclas CTL1
-DKS2 ctl_read no-verificable joystick del Apple II; en el QL son teclas CTL1
-PAUSE2 plat_wait_key no-verificable esperar una tecla: propio de la consola del QL
-ZEKTRAN - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
-U% - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
-DKSANYKEY - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
-KTRAN - no-necesaria registrador de teclas del BBC (o sin uso): keys.c lee las filas directamente y no necesita limpiarlo
-BELL snd_bell no-verificable CHPR(7): el pitido de la consola del Apple II; el sonido sale por el BEEP del QL (propio)
-BEEP snd_beep verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND ni toca RAND; el sonido es propio
-BOOP snd_boop verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el sonido es propio
-SOBEEP snd_sobeep verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el tono es la traduccion de los ciclos del bucle (propia)
-SOBLIP snd_soblip verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el barrido es la traduccion de los ciclos (propia)
-SOHISS snd_sohiss verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): Y DORND (256 si Y = 0) solo con el sonido activo, con la cadena de acarreos de DORND; el sonido es propio
-SOEXPL snd_soexpl verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): Y DORND (256 si Y = 0) solo con el sonido activo; el sonido es propio
-EXNO snd_exno verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): SOEXPL con Y = 15
-EXNO3 snd_exno3 verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): SOEXPL con Y = 40
-LASNOISE snd_lasnoise verificada make test_soundorig (3.000 casos, DNOIZ/RAND/acarreo al azar): no gasta DORND; el barrido es propio
-SOBOMB snd_sobomb verificada make test_draw (los 25 DORND con el sonido activo, a traves de BOMBEFF2); el sonido es propio; tambien make test_soundorig
-CLICK - no-necesaria conmutacion directa del altavoz del Apple II; el sonido sale por el IPC del QL (sound.c)
-LASNOISE2 - no-necesaria sin uso en el original
-RESET space_reset_all verificada make test_start (1.000 casos con ZERO, RES2 y ZINF reales: giros, QQ22, ECMA, ALP1/2, JSTGY, QQ12 y FSH/ASH/ENERGY a $FF)
-RES2 space_reset,ships_zero,ship_zinf verificada make test_start (1.000 casos: NOSTM, LSX2/LSY2 = $FF, MSTG, giros, DELTA/ALPHA/ALP1 = 3, SPBLB si SSPR, ECMOF si ECMA, ZERO, SLSP y ZINF; WPSHPS lo hace quien llama (clear_view); JSTX no se toca; ships_clear vacia ademas K% y los montones)
-TT170 game_run no-verificable punto de entrada: RESET (verificado) y el flujo hacia el titulo; es el bucle principal propio del port (app.c)
-TITLE scr_title no-verificable pantalla de titulo propia del port (nave que gira, menu de disco); depende del modo grafico del Apple II
-BR1 scr_title,scr_disk no-verificable flujo de la pantalla de titulo y la carga de comandante propios del port (DFAULT y RESET verificados aparte)
-cmn cmn verificada nombre del comandante con TT26 (ficha 4 de TT27 y titulo de STATUS), make test_missions
-BAY bay verificada QQ12 = $FF y FRCE con f8 (pantalla de estado), make test_missions; brp y DOENTRY acaban en bay
-NLI4 nlin4 no-verificable guiones bajo la fila 1 en el modo texto del Apple II; el QL no tiene modo texto y NLIN4 dibuja siempre la linea de NLIN2 en y = 19 (en medio de la fila 2)
-NLIN3 ui_title no-verificable titulo con la linea que lo subraya (menu.c); en las pantallas de misiones, TT27 + nlin4 (dt_nlin4_hook)
-NLIN4 nlin4 verificada make test_draw (modo grafico: NLIN2 con y = 19)
-NLIN ui_title no-verificable titulo con la linea que lo subraya (menu.c); NLIN = INCYC + NLIN2(23)
-NLIN2 nlin2 verificada make test_draw (HLOIN de 0 a 255 en azul)
-DVLOIN dvloin verificada por inspeccion: VLOIN de (A, GCYT) a (A, GCYB), y VLOIN esta verificada con make test_lines
-LOIN loin_draw verificada make test_lines punto a punto (pendiente con log/alogh, un extremo sin dibujar segun SWAP); en sun.c, loin() reproduce ademas los efectos en memoria (SWAP, X1..Y2, P, Q, S) de make test_planet
-LL145 ship_clip verificada recorte de linea (verificada con el 6502)
-LL118 ship_clip verificada dentro de ship3d.c (verificada con el 6502)
-LSPUT ship_lsput verificada linea de nave en el monton con animacion sin parpadeo (dentro de LL9, verificada)
-beamcol - no-necesaria tabla sin uso en el original
-TWFL - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-TWFR - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-MASKT - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-SCTBX1 - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-SCTBX2 - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-cellocl - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-SCTBL - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-SCTBH - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-SCTBH2 - no-necesaria tablas de la pantalla de alta resolucion del Apple II (direcciones de fila, mascaras de pixel y colores); gfx.c escribe directamente en la pantalla del QL
-HGR - no-necesaria cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8)
-TEXT - no-necesaria cambio de modo grafico y de texto del Apple II; el QL usa un solo modo (modo 8)
-TRADEMODE ui_clear,gfx_clear no-verificable TT66 + FLKB de las pantallas de comercio, que en el port son propias (menu.c)
-TTX66 tt66 verificada make test_screen (MT2, LSP = 0, QQ17, DTW2, XC/YC, FLFLLS, LAS2, DLY, de, ee3 y el nombre de la vista con TT27)
-TTX66K ttx66k verificada make test_screen (vistas graficas: cleargrap y BOX; de texto: cleartext; el QL no tiene modo texto)
-clss dt_clss_hook verificada a traves de CHPR en make test_missions (pasar de la fila 23 borra y vuelve a (0, 0))
-cleargrap tt66,clear_view verificada make test_lines (puntos apagados: filas 0..135; los bordes azules del Apple quedan fuera de los 256 puntos)
-clearrow clyns verificada make test_lines (filas 15 y 16 de CLYNS: y = 120..135)
-sightcol chart_sight verificada make test_draw (azul, rojo, blanco, blanco)
-hyp start_hyper no-verificable inicio del hiperespacio con la pantalla y las teclas del port (TT111 y jmp ya verificadas)
-wW start_hyper no-verificable cuenta atras del hiperespacio con la pantalla del port
-TT18 start_hyper no-verificable cuenta atras y salto con la pantalla del port; MJP (verificada) y el combustible; DORND entra con C = 0 (sin tecla)
-TTX110 find_system no-verificable seleccion del sistema mas cercano con la pantalla del port (TT111 verificada)
-Ghy jump_galactic no-verificable salto galactico: la rotacion de semillas esta verificada en make test_univ6502; el resto es pantalla y teclas
-ee3 say_hyper no-verificable cuenta atras impresa en la pantalla del port (TTX66 verificada)
-TT147 start_hyper no-verificable mensaje de fuera de alcance en la pantalla del port
-me1 say no-verificable mensaje en vuelo en la fila 24 del port
-me2 dly_tick,flight_mess_off no-verificable mensaje en vuelo en la fila 24 del port
-MESS mess,say no-verificable mensaje en vuelo en la fila 24 del port
-log em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
-logL em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
-alogh em_logL,em_alogh verificada tablas de logaritmos y antilogaritmos de emath.c, comprobadas con FMLTU y DVID4
-PIX1 pixel2 verificada ADD + PIXEL2 dentro del polvo estelar: make test_stars
-MU5 emath.c verificada entrada de MULT3 con Q AND 127 = 0 (K = A A A A, C = 0), dentro de em_mult3; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MU6 emath.c verificada entrada de MULTS con A AND 127 = 0 (P+1 = P = A), dentro de em_mults; make test_emath y make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MU1 emath.c verificada entrada de MULTU con Q = 0 (P = X, A = X, C = 0), dentro de em_multu; make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-MLS1 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
-MLS2 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
-MUT1 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
-MUT2 mls1,mls2 verificada envoltorios de MULT1/MULTS dentro de STARS1, STARS6 y STARS2: make test_stars (3.000 casos con PIXEL real)
-MUT3 - no-necesaria sin uso en el original
-DVID3B2 em_dvid3b verificada salidas: K(3 2 1 0); make test_arith (2.000 casos con A, X, Y, C y la pagina cero al azar y valores limite; divisor 0 no se prueba)
-GC2 tt22,tt23 verificada multiplicacion por 4 en linea en TT22 y TT23: make test_charts
-LL62 ship_ll9 verificada etiqueta ll62 de LL9 (verificada)
-LL120 ll120_123 verificada recorte de linea (ship3d.c, verificadas)
-LL123 ll120_123 verificada recorte de linea (ship3d.c, verificadas)
-yetanotherrts - no-necesaria contiene solo un RTS
-TRIBDIR - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
-TRIBDIRH - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
-SPMASK - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
-TRIBTA - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
-TRIBMA - no-necesaria tablas de los sprites de los Trumbles (hardware VIC del C64); el contador de Trumbles seguira pendiente con las misiones
-wtable - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rtable - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-scttab - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-armtab - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-armtb2 - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-armwat - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-prenib - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-pstnib - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-wbyte - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rwts - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rsect - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-wsect - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rttrk - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rttrk3 - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-trytrk - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rdrght - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-read - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-write - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rdaddr - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-seek - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-drverr - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-prterr - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rvtoc - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-gettsl - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-getsct - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-isfull - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-findf - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-finde - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rentry - no-necesaria RWTS y catalogo del DOS 3.3 del Apple II; QDOS se ocupa del disco desde C (save.c)
-rfile load_commander no-verificable lectura de fichero del DOS 3.3 (RWTS); el port usa fopen de QDOS
-wfile save_commander,write_file no-verificable escritura de fichero del DOS 3.3 (RWTS); el port usa fopen de QDOS
-NA% cmdr_default no-verificable area de datos del ultimo comandante guardado: en el port son las variables del comandante y el fichero de save.c
+GINF - no-necesaria the INF pointer does not exist in C: indexed by slot
+SFS2 sfs2 verificada inside SFS1 (make test_laser, mother ship = station)
+exlook - no-necesaria EXNO table (explosion sound): the sound is already in sound.c
+# --- inventory classification (2026-10-17)
+ENTRY - no-necesaria the original's copy protection: checksum, decryption and unscrambling of the code; it does not exist on the QL
+S% - no-necesaria the original's copy protection: checksum, decryption and unscrambling of the code; it does not exist on the QL
+DEEOR - no-necesaria the original's copy protection: checksum, decryption and unscrambling of the code; it does not exist on the QL
+DEEORS - no-necesaria the original's copy protection: checksum, decryption and unscrambling of the code; it does not exist on the QL
+G% - no-necesaria the original's copy protection: checksum, decryption and unscrambling of the code; it does not exist on the QL
+F% - no-necesaria the original's copy protection: checksum, decryption and unscrambling of the code; it does not exist on the QL
+NMIpissoff - no-necesaria Apple II boot (interrupts, screen mode, memory); done by main.c and app.c
+COLD - no-necesaria Apple II boot (interrupts, screen mode, memory); done by main.c and app.c
+BEGIN - no-necesaria Apple II boot (interrupts, screen mode, memory); done by main.c and app.c
+MUTILATE - no-necesaria anti-tampering encryption of the original's commander file; save.c uses its own XOR encryption (ELQD format)
+UNMUTILATE - no-necesaria anti-tampering encryption of the original's commander file; save.c uses its own XOR encryption (ELQD format)
+SWAPPZERO - no-necesaria unused in the original (zero-page swap)
+brkd - no-necesaria the 6502's BRK error handler; the C runtime takes care of errors
+BRBR - no-necesaria the 6502's BRK error handler; the C runtime takes care of errors
+BRKBK - no-necesaria the 6502's BRK error handler; the C runtime takes care of errors
+ZEBC - no-necesaria zero fill and memory page copy: in C they are memset, memcpy or static variables
+ZES1 - no-necesaria zero fill and memory page copy: in C they are memset, memcpy or static variables
+ZES2 - no-necesaria zero fill and memory page copy: in C they are memset, memcpy or static variables
+ZES1k - no-necesaria zero fill and memory page copy: in C they are memset, memcpy or static variables
+ZES2k - no-necesaria zero fill and memory page copy: in C they are memset, memcpy or static variables
+ZESNEW - no-necesaria zero fill and memory page copy: in C they are memset, memcpy or static variables
+mvblockK - no-necesaria zero fill and memory page copy: in C they are memset, memcpy or static variables
+DELAY - no-necesaria instruction loop delay; the port waits by frames (wait_frames) and by time (snd_tick)
+CLDELAY - no-necesaria instruction loop delay; the port waits by frames (wait_frames) and by time (snd_tick)
+WSCAN - no-necesaria instruction loop delay; the port waits by frames (wait_frames) and by time (snd_tick)
+backtonormal - no-necesaria disables the BBC keyboard and returns with A = 0; does not apply
+ZERO ships_zero,ships_clear verificada sets FRIN..de to 0 (FRIN, MANY, JUNK, auto, ECMP, MJ, CABTMP, LAS2, MSAR, VIEW, LASCT, GNTMP, HFX, EV, DLY and de): the 6502 clears them and touches nothing outside; ships_zero clears all those in C (HFX does not exist in the port), make test_missions
+Disk - no-necesaria variables of the disk operations and of DOS 3.3's RWTS: the QL uses QDOS
+UP - no-necesaria configuration variables: replaced by C variables (state.c, sound.c); the switches will be ported with TGINT and DKS3
+Option - no-necesaria configuration variables: replaced by C variables (state.c, sound.c); the switches will be ported with TGINT and DKS3
+ZP - no-necesaria zero page is split into global C variables (state.c, emath.c): the compiler provides it
+XX3 - no-necesaria table of the vertices' screen coordinates: xx3 array in ship3d.c
+K% - no-necesaria ship blocks: array in state.c (state_slot) and one line heap per slot in ships.c
+WP - no-necesaria heaps of the ball, the sun and the ships and stardust data: C arrays (sun.c, stars.c, ships.c)
+newosrdch - no-necesaria the BBC's custom OSRDCH routine with Tube processor; does not apply
+RDKEY key_scan no-verificable Apple II keyboard reading; the QL uses KEYROW through the IPC
+KYTB keys.c no-verificable Apple II key table; the QL's are in keys.h
+RDS1 ctl_read no-verificable Apple II joystick (paddles); on the QL they are CTL1 keys
+DKS2 ctl_read no-verificable Apple II joystick; on the QL they are CTL1 keys
+PAUSE2 plat_wait_key no-verificable wait for a key: specific to the QL console
+ZEKTRAN - no-necesaria BBC key logger (or unused): keys.c reads the rows directly and does not need to clear it
+U% - no-necesaria BBC key logger (or unused): keys.c reads the rows directly and does not need to clear it
+DKSANYKEY - no-necesaria BBC key logger (or unused): keys.c reads the rows directly and does not need to clear it
+KTRAN - no-necesaria BBC key logger (or unused): keys.c reads the rows directly and does not need to clear it
+BELL snd_bell no-verificable CHPR(7): the Apple II console beep; sound comes out through the QL's BEEP (own)
+BEEP snd_beep verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): does not consume DORND nor touch RAND; the sound is our own
+BOOP snd_boop verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): does not consume DORND; the sound is our own
+SOBEEP snd_sobeep verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): does not consume DORND; the tone is the translation of the loop's cycles (own)
+SOBLIP snd_soblip verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): does not consume DORND; the sweep is the translation of the cycles (own)
+SOHISS snd_sohiss verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): Y DORND (256 if Y = 0) only with sound on, with DORND's carry chain; the sound is our own
+SOEXPL snd_soexpl verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): Y DORND (256 if Y = 0) only with sound on; the sound is our own
+EXNO snd_exno verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): SOEXPL with Y = 15
+EXNO3 snd_exno3 verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): SOEXPL with Y = 40
+LASNOISE snd_lasnoise verificada make test_soundorig (3,000 cases, random DNOIZ/RAND/carry): does not consume DORND; the sweep is our own
+SOBOMB snd_sobomb verificada make test_draw (the 25 DORNDs with sound on, through BOMBEFF2); the sound is our own; also make test_soundorig
+CLICK - no-necesaria direct toggling of the Apple II speaker; sound comes out through the QL IPC (sound.c)
+LASNOISE2 - no-necesaria unused in the original
+RESET space_reset_all verificada make test_start (1,000 cases with real ZERO, RES2 and ZINF: turns, QQ22, ECMA, ALP1/2, JSTGY, QQ12 and FSH/ASH/ENERGY at $FF)
+RES2 space_reset,ships_zero,ship_zinf verificada make test_start (1,000 cases: NOSTM, LSX2/LSY2 = $FF, MSTG, turns, DELTA/ALPHA/ALP1 = 3, SPBLB if SSPR, ECMOF if ECMA, ZERO, SLSP and ZINF; WPSHPS is done by the caller (clear_view); JSTX is not touched; ships_clear also empties K% and the heaps)
+TT170 game_run no-verificable entry point: RESET (verified) and the flow towards the title; it is the port's own main loop (app.c)
+TITLE scr_title no-verificable the port's own title screen (spinning ship, disk menu); depends on the Apple II graphics mode
+BR1 scr_title,scr_disk no-verificable the port's own title screen flow and commander loading (DFAULT and RESET verified separately)
+cmn cmn verificada commander name with TT26 (token 4 of TT27 and STATUS title), make test_missions
+BAY bay verificada QQ12 = $FF and FRCE with f8 (status screen), make test_missions; brp and DOENTRY end in bay
+NLI4 nlin4 no-verificable dashes under row 1 in Apple II text mode; the QL has no text mode and NLIN4 always draws NLIN2's line at y = 19 (in the middle of row 2)
+NLIN3 ui_title no-verificable title with the line underlining it (menu.c); in the mission screens, TT27 + nlin4 (dt_nlin4_hook)
+NLIN4 nlin4 verificada make test_draw (graphics mode: NLIN2 with y = 19)
+NLIN ui_title no-verificable title with the line underlining it (menu.c); NLIN = INCYC + NLIN2(23)
+NLIN2 nlin2 verificada make test_draw (HLOIN from 0 to 255 in blue)
+DVLOIN dvloin verificada by inspection: VLOIN from (A, GCYT) to (A, GCYB), and VLOIN is verified with make test_lines
+LOIN loin_draw verificada make test_lines point by point (slope with log/alogh, one endpoint not drawn depending on SWAP); in sun.c, loin() also reproduces the memory effects (SWAP, X1..Y2, P, Q, S) of make test_planet
+LL145 ship_clip verificada line clipping (verified with the 6502)
+LL118 ship_clip verificada inside ship3d.c (verified with the 6502)
+LSPUT ship_lsput verificada ship line in the heap with flicker-free animation (inside LL9, verified)
+beamcol - no-necesaria table unused in the original
+TWFL - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+TWFR - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+MASKT - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+SCTBX1 - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+SCTBX2 - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+cellocl - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+SCTBL - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+SCTBH - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+SCTBH2 - no-necesaria Apple II high-resolution screen tables (row addresses, pixel masks and colours); gfx.c writes directly to the QL screen
+HGR - no-necesaria Apple II graphics and text mode switching; the QL uses a single mode (mode 8)
+TEXT - no-necesaria Apple II graphics and text mode switching; the QL uses a single mode (mode 8)
+TRADEMODE ui_clear,gfx_clear no-verificable TT66 + FLKB of the trade screens, which in the port are our own (menu.c)
+TTX66 tt66 verificada make test_screen (MT2, LSP = 0, QQ17, DTW2, XC/YC, FLFLLS, LAS2, DLY, de, ee3 and the view name with TT27)
+TTX66K ttx66k verificada make test_screen (graphic views: cleargrap and BOX; text: cleartext; the QL has no text mode)
+clss dt_clss_hook verificada through CHPR in make test_missions (going past row 23 clears and returns to (0, 0))
+cleargrap tt66,clear_view verificada make test_lines (dots OFF: rows 0..135; the Apple's blue borders fall outside the 256 dots)
+clearrow clyns verificada make test_lines (rows 15 and 16 of CLYNS: y = 120..135)
+sightcol chart_sight verificada make test_draw (blue, red, white, white)
+hyp start_hyper no-verificable hyperspace start with the port's screen and keys (TT111 and jmp already verified)
+wW start_hyper no-verificable hyperspace countdown with the port's screen
+TT18 start_hyper no-verificable countdown and jump with the port's screen; MJP (verified) and fuel; DORND enters with C = 0 (no key)
+TTX110 find_system no-verificable selection of the nearest system with the port's screen (TT111 verified)
+Ghy jump_galactic no-verificable galactic jump: the seed rotation is verified in make test_univ6502; the rest is screen and keys
+ee3 say_hyper no-verificable countdown printed on the port's screen (TTX66 verified)
+TT147 start_hyper no-verificable out-of-range message on the port's screen
+me1 say no-verificable in-flight message on row 24 of the port
+me2 dly_tick,flight_mess_off no-verificable in-flight message on row 24 of the port
+MESS mess,say no-verificable in-flight message on row 24 of the port
+log em_logL,em_alogh verificada emath.c's logarithm and antilogarithm tables, checked with FMLTU and DVID4
+logL em_logL,em_alogh verificada emath.c's logarithm and antilogarithm tables, checked with FMLTU and DVID4
+alogh em_logL,em_alogh verificada emath.c's logarithm and antilogarithm tables, checked with FMLTU and DVID4
+PIX1 pixel2 verificada ADD + PIXEL2 inside the stardust: make test_stars
+MU5 emath.c verificada MULT3 entry with Q AND 127 = 0 (K = A A A A, C = 0), inside em_mult3; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MU6 emath.c verificada MULTS entry with A AND 127 = 0 (P+1 = P = A), inside em_mults; make test_emath and make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MU1 emath.c verificada MULTU entry with Q = 0 (P = X, A = X, C = 0), inside em_multu; make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+MLS1 mls1,mls2 verificada MULT1/MULTS wrappers inside STARS1, STARS6 and STARS2: make test_stars (3,000 cases with real PIXEL)
+MLS2 mls1,mls2 verificada MULT1/MULTS wrappers inside STARS1, STARS6 and STARS2: make test_stars (3,000 cases with real PIXEL)
+MUT1 mls1,mls2 verificada MULT1/MULTS wrappers inside STARS1, STARS6 and STARS2: make test_stars (3,000 cases with real PIXEL)
+MUT2 mls1,mls2 verificada MULT1/MULTS wrappers inside STARS1, STARS6 and STARS2: make test_stars (3,000 cases with real PIXEL)
+MUT3 - no-necesaria unused in the original
+DVID3B2 em_dvid3b verificada outputs: K(3 2 1 0); make test_arith (2,000 cases with random A, X, Y, C and zero page and boundary values; divisor 0 is not tested)
+GC2 tt22,tt23 verificada inline multiplication by 4 in TT22 and TT23: make test_charts
+LL62 ship_ll9 verificada LL9's ll62 label (verified)
+LL120 ll120_123 verificada line clipping (ship3d.c, verified)
+LL123 ll120_123 verificada line clipping (ship3d.c, verified)
+yetanotherrts - no-necesaria contains only an RTS
+TRIBDIR - no-necesaria tables of the Trumble sprites (C64 VIC hardware); the Trumble counter will remain pending with the missions
+TRIBDIRH - no-necesaria tables of the Trumble sprites (C64 VIC hardware); the Trumble counter will remain pending with the missions
+SPMASK - no-necesaria tables of the Trumble sprites (C64 VIC hardware); the Trumble counter will remain pending with the missions
+TRIBTA - no-necesaria tables of the Trumble sprites (C64 VIC hardware); the Trumble counter will remain pending with the missions
+TRIBMA - no-necesaria tables of the Trumble sprites (C64 VIC hardware); the Trumble counter will remain pending with the missions
+wtable - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rtable - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+scttab - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+armtab - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+armtb2 - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+armwat - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+prenib - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+pstnib - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+wbyte - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rwts - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rsect - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+wsect - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rttrk - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rttrk3 - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+trytrk - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rdrght - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+read - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+write - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rdaddr - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+seek - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+drverr - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+prterr - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rvtoc - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+gettsl - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+getsct - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+isfull - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+findf - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+finde - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rentry - no-necesaria RWTS and catalogue of the Apple II DOS 3.3; QDOS takes care of the disk from C (save.c)
+rfile load_commander no-verificable DOS 3.3 file reading (RWTS); the port uses QDOS fopen
+wfile save_commander,write_file no-verificable DOS 3.3 file writing (RWTS); the port uses QDOS fopen
+NA% cmdr_default no-verificable data area of the last saved commander: in the port it is the commander variables and the save.c file
 NA2% cmdr_default verificada make test_jameson
-CHK cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
-CHK2 cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
-CHK3 cmdr_check,cmdr_check2 verificada bytes de comprobacion (verificadas con el 6502)
-COPYNAME cmdr_set_name,save_filename no-verificable nombre del fichero del DOS: el port filtra y copia el nombre a su manera (cmdr_set_name)
+CHK cmdr_check,cmdr_check2 verificada check bytes (verified with the 6502)
+CHK2 cmdr_check,cmdr_check2 verificada check bytes (verified with the 6502)
+CHK3 cmdr_check,cmdr_check2 verificada check bytes (verified with the 6502)
+COPYNAME cmdr_set_name,save_filename no-verificable DOS file name: the port filters and copies the name its own way (cmdr_set_name)
 TRNME cmdr_set_name,save_filename no-verificable idem COPYNAME
 TR1 cmdr_set_name,save_filename no-verificable idem COPYNAME
-comnam cmdr_set_name,save_filename no-verificable nombre del fichero del DOS 3.3
-GTNMEW edit_name no-verificable entrada del nombre propia del port (edit_name)
-FILEPR scr_disk no-verificable menu de disco propio
-OTHERFILEPR scr_disk no-verificable menu de disco propio
-diskerror scr_disk no-verificable errores de disco de QDOS en el menu propio
-DERR1 save_errstr no-verificable mensajes de error de RWTS del DOS 3.3; QDOS tiene los suyos
+comnam cmdr_set_name,save_filename no-verificable DOS 3.3 file name
+GTNMEW edit_name no-verificable the port's own name entry (edit_name)
+FILEPR scr_disk no-verificable own disk menu
+OTHERFILEPR scr_disk no-verificable own disk menu
+diskerror scr_disk no-verificable QDOS disk errors in the own menu
+DERR1 save_errstr no-verificable DOS 3.3 RWTS error messages; QDOS has its own
 DERR2 save_errstr no-verificable idem DERR1
 DERR3 save_errstr no-verificable idem DERR1
 DERR4 save_errstr no-verificable idem DERR1
 DERR5 save_errstr no-verificable idem DERR1
 ERTAB save_errstr no-verificable idem DERR1
-S1% save_dev no-verificable unidad y directorio del DOS 3.3 del Apple II; el port usa la unidad de QDOS
-thislong - no-necesaria longitud de los nombres: en C se calcula con strlen
-oldlong - no-necesaria longitud de los nombres: en C se calcula con strlen
-WHITETEXT - no-necesaria RTS compartido con VOWEL (VRTS); en C no hace falta
-CHPR2 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
-R5 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
-RR5 - no-necesaria impresion en el modo de texto del Apple II; el QL dibuja siempre en modo grafico
-MT26 edit_text no-verificable lectura de una linea del teclado (teclado/altavoz del Apple II)
-RLINE edit_text no-verificable lectura de una linea del teclado (teclado/altavoz del Apple II)
-dn2 snd_boop no-verificable pitido largo y espera (teclado/altavoz del Apple II)
-KS3 - no-necesaria puntero SLSP del montón de lineas: ships.c usa un montón fijo por ranura
+S1% save_dev no-verificable Apple II DOS 3.3 drive and directory; the port uses the QDOS drive
+thislong - no-necesaria length of the names: in C it is computed with strlen
+oldlong - no-necesaria length of the names: in C it is computed with strlen
+WHITETEXT - no-necesaria RTS shared with VOWEL (VRTS); not needed in C
+CHPR2 - no-necesaria printing in Apple II text mode; the QL always draws in graphics mode
+R5 - no-necesaria printing in Apple II text mode; the QL always draws in graphics mode
+RR5 - no-necesaria printing in Apple II text mode; the QL always draws in graphics mode
+MT26 edit_text no-verificable reading a line from the keyboard (Apple II keyboard/speaker)
+RLINE edit_text no-verificable reading a line from the keyboard (Apple II keyboard/speaker)
+dn2 snd_boop no-verificable long beep and wait (Apple II keyboard/speaker)
+KS3 - no-necesaria SLSP pointer of the line heap: ships.c uses a fixed heap per slot
 
-LL129 ll129 verificada dentro de ship3d.c (pendiente de la linea, verificada con el 6502)
-# --- paso 3a: laser y danos (2026-10-17), verificadas contra el 6502 con make test_laser (tools/gen_laser.py)
-LASLI lasli,lasli2 verificada vertice, calor, DENGY y las cuatro lineas (LL30); LASLI2 borra en XOR
-HITCH hitch verificada incluido el borde del area de impacto
-ANGRY angry verificada escribe en el bloque K% (INF); la estacion es la ranura 1
-EXNO2 exno2 verificada TALLY con KWL%/KWH% y mensaje 101; el sonido es snd_exno2
-SPIN spin,spin2 verificada la cantidad es tipo AND byte 0 AND 15 (el TYA tapa el numero aleatorio)
-SFS1 sfs1 verificada nave hija desde K%; velocidad de los restos = X de DORND AND 15; acarreos modelados
-SHD shd verificada cae en DENGY: cargar un escudo gasta 1 de energia
+LL129 ll129 verificada inside ship3d.c (line slope, verified with the 6502)
+# --- step 3a: laser and damage (2026-10-17), verified against the 6502 with make test_laser (tools/gen_laser.py)
+LASLI lasli,lasli2 verificada vertex, heat, DENGY and the four lines (LL30); LASLI2 erases in XOR
+HITCH hitch verificada including the edge of the hit area
+ANGRY angry verificada writes to the K% block (INF); the station is slot 1
+EXNO2 exno2 verificada TALLY with KWL%/KWH% and message 101; the sound is snd_exno2
+SPIN spin,spin2 verificada the quantity is type AND byte 0 AND 15 (the TYA covers the random number)
+SFS1 sfs1 verificada child ship from K%; speed of the debris = X of DORND AND 15; carries modelled
+SHD shd verificada falls into DENGY: charging a shield uses 1 energy
 DENGY dengy verificada
-# --- paso 3b: danos a nuestra nave (2026-10-17), verificadas contra el 6502 con make test_damage (tools/gen_damage.py)
-OOPS oops verificada escudo segun el signo de z de la nave (K%); el SBC usa el acarreo de quien llama
-OUCH ouch verificada QQ20+X con X = 0..21 (mercancias, ECM, BST, BOMB, ENGY, DKCMP)
+# --- step 3b: damage to our ship (2026-10-17), verified against the 6502 with make test_damage (tools/gen_damage.py)
+OOPS oops verificada shield according to the sign of the ship's z (K%); the SBC uses the caller's carry
+OUCH ouch verificada QQ20+X with X = 0..21 (commodities, ECM, BST, BOMB, ENGY, DKCMP)
 ou2 ouch verificada
 ou3 ouch verificada
-mes9 flight_mess,mess_de no-verificable mensaje en vuelo en la fila 24 del port
-DEATH2 game_run no-verificable vuelta al titulo (RES2 verificado); el flujo del titulo es propio del port
-DET1 - no-necesaria en el Apple II es un RTS
-Ze ze verificada dentro de D1
-# --- 2026-10-17 undecima ronda: rutinas que faltaban de Flight y Drawing lines (make test_equip contra el 6502)
+mes9 flight_mess,mess_de no-verificable in-flight message on row 24 of the port
+DEATH2 game_run no-verificable back to the title (RES2 verified); the title flow is the port's own
+DET1 - no-necesaria on the Apple II it is an RTS
+Ze ze verificada inside D1
+# --- 2026-10-17 eleventh round: missing Flight and Drawing lines routines (make test_equip against the 6502)
 BOMBON bomb_on verificada make test_equip
-BOMBOFF bomb_off verificada make test_equip (lineas del rayo)
-BOMBPOS bombpos verificada tabla
+BOMBOFF bomb_off verificada make test_equip (bolt lines)
+BOMBPOS bombpos verificada table
 BOMBTBX bombtbx verificada
 BOMBTBY bombtby verificada
-BOMBEFF2 bomb_eff2,bomb_eff,bomb_frame verificada make test_draw (con SOBOMB, CLICK y DORND reales; QQ11 y DNOIZ al azar); bomb_frame (parte 16) y la tecla con la comprobacion de la version publicada (IB disk) sin verificar
-WARP warp verificada make test_equip (el repintado de LOOK1 lo hace flight.c)
-DOCKIT dockit verificada make test_equip (con TA2, GOPL, TA151 y la cola de TACTICS en dockit.c)
-DCS1 dcs1 verificada dentro de DOCKIT
-dockEd ui_nav no-verificable mensaje DOCKED en la pantalla del port
-ESCAPE flight_escape,ships_escape no-verificable orquestacion de FRS1 (verificada), 97 vueltas de MVEIT (verificada) y LL9 (verificada), SCAN y GOIN con la pantalla del port; lo propio (QQ20 = 0, FIST, ESCP = 0, QQ14 = 70) es trivial
-SESCP sescp verificada a traves de TACTICS (la capsula de una nave casi sin energia; make test_tactics)
-MJP misjump verificada salto fallido: RES2 (SPBLB, ECMOF), MJ = $FF, tres Thargoides (version IB), NOSTM = 2, QQ1 EOR 31, vista 0; make test_flight (250 casos con RES2, ZERO, ZINF y ECMOF reales; TT66, LL164, GTHG y LOOK1 registran)
+BOMBEFF2 bomb_eff2,bomb_eff,bomb_frame verificada make test_draw (with real SOBOMB, CLICK and DORND; random QQ11 and DNOIZ); bomb_frame (part 16) and the key with the published version's check (IB disk) unverified
+WARP warp verificada make test_equip (LOOK1's repaint is done by flight.c)
+DOCKIT dockit verificada make test_equip (with TA2, GOPL, TA151 and the TACTICS tail in dockit.c)
+DCS1 dcs1 verificada inside DOCKIT
+dockEd ui_nav no-verificable DOCKED message on the port's screen
+ESCAPE flight_escape,ships_escape no-verificable orchestration of FRS1 (verified), 97 iterations of MVEIT (verified) and LL9 (verified), SCAN and GOIN with the port's screen; the own part (QQ20 = 0, FIST, ESCP = 0, QQ14 = 70) is trivial
+SESCP sescp verificada through TACTICS (the pod of a ship with almost no energy; make test_tactics)
+MJP misjump verificada failed jump: RES2 (SPBLB, ECMOF), MJ = $FF, three Thargoids (IB version), NOSTM = 2, QQ1 EOR 31, view 0; make test_flight (250 cases with real RES2, ZERO, ZINF and ECMOF; TT66, LL164, GTHG and LOOK1 log)
 GTHG gthg verificada make test_equip
 FRS1 frs1 verificada make test_equip
-# --- 2026-10-17 duodecima ronda: TACTICS y misiles (make test_tactics contra el 6502)
-TACTICS tactics verificada las 7 partes (la 7 en dockit.c); 20.000 casos con nave hija, misiles, laser, ECM, capsula
-FRMIS frmis,missile_fire verificada FRS1, GINF, ANGRY y ABORT reales: eventos de NWSHP, MESS, MSBAR (indicador y color) y SOHISS, NOMSL y el blanco; 1.500 casos (MSBAR con color BLACK deja A = 0 y FRMIS cae en ANGRY con ella), make test_equip; el argumento 120 de SOHISS no se captura desde el C
-FR1 fr1 verificada MISSILE JAMMED (ficha 201 de MESS) cuando FRS1 no cabe, dentro de FRMIS en make test_equip
-SFRMIS sfrmis verificada a traves de TACTICS
+# --- 2026-10-17 twelfth round: TACTICS and missiles (make test_tactics against the 6502)
+TACTICS tactics verificada the 7 parts (the 7th in dockit.c); 20,000 cases with child ship, missiles, laser, ECM, pod
+FRMIS frmis,missile_fire verificada real FRS1, GINF, ANGRY and ABORT: events of NWSHP, MESS, MSBAR (indicator and colour) and SOHISS, NOMSL and the target; 1,500 cases (MSBAR with colour BLACK leaves A = 0 and FRMIS falls into ANGRY with it), make test_equip; SOHISS's argument 120 is not captured from C
+FR1 fr1 verificada MISSILE JAMMED (MESS token 201) when FRS1 does not fit, inside FRMIS in make test_equip
+SFRMIS sfrmis verificada through TACTICS
 KS2 ks2 verificada make test_tactics
-# --- misiones y motor de fichas (2026-10-17)
-DETOK detok verificada motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas
-DETOK2 detok2 verificada motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas
-DETOK3 detok3 verificada motor de fichas extendidas de TKN1/RUTOK (detok.c), make test_missions: todas las fichas
-MT1 jump verificada ficha de salto (detok.c), make test_missions
-MT2 dt_mt2 verificada ficha de salto (detok.c), make test_missions
-MT5 jump verificada ficha de salto (detok.c), make test_missions
-MT6 jump verificada ficha de salto (detok.c), make test_missions
-MT8 jump verificada ficha de salto (detok.c), make test_missions
-MT9 jump verificada ficha de salto (detok.c), make test_missions
-MT13 jump verificada ficha de salto (detok.c), make test_missions
-MT14 dt_mt14 verificada ficha de salto (detok.c), make test_missions
-MT15 dt_mt15 verificada ficha de salto (detok.c), make test_missions
-MT16 jump verificada ficha de salto (detok.c), make test_missions
-MT19 jump verificada ficha de salto (detok.c), make test_missions
-MT23 jump verificada ficha de salto (detok.c), make test_missions
-MT29 jump verificada ficha de salto (detok.c), make test_missions
-MT27 jump verificada ficha de salto (detok.c), make test_missions
-MT28 jump verificada ficha de salto (detok.c), make test_missions
-MT17 jump verificada adjetivo del sistema; reproduce el fallo del original (LDA BUF-1,X en pagina cero: VOWEL mira la pagina cero), make test_missions
-MT18 jump verificada 1 a 4 fichas de dos letras al azar con los acarreos de DORND del original, make test_missions
-MTIN tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-JMTB tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-TKN2 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-QQ16 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-DTW1 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-DTW2 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-DTW3 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-DTW4 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-DTW5 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-DTW6 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-DTW8 tokens_data.h,detok.c verificada tablas y variables del motor de fichas (tools/gen_tokens.py, iguales a los binarios de referencia), make test_missions
-VOWEL vowel verificada dentro de MT17 (detok.c)
-qw dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-ex dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT43 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT27 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT41 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT42 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT45 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT46 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT74 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-crlf dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT73 dt_tt27 verificada fichas normales de QQ18 (detok.c); csh, tal y fwl no se usan en las fichas y no estan, make test_missions
-TT26 dt_dasc verificada DASC con la justificacion de LL = 30 (detok.c); las pantallas propias siguen con txt_putc, make test_missions
-CHPR dt_chpr verificada salida del motor de fichas: XC/YC, saltos de linea, clss (detok.c); las pantallas propias siguen con txt_putc, make test_missions
-BRIEF brief verificada mision 1: el Constrictor girando (LL9/MVEIT) y la ficha 10, make test_missions
-BRIEF2 brief2 verificada mision 2: ir a Ceerdi, make test_missions
-BRIEF3 brief3 verificada los planos en Ceerdi, make test_missions
-DEBRIEF2 debrief2 verificada planos entregados: ENGY = 2, TALLY+1, make test_missions
-DEBRIEF debrief verificada Constrictor destruido: 5.000 CR, make test_missions
-BRP brief2,brief3,debrief,debrief2 verificada ficha y BAY, make test_missions
-BRIS bris verificada INCOMING MESSAGE y DELAY 100 (ficha de salto 25), make test_missions
-PAUSE mis_pause verificada PAUSE2 y PAS1 (ficha de salto 22), make test_missions
-PAS1 pas1,mis_tt66 verificada TT66 con la vista 1, make test_missions
-THERE there verificada sistema del Constrictor, make test_missions
-TBRIEF - no-necesaria comentada en el original (Trumbles, que esta version no tiene)
-DOENTRY missions_doentry,missions_choose,flight_run,combat_collide verificada la decision de las sesiones informativas (EN1..EN5) verificada con make test_missions; se atraca por la ranura (ISDK), con el ordenador de atraque o, sin el, con C (provisional); energia y escudos se reponen al despegar
-# --- configuracion, estacion (parte 14, KS4, TT110, SOLAR) y DEATH (2026-10-17)
-TGINT tgint verificada teclas DAXFYJKUT y su orden (DAMP..DISK); make test_dk4
-DKS3 dks3 verificada invierte la opcion con EOR si la tecla coincide con TGINT,Y; make test_dk4 (2.000 pausas con teclas al azar: opciones DAMP..DISK, DNOIZ, final por "-" o ESC y teclas leidas; RDKEY, WSCAN, DELAY y BELL son stubs, los pitidos no se cuentan)
-DK4 in_poll,freeze verificada FREEZE (la pausa con "=") y sus teclas: Q/S sonido, DAXFYJKUT, ESC = DEATH2, "-" sigue; make test_dk4 (2.000 pausas con teclas al azar: opciones DAMP..DISK, DNOIZ, final por "-" o ESC y teclas leidas; RDKEY, WSCAN, DELAY y BELL son stubs, los pitidos no se cuentan). La lectura de "=" y de la tecla es de in_poll (propia)
-SOLAR ships_arrive verificada FIST a la mitad (su acarreo entra en el ADC #3), Trumbles, planeta y sol; make test_missions
-NWSPS nwsps verificada estacion en la ranura 1 (STX FRIN+1); Dodo con nivel tecnologico >= 10; make test_missions
-SOS1 sos1 verificada planeta 128/130 con giros 127; make test_missions
-KS4 ks4 verificada la estacion lejana (FAROF) deja en su ranura el sol con y_sign = 6; make test_missions
-FAROF2 sm_farof2,ships_part14,farof verificada make test_geom; FAROF2 con 192 en la parte 14 y con 224 (FAROF) al quitar naves
-TT110 space_launch verificada despegue: RES2, SOS1 (INC INWK+8) y NWSPS (INWK+8 = 128, INC INWK+7), DELTA = 12, FIST |= BAD, RAND y acarreos; make test_flight (500 casos; NWSHP registra el planeta y la estacion; LAUN, TT111, HFS1 y LOOK1 registran)
-BAD space_bad,bad,legal_name verificada carga ilegal (encounters.c verificado con make test_missions; space_bad para TT110); estado legal con legal_name
-DEATH flight_death,ships_death_debris no-verificable D1 (Ze, fq1, restos) verificado en make test_damage; el resto es orquestacion: SOEXPL con Y = 210, RES2, DELTA * 4, TT66, nWq, GAME OVER con ex(146) en (12, 12), M% una vez y D2 64 veces (el bucle principal completo y el sonido son propios del port)
-Main ships_step,flight_run,encounters_tick,ships_part14,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock verificada bucle de vuelo (partes 1-16) y bucle principal (partes 1-6): naves, laser, choques, recogida, atraque, partes 14 (estacion) y 15, bomba, ECM, misiles y aparicion de naves; verificados por partes con make test_laser, test_damage, test_equip, test_tactics y test_missions (MCNT baja como en el original)
-# --- verificacion de Text y Universe contra el 6502 (2026-10-18)
-TENS dt_bprnt verificada impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num
-BPRNT dt_bprnt verificada impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num
-TT11 dt_tt11 verificada impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num
-pr2 dt_pr2 verificada impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num
-pr5 dt_pr5 verificada impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num
-pr6 dt_pr6 verificada impresion de numeros del original (detok.c), make test_missions (BPRNT con K, U y C al azar; pr2, pr5 y pr6 dentro de TT25, csh, fwl y tal); las pantallas propias siguen con ui_num
+# --- missions and token engine (2026-10-17)
+DETOK detok verificada extended token engine of TKN1/RUTOK (detok.c), make test_missions: all the tokens
+DETOK2 detok2 verificada extended token engine of TKN1/RUTOK (detok.c), make test_missions: all the tokens
+DETOK3 detok3 verificada extended token engine of TKN1/RUTOK (detok.c), make test_missions: all the tokens
+MT1 jump verificada jump token (detok.c), make test_missions
+MT2 dt_mt2 verificada jump token (detok.c), make test_missions
+MT5 jump verificada jump token (detok.c), make test_missions
+MT6 jump verificada jump token (detok.c), make test_missions
+MT8 jump verificada jump token (detok.c), make test_missions
+MT9 jump verificada jump token (detok.c), make test_missions
+MT13 jump verificada jump token (detok.c), make test_missions
+MT14 dt_mt14 verificada jump token (detok.c), make test_missions
+MT15 dt_mt15 verificada jump token (detok.c), make test_missions
+MT16 jump verificada jump token (detok.c), make test_missions
+MT19 jump verificada jump token (detok.c), make test_missions
+MT23 jump verificada jump token (detok.c), make test_missions
+MT29 jump verificada jump token (detok.c), make test_missions
+MT27 jump verificada jump token (detok.c), make test_missions
+MT28 jump verificada jump token (detok.c), make test_missions
+MT17 jump verificada system adjective; reproduces the original's bug (LDA BUF-1,X in zero page: VOWEL looks at zero page), make test_missions
+MT18 jump verificada 1 to 4 random two-letter tokens with the original's DORND carries, make test_missions
+MTIN tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+JMTB tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+TKN2 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+QQ16 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+DTW1 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+DTW2 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+DTW3 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+DTW4 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+DTW5 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+DTW6 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+DTW8 tokens_data.h,detok.c verificada tables and variables of the token engine (tools/gen_tokens.py, equal to the reference binaries), make test_missions
+VOWEL vowel verificada inside MT17 (detok.c)
+qw dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+ex dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT43 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT27 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT41 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT42 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT45 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT46 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT74 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+crlf dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT73 dt_tt27 verificada normal QQ18 tokens (detok.c); csh, tal and fwl are not used in the tokens and are not there, make test_missions
+TT26 dt_dasc verificada DASC with LL = 30 justification (detok.c); the own screens still use txt_putc, make test_missions
+CHPR dt_chpr verificada token engine output: XC/YC, line feeds, clss (detok.c); the own screens still use txt_putc, make test_missions
+BRIEF brief verificada mission 1: the spinning Constrictor (LL9/MVEIT) and token 10, make test_missions
+BRIEF2 brief2 verificada mission 2: go to Ceerdi, make test_missions
+BRIEF3 brief3 verificada the plans at Ceerdi, make test_missions
+DEBRIEF2 debrief2 verificada plans delivered: ENGY = 2, TALLY+1, make test_missions
+DEBRIEF debrief verificada Constrictor destroyed: 5,000 CR, make test_missions
+BRP brief2,brief3,debrief,debrief2 verificada token and BAY, make test_missions
+BRIS bris verificada INCOMING MESSAGE and DELAY 100 (jump token 25), make test_missions
+PAUSE mis_pause verificada PAUSE2 and PAS1 (jump token 22), make test_missions
+PAS1 pas1,mis_tt66 verificada TT66 with view 1, make test_missions
+THERE there verificada Constrictor's system, make test_missions
+TBRIEF - no-necesaria commented out in the original (Trumbles, which this version does not have)
+DOENTRY missions_doentry,missions_choose,flight_run,combat_collide verificada the decision of the informative sessions (EN1..EN5) verified with make test_missions; docking is through the slot (ISDK), with the docking computer or, without it, with C (provisional); energy and shields are restored on launch
+# --- configuration, station (part 14, KS4, TT110, SOLAR) and DEATH (2026-10-17)
+TGINT tgint verificada keys DAXFYJKUT and their order (DAMP..DISK); make test_dk4
+DKS3 dks3 verificada inverts the option with EOR if the key matches TGINT,Y; make test_dk4 (2,000 pauses with random keys: options DAMP..DISK, DNOIZ, ending by "-" or ESC and keys read; RDKEY, WSCAN, DELAY and BELL are stubs, beeps are not counted)
+DK4 in_poll,freeze verificada FREEZE (the pause with "=") and its keys: Q/S sound, DAXFYJKUT, ESC = DEATH2, "-" resumes; make test_dk4 (2,000 pauses with random keys: options DAMP..DISK, DNOIZ, ending by "-" or ESC and keys read; RDKEY, WSCAN, DELAY and BELL are stubs, beeps are not counted). Reading "=" and the key is in_poll's (own)
+SOLAR ships_arrive verificada FIST halved (its carry enters the ADC #3), Trumbles, planet and sun; make test_missions
+NWSPS nwsps verificada station in slot 1 (STX FRIN+1); Dodo with tech level >= 10; make test_missions
+SOS1 sos1 verificada planet 128/130 with turns 127; make test_missions
+KS4 ks4 verificada the distant station (FAROF) leaves the sun with y_sign = 6 in its slot; make test_missions
+FAROF2 sm_farof2,ships_part14,farof verificada make test_geom; FAROF2 with 192 in part 14 and with 224 (FAROF) when removing ships
+TT110 space_launch verificada launch: RES2, SOS1 (INC INWK+8) and NWSPS (INWK+8 = 128, INC INWK+7), DELTA = 12, FIST |= BAD, RAND and carries; make test_flight (500 cases; NWSHP logs the planet and the station; LAUN, TT111, HFS1 and LOOK1 log)
+BAD space_bad,bad,legal_name verificada illegal cargo (encounters.c verified with make test_missions; space_bad for TT110); legal status with legal_name
+DEATH flight_death,ships_death_debris no-verificable D1 (Ze, fq1, debris) verified in make test_damage; the rest is orchestration: SOEXPL with Y = 210, RES2, DELTA * 4, TT66, nWq, GAME OVER with ex(146) at (12, 12), M% once and D2 64 times (the full main loop and the sound are the port's own)
+Main ships_step,flight_run,encounters_tick,ships_part14,laser_fire,combat_hit,combat_killed,laser_frame_end,energy_tick,laser_cool,combat_collide,damage_checks,ecm_frame,ecm_key,missile_unarm,missile_target,missile_fire,missile_lock verificada flight loop (parts 1-16) and main loop (parts 1-6): ships, laser, collisions, scooping, docking, parts 14 (station) and 15, bomb, ECM, missiles and ships appearing; verified by parts with make test_laser, test_damage, test_equip, test_tactics and test_missions (MCNT goes down as in the original)
+# --- verification of Text and Universe against the 6502 (2026-10-18)
+TENS dt_bprnt verificada the original's number printing (detok.c), make test_missions (BPRNT with random K, U and C; pr2, pr5 and pr6 inside TT25, csh, fwl and tal); the own screens still use ui_num
+BPRNT dt_bprnt verificada the original's number printing (detok.c), make test_missions (BPRNT with random K, U and C; pr2, pr5 and pr6 inside TT25, csh, fwl and tal); the own screens still use ui_num
+TT11 dt_tt11 verificada the original's number printing (detok.c), make test_missions (BPRNT with random K, U and C; pr2, pr5 and pr6 inside TT25, csh, fwl and tal); the own screens still use ui_num
+pr2 dt_pr2 verificada the original's number printing (detok.c), make test_missions (BPRNT with random K, U and C; pr2, pr5 and pr6 inside TT25, csh, fwl and tal); the own screens still use ui_num
+pr5 dt_pr5 verificada the original's number printing (detok.c), make test_missions (BPRNT with random K, U and C; pr2, pr5 and pr6 inside TT25, csh, fwl and tal); the own screens still use ui_num
+pr6 dt_pr6 verificada the original's number printing (detok.c), make test_missions (BPRNT with random K, U and C; pr2, pr5 and pr6 inside TT25, csh, fwl and tal); the own screens still use ui_num
 plf2 dt_plf2 verificada detok.c, make test_missions
 FEED dt_feed verificada detok.c, make test_missions
 TT60 dt_tt60 verificada detok.c, make test_missions
@@ -523,39 +523,39 @@ TT162 dt_tt162 verificada detok.c, make test_missions
 plf dt_plf verificada detok.c, make test_missions
 TT68 dt_tt68 verificada detok.c, make test_missions
 TT67K dt_chpr verificada detok.c, make test_missions
-DOXC dt_xc,dt_yc verificada cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions
-DOYC dt_xc,dt_yc verificada cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions
-INCYC dt_xc,dt_yc verificada cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions
-SETXC dt_xc,dt_yc verificada cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions
-SETYC dt_xc,dt_yc verificada cursor del motor de fichas (asignacion directa de XC/YC), dentro de las rutinas verificadas con make test_missions
-csh dt_csh verificada dinero con BPRNT (9 cifras y punto), make test_missions
-fwl dt_fwl verificada combustible y dinero, make test_missions
-tal dt_tt27 verificada numero de galaxia con pr2, make test_missions
-letter txt_putc,draw_glyph,ql_puts verificada la fuente es la FONT del original (A.FLOWY.bin, tools/gen_font.py), comparada con make test_univ6502; el dibujo es el de la pantalla del QL (celda opaca con ql_puts de ql_text.asm, verificada contra su C con make test_putsasm)
-letter2 txt_putc,draw_glyph,ql_puts,dash verificada letras con la FONT del original (make test_univ6502); las bombillas del panel salen del volcado de la pantalla original
-TT25 tt25,tt25_raw,scr_data verificada pantalla de datos del sistema del original con el motor de fichas (missions.c), make test_missions (letra a letra, con TT24 y PDESC reales)
-TT146 tt25_raw verificada distancia con pr5 y LIGHT YEARS, make test_missions
+DOXC dt_xc,dt_yc verificada token engine cursor (direct assignment of XC/YC), inside the routines verified with make test_missions
+DOYC dt_xc,dt_yc verificada token engine cursor (direct assignment of XC/YC), inside the routines verified with make test_missions
+INCYC dt_xc,dt_yc verificada token engine cursor (direct assignment of XC/YC), inside the routines verified with make test_missions
+SETXC dt_xc,dt_yc verificada token engine cursor (direct assignment of XC/YC), inside the routines verified with make test_missions
+SETYC dt_xc,dt_yc verificada token engine cursor (direct assignment of XC/YC), inside the routines verified with make test_missions
+csh dt_csh verificada money with BPRNT (9 digits and point), make test_missions
+fwl dt_fwl verificada fuel and money, make test_missions
+tal dt_tt27 verificada galaxy number with pr2, make test_missions
+letter txt_putc,draw_glyph,ql_puts verificada the font is the original's FONT (A.FLOWY.bin, tools/gen_font.py), compared with make test_univ6502; the drawing is that of the QL screen (opaque cell with ql_puts of ql_text.asm, verified against its C with make test_putsasm)
+letter2 txt_putc,draw_glyph,ql_puts,dash verificada letters with the original's FONT (make test_univ6502); the panel bulbs come from the original screen dump
+TT25 tt25,tt25_raw,scr_data verificada the original's system data screen with the token engine (missions.c), make test_missions (letter by letter, with real TT24 and PDESC)
+TT146 tt25_raw verificada distance with pr5 and LIGHT YEARS, make test_missions
 TT70 tt25_raw verificada MAINLY, make test_missions
-PDESC pdesc verificada descripciones especiales y la normal con la ficha 5 del original (RAND = QQ15+2..5); NRU% = 26; make test_missions
-TT20 uni_make_system,tweakseed verificada las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502
-TT54 uni_make_system,tweakseed verificada las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502
-TT24 uni_make_system verificada las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502
-TT81 uni_build_galaxy verificada las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502
-cpl uni_make_system,name verificada las 8 galaxias x 256 sistemas (semillas, economia, gobierno, nivel, poblacion, productividad, radio y nombre) con make test_univ6502
-ypl name verificada nombre del sistema actual (cpl sobre QQ2), make test_univ6502 y make test_missions
-TT111 uni_nearest,uni_distance,game_tt111 verificada sistema mas cercano y distancia QQ8 para 2.000 puntos de las 8 galaxias, make test_univ6502; TT111 desde las coordenadas del elegido (re-seleccion: hyp, TT110, STATUS, f6, HME5, QU5) con game_tt111, comparado en el caso N (gemelos de menor indice)
+PDESC pdesc verificada special descriptions and the normal one with the original's token 5 (RAND = QQ15+2..5); NRU% = 26; make test_missions
+TT20 uni_make_system,tweakseed verificada the 8 galaxies x 256 systems (seeds, economy, government, level, population, productivity, radius and name) with make test_univ6502
+TT54 uni_make_system,tweakseed verificada the 8 galaxies x 256 systems (seeds, economy, government, level, population, productivity, radius and name) with make test_univ6502
+TT24 uni_make_system verificada the 8 galaxies x 256 systems (seeds, economy, government, level, population, productivity, radius and name) with make test_univ6502
+TT81 uni_build_galaxy verificada the 8 galaxies x 256 systems (seeds, economy, government, level, population, productivity, radius and name) with make test_univ6502
+cpl uni_make_system,name verificada the 8 galaxies x 256 systems (seeds, economy, government, level, population, productivity, radius and name) with make test_univ6502
+ypl name verificada name of the current system (cpl on QQ2), make test_univ6502 and make test_missions
+TT111 uni_nearest,uni_distance,game_tt111 verificada nearest system and distance QQ8 for 2,000 points of the 8 galaxies, make test_univ6502; TT111 from the chosen one's coordinates (re-selection: hyp, TT110, STATUS, f6, HME5, QU5) with game_tt111, compared in case N (lower-index twins)
 jmp game_enter_system,jump_do verificada QQ0/QQ1 = QQ9/QQ10, make test_univ6502
-hyp1 jump_do,game_enter_system verificada la entrada que usa el juego (hyp1+3, desde TT18): jmp, safehouse en QQ2, EV = 0, QQ28/tek/gov; 1.000 casos con make test_univ6502. El JSR TT111 de hyp1 no lo usa ningun camino del juego; la re-seleccion por TT111 (gemelos) esta en game_tt111
-GVL uni_gen_market,game_enter_system verificada QQ26 con DORND y disponibilidad AVL, make test_univ6502
-TT151 uni_gen_market verificada precio de cada articulo (QQ24 * 4 con GC2), make test_univ6502; la pantalla del mercado es propia
-var uni_gen_market verificada economia * factor, dentro de GVL y TT151 (make test_univ6502)
-QQ23 uni_goods verificada tabla de mercancias, comprobada a traves de GVL y TT151 (make test_univ6502)
-ITEM uni_goods verificada macro de la tabla QQ23 (make test_univ6502)
-NWSHP ship_new verificada con el monton de lineas del original (SLSP, bytes 33 y 34): falla cuando el original falla; secuencias de NWSHP y KILLSHP con SHIPS.bin, make test_univ6502
-KILLSHP ship_kill verificada desplaza las ranuras y los montones (KS3), KS2, TARGET LOST, Constrictor, JUNK, MANY y KS4; make test_univ6502
-KS1 ship_kill verificada quita la nave actual (KILLSHP verificado con make test_univ6502)
+hyp1 jump_do,game_enter_system verificada the entry the game uses (hyp1+3, from TT18): jmp, safehouse in QQ2, EV = 0, QQ28/tek/gov; 1,000 cases with make test_univ6502. hyp1's JSR TT111 is not used by any game path; the TT111 re-selection (twins) is in game_tt111
+GVL uni_gen_market,game_enter_system verificada QQ26 with DORND and AVL availability, make test_univ6502
+TT151 uni_gen_market verificada price of each item (QQ24 * 4 with GC2), make test_univ6502; the market screen is our own
+var uni_gen_market verificada economy * factor, inside GVL and TT151 (make test_univ6502)
+QQ23 uni_goods verificada commodity table, checked through GVL and TT151 (make test_univ6502)
+ITEM uni_goods verificada QQ23 table macro (make test_univ6502)
+NWSHP ship_new verificada with the original line heap (SLSP, bytes 33 and 34): fails when the original fails; sequences of NWSHP and KILLSHP with SHIPS.bin, make test_univ6502
+KILLSHP ship_kill verificada shifts the slots and heaps (KS3), KS2, TARGET LOST, Constrictor, JUNK, MANY and KS4; make test_univ6502
+KS1 ship_kill verificada removes the current ship (KILLSHP verified with make test_univ6502)
 ZINF ship_zinf verificada make test_univ6502
-UNIV state_slot verificada K% + n * NI%, comprobado en las secuencias de NWSHP/KILLSHP (make test_univ6502)
-NwS1 nwsps verificada dentro de NWSPS (make test_missions)
-spasto ship_bp_for verificada plano de la estacion: Dodo con nivel tecnologico >= 10 (NWSPS, make test_missions)
-ping chart_ping_set,chart_ping verificada QQ9/QQ10 = QQ0/QQ1, 250 casos con make test_univ6502
+UNIV state_slot verificada K% + n * NI%, checked in the NWSHP/KILLSHP sequences (make test_univ6502)
+NwS1 nwsps verificada inside NWSPS (make test_missions)
+spasto ship_bp_for verificada station blueprint: Dodo with tech level >= 10 (NWSPS, make test_missions)
+ping chart_ping_set,chart_ping verificada QQ9/QQ10 = QQ0/QQ1, 250 cases with make test_univ6502

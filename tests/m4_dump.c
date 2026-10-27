@@ -1,9 +1,9 @@
-/* Volcado de referencia en MODO 4 para tools/test_mode4asm.py: las versiones en C (sin ASM_LINE) de las primitivas, con gfx_m4 = 1.
-     L x1 y1 x2 y2 c      linea a los 512 puntos (loin_bres_c)
-     E cx cy rx ry c clx0 cly0 clx1 cly1    elipse a los 512 puntos      F cx cy hw hh c clx0 cly0 clx1 cly1    rectangulo
-     H x0 x1 y c   V x y0 y1 c   P x y c   C col row ncols nrows (pantalla llena de $FF antes)    puntos del juego (2 puntos fisicos de ancho)
-     R ocx ocy orx om ncx ncy nrx nm c cly1   cambio de elipse fila a fila (om / nm = 0: no hay vieja / nueva); las tablas salen en palabras
-   Por cada caso escribe los bytes de pantalla no nulos ("offset:valor ..."); R antes lleva ory, nry y las tablas ("o=hex n=hex"). */
+/* Reference dump in MODE 4 for tools/test_mode4asm.py: the C versions (without ASM_LINE) of the primitives, with gfx_m4 = 1.
+     L x1 y1 x2 y2 c      line at the 512 dots (loin_bres_c)
+     E cx cy rx ry c clx0 cly0 clx1 cly1    ellipse at the 512 dots      F cx cy hw hh c clx0 cly0 clx1 cly1    rectangle
+     H x0 x1 y c   V x y0 y1 c   P x y c   C col row ncols nrows (screen full of $FF beforehand)    game dots (2 physical dots wide)
+     R ocx ocy orx om ncx ncy nrx nm c cly1   row-by-row ellipse change (om / nm = 0: no old / new); the tables come out as words
+   For each case it writes the non-zero screen bytes ("offset:value ..."); R first carries ory, nry and the tables ("o=hex n=hex"). */
 #include <stdio.h>
 #include <string.h>
 #include "platform.h"

@@ -18,11 +18,11 @@ u8 combat_view_on = 1;
 void (*combat_mess_hook)(u8 token) = 0;
 void (*combat_mess_off_hook)(void) = 0;
 
-#define VIEW_X 128                       /* X: centro de la vista espacial de 256 x 136 */
-#define VIEW_Y view_cy                   /* Y (68; 80 en la vista nativa) */
-#define MLAS 50                          /* Mlas: potencia del laser de mineria */
+#define VIEW_X 128                       /* X: centre of the 256 x 136 space view */
+#define VIEW_Y view_cy                   /* Y (68; 80 in the native view) */
+#define MLAS 50                          /* Mlas: mining laser power */
 
-/* KWL% y KWH%: lo que suma al TALLY cada tipo de nave (1..32), parte fraccionaria (/256) y entera */
+/* KWL% and KWH%: what each ship type adds to TALLY (1..32), fractional part (/256) and integer part */
 static const u8 kwl[32] = {
     149, 0, 16, 10, 10, 6, 8, 10, 16, 17, 234, 170, 213, 0, 85, 26,
     85, 128, 85, 90, 85, 170, 50, 42, 21, 42, 64, 192, 170, 33, 85, 0
@@ -32,7 +32,7 @@ static const u8 kwh[32] = {
     0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 2, 0, 5, 0
 };
 
-/* DOENTRY/RES2: al despegar desde la estacion todo esta lleno y frio */
+/* DOENTRY/RES2: on launch from the station everything is full and cold */
 void combat_reset(void)
 {
     energy = 255; fsh = 255; ash = 255;
@@ -42,10 +42,10 @@ void combat_reset(void)
     combat_view_on = 1;
 }
 
-/* TTX66 pone LAS2 = 0: la vista se ha borrado y LASLI2 no debe volver a dibujar (XOR) unas lineas que ya no estan */
+/* TTX66 sets LAS2 = 0: the view has been erased and LASLI2 must not draw (XOR) lines that are no longer there */
 void laser_forget(void) { las2 = 0; }
 
-/* DENGY: DEC ENERGY; si llega a 0 se queda en 1. Devuelve la bandera Z del DEC */
+/* DENGY: DEC ENERGY; if it reaches 0 it stays at 1. Returns the Z flag of the DEC */
 u8 dengy(void)
 {
     energy--;
@@ -53,7 +53,7 @@ u8 dengy(void)
     return 0;
 }
 
-/* SHD: INX; si da la vuelta, DEX y vuelve (escudo lleno); si no, cae en DENGY: cargar el escudo gasta 1 de energia */
+/* SHD: INX; if it wraps, DEX and return (shield full); otherwise fall into DENGY: charging the shield costs 1 energy */
 u8 shd(u8 x)
 {
     x++;
@@ -62,7 +62,7 @@ u8 shd(u8 x)
     return x;
 }
 
-/* las: dos lineas desde (LASX, LASY) a (a, 2Y-1) y a (y, 2Y-1) con LL30 (= LOIN, XOR) */
+/* las: two lines from (LASX, LASY) to (a, 2Y-1) and to (y, 2Y-1) with LL30 (= LOIN, XOR) */
 static void las_pair(u8 a, u8 y)
 {
     loin_draw(lasx, lasy, a, 2 * VIEW_Y - 1, LASER_COL);
@@ -80,18 +80,18 @@ void lasli(void)
 {
     u8 a;
     a = em_dornd();
-    lasy = (u8)((a & 7) + (VIEW_Y - 4) + (em_rand_c & 1));     /* AND #7; ADC #Y-4 (acarreo de DORND) */
-    em_rand_c = 0;                                              /* el ADC no lleva: el siguiente DORND entra con C = 0 */
+    lasy = (u8)((a & 7) + (VIEW_Y - 4) + (em_rand_c & 1));     /* AND #7; ADC #Y-4 (carry from DORND) */
+    em_rand_c = 0;                                              /* the ADC does not carry: the next DORND enters with C = 0 */
     a = em_dornd();
     lasx = (u8)((a & 7) + (VIEW_X - 4) + (em_rand_c & 1));     /* AND #7; ADC #X-4 */
     em_rand_c = 0;
-    gntmp = (u8)(gntmp + 8);                                    /* LDA GNTMP; ADC #8 (el ADC anterior no lleva) */
+    gntmp = (u8)(gntmp + 8);                                    /* LDA GNTMP; ADC #8 (the previous ADC does not carry) */
     dengy();
     lasli2();
 }
 
-/* Parte 3 del bucle de vuelo (MA68): LAS = 0; si LASCT = 0, se pulsa el disparo, GNTMP < 242 y la vista tiene laser:
-   LAS = LAS2 = potencia (bits 0-6), sonido, lineas, y LASCT = potencia AND %11111010 para los de pulsos (0 si bit 7) */
+/* Part 3 of the flight loop (MA68): LAS = 0; if LASCT = 0, fire is pressed, GNTMP < 242 and the view has a laser:
+   LAS = LAS2 = power (bits 0-6), sound, lines, and LASCT = power AND %11111010 for pulse lasers (0 if bit 7) */
 void laser_fire(u8 view, u8 fire)
 {
     u8 l;
@@ -107,8 +107,8 @@ void laser_fire(u8 view, u8 fire)
     lasct = (u8)((l & 0x80) ? 0 : (l & 0xFA));
 }
 
-/* Parte 16 (MA23): con LAS2 != 0 y LASCT < 8 se borran las lineas y LAS2 = 0. Con haz y militar (LASCT = 0) se borran en el
-   mismo fotograma en que se dibujan: el parpadeo es el del original */
+/* Part 16 (MA23): with LAS2 != 0 and LASCT < 8 the lines are erased and LAS2 = 0. With beam and military (LASCT = 0) they are erased in the
+   same frame they are drawn: the flicker is the original's */
 void laser_frame_end(void)
 {
     if (las2 == 0) return;
@@ -117,7 +117,7 @@ void laser_frame_end(void)
     las2 = 0;
 }
 
-/* MLOOP: el laser se enfria 1 por vuelta y LASCT baja de 2 en 2 (de 1 a 0 si es impar) */
+/* MLOOP: the laser cools 1 per iteration and LASCT drops by 2 (from 1 to 0 if odd) */
 void laser_cool(void)
 {
     u8 x;
@@ -126,8 +126,8 @@ void laser_cool(void)
     if (x) { x--; if (x) x--; lasct = x; }
 }
 
-/* HITCH: la nave de INWK (ya en los ejes de la vista, tras PLUT) esta delante (z positiva), no es planeta ni sol, no explota,
-   x_hi = y_hi = 0 y x_lo^2 + y_lo^2 <= area de impacto del plano (bytes 1 y 2). Devuelve el acarreo */
+/* HITCH: the ship in INWK (already in view axes, after PLUT) is ahead (positive z), is not a planet or sun, is not exploding,
+   x_hi = y_hi = 0 and x_lo^2 + y_lo^2 <= the plane's hit area (bytes 1 and 2). Returns the carry */
 u8 hitch(void)
 {
     u8 s, r, x;
@@ -137,7 +137,7 @@ u8 hitch(void)
     if ((inwk[31] & 0x20) | inwk[1] | inwk[4]) return 0;
     s = em_squa2(inwk[0]); r = zP;
     x = em_squa2(inwk[3]);
-    u = (unsigned)zP + r; r = (u8)u;                 /* SQUA2 sale con C = 0 */
+    u = (unsigned)zP + r; r = (u8)u;                 /* SQUA2 returns with C = 0 */
     u = (unsigned)x + s + (u >> 8);
     if (u > 255) return 0;                           /* BCS TN10 */
     s = (u8)u;
@@ -145,23 +145,23 @@ u8 hitch(void)
     return (u8)(zxx0[1] >= r);                       /* CMP R */
 }
 
-/* AN2: la estacion (ranura 1) se vuelve hostil (NEWB bit 2) */
+/* AN2: the station (slot 1) turns hostile (NEWB bit 2) */
 static void an2(void) { state_slot(1)[I_NEWB] = (u8)(state_slot(1)[I_NEWB] | 0x04); }
 
-/* ANGRY: escribe en el bloque K% de la nave (INF), no en INWK */
+/* ANGRY: writes to the ship's K% block (INF), not to INWK */
 void angry(u8 type)
 {
     u8 *p = zinf;
     if (type == SHIPT_CORIOLIS) { an2(); return; }
-    if (p[I_NEWB] & 0x20) an2();                     /* la protege la estacion */
-    if (p[I_AI] == 0) return;                        /* sin IA: nada que enfadar */
+    if (p[I_NEWB] & 0x20) an2();                     /* the station protects it */
+    if (p[I_AI] == 0) return;                        /* no AI: nothing to anger */
     p[I_AI] = (u8)(p[I_AI] | 0x80);
-    p[28] = 2;                                       /* acelera */
-    p[30] = 4;                                       /* cabecea */
-    if (ztype >= SHIPT_COBRA_MK_3) p[I_NEWB] = (u8)(p[I_NEWB] | 0x04);   /* LDA TYPE: la nave que se esta procesando */
+    p[28] = 2;                                       /* accelerates */
+    p[30] = 4;                                       /* pitches */
+    if (ztype >= SHIPT_COBRA_MK_3) p[I_NEWB] = (u8)(p[I_NEWB] | 0x04);   /* LDA TYPE: the ship being processed */
 }
 
-/* EXNO2: TALLY(1 0) + fraccion; si sube el byte alto, "RIGHT ON COMMANDER!" */
+/* EXNO2: TALLY(1 0) + fraction; if the high byte rises, "RIGHT ON COMMANDER!" */
 void exno2(u8 type)
 {
     unsigned s;
@@ -170,10 +170,10 @@ void exno2(u8 type)
         s = (unsigned)tally[0] + kwh[type - 1] + (s >> 8); tally[0] = (u8)s;
         if (s > 255) { tally[1]++; mess(MESS_RIGHT_ON); }
     }
-    snd_exno2();                                     /* SOEXPL con Y = 55 */
+    snd_exno2();                                     /* SOEXPL with Y = 55 */
 }
 
-/* Parte 11 del bucle de vuelo, tras PLUT. Sin misiles aun: se omite el aviso de blanco del misil (MSAR) */
+/* Part 11 of the flight loop, after PLUT. No missiles yet: the missile's target warning (MSAR) is omitted */
 void combat_hit(void)
 {
     u8 type = ztype;
@@ -181,16 +181,16 @@ void combat_hit(void)
     if (!hitch()) return;                            /* BCC MA8 */
     missile_lock(move_xsav);                         /* LDA MSAR; BEQ MA47; JSR BEEP; LDX XSAV; LDY #RED; JSR ABORT2 */
     if (las == 0) return;                            /* MA47 */
-    snd_exno();                                      /* EXNO: golpe */
-    if (type == SHIPT_CORIOLIS) goto mad;            /* la estacion no sufre, pero se enfada */
+    snd_exno();                                      /* EXNO: hit */
+    if (type == SHIPT_CORIOLIS) goto mad;            /* the station does not suffer, but gets angry */
     if (type >= SHIPT_CONSTRICTOR) {
-        if (las != (LASER_MIL & 0x7F)) goto mad;     /* solo el militar la dana... */
-        las = (u8)(las >> 2);                        /* ...a la cuarta parte (LSR LAS dos veces: queda asi este fotograma) */
+        if (las != (LASER_MIL & 0x7F)) goto mad;     /* only the military laser damages it... */
+        las = (u8)(las >> 2);                        /* ...to a quarter (LSR LAS twice: stays like that this frame) */
     }
     d = (int)inwk[I_ENERGY] - las;                   /* BURN */
     if (d >= 0) { inwk[I_ENERGY] = (u8)d; goto mad; }
-    inwk[31] = (u8)(inwk[31] | 0x80);                /* destruida: LL9 la hace explotar */
-    /* el acarreo con que entra el primer DORND sale de las comparaciones del original (CMP #AST, CMP #Mlas) */
+    inwk[31] = (u8)(inwk[31] | 0x80);                /* destroyed: LL9 makes it explode */
+    /* the carry with which the first DORND enters comes from the original's comparisons (CMP #AST, CMP #Mlas) */
     if (type == SHIPT_ASTEROID) {
         if (las == MLAS) { em_rand_c = 1; spin2((u8)(em_dornd() & 3), SHIPT_SPLINTER); }
         else em_rand_c = (u8)(las >= MLAS);
@@ -198,14 +198,14 @@ void combat_hit(void)
     spin(SHIPT_PLATE);
     spin(SHIPT_CANISTER);
     exno2(type);
-    inwk[I_ENERGY] = 0;                              /* el original guarda lo que deja A el sonido; la nave ya no cuenta */
+    inwk[I_ENERGY] = 0;                              /* the original stores what the sound leaves in A; the ship no longer counts */
 mad:
     angry(type);
 }
 
-/* Parte 12 (MA15..KS1S). Con NEWB bit 7 (recogida o atracada) se quita sin mas. Al terminar la explosion: FIST |= bit 6 de
-   NEWB (policia) y, si no hay mensaje en pantalla (DLY) ni estamos en el hiperespacio (MJ), la recompensa del plano (bytes
-   10 y 11; nada si el byte 10 es 0) y el mensaje con el dinero */
+/* Part 12 (MA15..KS1S). With NEWB bit 7 (scooped or docked) it is just removed. When the explosion ends: FIST |= bit 6 of
+   NEWB (police) and, if there is no message on screen (DLY) and we are not in hyperspace (MJ), the plane's bounty (bytes
+   10 and 11; nothing if byte 10 is 0) and the message with the money */
 int combat_killed(void)
 {
     u8 x;
@@ -221,7 +221,7 @@ int combat_killed(void)
     return 1;
 }
 
-/* Parte 16 (MA77..paen1): cada 8 fotogramas, con energia >= 128 se recargan los escudos y la energia sube ENGY + 1 */
+/* Part 16 (MA77..paen1): every 8 frames, with energy >= 128 the shields are recharged and energy rises by ENGY + 1 */
 void energy_tick(u8 mc)
 {
     unsigned s;
@@ -235,10 +235,10 @@ void mess(u8 token)
 {
     if (combat_mess_hook) combat_mess_hook(token);
     dly = MESS_DLY;
-    mess_de = 0;                                 /* " DESTROYED" vale para un solo mensaje (lo consumen MESS y su borrado) */
+    mess_de = 0;                                 /* " DESTROYED" is valid for a single message (consumed by MESS and its erasure) */
 }
 
-/* TT100: DEC DLY; al llegar a 0 se borra el mensaje; si pasa a negativo vuelve a 0 */
+/* TT100: DEC DLY; when it reaches 0 the message is erased; if it goes negative it returns to 0 */
 void dly_tick(void)
 {
     if (dly == 0) return;

@@ -18,7 +18,7 @@ void (*dt_nlin4_hook)(void) = 0;
 void (*dt_clyns_hook)(void) = 0;
 void (*dt_name_hook)(u8 which) = 0;
 
-#define DTW7 'A'                                 /* MT16: DTW7 apunta al operando de LDA #'A' (letra de la unidad) */
+#define DTW7 'A'                                 /* MT16: DTW7 points to the operand of LDA #'A' (drive letter) */
 
 void dt_reset(void)
 {
@@ -31,24 +31,24 @@ u8 dt_nru(void) { return TOK_NRU; }
 
 /* ---------------------------------------------------------------- CHPR */
 
-/* RRX2 / RRX1: 12 y los demas codigos < 32 (salvo 7 y 10) ponen XC = 1; todos salvo 13 bajan una fila */
+/* RRX2 / RRX1: 12 and the other codes < 32 (except 7 and 10) set XC = 1; all except 13 move down a row */
 static void rrx2(u8 a) { dt_xc = 1; if (a != 13) dt_yc++; }
 
 void dt_chpr(u8 a)
 {
-    zk3[0] = a;                                  /* STA K3 (CHPR guarda A en K3) */
-    if (qq17 == 255) return;                     /* impresion desactivada */
+    zk3[0] = a;                                  /* STA K3 (CHPR stores A in K3) */
+    if (qq17 == 255) return;                     /* printing disabled */
     for (;;) {                                   /* RRafter */
         if (a == 7) { if (dt_beep_hook) dt_beep_hook(); return; }
         if (a < 32) {
-            if (a == 10) { dt_yc++; return; }    /* RRX1 con A = 10 */
+            if (a == 10) { dt_yc++; return; }    /* RRX1 with A = 10 */
             rrx2(a);
             return;
         }
-        if (dt_xc >= 31) rrx2(12);               /* RR1: fuera de la linea: salto de linea (JSR RRX2 con A >= 32) */
-        if (dt_yc >= 24) {                       /* clss: borra y vuelve a RRafter con el mismo caracter */
+        if (dt_xc >= 31) rrx2(12);               /* RR1: off the line: line feed (JSR RRX2 with A >= 32) */
+        if (dt_yc >= 24) {                       /* clss: clears and goes back to RRafter with the same character */
             if (dt_clss_hook) dt_clss_hook();
-            dt_xc = 0; dt_yc = 0;                /* cleargrap; en modo texto el original no mueve el cursor (se colgaria) */
+            dt_xc = 0; dt_yc = 0;                /* cleargrap; in text mode the original does not move the cursor (it would hang) */
             continue;
         }
         if (dt_letter_hook) dt_letter_hook(a, dt_xc, dt_yc);
@@ -59,19 +59,19 @@ void dt_chpr(u8 a)
 
 /* ---------------------------------------------------------------- DASC / TT26 */
 
-static void das1(u8 x)                           /* DAS1: imprime los X primeros caracteres de BUF */
+static void das1(u8 x)                           /* DAS1: prints the first X characters of BUF */
 {
     u8 y = 0;
     do { dt_chpr(dt_buf[y]); y++; x--; } while (x);
 }
 
-static u8 sc1;                                   /* SC+1: mascara de los espacios que se ensanchan en cada pasada */
+static u8 sc1;                                   /* SC+1: mask of the spaces that get widened on each pass */
 
-/* DA1: fin de parrafo (CR) con el texto justificado: cada LL caracteres se ensanchan espacios hasta que el caracter LL
-   de BUF sea un espacio, se imprime la linea y se sigue con el resto */
-u8 dt_nojustify = 0;                             /* propio: 1 = salto de linea sin ensanchar espacios (pantalla de datos) */
+/* DA1: end of paragraph (CR) with justified text: every LL characters spaces are widened until the character LL
+   of BUF is a space, the line is printed and the rest continues */
+u8 dt_nojustify = 0;                             /* own: 1 = line feed without widening spaces (data screen) */
 
-/* DA1 sin justificar: corta cada linea en el ultimo espacio que cabe en LL columnas (o en LL si no hay ninguno) */
+/* DA1 unjustified: cuts each line at the last space that fits in LL columns (or at LL if there is none) */
 static void da1_ragged(void)
 {
     u8 x, y, n;
@@ -81,8 +81,8 @@ static void da1_ragged(void)
         if (x <= DT_LL) { das1(x); break; }
         y = DT_LL;
         while (y > 0 && dt_buf[y] != ' ') y--;
-        if (y == 0) { das1(DT_LL); n = DT_LL; }                 /* palabra mas larga que la linea */
-        else { das1(y); n = (u8)(y + 1); }                      /* se descarta el espacio del corte */
+        if (y == 0) { das1(DT_LL); n = DT_LL; }                 /* word longer than the line */
+        else { das1(y); n = (u8)(y + 1); }                      /* the space at the cut is dropped */
         dt_chpr(12);
         dtw5 = (u8)(dtw5 - n);
         for (y = 0; y < dtw5; y++) dt_buf[y] = dt_buf[(u8)(n + y)];
@@ -113,13 +113,13 @@ dal2:
         if (sc1 & 0x80) goto dal2;
         s = y;
         y = dtw5;
-        do {                                     /* DAL6: se abre un hueco en S */
+        do {                                     /* DAL6: a gap is opened in S */
             a = dt_buf[y];
             dt_buf[(u8)(y + 1)] = a;
             y--;
         } while (y >= s && y != 0xFF);           /* CPY SC; BCS DAL6 (S >= 1) */
         dtw5++;
-        for (;;) {                               /* DAL3: A = ' ' (el ultimo LDA BUF,Y fue el espacio de la posicion S) */
+        for (;;) {                               /* DAL3: A = ' ' (the last LDA BUF,Y was the space at position S) */
             if (dt_buf[y] != a) goto dal1;
             y--;
             if (y & 0x80) goto da11;
@@ -127,7 +127,7 @@ dal2:
 da2:
         das1(DT_LL);
         dt_chpr(12);
-        dtw5 = (u8)(dtw5 - DT_LL - 1);           /* SBC #LL con C = 0 (CHPR vuelve con CLC) */
+        dtw5 = (u8)(dtw5 - DT_LL - 1);           /* SBC #LL with C = 0 (CHPR returns with CLC) */
         x = dtw5;
         if (x == 0) break;
         x++;
@@ -141,20 +141,20 @@ da2:
 void dt_dasc(u8 a)
 {
     u8 x = 0xFF;
-    dtw8 = 0xFF;                                 /* {19} solo vale para una letra */
+    dtw8 = 0xFF;                                 /* {19} is only valid for a letter */
     if (!(a == '.' || a == ':' || a == 10 || a == 12 || a == ' ')) x = 0;
-    dtw2 = x;                                    /* $FF: no estamos dentro de una palabra */
+    dtw2 = x;                                    /* $FF: we are not inside a word */
     if (!(dtw4 & 0x80)) { dt_chpr(a); return; }
     if (!(dtw4 & 0x40) && a == 12) { da1(); return; }
     dt_buf[dtw5] = a;
     dtw5++;
 }
 
-/* ---------------------------------------------------------------- BPRNT: numeros */
+/* ---------------------------------------------------------------- BPRNT: numbers */
 
-static const u8 tens[4] = { 0x48, 0x76, 0xE8, 0x00 };   /* TENS: EQUD $00E87648 (en memoria, byte bajo primero) */
+static const u8 tens[4] = { 0x48, 0x76, 0xE8, 0x00 };   /* TENS: EQUD $00E87648 (in memory, low byte first) */
 
-/* BPRNT: imprime K(0 1 2 3) (K = byte alto) con u cifras; c = punto decimal antes de la ultima. Usa TT26 directamente */
+/* BPRNT: prints K(0 1 2 3) (K = high byte) with u digits; c = decimal point before the last one. Uses TT26 directly */
 void dt_bprnt(const u8 *k4, u8 u, u8 c)
 {
     u8 k[4], x15[5], s, t, xx17, y, a, cy, b;
@@ -168,7 +168,7 @@ void dt_bprnt(const u8 *k4, u8 u, u8 c)
     y = 0; s = 0;
     goto tt36;
 tt35:
-    for (b = 0; b < 3; b++) {                    /* K(S 0 1 2 3) * 2, copia en XX15, y * 4 */
+    for (b = 0; b < 3; b++) {                    /* K(S 0 1 2 3) * 2, copy into XX15, and * 4 */
         cy = 0;
         for (x = 3; x >= 0; x--) { a = (u8)(k[x] >> 7); k[x] = (u8)((k[x] << 1) | cy); cy = a; }
         s = (u8)((s << 1) | cy);
@@ -179,10 +179,10 @@ tt35:
     s = (u8)(x15[4] + s + cy);
     y = 0;
 tt36:
-    for (;;) {                                   /* restar 10^11 mientras se pueda */
+    for (;;) {                                   /* subtract 10^11 while possible */
         int d;
         cy = 1;
-        for (x = 3; x >= 0; x--) { d = (int)k[x] - tens[x] - (1 - cy); cy = (u8)(d >= 0); x15[x] = (u8)d; }   /* c68 -O: el signo antes de truncar */
+        for (x = 3; x >= 0; x--) { d = (int)k[x] - tens[x] - (1 - cy); cy = (u8)(d >= 0); x15[x] = (u8)d; }   /* c68 -O: the sign before truncating */
         d = (int)s - 0x17 - (1 - cy); cy = (u8)(d >= 0); x15[4] = (u8)d;
         if (!cy) break;                          /* BCC TT37 */
         for (x = 0; x < 4; x++) k[x] = x15[x];
@@ -192,7 +192,7 @@ tt36:
     a = y;                                       /* TT37 */
     if (a == 0 && t != 0) {
         u--;
-        if (!(u & 0x80)) goto tt34n;             /* BPL TT34: no se imprime */
+        if (!(u & 0x80)) goto tt34n;             /* BPL TT34: not printed */
         dt_dasc(' ');
         goto tt34n;
     }
@@ -206,7 +206,7 @@ tt34n:
     goto tt35;
 }
 
-/* TT11: (y x) con a cifras */
+/* TT11: (y x) with a digits */
 void dt_tt11(u8 a, u8 x, u8 y, u8 c)
 {
     u8 k[4];
@@ -214,44 +214,44 @@ void dt_tt11(u8 a, u8 x, u8 y, u8 c)
     dt_bprnt(k, a, c);
 }
 
-void dt_pr2(u8 x, u8 c) { dt_tt11(3, x, 0, c); }                 /* pr2: 3 cifras */
-void dt_pr5(u8 x, u8 y, u8 c) { dt_tt11(5, x, y, c); }          /* pr5: 5 cifras */
-void dt_pr6(u8 x, u8 y) { dt_tt11(5, x, y, 0); }                /* pr6: sin punto */
+void dt_pr2(u8 x, u8 c) { dt_tt11(3, x, 0, c); }                 /* pr2: 3 digits */
+void dt_pr5(u8 x, u8 y, u8 c) { dt_tt11(5, x, y, c); }          /* pr5: 5 digits */
+void dt_pr6(u8 x, u8 y) { dt_tt11(5, x, y, 0); }                /* pr6: no point */
 
-void dt_tt67(void) { dt_tt27(12); }                              /* TT67: salto de linea */
-void dt_tt69(void) { qq17 = 0x80; dt_tt67(); }                   /* TT69: Sentence Case y salto */
-void dt_ttx69(void) { dt_yc++; dt_tt69(); }                      /* TTX69: parrafo */
+void dt_tt67(void) { dt_tt27(12); }                              /* TT67: line feed */
+void dt_tt69(void) { qq17 = 0x80; dt_tt67(); }                   /* TT69: Sentence Case and line feed */
+void dt_ttx69(void) { dt_yc++; dt_tt69(); }                      /* TTX69: paragraph */
 void dt_tt60(u8 a) { dt_tt27(a); dt_ttx69(); }                   /* TT60 */
-void dt_tt162(void) { dt_tt27(' '); }                            /* TT162: espacio */
+void dt_tt162(void) { dt_tt27(' '); }                            /* TT162: space */
 void dt_spc(u8 a) { dt_tt27(a); dt_tt162(); }                    /* spc */
 void dt_prq(u8 a) { dt_tt27(a); dt_tt27('?'); }                  /* prq */
 void dt_tt73(void) { dt_tt27(':'); }                             /* TT73 */
-void dt_tt68(u8 a) { dt_tt27(a); dt_tt73(); }                    /* TT68: ficha y dos puntos */
+void dt_tt68(u8 a) { dt_tt27(a); dt_tt73(); }                    /* TT68: token and colon */
 void dt_plf(u8 a) { dt_tt27(a); dt_tt67(); }                     /* plf */
 void dt_plf2(u8 a) { dt_plf(a); dt_xc = 6; }                     /* plf2 */
 void dt_feed(void) { dt_tt27(12); }                              /* FEED */
 
-/* csh: el dinero con 9 cifras y punto, " CR" y salto de linea */
+/* csh: the money with 9 digits and point, " CR" and line feed */
 void dt_csh(void)
 {
     dt_bprnt(cash, 9, 1);
     dt_plf(226);
 }
 
-/* fwl: "FUEL: xx.x LIGHT YEARS", salto, y "CASH:" con el dinero (PCASH) */
+/* fwl: "FUEL: xx.x LIGHT YEARS", line feed, and "CASH:" with the money (PCASH) */
 void dt_fwl(void)
 {
     dt_tt68(105);
     dt_pr2(qq14, 1);
     dt_plf(195);
-    dt_tt27(119);                                /* PCASH: ficha 119 (CASH: y el codigo 0) */
+    dt_tt27(119);                                /* PCASH: token 119 (CASH: and code 0) */
 }
 
-/* ---------------------------------------------------------------- TT27: fichas normales */
+/* ---------------------------------------------------------------- TT27: normal tokens */
 
 static void tt26(u8 a) { dt_dasc(a); }
 
-void dt_ex(u8 a)                                 /* ex: ficha A de QQ18 */
+void dt_ex(u8 a)                                 /* ex: token A of QQ18 */
 {
     unsigned i = 0;
     u8 x = a;
@@ -276,7 +276,7 @@ static void cmn(void)
 void dt_tt27(u8 a)
 {
     u8 x;
-    if (a == 0) { dt_csh(); return; }            /* csh: dinero */
+    if (a == 0) { dt_csh(); return; }            /* csh: money */
     if (a & 0x80) {                              /* TT43 */
         if (a >= 160) { dt_ex((u8)(a - 160)); return; }    /* TT47 */
         x = (u8)((a & 127) << 1);
@@ -286,11 +286,11 @@ void dt_tt27(u8 a)
         return;
     }
     switch (a) {
-    case 1: dt_pr2((u8)(gcnt + 1), 0); return;   /* tal: numero de galaxia */
+    case 1: dt_pr2((u8)(gcnt + 1), 0); return;   /* tal: galaxy number */
     case 2: if (!(mj & 0x80) && dt_name_hook) dt_name_hook(2); return;   /* ypl */
     case 3: if (dt_name_hook) dt_name_hook(3); return;                   /* cpl */
     case 4: cmn(); return;
-    case 5: dt_fwl(); return;                    /* fwl: combustible y dinero */
+    case 5: dt_fwl(); return;                    /* fwl: fuel and money */
     case 6: qq17 = 0x80; return;
     case 8: qq17 = 0; return;
     case 9: dt_xc = 21; dt_tt27(':'); return;    /* crlf + TT73 */
@@ -320,7 +320,7 @@ tt42:
 
 /* ---------------------------------------------------------------- DETOK */
 
-static void dt_print(const u8 *t, u8 a)          /* DETOK/DTEN: la ficha A de la tabla t (delimitador: VE) */
+static void dt_print(const u8 *t, u8 a)          /* DETOK/DTEN: token A of table t (delimiter: VE) */
 {
     unsigned i = 0;
     u8 x = a, c;
@@ -354,9 +354,9 @@ void dt_mt2(void) { dtw1 = 0x20; dtw6 = 0; }
 void dt_mt14(void) { dtw4 = 0x80; dtw5 = 0; }
 void dt_mt15(void) { dtw4 = 0; dtw5 = 0; }
 
-/* Byte a de la pagina cero del Apple II, para el fallo de MT17. Solo se modela lo que puede ser una letra: RAND (2-5),
-   INWK (12-48) y K3 (56-69: K3 es el ultimo caracter de CHPR); el resto (T1-T4, SC, P, XC, COL, YC, QQ17...) nunca da
-   una vocal en ese momento (direcciones de pantalla y de la fuente, columnas, banderas) */
+/* Zero-page byte a of the Apple II, for the MT17 bug. Only what can be a letter is modelled: RAND (2-5),
+   INWK (12-48) and K3 (56-69: K3 is the last character of CHPR); the rest (T1-T4, SC, P, XC, COL, YC, QQ17...) never gives
+   a vowel at that moment (screen and font addresses, columns, flags) */
 static u8 zp_peek(u8 a)
 {
     if (a >= 2 && a <= 5) return em_rand[a - 2];
@@ -374,14 +374,14 @@ static u8 vowel(u8 a)
 static void pause2(void) { if (dt_pause2_hook) dt_pause2_hook(); }
 static void tt66(u8 v) { if (dt_tt66_hook) dt_tt66_hook(v); }
 
-/* JMTB: fichas de salto 1..31 (DT3) */
+/* JMTB: jump tokens 1..31 (DT3) */
 static void jump(u8 a)
 {
     u8 y, x;
     switch (a) {
     case 1: dtw1 = 0; dtw6 = 0; break;                        /* MT1 */
     case 2: dt_mt2(); break;
-    case 3: case 4: dt_tt27(a); break;                        /* nombre del sistema seleccionado / del comandante */
+    case 3: case 4: dt_tt27(a); break;                        /* name of the selected system / of the commander */
     case 5: dtw3 = 0; break;                                  /* MT5 */
     case 6: qq17 = 0x80; dtw3 = 0xFF; break;                  /* MT6 */
     case 8: dt_xc = 6; dtw2 = 0xFF; break;                    /* MT8 */
@@ -391,37 +391,37 @@ static void jump(u8 a)
     case 14: dt_mt14(); break;
     case 15: dt_mt15(); break;
     case 16: dt_dasc(DTW7); break;                            /* MT16 */
-    case 17:                                                  /* MT17: adjetivo del sistema ("...IAN") */
+    case 17:                                                  /* MT17: system adjective ("...IAN") */
         qq17 = (u8)(qq17 & 0xBF);
         dt_tt27(3);
-        /* LDA BUF-1,X: BUF = $0100, asi que BUF-1 = $FF y BeebAsm lo ensambla en pagina cero (LDA $FF,X, B5 FF en el
-           binario): VOWEL mira el byte DTW5 - 1 de la pagina cero, no la ultima letra (ver zp_peek) */
+        /* LDA BUF-1,X: BUF = $0100, so BUF-1 = $FF and BeebAsm assembles it in zero page (LDA $FF,X, B5 FF in the
+           binary): VOWEL looks at byte DTW5 - 1 of zero page, not the last letter (see zp_peek) */
         if (vowel(zp_peek((u8)(dtw5 - 1)))) dtw5--;
         detok(153);
         break;
-    case 18:                                                  /* MT18: 1 a 4 fichas de dos letras al azar */
+    case 18:                                                  /* MT18: 1 to 4 random two-letter tokens */
         mt19();
-        em_rand_c = 0;                                        /* C = 0: DT3 (ASL/LSR de un numero < 128) */
+        em_rand_c = 0;                                        /* C = 0: DT3 (ASL/LSR of a number < 128) */
         y = (u8)(em_dornd() & 3);
         do {
-            x = (u8)(em_dornd() & 62);                        /* 1.a vuelta: acarreo del DORND anterior; luego 0 (DASC) */
+            x = (u8)(em_dornd() & 62);                        /* 1st iteration: carry from the previous DORND; then 0 (DASC) */
             dt_dts(tok_tkn2[2 + x]);
             dt_dts(tok_tkn2[3 + x]);
-            em_rand_c = 0;                                    /* DASC vuelve con C = 0 */
+            em_rand_c = 0;                                    /* DASC returns with C = 0 */
             y--;
         } while (!(y & 0x80));
         break;
     case 19: mt19(); break;
     case 21: if (dt_clyns_hook) dt_clyns_hook(); break;       /* CLYNS */
-    case 22: pause2(); tt66(1); break;                        /* PAUSE: PAUSE2 y PAS1 */
+    case 22: pause2(); tt66(1); break;                        /* PAUSE: PAUSE2 and PAS1 */
     case 23: dt_yc = 9; mt13(); break;                        /* MT23 */
     case 24: pause2(); break;
     case 25: detok(216); if (dt_delay_hook) dt_delay_hook(100); break;   /* BRIS */
-    case 26: break;                                           /* MT26: nombre de fichero (menu de disco propio) */
+    case 26: break;                                           /* MT26: file name (own disk menu) */
     case 27: detok((u8)(217 + gcnt)); break;                  /* MT27 */
     case 28: detok((u8)(220 + gcnt)); break;                  /* MT28 */
     case 29: dt_yc = 5; mt13(); break;                        /* MT29 */
-    case 30: case 31: break;                                  /* FILEPR, OTHERFILEPR: disco */
+    case 30: case 31: break;                                  /* FILEPR, OTHERFILEPR: disk */
     default: dt_dasc(a); break;                               /* 7, 10, 12, 20: DASC */
     }
 }
@@ -430,16 +430,16 @@ void detok2(u8 a)
 {
     u8 x;
     if (a < 32) { jump(a); return; }             /* DT3 */
-    if (dtw3 & 0x80) { dt_tt27(a); return; }     /* fichas normales */
+    if (dtw3 & 0x80) { dt_tt27(a); return; }     /* normal tokens */
     if (a < '[') { dt_dts(a); return; }          /* DT8 */
-    if (a < 129) {                               /* DT6: ficha al azar de MTIN */
-        em_rand_c = 0;                           /* C = 0 tras CMP #129 */
+    if (a < 129) {                               /* DT6: random token from MTIN */
+        em_rand_c = 0;                           /* C = 0 after CMP #129 */
         x = em_dornd();
         detok((u8)(tok_mtin[a - 91] + (x >= 51) + (x >= 102) + (x >= 153) + (x >= 204)));
         return;
     }
     if (a < 215) { detok(a); return; }
-    x = (u8)((a - 215) << 1);                    /* fichas de dos letras de TKN2 */
+    x = (u8)((a - 215) << 1);                    /* two-letter tokens from TKN2 */
     dt_dts(tok_tkn2[x]);
     dt_dts(tok_tkn2[x + 1]);
 }

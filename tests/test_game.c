@@ -1,5 +1,5 @@
-/* Logica de juego (comercio, equipo, hiperespacio) y una sesion completa guiada por guion en el PC.
-   Las capturas van a tests/shots/NN.bin (ql2png.py las convierte). No se compara con el original (ver docs/PENDIENTES.md). */
+/* Game logic (trade, equipment, hyperspace) and a complete script-driven session on the PC.
+   Screenshots go to tests/shots/NN.bin (ql2png.py converts them). It is not compared with the original (see docs/PENDIENTES.md). */
 #include <stdio.h>
 #include <string.h>
 #include "game.h"
@@ -18,7 +18,7 @@
 static int fails, total;
 static void check(int ok, const char *what) { total++; if (!ok) { fails++; printf("FALLO: %s\n", what); } }
 
-/* ------------------------------------------------------------ logica */
+/* ------------------------------------------------------------ logic */
 static void logic(void)
 {
     int i, r;
@@ -28,10 +28,10 @@ static void logic(void)
     check(cash_get() == 1000UL, "100 Cr");
     check(qq12 == 0xFF, "atracado");
 
-    /* comercio */
+    /* trade */
     c0 = cash_get();
     check(trade_max_buy(0) == 16 || trade_max_buy(0) < 16, "max compra razonable");
-    r = trade_buy(0, 5);                                    /* 5 t de comida */
+    r = trade_buy(0, 5);                                    /* 5 t of food */
     check(r == TR_OK && qq20[0] == 5 && avl[0] == 11 && cash_get() == c0 - 5UL * mkt.price[0], "comprar comida");
     r = trade_sell(0, 2);
     check(r == TR_OK && qq20[0] == 3 && avl[0] == 11, "vender: no repone existencias");
@@ -41,7 +41,7 @@ static void logic(void)
     cash_set(0);
     check(trade_buy(0, 1) == TR_NOCASH, "sin dinero");
     cash_set(1000000UL);
-    /* bodega: 22 -> caben 20 t en total */
+    /* hold: 22 -> 20 t fit in total */
     qq20[0] = 0;
     check(trade_room(0) == 20, "caben 20 t con bodega 22");
     mkt.quantity[2] = 63;
@@ -59,7 +59,7 @@ static void logic(void)
     check(trade_room(13) == 49, "kg: 49 mas");
     qq20[13] = 0;
 
-    /* equipo */
+    /* equipment */
     cash_set(1000000UL);
     qq14 = 30;
     check(equip_price(0) == 80, "combustible: (70-30)*2");
@@ -80,7 +80,7 @@ static void logic(void)
     check(equip_buy(10, 0) == EQ_NOCASH && !dkcmp, "sin dinero para el ordenador");
     check(equip_count() >= 3 && equip_count() <= 14, "articulos segun nivel tecnologico");
 
-    /* rangos */
+    /* ranges */
     tally[0] = 0; tally[1] = 0;      check(strcmp(rating_name(), "Harmless") == 0, "rango 0");
     tally[0] = 8;                    check(strcmp(rating_name(), "Mostly Harmless") == 0, "rango 8");
     tally[0] = 16;                   check(strcmp(rating_name(), "Poor") == 0, "rango 16");
@@ -96,7 +96,7 @@ static void logic(void)
     fist = 50; check(strcmp(legal_name(), "Fugitive") == 0, "legal: fugitive");
     fist = 0;
 
-    /* hiperespacio */
+    /* hyperspace */
     {
         int best = -1, far_ = -1;
         unsigned bd = 9999, fd = 0;
@@ -132,7 +132,7 @@ static void logic(void)
     for (i = 0; i < 6; i++) check(1, "");
     total -= 6;
 
-    /* guardar, cargar, y que el mercado cargado conserve existencias */
+    /* save, load, and the loaded market keeps its stock */
     game_new();
     save_set_device("tests/tmp/");
     trade_buy(0, 4);
@@ -149,40 +149,40 @@ static void logic(void)
     }
 }
 
-/* ------------------------------------------------------------ sesion guiada */
+/* ------------------------------------------------------------ scripted session */
 #define SNAP(n) (-100 - (n))
-#define KD(k) (1000 + (k))         /* pulsa una tecla en la matriz simulada */
-#define KU(k) (2000 + (k))         /* la suelta */
+#define KD(k) (1000 + (k))         /* presses a key in the simulated matrix */
+#define KU(k) (2000 + (k))         /* releases it */
 extern u8 host_matrix[8];
 static const int script[] = {
-    SNAP(0),                                    /* titulo */
-    '1', -1, -1, -1,                            /* nuevo comandante -> estado */
+    SNAP(0),                                    /* title */
+    '1', -1, -1, -1,                            /* new commander -> status */
     SNAP(1),
-    '8', SNAP(2),                               /* mercado */
-    '1', KC_DOWN, KC_DOWN, '5', SNAP(3), KC_ENTER, SNAP(4), 'm', KC_ESC,   /* comprar: 5 t de textiles y maximo; fuera */
-    '2', KC_UP, 'm', KC_ESC,                    /* vender */
-    '3', KC_DOWN, KC_ENTER, SNAP(5), KC_ESC,    /* equipo: misil */
-    '0', SNAP(6),                               /* inventario */
-    '5', KC_RIGHT, KC_RIGHT, KC_DOWN, SNAP(7),  /* carta galactica */
-    '6', KC_LEFT, SNAP(8),                      /* carta local */
-    'f', 'd', 'i', 's', 'o', KC_ENTER, SNAP(16), 'o', 'd',    /* buscar DISO (F), cruz en DISO; O vuelve a Lave; D */
-    'f', 'x', 'y', 'z', KC_ENTER, SNAP(17), KC_ESC,           /* nombre inexistente */
-    '6', 'f', 'l', 'a', 'v', 'e', KC_ENTER,                    /* LAVE (sistema actual) */
-    '7', SNAP(9),                               /* datos */
-    '9', SNAP(10),                              /* estado */
-    'i', '2', KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, 'b', 'o', 'b', KC_ENTER, SNAP(11), KC_ESC,   /* disco: guardar como BOB */
-    'u', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12),                  /* despegar (tunel de lanzamiento), unos fotogramas */
-    KD(K_LEFT), KD(K_DOWN), KD(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19),   /* alabeo, cabeceo y D acelera; luego se suelta */
-    '2', -1, -1, -1, -1, SNAP(13), '3', -1, -1, -1, -1, SNAP(14), '4', -1, -1, -1, -1, SNAP(20), '1', -1, -1, -1, -1,    /* vistas trasera, izquierda, derecha y frontal (teclas 1-4) */
-    KD(K_D), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, KU(K_D),                                 /* frenar con D hasta velocidad 1 */
-    'n', 'n', 'n', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(21),                            /* contactos en el radar y en la vista */
-    '=', SNAP(28), '-', -1, -1,                                       /* pausa: "PAUSED" entre la mira y el panel; '-' sigue */
-    'k', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(26), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(27),             /* una nave explota (tecla K de prueba): la nube */
-    '6', SNAP(22), KC_ESC, '9', SNAP(23), '0', SNAP(24), '1', -1, -1, -1,    /* pantallas 5-9 desde el vuelo y vuelta con ESC o con una vista */
-    'c',                                                             /* atracar */
-    '9', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(15),       /* cargar BOB */
-    'u', -1, -1, -1, -1, -1, SNAP(25), 'c',                                 /* segundo despegue: el fondo del panel ya esta en memoria */
-    'i', 'q', 'y'                                /* salir */
+    '8', SNAP(2),                               /* market */
+    '1', KC_DOWN, KC_DOWN, '5', SNAP(3), KC_ENTER, SNAP(4), 'm', KC_ESC,   /* buy: 5 t of textiles and maximum; out */
+    '2', KC_UP, 'm', KC_ESC,                    /* sell */
+    '3', KC_DOWN, KC_ENTER, SNAP(5), KC_ESC,    /* equipment: missile */
+    '0', SNAP(6),                               /* inventory */
+    '5', KC_RIGHT, KC_RIGHT, KC_DOWN, SNAP(7),  /* galactic chart */
+    '6', KC_LEFT, SNAP(8),                      /* local chart */
+    'f', 'd', 'i', 's', 'o', KC_ENTER, SNAP(16), 'o', 'd',    /* search DISO (F), cross on DISO; O returns to Lave; D */
+    'f', 'x', 'y', 'z', KC_ENTER, SNAP(17), KC_ESC,           /* non-existent name */
+    '6', 'f', 'l', 'a', 'v', 'e', KC_ENTER,                    /* LAVE (current system) */
+    '7', SNAP(9),                               /* data */
+    '9', SNAP(10),                              /* status */
+    'i', '2', KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, KC_BS, 'b', 'o', 'b', KC_ENTER, SNAP(11), KC_ESC,   /* disk: save as BOB */
+    'u', -1, -1, -1, -1, -1, -1, -1, -1, SNAP(12),                  /* launch (launch tunnel), a few frames */
+    KD(K_LEFT), KD(K_DOWN), KD(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(18), KU(K_LEFT), KU(K_DOWN), KU(K_F), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(19),   /* roll, pitch and D accelerates; then released */
+    '2', -1, -1, -1, -1, SNAP(13), '3', -1, -1, -1, -1, SNAP(14), '4', -1, -1, -1, -1, SNAP(20), '1', -1, -1, -1, -1,    /* rear, left, right and front views (keys 1-4) */
+    KD(K_D), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, KU(K_D),                                 /* brake with D down to speed 1 */
+    'n', 'n', 'n', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(21),                            /* contacts on the radar and in the view */
+    '=', SNAP(28), '-', -1, -1,                                       /* pause: "PAUSED" between the sight and the panel; '-' resumes */
+    'k', -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(26), -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, SNAP(27),             /* a ship explodes (test key K): the cloud */
+    '6', SNAP(22), KC_ESC, '9', SNAP(23), '0', SNAP(24), '1', -1, -1, -1,    /* screens 5-9 from flight and back with ESC or with a view */
+    'c',                                                             /* dock */
+    '9', 'i', '1', 'b', 'o', 'b', KC_ENTER, SNAP(15),       /* load BOB */
+    'u', -1, -1, -1, -1, -1, SNAP(25), 'c',                                 /* second launch: the panel background is already in memory */
+    'i', 'q', 'y'                                /* exit */
 };
 static unsigned sp = 0;
 static int snapn = 0;
@@ -194,7 +194,7 @@ static void snapshot(int n)
     sprintf(fn, "tests/shots/%02d.bin", n);
     f = fopen(fn, "wb");
     if (f) { fwrite(screen, 1, SCR_BYTES, f); fclose(f); snapn++; }
-    sprintf(fn, "tests/shots/%02d.m4", n);                  /* marca de modo: el fichero existe solo si la captura es de modo 4 (ql2png.py ... 4) */
+    sprintf(fn, "tests/shots/%02d.m4", n);                  /* mode marker: the file exists only if the capture is mode 4 (ql2png.py ... 4) */
     if (gfx_m4) { f = fopen(fn, "wb"); if (f) fclose(f); }
     else remove(fn);
 }
@@ -215,11 +215,11 @@ static int feed(void)
 int main(void)
 {
     plat_init(); txt_init(); in_init(); snd_init();
-    flight_testkeys = 1;                        /* N, K y C sin ordenador (teclas de prueba) */
+    flight_testkeys = 1;                        /* N, K and C without computer (test keys) */
     logic();
     printf("logica: %d comprobaciones, %d fallos\n", total, fails);
     save_set_device("tests/tmp/");
-    dash_load();                                     /* como main: lo primero de todo */
+    dash_load();                                     /* like main: the very first thing */
     in_script = feed;
     game_run();
     check(sp >= sizeof script / sizeof script[0] - 3, "la sesion guiada llego al final");

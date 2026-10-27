@@ -1,5 +1,5 @@
-/* SUN, CIRCLE y apoyo: transcripcion de la fuente de referencia (Elite Apple II) con sus acarreos y saltos.
-   Diferencias: HLOIN/LOIN son las primitivas XOR de gfx.c (el original enmascara a pixeles pares por el modo Apple II). */
+/* SUN, CIRCLE and support: transcription of the reference source (Elite Apple II) with its carries and jumps.
+   Differences: HLOIN/LOIN are the XOR primitives of gfx.c (the original masks to even pixels because of the Apple II mode). */
 #include "sun.h"
 #include "state.h"
 #include "emath.h"
@@ -12,7 +12,7 @@ u8 sun_col = C_WHITE;
 u8 sun_lso[256];
 u8 sun_lsx = 255;
 u8 circ_lsx2[256];
-u8 circ_lsy2[256] = { 255 };               /* [0] = $FF: centinela; sin el, WPLS2 dibujaria una linea basura al empezar */
+u8 circ_lsy2[256] = { 255 };               /* [0] = $FF: sentinel; without it, WPLS2 would draw a garbage line at the start */
 u8 circ_lsp = 1, circ_flag, circ_stp, circ_cnt;
 
 #define X1 zx15[0]
@@ -22,15 +22,15 @@ u8 circ_lsp = 1, circ_flag, circ_stp, circ_cnt;
 
 static u8 sunx[2];                       /* SUNX (16 bits) */
 static u8 yy[2];                         /* YY */
-static u8 chk_p1, chk_p2;                /* P+1, P+2 (los pone CHKON) */
+static u8 chk_p1, chk_p2;                /* P+1, P+2 (set by CHKON) */
 static u8 k5[4], k6[4];                  /* K5, K6 */
-static void sn_erase(void);              /* sol y elipses de la vista nativa (mas abajo) */
+static void sn_erase(void);              /* sun and ellipses of the native view (further down) */
 static void ell_params(int *cx, int *cy, int *rx, int *ry);
 static void ell_erase(void);
 
-/* Transformacion de dibujo de las cartas (solo en pantalla; las rutinas siguen trabajando en las coordenadas del original): la carta
-   local se aprieta a 9/10 en x y se estira 27/25 en y (alto / ancho = 1,2, como la vista de vuelo) y se centra (los puntos del QL son mas anchos que altos: asi los circulos
-   salen redondos en un monitor 4:3); la galactica baja 8 puntos. */
+/* Drawing transformation of the charts (screen only; the routines keep working in the original's coordinates): the local
+   chart is squeezed to 9/10 in x and stretched 27/25 in y (height / width = 1.2, like the flight view) and centred (QL dots are wider than they are tall: so the circles
+   come out round on a 4:3 monitor); the galactic one moves down 8 dots. */
 static int xf_mode = 0;
 
 void chart_xf_set(int mode) { xf_mode = mode; }
@@ -44,13 +44,13 @@ int sun_xf_x(int x)
 
 int sun_xf_y(int y)
 {
-    if (xf_mode == 1) { y = 90 + ((y - 75) * 27) / 25; if (y < 0) y = 0; if (y > 255) y = 255; }   /* local: 1,08 en y con 0,9 en x = 1,2 (como el planeta) */
-    else if (xf_mode == 3) { y = 80 + ((y - 68) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* vista nativa: centro 80, x 6/5 */
-    else if (xf_mode == 2) { y = 27 + ((y - 19) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* galactica: baja 8 y se estira 6/5 (aspecto de los puntos) */
+    if (xf_mode == 1) { y = 90 + ((y - 75) * 27) / 25; if (y < 0) y = 0; if (y > 255) y = 255; }   /* local: 1.08 in y with 0.9 in x = 1.2 (like the planet) */
+    else if (xf_mode == 3) { y = 80 + ((y - 68) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* native view: centre 80, x 6/5 */
+    else if (xf_mode == 2) { y = 27 + ((y - 19) * 6) / 5; if (y < 0) y = 0; if (y > 255) y = 255; }   /* galactic: moves down 8 and is stretched 6/5 (dot aspect) */
     return y;
 }
 
-/* HLOIN con la transformacion: la fila y cubre las filas de la imagen entre y y y + 1 (sin huecos al estirar) */
+/* HLOIN with the transformation: row y covers the image rows between y and y + 1 (no gaps when stretching) */
 void sun_xf_hloin(int x1, int x2, int y, u8 col)
 {
     int a, b, r;
@@ -66,33 +66,33 @@ void sun_xf_vloin(int x, int y1, int y2, u8 col)
     int t;
     if (!xf_mode) { gfx_vloin(x, y1, y2, col); return; }
     if (y1 > y2) { t = y1; y1 = y2; y2 = t; }
-    t = sun_xf_x(x);                                /* palo de 1 punto de ancho (el CPIX del original es de 2) */
+    t = sun_xf_x(x);                                /* 1-dot-wide stick (the original's CPIX is 2) */
     y1 = sun_xf_y(y1);
     y2 = (sun_xf_y(y2 + 1) > sun_xf_y(y2) ? sun_xf_y(y2 + 1) - 1 : sun_xf_y(y2));
     gfx_vline_xor(t, y1, y2, col);
 }
 
-/* Circulos de las cartas con la transformacion activa: la misma elipse de punto medio que el planeta de la vista de vuelo, con el
-   aspecto de cada carta (local: x 9/10 e y 27/25; galactica: y 6/5; en las dos, alto / ancho = 1,2), en vez de los segmentos de CIRCLE2 deformados por la transformacion.
-   El centro (cx, cy) y el radio k estan en las coordenadas del original. */
+/* Circles of the charts with the transformation active: the same midpoint ellipse as the flight view planet, with the
+   aspect of each chart (local: x 9/10 and y 27/25; galactic: y 6/5; in both, height / width = 1.2), instead of the CIRCLE2 segments deformed by the transformation.
+   The centre (cx, cy) and the radius k are in the original's coordinates. */
 static void xf_radii(int k, int *rx, int *ry)
 {
     *rx = (xf_mode == 1) ? (k * 9 + 5) / 10 : k;
-    *ry = (xf_mode == 1) ? (k * 27 + 12) / 25 : k + k / 5;      /* alto / ancho = 1,2, el aspecto del planeta en vuelo */
+    *ry = (xf_mode == 1) ? (k * 27 + 12) / 25 : k + k / 5;      /* height / width = 1.2, the planet's aspect in flight */
     if (*rx < 1) *rx = 1;
     if (*ry < 1) *ry = 1;
 }
 
-static int xf_bottom(void) { return xf_mode == 1 ? 167 : 151; }   /* sin pisar el texto de debajo (filas 21 y 19) */
+static int xf_bottom(void) { return xf_mode == 1 ? 167 : 151; }   /* without overwriting the text below (rows 21 and 19) */
 
-void sun_xf_circle(int cx, int cy, int k, u8 col)               /* contorno (circulo de alcance) */
+void sun_xf_circle(int cx, int cy, int k, u8 col)               /* outline (range circle) */
 {
     int rx, ry;
     xf_radii(k, &rx, &ry);
     gfx_ellipse_xor(sun_xf_x(cx), sun_xf_y(cy), rx, ry, col, 0, 20, 255, xf_bottom());
 }
 
-/* Planeta de la carta corta: elipse rellena con los semianchos por fila de gfx_ellipse_rows (lo mismo que el sol de la vista de vuelo) */
+/* Short chart planet: ellipse filled with the per-row half-widths of gfx_ellipse_rows (the same as the flight view sun) */
 void sun_xf_disc(int cx, int cy, int k, u8 col)
 {
     static u8 half[64];
@@ -110,12 +110,12 @@ void sun_xf_disc(int cx, int cy, int k, u8 col)
 
 void sun_xf_dust(int x, int y, u8 zz)
 {
-    if (xf_mode == 2) { gfx_xor_pixel(sun_xf_x(x), sun_xf_y(y), C_WHITE); return; }   /* galactica: sistemas de un solo punto */
+    if (xf_mode == 2) { gfx_xor_pixel(sun_xf_x(x), sun_xf_y(y), C_WHITE); return; }   /* galactic: single-dot systems */
     gfx_dust_6502(sun_xf_x(x), sun_xf_y(y), zz);
 }
 
-/* Vista nativa de vuelo: el planeta, el sol y los circulos del tunel se calculan como en el original (centro 68, 136 lineas, recorte
-   en 133 para que el 6/5 no pase de la linea 159) y se dibujan con la transformacion 3 (filas replicadas / extremos de linea). */
+/* Native flight view: the planet, the sun and the tunnel circles are calculated as in the original (centre 68, 136 lines, clipping
+   at 133 so that the 6/5 does not go past line 159) and drawn with transformation 3 (replicated rows / line ends). */
 int sun_yx2m1 = 135;
 static int vdepth = 0, v_cy, v_h, v_ys, v_yx, v_xf;
 
@@ -136,11 +136,11 @@ void view_virtual_end(void)
     }
 }
 
-void (*sun_loin_hook)(void) = 0;                /* pruebas: cada LOIN, con X1..Y2 ya ordenados y SWAP (zswap) */
-void (*sun_hloin_hook)(u8 l, u8 r, u8 y) = 0;   /* pruebas: cada HLOIN que dibuja (izquierda, derecha, fila) */
+void (*sun_loin_hook)(void) = 0;                /* tests: each LOIN, with X1..Y2 already sorted and SWAP (zswap) */
+void (*sun_hloin_hook)(u8 l, u8 r, u8 y) = 0;   /* tests: each HLOIN that draws (left, right, row) */
 
-/* HLOIN del original con sus efectos en memoria: X1 y X2 se redondean a pares; si X2 < X1, X2 = X1 (STX X2); si coinciden no
-   dibuja (HL6). Dibuja los pares de puntos de l a r - 1 (gfx_hloin) */
+/* HLOIN of the original with its effects in memory: X1 and X2 are rounded to even; if X2 < X1, X2 = X1 (STX X2); if they coincide it
+   does not draw (HL6). Draws the dot pairs from l to r - 1 (gfx_hloin) */
 static void hloin(void)
 {
     u8 l = (u8)(X1 & 0xFE), r = (u8)(X2 & 0xFE), t;
@@ -151,11 +151,11 @@ static void hloin(void)
     sun_xf_hloin(l, r, Y1, sun_col);
 }
 
-/* LOIN del original con sus efectos en memoria (partes 1 y comienzo de STPX/STPY): S = 128, P = |dx|, Q = |dy|, SWAP = 0;
-   si la linea es mas horizontal (Q < P) se ordena de izquierda a derecha y si no, de abajo arriba (Y1 >= Y2); cuando
-   intercambia los extremos en X1..Y2 pone SWAP = $FF. WPLS2 depende de ello: con SWAP = 0 copia (X2, Y2) en (X1, Y1) y con
-   SWAP != 0 da por hecho que LOIN ya los dejo ahi. Sin esto, un SWAP que quedara de LL145 (al recortar en el borde)
-   hacia que WPLS2 trazara todas las lineas desde el mismo punto (fallo visto en el QL, 2026-10-17) */
+/* LOIN of the original with its effects in memory (parts 1 and the start of STPX/STPY): S = 128, P = |dx|, Q = |dy|, SWAP = 0;
+   if the line is more horizontal (Q < P) it is sorted left to right and otherwise bottom to top (Y1 >= Y2); when it
+   swaps the endpoints in X1..Y2 it sets SWAP = $FF. WPLS2 depends on this: with SWAP = 0 it copies (X2, Y2) into (X1, Y1) and with
+   SWAP != 0 it assumes LOIN already left them there. Without this, a SWAP left over from LL145 (when clipping at the edge)
+   made WPLS2 draw all the lines from the same point (bug seen on the QL, 2026-10-17) */
 static void loin(void)
 {
     u8 dx, dy, t, sw, ox1 = X1, oy1 = Y1, ox2 = X2, oy2 = Y2;
@@ -180,10 +180,10 @@ void sun_flflls(void)
 {
     u8 y;
     for (y = 199; y > 0; y--) sun_lso[y] = 0;      /* LDY #199 ... BNE */
-    sun_lsx = 255;                                 /* DEY: Y pasa de 0 a $FF; STY LSX */
+    sun_lsx = 255;                                 /* DEY: Y goes from 0 to $FF; STY LSX */
 }
 
-/* CHKON: acarreo 1 si el circulo no esta en la vista; ademas P+1 = K4+K (bajo) y P+2 (alto) para SUN */
+/* CHKON: carry 1 if the circle is not in the view; also P+1 = K4+K (low) and P+2 (high) for SUN */
 u8 sun_chkon(void)
 {
     unsigned s;
@@ -202,7 +202,7 @@ u8 sun_chkon(void)
     return (u8)(x >= SUN_YX2M1);                   /* CPX Yx2M1; RTS: C = X >= 135 */
 }
 
-/* EDGES: X1 = YY - A, X2 = YY + A recortados a 0..255; devuelve 1 (y LSO[y] = 0) si queda fuera */
+/* EDGES: X1 = YY - A, X2 = YY + A clipped to 0..255; returns 1 (and LSO[y] = 0) if it falls outside */
 static u8 edges(u8 a, u8 y)
 {
     u8 t = a, hi, c;
@@ -223,7 +223,7 @@ ed1:
     return 1;
 }
 
-/* HLOIN2: EDGES, Y1 = y, LSO[y] = 0, HLOIN (YY ya tiene el centro) */
+/* HLOIN2: EDGES, Y1 = y, LSO[y] = 0, HLOIN (YY already has the centre) */
 static void hloin2(u8 a, u8 y)
 {
     edges(a, y);
@@ -232,7 +232,7 @@ static void hloin2(u8 a, u8 y)
     hloin();
 }
 
-/* WPLS: borra el sol anterior (si LSX no es negativo) */
+/* WPLS: erases the previous sun (if LSX is not negative) */
 static void sun_wpls_v(void)
 {
     u8 y;
@@ -249,11 +249,11 @@ void sun_wpls(void)
     view_virtual_begin(); sun_wpls_v(); view_virtual_end();
 }
 
-/* ---- Sol de la vista nativa: relleno por filas con el borde irregular del original ----
-   Cada fila de pantalla tiene su tramo encendido [lo, hi] (recortado a 0..255; lo > hi = vacia). En cada fotograma el tramo nuevo sale
-   de los semianchos de la elipse (gfx_ellipse_rows, sin raices) mas un numero aleatorio (DORND AND CNT, con CNT = 7, 3, 1 o 0 segun
-   el radio, como SUN) y solo se pintan en XOR las diferencias entre el tramo viejo y el nuevo de cada fila (los bordes que cambian):
-   igual que el original, no se redibuja el sol entero cada vez. Borrar = pintar los tramos que hubiera. */
+/* ---- Native view sun: row-by-row fill with the original's ragged edge ----
+   Each screen row has its lit span [lo, hi] (clipped to 0..255; lo > hi = empty). On each frame the new span comes
+   from the ellipse half-widths (gfx_ellipse_rows, no roots) plus a random number (DORND AND CNT, with CNT = 7, 3, 1 or 0 depending on
+   the radius, like SUN) and only the differences between the old and the new span of each row (the edges that change) are painted in XOR:
+   like the original, the whole sun is not redrawn each time. Erasing = painting the spans that exist. */
 static u8 sn_lo[160], sn_hi[160];
 static u8 sn_half[300];
 static int sn_any = 0, sn_ready = 0;
@@ -264,7 +264,7 @@ static void sn_span(int y, int lo, int hi)
     gfx_hline_xor(lo, hi, y, sun_col);
 }
 
-static void sn_row(int y, int nl, int nh)           /* tramo nuevo (nl > nh: vacio): pinta la diferencia con el viejo y lo guarda */
+static void sn_row(int y, int nl, int nh)           /* new span (nl > nh: empty): paints the difference from the old one and stores it */
 {
     int ol = sn_lo[y], oh = sn_hi[y];
     int a, b;
@@ -296,7 +296,7 @@ static void sn_erase(void)
     sn_any = 0;
 }
 
-int sun_rows_get(int y, int *lo, int *hi)              /* pruebas: el tramo que la pantalla deberia tener en la fila y */
+int sun_rows_get(int y, int *lo, int *hi)              /* tests: the span the screen should have on row y */
 {
     if (y < 0 || y > 159) return 0;
     *lo = sn_lo[y]; *hi = sn_hi[y];
@@ -308,7 +308,7 @@ static u8 sn_draw(void)
     int cx, cy, rx, ry, y, top, bot, dy, w, lo, hi, cnt;
     sun_col = C_RED;
     if (!sn_ready) { sn_clear(); sn_ready = 1; }
-    if (sun_chkon()) { sn_erase(); return 1; }          /* CHKON: fuera de la vista */
+    if (sun_chkon()) { sn_erase(); return 1; }          /* CHKON: outside the view */
     ell_params(&cx, &cy, &rx, &ry);
     cnt = rx >= 96 ? 7 : (rx >= 40 ? 3 : (rx >= 16 ? 1 : 0));
     gfx_ellipse_rows(rx, ry, sn_half);
@@ -387,7 +387,7 @@ plfl:
     Y1 = y;
     em_ll5();                                      /* JSR LL5: Q = SQRT(R Q) */
     y = Y1;
-    em_rand_c = em_carry;                          /* DORND recibe el acarreo con que vuelve LL5 */
+    em_rand_c = em_carry;                          /* DORND receives the carry LL5 returns with */
     a = (u8)(em_dornd() & cnt);
     s = (unsigned)a + zQ;                          /* CLC; ADC Q */
     a = (u8)s;
@@ -416,7 +416,7 @@ plf6:
     goto plfl;
 plf11:
     yy[0] = zk3[0]; yy[1] = zk3[1];
-    if (!edges(a, y)) goto plf16;                  /* A = ancho nuevo; BCC PLF16 */
+    if (!edges(a, y)) goto plf16;                  /* A = new width; BCC PLF16 */
     sun_lso[y] = 0;
     goto plf6;
 plf10:
@@ -432,7 +432,7 @@ plf8:
     sunx[0] = zk3[0]; sunx[1] = zk3[1];
 }
 
-/* BLINE: un segmento del circulo. X = parte baja y T = parte alta del desplazamiento en y (acarreo limpio); devuelve CNT */
+/* BLINE: a circle segment. X = low part and T = high part of the y offset (carry clear); returns CNT */
 static u8 bline(u8 x, u8 t)
 {
     unsigned s;
@@ -476,16 +476,16 @@ void sun_draw(void)
     view_virtual_end();
 }
 
-/* Vista nativa de vuelo: el planeta y los anillos del tunel son elipses de punto medio (gfx_ellipse_xor): semieje horizontal K y
-   vertical 1,2 K, centro (K3, K4) del espacio del original llevado a la pantalla con view_ty. Sin montones de segmentos: borrar =
-   volver a dibujar con los mismos datos (el planeta recuerda los del ultimo dibujo). */
-#define NAT_BOT 159                              /* ultima linea de la vista nativa */
-#define ELL_TAB 608                              /* tramos por fila (2 bytes): ry <= (6 * 248 + 2) / 5 = 298 */
+/* Native flight view: the planet and the tunnel rings are midpoint ellipses (gfx_ellipse_xor): horizontal semi-axis K and
+   vertical 1.2 K, centre (K3, K4) of the original's space brought to the screen with view_ty. No segment heaps: erasing =
+   drawing again with the same data (the planet remembers those of the last drawing). */
+#define NAT_BOT 159                              /* last line of the native view */
+#define ELL_TAB 608                              /* spans per row (2 bytes): ry <= (6 * 248 + 2) / 5 = 298 */
 static int ell_valid = 0, ell_cx, ell_cy, ell_rx, ell_ry;
 static u8 ell_col;
-static unsigned short ell_tabw[2][ELL_TAB];      /* tabla de tramos del contorno viejo y del nuevo (se alternan; solo se recalcula si cambia el radio): bytes en modo 8, palabras en modo 4 (a los 512 puntos) */
+static unsigned short ell_tabw[2][ELL_TAB];      /* span table of the old and the new outline (alternating; only recalculated if the radius changes): bytes in mode 8, words in mode 4 (at the 512 dots) */
 #define ELL_T(i) ((u8 *)ell_tabw[i])
-static int ell_cur = 0;                          /* tabla del contorno dibujado (ELL_T(ell_cur)) */
+static int ell_cur = 0;                          /* table of the drawn outline (ELL_T(ell_cur)) */
 
 static void ell_params(int *cx, int *cy, int *rx, int *ry)
 {
@@ -496,23 +496,23 @@ static void ell_params(int *cx, int *cy, int *rx, int *ry)
     *cx = (int)v;
     *cy = view_ty((int)w);
     *rx = zK[0];
-    *ry = (6 * zK[0] + 2) / 5;                   /* alto / ancho = 1,2 (el aspecto del monitor), redondeado */
+    *ry = (6 * zK[0] + 2) / 5;                   /* height / width = 1.2 (the monitor aspect), rounded */
 }
 
 
-/* ---- Meridianos y crater (PL9 partes 2 y 3, PLS1..PLS5 y PLS22 de Elite-A; el Apple II solo tiene el circulo) ----
-   Con el planeta entero en pantalla (K < 256) y radio >= 6, el tipo 128 lleva dos semielipses (meridianos a 90 grados entre si, la
-   mitad que da la cara) y el tipo 130 un crater (elipse completa desplazada, solo si roofv_z >= 0). Cada figura es un centro y dos
-   vectores de pantalla u, w: P(t) = c + u cos t + w sin t (t en 1/64 de vuelta, y invertida). Son poligonales de 64/STP segmentos
-   (STP = 2, 4 u 8 segun el radio) que se dibujan en XOR con recorte; el borrado repite exactamente los mismos segmentos. Al cambiar
-   de fotograma se sustituye segmento a segmento (los iguales no se tocan), asi no desaparece la figura entera. Cada segmento no
-   incluye su punto final (lo pone el siguiente), porque en XOR el vertice compartido se borraria. */
+/* ---- Meridians and crater (PL9 parts 2 and 3, PLS1..PLS5 and PLS22 of Elite-A; the Apple II only has the circle) ----
+   With the whole planet on screen (K < 256) and radius >= 6, type 128 carries two semi-ellipses (meridians at 90 degrees to each other, the
+   half that faces us) and type 130 a crater (full displaced ellipse, only if roofv_z >= 0). Each figure is a centre and two
+   screen vectors u, w: P(t) = c + u cos t + w sin t (t in 1/64 of a turn, and y inverted). They are polygonal lines of 64/STP segments
+   (STP = 2, 4 or 8 depending on the radius) drawn in XOR with clipping; erasing repeats exactly the same segments. When the frame
+   changes they are replaced segment by segment (identical ones are left alone), so the whole figure does not disappear. Each segment does not
+   include its end point (the next one sets it), because in XOR the shared vertex would be erased. */
 #define ARC_PTS 33
-static int arc_n[2];                                /* puntos de cada poligonal dibujada (0 = ninguna) */
+static int arc_n[2];                                /* points of each polygonal line drawn (0 = none) */
 static int arc_x[2][ARC_PTS], arc_y[2][ARC_PTS];
 static u8 arc_col;
 
-static int arc_clip(int *x1, int *y1, int *x2, int *y2)   /* Cohen-Sutherland a 0..255 x 0..NAT_BOT; 0 si no se ve nada */
+static int arc_clip(int *x1, int *y1, int *x2, int *y2)   /* Cohen-Sutherland to 0..255 x 0..NAT_BOT; 0 if nothing is visible */
 {
     int c1, c2, c, x = 0, y = 0;
 #define ARC_CODE(px, py) (((px) < 0) | (((px) > 255) << 1) | (((py) < 0) << 2) | (((py) > NAT_BOT) << 3))
@@ -530,12 +530,12 @@ static int arc_clip(int *x1, int *y1, int *x2, int *y2)   /* Cohen-Sutherland a 
     }
 }
 
-static void arc_seg(int x1, int y1, int x2, int y2)       /* un segmento en XOR sin su punto final */
+static void arc_seg(int x1, int y1, int x2, int y2)       /* a segment in XOR without its end point */
 {
     int ex = x2, ey = y2;
     if (arc_clip(&x1, &y1, &x2, &y2)) {
         loin_draw((u8)x1, (u8)y1, (u8)x2, (u8)y2, arc_col);
-        if (x2 == ex && y2 == ey) gfx_xor_pixel(x2, y2, arc_col);   /* el final solo si no se recorto (si no, es el borde) */
+        if (x2 == ex && y2 == ey) gfx_xor_pixel(x2, y2, arc_col);   /* the end only if it was not clipped (otherwise it is the edge) */
     }
 }
 
@@ -552,24 +552,24 @@ static void arcs_erase(void)
     arc_poly_erase(1);
 }
 
-static long arc_sin(int i)                          /* sin(i / 64 vueltas) * 256 (maximo 255) */
+static long arc_sin(int i)                          /* sin(i / 64 turns) * 256 (maximum 255) */
 {
     i &= 63;
     return i < 32 ? (long)em_sne[i] : -(long)em_sne[i - 32];
 }
 
-static long arc_fdiv(long a, long b)                /* division por defecto (b > 0) */
+static long arc_fdiv(long a, long b)                /* round-down division (b > 0) */
 {
     return a >= 0 ? a / b : -((-a + b - 1) / b);
 }
 
-static long arc_comp(int off)                       /* componente de INWK (signo y modulo) de -24576 a 24576 */
+static long arc_comp(int off)                       /* INWK component (sign and magnitude) from -24576 to 24576 */
 {
     long v = ((long)(inwk[off + 1] & 0x7F) << 8) | inwk[off];
     return (inwk[off + 1] & 0x80) ? -v : v;
 }
 
-static int arc_atan(long a, long b)                 /* angulo (1/64 de vuelta) del vector (a, b) = ARCTAN + los cuadrantes de PLS4 */
+static int arc_atan(long a, long b)                 /* angle (1/64 turn) of the vector (a, b) = ARCTAN + the quadrants of PLS4 */
 {
     static const u8 tab[33] = { 0,0,1,1,1,2,2,2,2,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,7,7,8,8,8 };
     long ax = a < 0 ? -a : a, ay = b < 0 ? -b : b;
@@ -581,9 +581,9 @@ static int arc_atan(long a, long b)                 /* angulo (1/64 de vuelta) d
     return b >= 0 ? 32 - t : 32 + t;
 }
 
-/* Poligonal k de la figura (centro cx, cy; vectores en 1/16 de punto: ux, uy, wx, wy), de t0 con n segmentos de paso stp. Solo CALCULA los
-   puntos nuevos (arc_nx/arc_ny); arc_commit los dibuja. Asi la matematica va antes de cambiar la elipse y entre el cambio del planeta y el de
-   sus meridianos solo queda el dibujo de lineas */
+/* Polygonal line k of the figure (centre cx, cy; vectors in 1/16 dot: ux, uy, wx, wy), from t0 with n segments of step stp. It only CALCULATES the new
+   points (arc_nx/arc_ny); arc_commit draws them. This way the maths goes before changing the ellipse and between the planet change and that of
+   its meridians only the line drawing remains */
 static int arc_nx[2][ARC_PTS], arc_ny[2][ARC_PTS], arc_pn[2];
 static void arc_poly(int k, int cx, int cy, long ux, long uy, long wx, long wy, int t0, int n, int stp)
 {
@@ -604,8 +604,8 @@ static void arc_commit_poly(int k)
     if (!same) arc_poly_erase(k);
     for (i = 0; i < n; i++) {
         if (same && arc_nx[k][i] == arc_x[k][i] && arc_ny[k][i] == arc_y[k][i] && arc_nx[k][i + 1] == arc_x[k][i + 1] && arc_ny[k][i + 1] == arc_y[k][i + 1]) continue;
-        if (same) arc_seg(arc_x[k][i], arc_y[k][i], arc_x[k][i + 1], arc_y[k][i + 1]);     /* borra el viejo */
-        arc_seg(arc_nx[k][i], arc_ny[k][i], arc_nx[k][i + 1], arc_ny[k][i + 1]);            /* y dibuja el nuevo */
+        if (same) arc_seg(arc_x[k][i], arc_y[k][i], arc_x[k][i + 1], arc_y[k][i + 1]);     /* erases the old one */
+        arc_seg(arc_nx[k][i], arc_ny[k][i], arc_nx[k][i + 1], arc_ny[k][i + 1]);            /* and draws the new one */
     }
     for (i = 0; i <= n; i++) { arc_x[k][i] = arc_nx[k][i]; arc_y[k][i] = arc_ny[k][i]; }
     arc_n[k] = n + 1;
@@ -619,7 +619,7 @@ static void arc_commit(void)
     arc_commit_poly(1);
 }
 
-/* Calcula las figuras para el circulo del planeta (centro cx, cy en pantalla; radio rx, ry); type = 128 meridianos, 130 crater */
+/* Calculates the figures for the planet circle (centre cx, cy on screen; radius rx, ry); type = 128 meridians, 130 crater */
 static void planet_arcs_prepare(u8 type, int cx, int cy, int rx, int ry)
 {
     int stp = rx >= 64 ? 2 : (rx >= 32 ? 4 : 8);
@@ -633,12 +633,12 @@ static void planet_arcs_prepare(u8 type, int cx, int cy, int rx, int ry)
         nx = arc_comp(9) * k / 1536; ny = arc_comp(11) * kv / 1536;                 /* nosev */
         rxv = arc_comp(15) * k / 1536; ryv = arc_comp(17) * kv / 1536;              /* roofv */
         sx = arc_comp(21) * k / 1536; sy = arc_comp(23) * kv / 1536;                /* sidev */
-        t0 = (arc_atan(arc_comp(13), arc_comp(19)) - 16) & 63;                       /* z de nosev cos t + roofv sin t >= 0 */
+        t0 = (arc_atan(arc_comp(13), arc_comp(19)) - 16) & 63;                       /* z of nosev cos t + roofv sin t >= 0 */
         arc_poly(0, cx, cy, nx, ny, rxv, ryv, t0, 32 / stp, stp);
         t0 = (arc_atan(arc_comp(13), arc_comp(25)) - 16) & 63;
         arc_poly(1, cx, cy, nx, ny, sx, sy, t0, 32 / stp, stp);
     } else {
-        if (inwk[20] & 0x80) return;                                                /* crater en la cara oculta */
+        if (inwk[20] & 0x80) return;                                                /* crater on the hidden face */
         cx += (int)(arc_comp(15) * k * 222 / 6291456L);
         cy -= (int)(arc_comp(17) * kv * 222 / 6291456L);
         nx = arc_comp(9) * k / 3072; ny = arc_comp(11) * kv / 3072;                 /* nosev / 2 */
@@ -655,28 +655,28 @@ static void ell_erase(void)
     ell_valid = 0;
 }
 
-/* PL9 de la vista nativa: cambia la elipse vieja por la nueva FILA A FILA (gfx_ell_update; ql_ellrows.asm en el QL): en cada linea se
-   borra lo viejo y se dibuja lo nuevo seguidos, asi el planeta no desaparece mientras se redibuja (antes se borraba toda la elipse y
-   luego se dibujaba toda: parpadeo). La tabla de tramos solo se recalcula si cambia el radio. Salvo que no hayan cambiado ni el
-   centro ni el radio ni el color (volar recto con el planeta lejos: nada que hacer). Si queda fuera de la vista (CHKON) solo borra. */
+/* PL9 of the native view: replaces the old ellipse with the new one ROW BY ROW (gfx_ell_update; ql_ellrows.asm on the QL): on each line the
+   old is erased and the new drawn consecutively, so the planet does not disappear while it is redrawn (before, the whole ellipse was erased and
+   then the whole drawn: flicker). The span table is only recalculated if the radius changes. Except when neither the
+   centre nor the radius nor the colour has changed (flying straight with the planet far: nothing to do). If it is outside the view (CHKON) it only erases. */
 void circle_update(void)
 {
     int cx, cy, rx, ry, nxt;
     view_virtual_begin();
-    if (sun_chkon()) { ell_erase(); view_virtual_end(); return; }       /* CHKON: fuera de la vista */
+    if (sun_chkon()) { ell_erase(); view_virtual_end(); return; }       /* CHKON: outside the view */
     ell_params(&cx, &cy, &rx, &ry);
     if (ell_valid && cx == ell_cx && cy == ell_cy && rx == ell_rx && ry == ell_ry && sun_col == ell_col) { planet_arcs_prepare(ztype, cx, cy, rx, ry); arc_commit(); view_virtual_end(); return; }
-    if (ell_valid && sun_col != ell_col) ell_erase();                   /* otro color: no se puede cambiar fila a fila con una sola mascara */
-    if (ell_valid && rx == ell_rx && ry == ell_ry) nxt = ell_cur;       /* mismo radio: la misma tabla */
+    if (ell_valid && sun_col != ell_col) ell_erase();                   /* another colour: cannot be changed row by row with a single mask */
+    if (ell_valid && rx == ell_rx && ry == ell_ry) nxt = ell_cur;       /* same radius: the same table */
     else {
         nxt = 1 - ell_cur;
         gfx_ell_spans(rx, ry, ELL_T(nxt));
     }
-    planet_arcs_prepare(ztype, cx, cy, rx, ry);                          /* la matematica de los meridianos antes de tocar la pantalla */
+    planet_arcs_prepare(ztype, cx, cy, rx, ry);                          /* the meridian maths before touching the screen */
     gfx_ell_update(ell_cx, ell_cy, ell_valid ? ell_ry : -1, ELL_T(ell_cur), cx, cy, ry, ELL_T(nxt), sun_col, NAT_BOT);
     ell_cx = cx; ell_cy = cy; ell_rx = rx; ell_ry = ry; ell_col = sun_col; ell_cur = nxt;
     ell_valid = 1;
-    arc_commit();                                                        /* y su dibujo justo despues del planeta */
+    arc_commit();                                                        /* and their drawing right after the planet */
     view_virtual_end();
 }
 
@@ -686,8 +686,8 @@ static u8 ell_planet(void)
     return ell_valid ? 0 : 1;
 }
 
-/* Anillo del tunel: en el despegue (STP = 8) un rectangulo con la proporcion de la ventana de dibujo (256 x 160: semialto = 5/8 del
-   semiancho); en el hiperespacio (STP = 4) una elipse. Los dos se borran volviendo a dibujarlos */
+/* Tunnel ring: on launch (STP = 8) a rectangle with the proportion of the drawing window (256 x 160: half-height = 5/8 of the
+   half-width); in hyperspace (STP = 4) an ellipse. Both are erased by drawing them again */
 static u8 ell_ring(void)
 {
     int cx, cy, rx, ry;
@@ -710,7 +710,7 @@ static u8 circle2_draw_v(void)
         t = 0; x = circ_cnt;
         if (x < 33) { c = 0; }
         else {
-            s = (unsigned)(u8)(a ^ 0xFF) + 0 + 1;  /* EOR #$FF; ADC #0 con C = 1 */
+            s = (unsigned)(u8)(a ^ 0xFF) + 0 + 1;  /* EOR #$FF; ADC #0 with C = 1 */
             x = (u8)s; c = (u8)(s >> 8);
             s = 0xFFu + 0 + c; t = (u8)s;          /* LDA #$FF; ADC #0; STA T */
             a = x; c = 0;                          /* TXA; CLC */
@@ -720,12 +720,12 @@ static u8 circle2_draw_v(void)
         k6[1] = (u8)(zk3[1] + t + (s >> 8));
         a = (u8)(circ_cnt + 16);                   /* LDA CNT; CLC; ADC #16 */
         a = em_fmltu2(a);
-        c = em_carry;                              /* el acarreo con que FMLTU2 vuelve */
+        c = em_carry;                              /* the carry FMLTU2 returns with */
         x = a; t = 0;
         s = (unsigned)circ_cnt + 15 + c;           /* LDA CNT; ADC #15 */
         a = (u8)(s & 63);
         if (a >= 33) {                             /* CMP #33; BCC PL38 */
-            s = (unsigned)(u8)(x ^ 0xFF) + 0 + 1;  /* TXA; EOR #$FF; ADC #0 con C = 1 */
+            s = (unsigned)(u8)(x ^ 0xFF) + 0 + 1;  /* TXA; EOR #$FF; ADC #0 with C = 1 */
             x = (u8)s; c = (u8)(s >> 8);
             s = 0xFFu + 0 + c; t = (u8)s;
         }
@@ -737,7 +737,7 @@ static u8 circle2_draw_v(void)
 u8 circle2_draw(void)
 {
     u8 r;
-    if (view_native) return ell_ring();                 /* anillos del tunel */
+    if (view_native) return ell_ring();                 /* tunnel rings */
     view_virtual_begin(); r = circle2_draw_v(); view_virtual_end(); return r;
 }
 
@@ -765,7 +765,7 @@ u8 circle_draw(void)
     return r;
 }
 
-/* WPLS2: borra el circulo anterior volviendo a dibujar sus segmentos (XOR) */
+/* WPLS2: erases the previous circle by drawing its segments again (XOR) */
 static void circle_wpls2_v(void)
 {
     u8 y = circ_lsx2[0], a;
@@ -797,19 +797,19 @@ void circle_wpls2(void)
     view_virtual_begin(); circle_wpls2_v(); view_virtual_end();
 }
 
-/* ---------------------------------------------------------------- tunel de hiperespacio / lanzamiento (HFS2, HFS1, HFL1) */
-void (*sun_hiss_hook)(int y) = 0;                /* SOHISS(y): sonido de cada anillo (la pone el juego) */
-void (*sun_blip_hook)(int x, int y) = 0;         /* SOBLIP(x, y) de LL164 */
-void (*sun_tt66_hook)(void) = 0;                 /* TT66 de HFS2: borrar la vista */
-void (*sun_circle_hook)(u8 k3, u8 k4, u8 k, u8 stp) = 0;   /* pruebas: cada CIRCLE2 del tunel */
-void (*sun_pace_hook)(void) = 0;                 /* propio: tras cada anillo, para que no salgan todos de golpe en maquinas rapidas */
+/* ---------------------------------------------------------------- hyperspace / launch tunnel (HFS2, HFS1, HFL1) */
+void (*sun_hiss_hook)(int y) = 0;                /* SOHISS(y): sound of each ring (set by the game) */
+void (*sun_blip_hook)(int x, int y) = 0;         /* SOBLIP(x, y) of LL164 */
+void (*sun_tt66_hook)(void) = 0;                 /* TT66 of HFS2: erase the view */
+void (*sun_circle_hook)(u8 k3, u8 k4, u8 k, u8 stp) = 0;   /* tests: each CIRCLE2 of the tunnel */
+void (*sun_pace_hook)(void) = 0;                 /* own: after each ring, so they do not all appear at once on fast machines */
 
-/* HFL1: una serie de circulos concentricos cuyo radio empieza en (XX4 AND 7) + 8 y se duplica mientras sea < 160 */
+/* HFL1: a series of concentric circles whose radius starts at (XX4 AND 7) + 8 and doubles while < 160 */
 static void hfl1(u8 xx4)
 {
     zK[0] = (u8)((xx4 & 7) + 8);
     for (;;) {                                   /* HFL2 */
-        em_rand_c = 0;                           /* acarreo de los DORND del sonido: 0 (CLC; ADC #8 en HFL1 o CMP #160; BCC HFL2) */
+        em_rand_c = 0;                           /* carry of the sound DORNDs: 0 (CLC; ADC #8 in HFL1 or CMP #160; BCC HFL2) */
         if (sun_hiss_hook) sun_hiss_hook(10);    /* LDY #10; JSR SOHISS */
         circ_lsp = 1;
         if (sun_circle_hook) sun_circle_hook(zk3[0], zk4[0], zK[0], circ_stp);
@@ -821,7 +821,7 @@ static void hfl1(u8 xx4)
     }
 }
 
-/* HFS2 sin la limpieza de pantalla: STP = paso del circulo (4 hiperespacio, 8 lanzamiento); centro (X, Y) = (128, 68) */
+/* HFS2 without the screen clear: STP = circle step (4 hyperspace, 8 launch); centre (X, Y) = (128, 68) */
 void tunnel_draw(u8 stp)
 {
     u8 xx4;
@@ -831,22 +831,22 @@ void tunnel_draw(u8 stp)
     for (xx4 = 0; xx4 != 8; xx4++) hfl1(xx4);
 }
 
-/* HFS2: TT66 (borrar la vista) y los anillos */
+/* HFS2: TT66 (erase the view) and the rings */
 static void hfs2(u8 stp)
 {
     if (sun_tt66_hook) sun_tt66_hook();
     tunnel_draw(stp);
 }
 
-/* LAUN: dos SOHISS de 256 clics y el tunel de lanzamiento (STP = 8) */
+/* LAUN: two SOHISS of 256 clicks and the launch tunnel (STP = 8) */
 void tunnel_laun(void)
 {
     if (sun_hiss_hook) { sun_hiss_hook(0); sun_hiss_hook(0); }
     hfs2(8);
 }
 
-/* LL164: nueve SOBLIP con el periodo bajando de 255 a 175 y el tunel de hiperespacio (STP = 4). El primer SBC #10 lleva el
-   acarreo de entrada (con C = 0 la serie es 255, 244, ..., 174); aqui siempre de 10 en 10 (solo cambia el tono) */
+/* LL164: nine SOBLIPs with the period falling from 255 to 175 and the hyperspace tunnel (STP = 4). The first SBC #10 carries the
+   incoming carry (with C = 0 the series is 255, 244, ..., 174); here always in steps of 10 (only the tone changes) */
 void tunnel_ll164(void)
 {
     u8 x = 255;
@@ -854,16 +854,16 @@ void tunnel_ll164(void)
     hfs2(4);
 }
 
-/* Pruebas: SUNX */
+/* Tests: SUNX */
 void sun_get_sunx(u8 *v) { v[0] = sunx[0]; v[1] = sunx[1]; }
 void sun_set_sunx(u8 lo, u8 hi) { sunx[0] = lo; sunx[1] = hi; }
 
-/* Tras borrar el area de vista: ni el sol ni el circulo del planeta figuran como dibujados */
+/* After erasing the view area: neither the sun nor the planet circle count as drawn */
 void sun_forget(void)
 {
-    arc_n[0] = arc_n[1] = 0;                     /* ni sus meridianos o crater */
-    ell_valid = 0;                               /* la elipse del planeta (vista nativa) tampoco figura como dibujada */
-    sn_clear();                                  /* ni los tramos del sol */
+    arc_n[0] = arc_n[1] = 0;                     /* nor their meridians or crater */
+    ell_valid = 0;                               /* the planet ellipse (native view) does not count as drawn either */
+    sn_clear();                                  /* nor the sun spans */
     sun_flflls();
     circ_lsp = 1;
     circ_lsx2[0] = 255;

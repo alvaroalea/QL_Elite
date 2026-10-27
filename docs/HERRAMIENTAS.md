@@ -1,60 +1,60 @@
-# Herramientas y entorno
+# Tools and environment
 
-Movido desde `CLAUDE.md` (secciones 3.2–3.6 y 5.3).
+Moved from `CLAUDE.md` (sections 3.2–3.6 and 5.3).
 
-## 3.2 Compilador de C para el QL (XTC68) — instalación si no esta disponible.
-`tools/install_xtc68.sh` automatiza lo que sigue:
-1. `git clone https://github.com/stronnag/xtc68` (migrado a Codeberg, pero el clon de GitHub sirve) y `git clone https://github.com/xXorAa/c68-support`.
-2. `tools/install_xtc68.sh` instala XTC68 + runtime c68 en `/tmp/qlsdk` (ver 3.2). Luego `export PATH=/tmp/qlsdk/bin:$PATH QLINC=/tmp/qlsdk/share/qdos/include QLLIB=/tmp/qlsdk/share/qdos/lib` y
-3. gcc moderno falla con `-Werror` en las fuentes antiguas (p. ej. «ignoring return value of write»): `sed -i "s/'-Werror', *//g" src/*/meson.build`.
+## 3.2 C compiler for the QL (XTC68) — installation if it is not available.
+`tools/install_xtc68.sh` automates what follows:
+1. `git clone https://github.com/stronnag/xtc68` (migrated to Codeberg, but the GitHub clone works) and `git clone https://github.com/xXorAa/c68-support`.
+2. `tools/install_xtc68.sh` installs XTC68 + the c68 runtime in `/tmp/qlsdk` (see 3.2). Then `export PATH=/tmp/qlsdk/bin:$PATH QLINC=/tmp/qlsdk/share/qdos/include QLLIB=/tmp/qlsdk/share/qdos/lib` and
+3. modern gcc fails with `-Werror` on the old sources (e.g. "ignoring return value of write"): `sed -i "s/'-Werror', *//g" src/*/meson.build`.
 4. `meson setup build --prefix=/tmp/qlsdk --strip && ninja -C build install` → `bin/{qcc,c68,as68,qld,qcpp,qdos-ar,...}`.
-5. El runtime de c68 (cabeceras `INCLUDE_*` y librerías `LIB_*`, del c68 runtime 4.24 «424frun1») va en una carpeta **`support/424frun1`** del repositorio xtc68, y se instala con `./sdk-install.sh /tmp/qlsdk` ejecutado **desde esa carpeta** → `share/qdos/include` y `share/qdos/lib`.
-6. Uso: `export PATH=/tmp/qlsdk/bin:$PATH QLINC=/tmp/qlsdk/share/qdos/include QLLIB=/tmp/qlsdk/share/qdos/lib`; `qcc -O -Isrc -o elite ...` (el `Makefile` ya lo hace con `make elite`). `-Isrc` es obligatorio porque qcc busca los `#include "..."` en el directorio actual. `qcc` imprime `elite: dataspace 18114 (46c2)` al terminar bien.
-7. `as68` es de la familia Sozobon: directivas `.globl`/`.text`, comentarios con `;`, etiquetas con dos puntos, ficheros `.asm` (qcc no reconoce `.s`); no valen `xdef`, `section` ni comentarios con `*`.
+5. The c68 runtime (`INCLUDE_*` headers and `LIB_*` libraries, from the c68 runtime 4.24 "424frun1") is in a **`support/424frun1`** folder of the xtc68 repository, and is installed with `./sdk-install.sh /tmp/qlsdk` run **from that folder** → `share/qdos/include` and `share/qdos/lib`.
+6. Usage: `export PATH=/tmp/qlsdk/bin:$PATH QLINC=/tmp/qlsdk/share/qdos/include QLLIB=/tmp/qlsdk/share/qdos/lib`; `qcc -O -Isrc -o elite ...` (the `Makefile` already does it with `make elite`). `-Isrc` is mandatory because qcc looks for the `#include "..."` in the current directory. `qcc` prints `elite: dataspace 18114 (46c2)` when it finishes correctly.
+7. `as68` is from the Sozobon family: `.globl`/`.text` directives, comments with `;`, labels with colons, `.asm` files (qcc does not recognise `.s`); `xdef`, `section` and comments with `*` are not valid.
 
-## 3.3 Verificación de código de c68 (`make c68_check`)
-`tools/c68_check/run.sh [sonda ...]` compila cada sonda de `tests/c68/` con gcc (PC) y con el `c68` real (`-int=16 -O -warn=0`, preprocesando con `gcc -E -P -U__GNUC__ -nostdinc`), convierte la salida de c68 (sintaxis ACK) a GNU as con `conv.py`, la enlaza con un mini runtime (`rt.s`: `.Xlmul`, `.Xldiv`, ..., salida de pantalla) y la ejecuta bajo `qemu-m68k`. Cada sonda deja hashes en la «pantalla» y se comparan byte a byte. `XTC68=<dir con c68>` (por defecto `/tmp/qlsdk/bin` si existe, si no `/tmp/xtc68/build`). Con `-U__GNUC__` se compilan las rutas «de QL» (por ejemplo las palabras largas de `gfx_fill_lines`). Sondas: `gfxfast, emath, keys, ships, game, charts, dash, flight, session`. **No sustituye al QL real** (no cubre el runtime ni el hardware), pero detecta fallos del compilador (encontró el de `-O`).
+## 3.3 Verification of c68 code (`make c68_check`)
+`tools/c68_check/run.sh [probe ...]` compiles each probe in `tests/c68/` with gcc (PC) and with the real `c68` (`-int=16 -O -warn=0`, preprocessing with `gcc -E -P -U__GNUC__ -nostdinc`), converts c68's output (ACK syntax) to GNU as with `conv.py`, links it with a mini runtime (`rt.s`: `.Xlmul`, `.Xldiv`, ..., screen output) and runs it under `qemu-m68k`. Each probe leaves hashes on the "screen" and they are compared byte by byte. `XTC68=<dir with c68>` (by default `/tmp/qlsdk/bin` if it exists, otherwise `/tmp/xtc68/build`). With `-U__GNUC__` the "QL" paths are compiled (for example the long words of `gfx_fill_lines`). Probes: `gfxfast, emath, keys, ships, game, charts, dash, flight, session`. **It does not replace the real QL** (it covers neither the runtime nor the hardware), but it detects compiler bugs (it found the `-O` one).
 
-## 3.4 Herramientas Python (`tools/`)
-| Fichero | Para qué |
+## 3.4 Python tools (`tools/`)
+| File | Purpose |
 |---|---|
-| `cpu6502.py`, `asm6502.py` | emulador de 6502 y ensamblador mínimo de la sintaxis de la fuente (etiquetas, EQUB/EQUW, `P%`, `LO()/HI()`, `%bin`, `$hex`, `IF/ELIF`) |
-| `orig.py`, `elitesrc.py` | monta una imagen con rutinas originales (LL9, SHPPT, LL51, PROJ, PLS6, DVID3B2, FMLTU, DORND; LOIN/DOEXP/PLANET son stubs que registran la llamada) y lee la fuente (símbolos) |
-| `frag6502.py`, `gen_laser.py`, `gen_damage.py`, `gen_planet.py`, `gen_equip.py` | ensamblan tramos sueltos de la fuente (por etiqueta) con stubs que registran, y generan `tests/vectors_{laser,damage,planet,equip}.txt` ejecutando el original (`gen_planet.py` ejecuta la parte de `LOIN` que importa —hasta `LI3`/`LI15`— y registra la línea ya ordenada) |
-| `gen_ll9.py` | genera `tests/vectors_ll9.txt` ejecutando el original con entradas aleatorias |
-| `gen_geom.py`, `gen_lines.py`, `gen_draw.py` | (16.ª ronda) Maths Geometry con las entradas de `test_state`; `LOIN`/`HLOIN`/`VLOIN` en la pantalla hires del emulador decodificada a coordenadas del juego; `TT15`, `SIGHT`, `NLIN2/4`, `BOMBEFF2`, `DOEXP`, `scacol` con primitivas que registran → `tests/vectors_{geom,lines,draw}.txt` |
-| `ref6502.py`, `ref6502b.py`, `ref6502_state.py` | **transcripciones literales** del 6502 en Python (con acarreos explícitos) de la aritmética y de las rutinas con estado |
-| `gen_vectors*.py`, `gen_trade.py` | generan los vectores de `make test`, `test_state`, `test_save` y `test_trade` |
-| `gen_shipdata.py` | extrae los 32 planos de naves de `elite-data.asm` → `src/shipdata.c/.h` |
-| `gen_dashboard.py` | `A.SCREEN.bin` (volcado hires del Apple II) → `data/elite_dash` |
-| `png2dash.py` | cabina editable: PNG de 8 colores (cualquier múltiplo de 256 × 56) → `data/elite_dash`, y `--export` del panel a PNG (por defecto 1024 × 112, píxeles de 4 × 2 con la proporción del QL); `make dash_png`, `make dash_from_png` (con `asset/cabina.png`), `make test_dashpng` (ida y vuelta) |
-| `gen_font.py`, `gen_tables.py`, `gen_sne.py`, `gen_universe_text.py`, `make_oracle.py` | fuente 8×8, tablas log/seno, tabla de seno de naves, textos del universo, oráculo de Text Elite |
-| `ql2png.py` | convierte una captura de pantalla QL (32 KB) a PNG (`ql2png.py captura.bin salida.png [4]`: el 4 = modo 4, 1024 × 768; las capturas de `test_game` de modo 4 llevan un `NN.m4` al lado) |
-| `inventory.py`, `ported.txt` | generan `INVENTARIO.md` |
-| `test_mode4asm.py` | ensamblador de **modo 4** (`ql_line4`, `ql_ellipse` con `hr`, `ql_ellrows4` y punto/tramo/columna/rectángulo con los códigos de color de modo 4) ejecutado con `m68k_mini.py` contra las versiones en C con `gfx_m4 = 1` (`tests/m4_dump.c`); `make test_mode4asm` |
-| `m68k_mini.py`, `test_lineasm.py`, `test_ellasm.py`, `test_ll9asm.py`, `test_putsasm.py`, `gen_lltab.py` | intérprete mínimo de 68000 y pruebas del ensamblador propio (`ql_line`, `ql_ell`, `ql_ll9`, `ql_puts`) contra el C; `gen_lltab.py` genera `src/ql_lltab.asm` |
-| `install_xtc68.sh`, `c68_check/` | cadena de qcc y verificación de c68 |
-| `tmp/qltools_src/` (se crea sola) | clon y compilación de **qltools** de N. Dunbar (`make qltools`); formatea y escribe la imagen `elite.img` (3.5). No se incluye en el tar |
+| `cpu6502.py`, `asm6502.py` | 6502 emulator and minimal assembler for the source's syntax (labels, EQUB/EQUW, `P%`, `LO()/HI()`, `%bin`, `$hex`, `IF/ELIF`) |
+| `orig.py`, `elitesrc.py` | builds an image with original routines (LL9, SHPPT, LL51, PROJ, PLS6, DVID3B2, FMLTU, DORND; LOIN/DOEXP/PLANET are stubs that log the call) and reads the source (symbols) |
+| `frag6502.py`, `gen_laser.py`, `gen_damage.py`, `gen_planet.py`, `gen_equip.py` | assemble loose stretches of the source (by label) with logging stubs, and generate `tests/vectors_{laser,damage,planet,equip}.txt` by running the original (`gen_planet.py` runs the part of `LOIN` that matters —up to `LI3`/`LI15`— and logs the already sorted line) |
+| `gen_ll9.py` | generates `tests/vectors_ll9.txt` by running the original with random inputs |
+| `gen_geom.py`, `gen_lines.py`, `gen_draw.py` | (round 16) Maths Geometry with `test_state`'s inputs; `LOIN`/`HLOIN`/`VLOIN` on the emulator's hires screen decoded to game coordinates; `TT15`, `SIGHT`, `NLIN2/4`, `BOMBEFF2`, `DOEXP`, `scacol` with logging primitives → `tests/vectors_{geom,lines,draw}.txt` |
+| `ref6502.py`, `ref6502b.py`, `ref6502_state.py` | **literal transcriptions** of the 6502 in Python (with explicit carries) of the arithmetic and of the stateful routines |
+| `gen_vectors*.py`, `gen_trade.py` | generate the vectors for `make test`, `test_state`, `test_save` and `test_trade` |
+| `gen_shipdata.py` | extracts the 32 ship blueprints from `elite-data.asm` → `src/shipdata.c/.h` |
+| `gen_dashboard.py` | `A.SCREEN.bin` (Apple II hires dump) → `data/elite_dash` |
+| `png2dash.py` | editable cockpit: 8-colour PNG (any multiple of 256 × 56) → `data/elite_dash`, and `--export` of the panel to PNG (by default 1024 × 112, 4 × 2 pixels with the QL's proportion); `make dash_png`, `make dash_from_png` (with `asset/cabina.png`), `make test_dashpng` (round trip) |
+| `gen_font.py`, `gen_tables.py`, `gen_sne.py`, `gen_universe_text.py`, `make_oracle.py` | 8×8 font, log/sine tables, ship sine table, universe texts, Text Elite oracle |
+| `ql2png.py` | converts a QL screen capture (32 KB) to PNG (`ql2png.py capture.bin output.png [4]`: the 4 = mode 4, 1024 × 768; `test_game` mode 4 captures have an `NN.m4` next to them) |
+| `inventory.py`, `ported.txt` | generate `INVENTARIO.md` |
+| `test_mode4asm.py` | **mode 4** assembler (`ql_line4`, `ql_ellipse` with `hr`, `ql_ellrows4` and dot/span/column/rectangle with the mode 4 colour codes) run with `m68k_mini.py` against the C versions with `gfx_m4 = 1` (`tests/m4_dump.c`); `make test_mode4asm` |
+| `m68k_mini.py`, `test_lineasm.py`, `test_ellasm.py`, `test_ll9asm.py`, `test_putsasm.py`, `gen_lltab.py` | minimal 68000 interpreter and tests of our own assembler (`ql_line`, `ql_ell`, `ql_ll9`, `ql_puts`) against the C; `gen_lltab.py` generates `src/ql_lltab.asm` |
+| `install_xtc68.sh`, `c68_check/` | qcc toolchain and c68 verification |
+| `tmp/qltools_src/` (created automatically) | clone and build of N. Dunbar's **qltools** (`make qltools`); formats and writes the `elite.img` image (3.5). Not included in the tar |
 
-## 3.5 Imagen de disco `elite.img` (qltools)
-`make elite.img` (alias `make disk`) hace todo de una vez y es repetible:
-- **`elite`** (objetivo real; el alias `ql_game` se eliminó el 2026-10-24): compila con qcc si cambió algún `src/*.c`, `src/*.h` o `.asm`. qcc deja al final del fichero el trailer `XTcc` + dataspace (big-endian; hoy 16.840 bytes); qltools lo detecta al escribir y marca el fichero como ejecutable con ese dataspace (`E` en el directorio). Hace falta el `-W` de qltools, no copiar el fichero a mano.
-- **`$(QLTOOLS)`** si no existe qltools en local se puede instalar y compilar en `tmp/qltools_src/` con  `git clone --depth 1 https://github.com/NormanDunbar/qltools tmp/qltools_src` y `make -C tmp/qltools_src/Unix` (lo hace `make qltools`). 
-- Todo lo generado va a `build/` (`build/elite`, `build/elite.img`). `rm -f build/elite.img`; `qltools build/elite.img -fdd ELITE` (formatea DS/DD: 2 caras, 80 cilindros, 9 sectores por pista = 1.440 sectores = 737.280 bytes; ID `QL5A`); `qltools build/elite.img -W build/elite data/boot data/elite_scr data/elite_dash` (`-W` sobrescribe sin preguntar; los nombres en el disco son los del fichero sin el directorio); `qltools build/elite.img -d` lista el resultado.
-- **Notas de qltools:** traduce `.` en `_` en los nombres (sin `-t`); ningún nombre del disco lleva punto. Muestra el año de la fecha de los ficheros como 126 (error solo de presentación). Los argumentos `-fdd` y `-W` van **antes** de la lista de ficheros; para comprobar un fichero con nombre sin traducir se usa `-t -n nombre`.
-- En un emulador (sQLux, QPC2, uQLx): montar `build/elite.img` como `flp1_` y arrancar con `LRUN flp1_boot` (o dejar que lo ejecute el arranque del disco).
+## 3.5 `elite.img` disk image (qltools)
+`make elite.img` (alias `make disk`) does everything at once and is repeatable:
+- **`elite`** (the real target; the `ql_game` alias was removed on 2026-10-24): builds with qcc if any `src/*.c`, `src/*.h` or `.asm` changed. qcc leaves at the end of the file the `XTcc` trailer + dataspace (big-endian; today 16,840 bytes); qltools detects it on writing and marks the file as executable with that dataspace (`E` in the directory). qltools' `-W` is needed; do not copy the file by hand.
+- **`$(QLTOOLS)`** if qltools does not exist locally it can be installed and built in `tmp/qltools_src/` with `git clone --depth 1 https://github.com/NormanDunbar/qltools tmp/qltools_src` and `make -C tmp/qltools_src/Unix` (done by `make qltools`).
+- Everything generated goes to `build/` (`build/elite`, `build/elite.img`). `rm -f build/elite.img`; `qltools build/elite.img -fdd ELITE` (formats DS/DD: 2 sides, 80 cylinders, 9 sectors per track = 1,440 sectors = 737,280 bytes; ID `QL5A`); `qltools build/elite.img -W build/elite data/boot data/elite_scr data/elite_dash` (`-W` overwrites without asking; the names on the disk are the file's without the directory); `qltools build/elite.img -d` lists the result.
+- **qltools notes:** it translates `.` into `_` in names (without `-t`); no name on the disk has a dot. It shows the year of the files' date as 126 (presentation-only error). The `-fdd` and `-W` arguments go **before** the file list; to check a file with an untranslated name use `-t -n name`.
+- In an emulator (sQLux, QPC2, uQLx): mount `build/elite.img` as `flp1_` and start with `LRUN flp1_boot` (or let the disk boot run it).
 
-## 3.6 Imagen de microdrive `elite.mdv` (mdvtool)
-- **`$(MDVTOOL)`** si no existe mdvtool en local se puede instalar y compilar en `tmp/` desde el repositorio https://github.com/xxoraa/mdvtool (`make mdvtool`; usa el del `PATH` si lo hay; necesita libzip).
-- `make elite.mdv` genera `build/elite.mdv` (formato QLAY, etiqueta `ELITE`) con `boot`, `elite`, `elite_scr` y `elite_dash`. Copia los ficheros a `build/mdv/` e importa desde allí (mdvtool guarda el nombre **tal como se le pasa**, con directorio incluido). El `boot` del microdrive es el del disco con `dev$="mdv1_"` (sed). mdvtool detecta el trailer `XTcc` y marca `elite` como EXEC con su dataspace.
-- **Capacidad:** 255 sectores de 512 B; quitando el mapa y el directorio quedan **253** para ficheros, y cada fichero lleva 64 B de cabecera (`MDV_SECTORS`). Con la imagen llena mdvtool termina con violación de segmento, así que la regla comprueba antes los sectores y falla con un mensaje. **Hoy el ejecutable (~147 KB, 146 KB sin `DEBUG`) no cabe** (hacen falta 369 sectores): por eso `elite.mdv` no está en el objetivo por defecto. Un cartucho real suele dar menos sectores que la imagen QLAY.
-
-
+## 3.6 `elite.mdv` microdrive image (mdvtool)
+- **`$(MDVTOOL)`** if mdvtool does not exist locally it can be installed and built in `tmp/` from the repository https://github.com/xxoraa/mdvtool (`make mdvtool`; uses the one on the `PATH` if there is one; needs libzip).
+- `make elite.mdv` generates `build/elite.mdv` (QLAY format, label `ELITE`) with `boot`, `elite`, `elite_scr` and `elite_dash`. It copies the files to `build/mdv/` and imports from there (mdvtool stores the name **as given**, directory included). The microdrive `boot` is the disk one with `dev$="mdv1_"` (sed). mdvtool detects the `XTcc` trailer and marks `elite` as EXEC with its dataspace.
+- **Capacity:** 255 sectors of 512 B; removing the map and the directory leaves **253** for files, and each file carries a 64 B header (`MDV_SECTORS`). With a full image mdvtool ends with a segmentation fault, so the rule checks the sectors first and fails with a message. **Today the executable (~147 KB, 146 KB without `DEBUG`) does not fit** (369 sectors are needed): that is why `elite.mdv` is not in the default target. A real cartridge usually gives fewer sectors than the QLAY image.
 
 
-## 5.3 Cómo verificar una rutina nueva contra el original
-`tools/orig.py` monta una imagen del 6502 con las rutinas originales que se pidan y stubs para las que dibujan; `tools/gen_laser.py` y `tools/gen_damage.py` son los ejemplos más cómodos; usan `tools/frag6502.py` (su `build(lineas, None, presets)` convierte en stubs que registran (nombre, A, X, Y) todo lo que no se resuelve, y pone un RTS local cuando una rama no llega al stub; ensambla tramos sueltos del bucle principal por etiqueta: `.MA68`..`.MA3`, `.MA47`..`.MA8`...; `presets` fija direcciones de tablas como `log`; si una rama no llega a una etiqueta de fuera, hay que ponerle un `RTS` local delante, p. ej. `['.out', 'RTS'] + OUCH`). Cuidado: un tramo que «cae» en la rutina siguiente (como `Ze` en `DORND2`) necesita esa rutina justo detrás en la lista; `tools/gen_trade.py` (preprocesa `IF/ELIF`, sustituye pantalla por stubs, ejecuta `tnpr` y los tramos de `TT219`/`TT208`). Pasos: volcar el estado inicial aleatorio en el emulador y en C, ejecutar, comparar INWK/variables/líneas dibujadas, repetir con valores límite, mutar una instrucción del C y comprobar que el test falla.
 
-## Cronometraje del texto (`make ql_bench`)
 
-`src/bench_text.c` imprime 2000 caracteres (papel opaco, transparente, `txt_puts` y números) y muestra los cuadros de 20 ms y los µs por carácter. Ejecutar `build/bench_ql` en el QL. Medido antes de `ql_text.asm` (C puro, tabla `fm`): opaco 73 t (730 µs/car.); antes de la tabla, 189 t. `ASM_TEXT` (en el `Makefile`, por defecto 1) usa `ql_puts` (`src/ql_text.asm`: tira de celdas con papel opaco, desenrollada) en `txt_puts` y `txt_putc`; el papel transparente sigue en C. Sin `ASM_TEXT` se usa la misma fórmula en C.
+## 5.3 How to verify a new routine against the original
+`tools/orig.py` builds a 6502 image with the original routines requested and stubs for those that draw; `tools/gen_laser.py` and `tools/gen_damage.py` are the most convenient examples; they use `tools/frag6502.py` (its `build(lines, None, presets)` turns into stubs that log (name, A, X, Y) everything that is not resolved, and puts a local RTS when a branch does not reach the stub; it assembles loose stretches of the main loop by label: `.MA68`..`.MA3`, `.MA47`..`.MA8`...; `presets` fixes addresses of tables such as `log`; if a branch does not reach a label outside, a local `RTS` must be put in front of it, e.g. `['.out', 'RTS'] + OUCH`). Careful: a stretch that "falls" into the next routine (like `Ze` into `DORND2`) needs that routine right after it in the list; `tools/gen_trade.py` (preprocesses `IF/ELIF`, replaces the screen with stubs, runs `tnpr` and the `TT219`/`TT208` stretches). Steps: dump the random initial state into the emulator and into C, run, compare INWK/variables/drawn lines, repeat with boundary values, mutate an instruction of the C and check that the test fails.
+
+## Text timing (`make ql_bench`)
+
+`src/bench_text.c` prints 2000 characters (opaque paper, transparent, `txt_puts` and numbers) and shows the 20 ms ticks and the µs per character. Run `build/bench_ql` on the QL. Measured before `ql_text.asm` (pure C, `fm` table): opaque 73 t (730 µs/char.); before the table, 189 t. `ASM_TEXT` (in the `Makefile`, 1 by default) uses `ql_puts` (`src/ql_text.asm`: strip of cells with opaque paper, unrolled) in `txt_puts` and `txt_putc`; transparent paper is still in C. Without `ASM_TEXT` the same formula is used in C.

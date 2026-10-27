@@ -12,9 +12,9 @@ void (*move_tactics_hook)(void) = 0;
 
 static u8 k2[4];                          /* K2..K2+3 */
 u8 move_p2;                               /* P+2 */
-u8 move_rat2;                             /* RAT2 de MV45/MVS5 */
+u8 move_rat2;                             /* RAT2 of MV45/MVS5 */
 
-/* MVT1: (x_sg x_hi x_lo) = (x_sg x_hi x_lo) +/- (A R); A = signo (bit 7) y alto (bits 0-6) de la cantidad; X = 0, 3 o 6 */
+/* MVT1: (x_sg x_hi x_lo) = (x_sg x_hi x_lo) +/- (A R); A = sign (bit 7) and high part (bits 0-6) of the amount; X = 0, 3 or 6 */
 void mvt1(u8 a, u8 x)
 {
     u8 s, t;
@@ -22,25 +22,25 @@ void mvt1(u8 a, u8 x)
     int d, cc;
     s = (u8)(a & 0x7F);
     t = (u8)(a & 0x80);
-    if (!((t ^ inwk[x + 2]) & 0x80)) {           /* misma senal: suma */
+    if (!((t ^ inwk[x + 2]) & 0x80)) {           /* same sign: add */
         u = (unsigned)zR + inwk[x]; inwk[x] = (u8)u;
         u = (unsigned)s + inwk[x + 1] + (u >> 8); inwk[x + 1] = (u8)u;
         u = (unsigned)inwk[x + 2] + (u >> 8);
         inwk[x + 2] = (u8)((u8)u | t);
         return;
     }
-    d = (int)inwk[x] - zR; cc = (d >= 0); inwk[x] = (u8)d;                    /* MV10: resta */
+    d = (int)inwk[x] - zR; cc = (d >= 0); inwk[x] = (u8)d;                    /* MV10: subtract */
     d = (int)inwk[x + 1] - s - (1 - cc); cc = (d >= 0); inwk[x + 1] = (u8)d;
     d = (int)(inwk[x + 2] & 0x7F) - (1 - cc); cc = (d >= 0);
     inwk[x + 2] = (u8)((((u8)d) | 0x80) ^ t);
     if (cc) return;                                                           /* BCS MV11 */
-    d = 1 - (int)inwk[x] - 1; cc = (d >= 0); inwk[x] = (u8)d;                 /* cruzo el cero: negar */
+    d = 1 - (int)inwk[x] - 1; cc = (d >= 0); inwk[x] = (u8)d;                 /* crossed zero: negate */
     d = 0 - (int)inwk[x + 1] - (1 - cc); cc = (d >= 0); inwk[x + 1] = (u8)d;
     d = 0 - (int)inwk[x + 2] - (1 - cc);
     inwk[x + 2] = (u8)(((u8)d & 0x7F) | t);
 }
 
-/* MVT6: (A P+2 P+1) = (x_sg x_hi x_lo de INWK+X) + (A P+2 P+1) con signos; devuelve el signo en A */
+/* MVT6: (A P+2 P+1) = (x_sg x_hi x_lo of INWK+X) + (A P+2 P+1) with signs; returns the sign in A */
 u8 mvt6(u8 a, u8 x)
 {
     u8 y = a;
@@ -59,8 +59,8 @@ u8 mvt6(u8 a, u8 x)
     return y;
 }
 
-/* MLTU2 transcrito literalmente (16 vueltas de ROR/ADC) para obtener el acarreo con que vuelve el 6502: es el ultimo bit que sale de
-   ROR P. Deja (A P+1 P) como em_mltu2 */
+/* MLTU2 transcribed literally (16 rounds of ROR/ADC) to obtain the carry with which the 6502 returns: it is the last bit shifted out of
+   ROR P. Leaves (A P+1 P) as em_mltu2 */
 static u8 mltu2(u8 a, u8 *carry)
 {
     u8 x, c, t, p1;
@@ -69,7 +69,7 @@ static u8 mltu2(u8 a, u8 *carry)
     c = (u8)(a & 1); a = (u8)(a >> 1); p1 = a; a = 0;      /* EOR #$FF; LSR A; STA P+1; LDA #0 */
     t = zP; zP = (u8)((c << 7) | (t >> 1)); c = (u8)(t & 1);   /* ROR P */
     for (x = 16; x; x--) {
-        if (!c) {                                            /* BCS MU21 no se toma */
+        if (!c) {                                            /* BCS MU21 not taken */
             s = (unsigned)a + zQ;                            /* ADC Q (con C = 0) */
             c = (u8)(s >> 8); a = (u8)s;
             t = a; a = (u8)((c << 7) | (a >> 1)); c = (u8)(t & 1);   /* ROR A */
@@ -84,7 +84,7 @@ static u8 mltu2(u8 a, u8 *carry)
     return a;
 }
 
-/* MVS4: gira un vector de orientacion (INWK+Y) por alabeo (ALPHA) y cabeceo (BETA) */
+/* MVS4: rotates an orientation vector (INWK+Y) by roll (ALPHA) and pitch (BETA) */
 void mvs4(u8 y)
 {
     u8 a, x;
@@ -104,7 +104,7 @@ void mvs4(u8 y)
     inwk[y + 5] = a; inwk[y + 4] = x;
 }
 
-/* MVS5: gira 3,6 grados el par de vectores (INWK+X, INWK+Y) */
+/* MVS5: rotates the vector pair (INWK+X, INWK+Y) by 3.6 degrees */
 void mvs5(u8 x, u8 y)
 {
     u8 a, t, c, i, q;
@@ -141,11 +141,11 @@ void mv45(void)
     u8 a, c;
     zR = zDELTA;
     mvt1(0x80, 6);                                /* z -= DELTA */
-    if ((ztype & 0x81) == 129) return;            /* el sol no gira */
+    if ((ztype & 0x81) == 129) return;            /* the sun does not rotate */
     mvs4(9); mvs4(15); mvs4(21);
     move_rat2 = (u8)(inwk[30] & 0x80);
     a = (u8)(inwk[30] & 0x7F);
-    if (a != 0) {                                 /* contador de cabeceo */
+    if (a != 0) {                                 /* pitch counter */
         c = (u8)(a >= 0x7F);
         if (!c) a = (u8)(a - 1);
         inwk[30] = (u8)(a | move_rat2);
@@ -153,7 +153,7 @@ void mv45(void)
     }
     move_rat2 = (u8)(inwk[29] & 0x80);                 /* MV8 */
     a = (u8)(inwk[29] & 0x7F);
-    if (a != 0) {                                 /* contador de alabeo */
+    if (a != 0) {                                 /* roll counter */
         c = (u8)(a >= 0x7F);
         if (!c) a = (u8)(a - 1);
         inwk[29] = (u8)(a | move_rat2);
@@ -164,7 +164,7 @@ void mv45(void)
     space_scan(ztype);
 }
 
-/* MV40 hasta antes de MV45 (aparte para poder compararlo con el original) */
+/* MV40 up to just before MV45 (separate so it can be compared with the original) */
 void mv40_pre(void)
 {
     u8 a, t;
@@ -211,7 +211,7 @@ mv2:
     inwk[0] = zK[1]; inwk[1] = zK[2]; inwk[2] = zK[3];
 }
 
-/* MV40: planetas y soles: la posicion gira con nuestro alabeo y cabeceo y luego sigue por MV45 */
+/* MV40: planets and suns: the position rotates with our roll and pitch and then continues through MV45 */
 void mv40(void)
 {
     mv40_pre();
@@ -235,18 +235,18 @@ mv26:
     if (move_tactics_hook) move_tactics_hook();
 mv30:
     space_scan(ztype);
-    /* parte 2: avance por el morro (velocidad INWK+27) */
+    /* part 2: advance along the nose (speed INWK+27) */
     zQ = (u8)(inwk[27] << 2);
     a = em_fmltu((u8)(inwk[10] & 0x7F)); zR = a; mvt1((u8)(inwk[10] & 0x80), 0);
     a = em_fmltu((u8)(inwk[12] & 0x7F)); zR = a; mvt1((u8)(inwk[12] & 0x80), 3);
     a = em_fmltu((u8)(inwk[14] & 0x7F)); zR = a; mvt1((u8)(inwk[14] & 0x80), 6);
-    a = (u8)(inwk[27] + inwk[28]);                       /* velocidad += aceleracion */
+    a = (u8)(inwk[27] + inwk[28]);                       /* speed += acceleration */
     if (a & 0x80) a = 0;
     bp = ship_bp_for(ztype);
     max = bp[15];
     if (a >= max) a = max;
     inwk[27] = a; inwk[28] = 0;
-    /* parte 3: giro de la posicion por nuestro alabeo (ALP1, ALP2) y cabeceo (BET1, BET2) */
+    /* part 3: rotation of the position by our roll (ALP1, ALP2) and pitch (BET1, BET2) */
     zQ = alp1;
     zP = (u8)(inwk[0] ^ 0xFF);
     move_p2 = mltu2(inwk[1], &c);
@@ -257,11 +257,11 @@ mv30:
     a = (u8)(k2[3] ^ bet2[0]); a = mvt6(a, 6);
     inwk[8] = a;
     inwk[6] = zP1; zP = (u8)(zP1 ^ 0xFF); inwk[7] = move_p2;
-    move_p2 = mltu2(move_p2, &c3);                                 /* MLTU2: Q sigue siendo BET1 */
+    move_p2 = mltu2(move_p2, &c3);                                 /* MLTU2: Q is still BET1 */
     inwk[5] = k2[3];
     a = (u8)(k2[3] ^ bet2[0] ^ inwk[8]);
     if (!(a & 0x80)) goto mv43;
-    s = (unsigned)zP1 + k2[1] + c3; inwk[3] = (u8)s;                          /* signos opuestos: suma */
+    s = (unsigned)zP1 + k2[1] + c3; inwk[3] = (u8)s;                          /* opposite signs: add */
     s = (unsigned)move_p2 + k2[2] + (s >> 8); inwk[4] = (u8)s;
     goto mv44;
 mv43:
@@ -280,12 +280,12 @@ mv44:
     mv45();
 }
 
-/* PLUT: invierte o intercambia los ejes de INWK segun la vista */
+/* PLUT: inverts or swaps the axes of INWK according to the view */
 void plut(u8 view)
 {
     u8 rat, r2, a, x, y, k;
     if (view == 0) return;
-    if (view == 1) {                               /* vista trasera: cambian de signo x, z y los mismos de los tres vectores */
+    if (view == 1) {                               /* rear view: x, z and the same ones of the three vectors change sign */
         static const u8 flip[8] = { 2, 8, 10, 14, 16, 20, 22, 26 };
         for (k = 0; k < 8; k++) inwk[flip[k]] = (u8)(inwk[flip[k]] ^ 0x80);
         return;
@@ -297,7 +297,7 @@ void plut(u8 view)
     x = (u8)(inwk[2] ^ rat);
     inwk[2] = (u8)(inwk[8] ^ r2);
     inwk[8] = x;
-    for (k = 0; k < 3; k++) {                      /* PUS1 para los vectores en 9, 15 y 21 */
+    for (k = 0; k < 3; k++) {                      /* PUS1 for the vectors at 9, 15 and 21 */
         y = (u8)(9 + 6 * k);
         a = inwk[y]; x = inwk[y + 4]; inwk[y + 4] = a; inwk[y] = x;
         x = (u8)(inwk[y + 1] ^ rat);

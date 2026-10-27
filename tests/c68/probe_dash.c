@@ -1,4 +1,4 @@
-/* Panel: giros, velocidad, planeta/estacion, instrumentos y brujula con controles pseudoaleatorios: hash de la pantalla. */
+/* Panel: turns, speed, planet/station, instruments and compass with pseudo-random controls: screen hash. */
 #include "platform.h"
 #include "text.h"
 #include "dash.h"

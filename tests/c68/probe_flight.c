@@ -1,4 +1,4 @@
-/* Vuelo: polvo estelar en las 4 vistas, radar con contactos, mira, tunel, misiles y bombillas con controles pseudoaleatorios. */
+/* Flight: stardust in the 4 views, radar with contacts, sight, tunnel, missiles and bulbs with pseudo-random controls. */
 #include "platform.h"
 #include "text.h"
 #include "dash.h"
@@ -23,7 +23,7 @@ static u16s rs = 9876;
 static unsigned rnd(void) { rs = (u16s)(rs * 25173u + 13849u); return (unsigned)(rs >> 4); }
 static int n = 0;
 static u8 dm[16];
-static u8 de[16];                                   /* equipo: ordenador de atraque, bomba, WARP */                                   /* resultados de los danos */
+static u8 de[16];                                   /* equipment: docking computer, bomb, WARP */                                   /* damage results */
 static void hash(void)
 {
     long j;
@@ -46,8 +46,8 @@ int main(void)
         stars_new();
         for (i = 0; i < 3; i++) space_spawn((u8)(SHIPT_VIPER + i));
         combat_reset();
-        space_view = (u8)view;                                 /* PLUT en los ejes de la vista */
-        ship_zinf();                                           /* blanco quieto en el eje de la vista */
+        space_view = (u8)view;                                 /* PLUT in the view axes */
+        ship_zinf();                                           /* still target on the view axis */
         if (view == 0) inwk[7] = 2; else if (view == 1) { inwk[7] = 2; inwk[8] = 0x80; }
         else if (view == 2) { inwk[1] = 2; inwk[2] = 0x80; } else inwk[1] = 2;
         i = ship_new(SHIPT_SIDEWINDER); if (i >= 0) state_slot(i)[32] = 0;
@@ -68,7 +68,7 @@ int main(void)
             dash_update();
             if (f % 50 == 49) hash();
         }
-        ships_explode_nearest(); ships_explode_nearest();      /* explosiones: nube y fin */
+        ships_explode_nearest(); ships_explode_nearest();      /* explosions: cloud and end */
         for (f = 0; f < 90; f++) {
             c.speed_up = c.slow_down = c.roll_left = c.roll_right = c.pitch_up = c.pitch_down = 0;
             c.fire = c.bomb = c.escape_pod = c.target = c.unarm = c.missile = c.ecm = c.jump = c.dock = c.undock = 0;
@@ -78,7 +78,7 @@ int main(void)
             if (f == 30 || f == 89) hash();
         }
     }
-    /* planeta de frente y sol de frente */
+    /* planet head-on and sun head-on */
     for (view = 0; view < 2; view++) {
         game_new(); gfx_clear(C_BLACK); sun_forget(); space_view = (u8)view; space_launch();
         for (i = 0; i < NI; i++) state_slot(0)[i] = 0;
@@ -93,7 +93,7 @@ int main(void)
     }
     gfx_clear(C_BLACK); sun_col = C_WHITE; tunnel_draw(4); hash();
     gfx_clear(C_BLACK); tunnel_draw(8); hash();
-    /* danos: choque frontal, choque sin escudo, sol cercano y restos de DEATH */
+    /* damage: head-on collision, collision without shield, nearby sun and DEATH debris */
     {
         int k;
         game_new(); combat_reset(); player_dead = 0; ships_arrive();

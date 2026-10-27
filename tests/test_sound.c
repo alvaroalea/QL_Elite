@@ -17,7 +17,7 @@ int main(void)
     int bad;
     struct snd_params p;
 
-    /* conversiones contra la formula en coma flotante (tolerancia 1) */
+    /* conversions against the floating-point formula (tolerance 1) */
     bad = 0;
     for (c = 100; c <= 4000; c += 7) {
         double pf = 22917.0 * c / 1020500.0 - 9.6;
@@ -32,12 +32,12 @@ int main(void)
     CHECK(snd_units_from(30, 561) >= 377 && snd_units_from(30, 561) <= 379, "duracion BEEP ~378 pasos de 43,64 us (16,5 ms)");
     CHECK(snd_units_from(256, 100000L) == 32767, "duracion limitada a 32767");
 
-    /* bloque IPC de BEEP: formato verificado con el codigo de ejemplo de la comunidad QL */
+    /* BEEP IPC block: format verified with the QL community's example code */
     reset();
     p.pitch1 = 5; p.pitch2 = 9; p.grad_x = 0x1234; p.duration = 0x0ABC; p.grad_y = 0x1F; p.wrap = 3; p.fuzz = 7; p.rnd = 0x1A;
     snd_send(&p, SND_P_UI);
     CHECK(host_ipc_n == 1 && host_ipc_len[0] == 15, "un bloque de 15 bytes");
-    {   /* 8 bytes de parametros, 16 bits con el byte bajo primero, nibbles paso/vuelta y aleatorio/difuso, respuesta 1 = ninguna */
+    {   /* 8 parameter bytes, 16 bits low byte first, step/wrap and random/fuzzy nibbles, reply 1 = none */
         const u8 e[15] = { 10, 8, 0, 0, 0xAA, 0xAA, 5, 9, 0x34, 0x12, 0xBC, 0x0A, 0xF3, 0xA7, 1 };
         CHECK(memcmp(host_ipc_log[0], e, 15) == 0, "bytes del bloque BEEP (formato del 8049)");
     }
@@ -48,7 +48,7 @@ int main(void)
         CHECK(host_ipc_len[0] == 7 && memcmp(host_ipc_log[0], e, 7) == 0, "bloque BEEP OFF");
     }
 
-    /* efectos: valores esperados a partir de los tiempos del original */
+    /* effects: expected values from the original's timings */
     reset(); snd_beep();
     CHECK(host_ipc_log[0][6] == 3 && host_ipc_log[0][7] == 0, "BEEP: pitch 3 (22917 / (2 * 12,6) = 909 Hz)");
     {
@@ -63,9 +63,9 @@ int main(void)
     }
     reset(); snd_lasnoise();
     CHECK(host_ipc_log[0][6] < host_ipc_log[0][7] && (host_ipc_log[0][12] >> 4) >= 1 && (host_ipc_log[0][12] >> 4) <= 7, "laser: tono que baja (pitch1 < pitch2, paso positivo)");
-    reset(); snd_soblip(224, 20);                                    /* ECM: el tono sube */
+    reset(); snd_soblip(224, 20);                                    /* ECM: the tone rises */
     CHECK((host_ipc_log[0][12] >> 4) >= 9, "ECM: paso negativo (tono que sube)");
-    reset(); snd_soblip(255, 90);                                    /* hiperespacio */
+    reset(); snd_soblip(255, 90);                                    /* hyperspace */
     CHECK(host_ipc_log[0][6] < host_ipc_log[0][7] && (host_ipc_log[0][12] >> 4) >= 9, "hiperespacio: sube; pitch1 < pitch2");
     reset(); snd_soexpl(55);
     CHECK((host_ipc_log[0][13] & 15) != 0 && (host_ipc_log[0][13] >> 4) != 0, "explosion: con fuzz y aleatoriedad");
@@ -77,7 +77,7 @@ int main(void)
     reset(); snd_sobomb();
     CHECK(host_ipc_n == 1 && (host_ipc_log[0][13] & 15) == 15, "bomba: ruido");
 
-    /* prioridades: un sonido menos importante no pisa a uno en curso */
+    /* priorities: a less important sound does not override one in progress */
     reset(); snd_exno2();
     snd_lasnoise();
     CHECK(host_ipc_n == 1, "el laser no interrumpe una explosion");
@@ -92,7 +92,7 @@ int main(void)
     snd_exno();
     CHECK(host_ipc_n == 3, "una explosion menor no interrumpe la muerte");
 
-    /* activar/desactivar (DNOIZ) */
+    /* enable/disable (DNOIZ) */
     reset(); snd_enable(0);
     CHECK(host_ipc_n == 1 && host_ipc_log[0][0] == 11, "desactivar envia BEEP OFF");
     snd_beep(); snd_soexpl(15);

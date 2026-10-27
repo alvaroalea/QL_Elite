@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Compara src/ql_ll9.asm (ql_ll9_faces y ql_ll9_verts) con sus versiones en C (ship_ll9_faces_c / ship_ll9_verts_c, volcadas por
-tests/ll9_dump) ejecutando el texto del ensamblador con tools/m68k_mini.py. uso: test_ll9asm.py [casos] [semilla]  (sin 68000 real:
-comprueba el algoritmo, los modos de direccionamiento y los indicadores, no la codificacion de as68, que valida qcc al enlazar)."""
+"""Compares src/ql_ll9.asm (ql_ll9_faces and ql_ll9_verts) with their C versions (ship_ll9_faces_c / ship_ll9_verts_c, dumped by
+tests/ll9_dump) running the assembler text with tools/m68k_mini.py. usage: test_ll9asm.py [cases] [seed]  (without a real 68000:
+it checks the algorithm, the addressing modes and the flags, not as68's encoding, which qcc validates on linking)."""
 import re, subprocess, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 from m68k_mini import CPU
@@ -56,8 +56,8 @@ i = 1
 while i < len(out) and out[i].startswith('CASE'):
     head = out[i].split(); kind, typ, off, voff, ys, cy, mode = (int(x) for x in head[1:8])
     inp = fields(out[i]); o = fields(out[i + 1]); i += 2
-    dec = lambda n: int(inp[n])                          # los numericos van en decimal en la linea; los hex van sin 0x
-    # los campos numericos de la cabecera (zxx4, zxx17, zxx20) salen en decimal: se releen de la linea
+    dec = lambda n: int(inp[n])                          # numeric ones go in decimal on the line; hex ones go without 0x
+    # the numeric header fields (zxx4, zxx17, zxx20) come out in decimal: they are re-read from the line
     nums = dict(re.findall(r'(zxx4|zxx17|zxx20|zcnt|zlsnum2)=(\d+)', out[i - 2]))
     setb('_zxx4', bytes([int(nums['zxx4'])])); setb('_zxx17', bytes([int(nums['zxx17'])])); setb('_zxx20', bytes([int(nums['zxx20'])]))
     if kind != 2:
@@ -69,14 +69,14 @@ while i < len(out) and out[i].startswith('CASE'):
     if kind != 2:
         pass
     zaddr = BLOB_ADDR + off
-    if 'plan' in inp:                                    # plano propio (modo 6): se coloca aparte
+    if 'plan' in inp:                                    # own blueprint (mode 6): placed apart
         zaddr = 0x7000; cpu.mem[zaddr:zaddr + 48] = bytes.fromhex(inp['plan'])
     cpu.mem[cpu.syms['_zxx0']:cpu.syms['_zxx0'] + 4] = zaddr.to_bytes(4, 'big')
     cpu.a[7] = 0xF000
     if kind == 2:
         ok_raw = True
         setb('_zcnt', bytes([int(nums['zcnt'])])); setb('_zlsnum', bytes([1])); setb('_zlsnum2', bytes([int(nums['zlsnum2'])]))
-        setb('_clip_h', cy.to_bytes(2, 'big'))   # en este tipo, la cabecera lleva clip_h en el campo 6
+        setb('_clip_h', cy.to_bytes(2, 'big'))   # in this type, the header carries clip_h in field 6
         setb('_zxx19', HEAP_ADDR.to_bytes(4, 'big')); cpu.mem[HEAP_ADDR:HEAP_ADDR + 256] = bytes.fromhex(inp['heap'])
         setb('_ship_dbg_skip', bytes([int(re.search(r'skip=(\d+)', out[i - 1]).group(1))])); setb('_screen', (0x20000).to_bytes(4, 'big'))
         LINES.clear(); elog = {}
@@ -88,7 +88,7 @@ while i < len(out) and out[i].startswith('CASE'):
             cpu.a[7] -= 4; cpu.wr(cpu.a[7], 4, cy); cpu.a[7] -= 4; cpu.wr(cpu.a[7], 4, cont); cpu.a[7] -= 4; cpu.wr(cpu.a[7], 4, v)
             steps_e += cpu.run('_ql_ll9_edges')
             if cpu.d[0] == 0: break
-            ndeleg += 1                                  # arista a recortar en C: se aplica lo que hizo C (ship_clip2 + ship_lsput) en la referencia
+            ndeleg += 1                                  # edge to clip in C: what C did (ship_clip2 + ship_lsput) is applied in the reference
             idx = cpu.mem[cpu.syms['_zxx17']]
             acc, xy, raw = elog[idx]
             got_raw = list(cpu.mem[cpu.syms['_zx15']:cpu.syms['_zx15'] + 6]) + list(cpu.mem[cpu.syms['_zx12']:cpu.syms['_zx12'] + 2])

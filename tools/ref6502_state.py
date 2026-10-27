@@ -1,12 +1,12 @@
-# Referencia: transcripcion literal (instruccion a instruccion, acarreos explicitos) de las rutinas de Elite
-# Apple II que dependen del estado del juego. Usa las transcripciones aritmeticas ya verificadas (ref6502*.py).
+# Reference: literal transcription (instruction by instruction, explicit carries) of the Apple II Elite routines
+# that depend on the game state. Uses the already verified arithmetic transcriptions (ref6502*.py).
 import sys
 sys.path.insert(0, 'tools')
 from ref6502 import adc, sbc, ror, lsr, mult1, add
 from ref6502b import ll5, dvid4, dvidt, dvid3b
 
 NI = 37
-XC, YC = 128, 68          # X e Y del original (centro de la vista)
+XC, YC = 128, 68          # original X and Y (view centre)
 
 def dvid96(A):
     T = A & 0x80; A &= 0x7F; T1 = 254
@@ -38,8 +38,8 @@ class M:
         s.cash = bytearray(4)
         s.X = 0; s.Y = 0; s.C = 0
 
-# ---- rutinas base ya probadas, con el estado de M ----
-def squa2(m, A):                     # SQUA2: STA P, TAX, BNE MU11 (MU1 si A = 0); sale con C = 0
+# ---- base routines already tested, with the M state ----
+def squa2(m, A):                     # SQUA2: STA P, TAX, BNE MU11 (MU1 if A = 0); exits with C = 0
     m.P = A
     if A == 0: m.P = 0; return 0
     T = (A - 1) & 255; A = 0
@@ -121,7 +121,7 @@ def mas3(m, Y):
 def mas4(m, A): return A | m.inwk[1] | m.inwk[4] | m.inwk[7]
 
 # ---- TAS1 / VCSUB ----
-def tas1(m, V, Y):                   # V = desplazamiento en ks
+def tas1(m, V, Y):                   # V = offset in ks
     K = m.K
     A = m.ks[V + Y] ^ 0x80; K[3] = A; Y -= 1
     K[2] = m.ks[V + Y]; Y -= 1
@@ -285,7 +285,7 @@ def proj(m):
     A, c = adc(X, 0, c); m.K3[15] = A
     return 0
 
-# ---- dinero ----
+# ---- money ----
 def mcash(m, X, Y):
     k = m.cash
     A, c = adc(X, k[3], 0); k[3] = A

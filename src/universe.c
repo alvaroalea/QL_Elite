@@ -1,4 +1,4 @@
-/* Universo de Elite. Port a C89 de TXTELITE.C 1.5 (C) Ian Bell, con la distancia y el salto galactico del 6502. */
+/* Elite universe. C89 port of TXTELITE.C 1.5 (C) Ian Bell, with the distance and galactic jump of the 6502. */
 #include "universe.h"
 #include "emath.h"
 #include "universe_text.h"
@@ -6,19 +6,19 @@
 uni_system uni_galaxy[UNI_NSYS];
 void (*uni_putc)(int);
 
-/* Semillas base de la galaxia 1 */
+/* Base seeds of galaxy 1 */
 #define BASE0 0x5A4A
 #define BASE1 0x0248
 #define BASE2 0xB753
 
-/* Pares de letras: "pairs" para nombres de sistema (el primer par es nulo) y "pairs0" para nombres aleatorios de las descripciones */
+/* Letter pairs: "pairs" for system names (the first pair is null) and "pairs0" for random names in the descriptions */
 static const char pairs[] = "..LEXEGEZACEBISOUSESARMAINDIREA.ERATENBERALAVETIEDORQUANTEISRION";
 static const char pairs0[] = "ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA.ERATENBERALAVETIEDORQUANTEISRION";
 
 const char *uni_govnames[8] = { "Anarchy", "Feudal", "Multi-gov", "Dictatorship", "Communist", "Confederacy", "Democracy", "Corporate State" };
 const char *uni_econnames[8] = { "Rich Ind", "Average Ind", "Poor Ind", "Mainly Ind", "Mainly Agri", "Rich Agri", "Average Agri", "Poor Agri" };
 
-/* precio base, gradiente, cantidad base, mascara, unidades, nombre */
+/* base price, gradient, base quantity, mask, units, name */
 const uni_good uni_goods[UNI_NGOODS] = {
     { 0x13, -0x02, 0x06, 0x01, 0, "Food" },
     { 0x14, -0x01, 0x0A, 0x03, 0, "Textiles" },
@@ -39,7 +39,7 @@ const uni_good uni_goods[UNI_NGOODS] = {
     { 0x35, +0x0F, 0xC0, 0x07, 0, "Alien Items" }
 };
 
-/* ---- semillas ---- */
+/* ---- seeds ---- */
 
 static void tweakseed(uni_seed *s)
 {
@@ -49,7 +49,7 @@ static void tweakseed(uni_seed *s)
     s->w2 = temp;
 }
 
-static u16 rotatel(u16 x)                       /* rotar a la izquierda un byte */
+static u16 rotatel(u16 x)                       /* rotate a byte left */
 {
     u16 temp = (u16)(x & 128);
     return (u16)(2 * (x & 127) + (temp >> 7));
@@ -85,7 +85,7 @@ void uni_make_system(uni_seed *s, uni_system *t)
 
     prod = (unsigned long)((t->economy ^ 7) + 3) * (t->govtype + 4);      /* MULTU: <= 110 */
     prod = (prod * t->population) & 0xFFFFUL;                            /* MULTU: 16 bits */
-    t->productivity = (u16)((prod << 3) & 0xFFFFUL);                      /* x8 con 16 bits */
+    t->productivity = (u16)((prod << 3) & 0xFFFFUL);                      /* 8x with 16 bits */
 
     t->radius = (u16)(256 * (((s->w2 >> 8) & 15) + 11) + t->x);
 
@@ -98,7 +98,7 @@ void uni_make_system(uni_seed *s, uni_system *t)
     pair1 = 2 * ((s->w2 >> 8) & 31); tweakseed(s);
     pair2 = 2 * ((s->w2 >> 8) & 31); tweakseed(s);
     pair3 = 2 * ((s->w2 >> 8) & 31); tweakseed(s);
-    pair4 = 2 * ((s->w2 >> 8) & 31); tweakseed(s);        /* siempre cuatro giros */
+    pair4 = 2 * ((s->w2 >> 8) & 31); tweakseed(s);        /* always four rotations */
 
     t->name[0] = pairs[pair1]; t->name[1] = pairs[pair1 + 1];
     t->name[2] = pairs[pair2]; t->name[3] = pairs[pair2 + 1];
@@ -107,7 +107,7 @@ void uni_make_system(uni_seed *s, uni_system *t)
         t->name[6] = pairs[pair4]; t->name[7] = pairs[pair4 + 1];
         t->name[8] = 0;
     } else t->name[6] = 0;
-    for (i = j = 0; t->name[i]; i++)                      /* quitar los puntos */
+    for (i = j = 0; t->name[i]; i++)                      /* remove the dots */
         if (t->name[i] != '.') t->name[j++] = t->name[i];
     t->name[j] = 0;
 }
@@ -127,12 +127,12 @@ void uni_galaxy_seed(int galaxynum, u8 *out)
     int g;
     seed.w0 = BASE0; seed.w1 = BASE1; seed.w2 = BASE2;
     for (g = 1; g < galaxynum; g++) nextgalaxy(&seed);
-    out[0] = (u8)(seed.w0 & 255); out[1] = (u8)(seed.w0 >> 8);        /* EQUW del original: byte bajo primero */
+    out[0] = (u8)(seed.w0 & 255); out[1] = (u8)(seed.w0 >> 8);        /* EQUW of the original: low byte first */
     out[2] = (u8)(seed.w1 & 255); out[3] = (u8)(seed.w1 >> 8);
     out[4] = (u8)(seed.w2 & 255); out[5] = (u8)(seed.w2 >> 8);
 }
 
-/* ---- mercado ---- */
+/* ---- market ---- */
 
 void uni_gen_market(unsigned fluct, const uni_system *p, uni_market *m)
 {
@@ -142,16 +142,16 @@ void uni_gen_market(unsigned fluct, const uni_system *p, uni_market *m)
         changing = (int)(fluct & uni_goods[i].maskbyte);
         q = uni_goods[i].basequant + changing - product;
         q &= 0xFF;
-        if (q & 0x80) q = 0;                              /* recorte a 8 bits positivos */
+        if (q & 0x80) q = 0;                              /* clamp to 8 positive bits */
         m->quantity[i] = (unsigned)(q & 0x3F);            /* 6 bits */
         q = uni_goods[i].baseprice + changing + product;
         q &= 0xFF;
         m->price[i] = (unsigned)(q * 4);
     }
-    m->quantity[UNI_NGOODS - 1] = 0;                      /* Alien Items: no disponible */
+    m->quantity[UNI_NGOODS - 1] = 0;                      /* Alien Items: not available */
 }
 
-/* ---- distancia y navegacion (algoritmo del 6502: TT111 / readdistnce) ---- */
+/* ---- distance and navigation (6502 algorithm: TT111 / readdistnce) ---- */
 
 unsigned uni_distance(const uni_system *a, const uni_system *b)
 {
@@ -165,7 +165,7 @@ unsigned uni_distance(const uni_system *a, const uni_system *b)
     s = (unsigned)lo1 + lo2;
     lo = (u8)s;
     s = (unsigned)hi1 + hi2 + (s >> 8);
-    hi = (s > 255) ? 255 : (u8)s;                          /* saturacion de la suma alta */
+    hi = (s > 255) ? 255 : (u8)s;                          /* saturation of the high sum */
     zR = hi; zQ = lo;
     em_ll5();
     return (unsigned)zQ * 4;
@@ -191,7 +191,7 @@ int uni_galactic_jump(int *galaxynum)
     return uni_nearest(0x60, 0x60);
 }
 
-/* ---- descripciones ("goat soup") ---- */
+/* ---- descriptions ("goat soup") ---- */
 
 static uni_fastseed rnd_seed;
 
@@ -203,7 +203,7 @@ static int gen_rnd_number(void)
     if (rnd_seed.a > 127) a++;
     rnd_seed.a = (u8)(a & 0xFF);
     rnd_seed.c = (u8)x;
-    a = a / 256;                                           /* acarreo restante */
+    a = a / 256;                                           /* remaining carry */
     x = rnd_seed.b;
     a = (a + x + rnd_seed.d) & 0xFF;
     rnd_seed.b = (u8)a;
@@ -226,7 +226,7 @@ static void goat_soup(const char *source, const uni_system *psy)
             rnd = gen_rnd_number();
             goat_soup(uni_desc_list[c - 0x81][(rnd >= 0x33) + (rnd >= 0x66) + (rnd >= 0x99) + (rnd >= 0xCC)], psy);
         } else switch (c) {
-        case 0xB0:                                         /* nombre del planeta */
+        case 0xB0:                                         /* planet name */
             out(psy->name[0]);
             for (i = 1; psy->name[i]; i++) out(lower(psy->name[i]));
             break;
@@ -237,7 +237,7 @@ static void goat_soup(const char *source, const uni_system *psy)
                     out(lower(psy->name[i]));
             out('i'); out('a'); out('n');
             break;
-        case 0xB2:                                         /* nombre aleatorio */
+        case 0xB2:                                         /* random name */
             len = gen_rnd_number() & 3;
             for (i = 0; i <= len; i++) {
                 x = gen_rnd_number() & 0x3e;

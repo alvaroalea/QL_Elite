@@ -1,6 +1,6 @@
-/* Laser y danos contra el 6502 ORIGINAL (vectores de tools/gen_laser.py, que ejecuta la fuente en el emulador):
-   HITCH, ANGRY, LASLI, disparo (MA68), MLOOP, recarga (MA77 + SHD + DENGY), danos (MA47..MA8 con SPIN, SFS1, EXNO2,
-   ANGRY), recompensa (MA15..MAC1) y SFS1/SFS2. Ademas, pruebas propias: el pulso, el haz y que LASLI2 borra lo dibujado. */
+/* Laser and damage against the ORIGINAL 6502 (vectors from tools/gen_laser.py, which runs the source in the emulator):
+   HITCH, ANGRY, LASLI, firing (MA68), MLOOP, recharge (MA77 + SHD + DENGY), damage (MA47..MA8 with SPIN, SFS1, EXNO2,
+   ANGRY), reward (MA15..MAC1) and SFS1/SFS2. Also, own tests: the pulse, the beam and that LASLI2 erases what was drawn. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,7 +36,7 @@ static void mhook(u8 t) { if (nmess < 16) messes[nmess++] = t; }
 static void slots_for_children(u8 type)
 {
     ships_clear();
-    frin[0] = 128; frin[1] = SHIPT_CORIOLIS; frin[2] = type;      /* los hijos van a las ranuras 3.. */
+    frin[0] = 128; frin[1] = SHIPT_CORIOLIS; frin[2] = type;      /* the children go to slots 3.. */
 }
 
 int main(void)
@@ -106,7 +106,7 @@ int main(void)
             u8 sl[NI], so[NI], r[4], ro[4];
             int ty = atoi(tok[1]), st = atoi(tok[4]), destroyed, k, ok;
             char *q, *lg;
-            /* hay mas de 16 campos: se vuelven a leer con sscanf sobre la linea */
+            /* there are more than 16 fields: they are read again with sscanf on the line */
             char a[30][700]; int na = 0; char *pp = cur;
             while (na < 30 && sscanf(pp, "%699s", a[na]) == 1) { pp = strstr(pp, a[na]) + strlen(a[na]); na++; }
             hexb(a[9], r, 4); hexb(a[15], sl, NI); hexb(a[23], so, NI); hexb(a[25], ro, 4); lg = a[24];
@@ -123,7 +123,7 @@ int main(void)
                  tally[1] == atoi(a[20]) && state_slot(1)[36] == atoi(a[21]) && memcmp(state_slot(2), so, NI) == 0 &&
                  memcmp(em_rand, ro, 4) == 0;
             if (!destroyed) ok = ok && inwk[35] == atoi(a[16]);
-            /* hijos (NWSHP) en las ranuras 3..NOSH-1 y mensajes */
+            /* children (NWSHP) in slots 3..NOSH-1 and messages */
             k = 3; q = lg;
             {
                 int nm = 0;
@@ -180,7 +180,7 @@ int main(void)
     printf("6502: HITCH %d, ANGRY %d, LASLI %d, disparo %d, MLOOP %d, recarga %d, danos %d, recompensa %d, SFS1 %d\n",
            cnt[0], cnt[1], cnt[2], cnt[3], cnt[4], cnt[5], cnt[6], cnt[7], cnt[8]);
 
-    /* ---- pruebas propias: ritmo del pulso y del haz (el bucle de vuelo: disparo, naves, MA23, MLOOP) */
+    /* ---- own tests: rhythm of the pulse and the beam (the flight loop: firing, ships, MA23, MLOOP) */
     {
         int fr, on = 0, shots = 0, vis = 0;
         memset(screen, 0, 32768L);
@@ -203,14 +203,14 @@ int main(void)
         { long i; int clean = 1; for (i = 0; i < 32768L; i++) if (screen[i]) clean = 0;
           strcpy(cur, "haz"); check(shots == 20 && clean, "haz: dispara en cada fotograma y se borra en el mismo"); }
         check(gntmp == 20 * 7 && energy == 255 - 20, "haz: +8 -1 por fotograma de calor, -1 de energia por disparo");
-        /* sobrecalentamiento: a partir de 242 no dispara */
+        /* overheating: from 242 on it does not fire */
         gntmp = 242; laser_fire(0, 1); check(las == 0, "a 242 no dispara");
         gntmp = 241; laser_fire(0, 1); check(las == 15, "a 241 dispara"); laser_frame_end();
-        /* SHD gasta energia al cargar el escudo */
+        /* SHD uses energy when charging the shield */
         energy = 200; check(shd(254) == 255 && energy == 199, "SHD carga y gasta 1");
         energy = 200; check(shd(255) == 255 && energy == 200, "SHD lleno no gasta");
     }
-    /* ---- integracion: una Sidewinder quieta delante, laser de pulsos, bucle de vuelo hasta que explota y se quita */
+    /* ---- integration: a still Sidewinder ahead, pulse laser, flight loop until it explodes and is removed */
     {
         int fr, n, alive = 1, frames = 0;
         unsigned long c0;
@@ -222,7 +222,7 @@ int main(void)
         ships_arrive();
         ship_zinf(); inwk[7] = 3; inwk[27] = 0; inwk[29] = 0; inwk[30] = 0;      /* x = y = 0, z = 768 */
         n = ship_new(SHIPT_SIDEWINDER);
-        state_slot(n)[I_AI] = 0;                                              /* sin IA (TACTICS aun no existe) */
+        state_slot(n)[I_AI] = 0;                                              /* no AI (TACTICS does not exist yet) */
         t0 = tally[0]; t1 = tally[1]; tl0 = tallyl; c0 = cash_get();
         zDELTA = 0; alpha = beta = 0;
         memset(screen, 0, 32768L);
@@ -232,7 +232,7 @@ int main(void)
             laser_frame_end();
             laser_cool();
             dly_tick();
-            mcnt--;                                                           /* TT100: DEC MCNT (lo hace el bucle de vuelo) */
+            mcnt--;                                                           /* TT100: DEC MCNT (done by the flight loop) */
             alive = 0;
             for (n = 0; n < NOSH; n++) if (frin[n] == SHIPT_SIDEWINDER) alive = 1;
             frames++;

@@ -1,5 +1,5 @@
-/* Danos a nuestra nave contra el 6502 ORIGINAL (vectores de tools/gen_damage.py): OOPS + OUCH, partes 9 y 10 (choques,
-   recogida, ISDK), parte 15 (ENERGY LOW, altitud, cabina, combustible) y una vuelta de D1 (DEATH). Mas pruebas propias. */
+/* Damage to our ship against the ORIGINAL 6502 (vectors from tools/gen_damage.py): OOPS + OUCH, parts 9 and 10 (collisions,
+   scooping, ISDK), part 15 (ENERGY LOW, altitude, cabin, fuel) and one iteration of D1 (DEATH). More own tests. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -37,7 +37,7 @@ static void mhook(u8 t)
 }
 static void put_items(const u8 *it) { int x; for (x = 0; x < 22; x++) *ouch_item((u8)x) = it[x]; }
 static int same_items(const u8 *it) { int x; for (x = 0; x < 22; x++) if (*ouch_item((u8)x) != it[x]) return 0; return 1; }
-/* registro del 6502 sin EXNO3 (el sonido no se registra en C) */
+/* 6502 log without EXNO3 (the sound is not logged in C) */
 static void only_mess(const char *in, char *o)
 {
     const char *p = in;
@@ -127,7 +127,7 @@ int main(void)
             int n, i, ok;
             hexb(a[1], r, 4); hexb(a[5], iw, NI); hexb(a[9], r2, 4);
             ships_clear();
-            frin[0] = frin[1] = frin[2] = 128;                    /* la nave nueva va a la ranura 3, como en el 6502 */
+            frin[0] = frin[1] = frin[2] = 128;                    /* the new ship goes to slot 3, as on the 6502 */
             memcpy(em_rand, r, 4); em_rand_c = (u8)atoi(a[2]); zDELTA = (u8)atoi(a[3]);
             mcnt = 0; lasct = 0;
             n = ships_death_debris_one();
@@ -145,7 +145,7 @@ int main(void)
     fclose(f);
     printf("6502: OOPS %d, choques %d, parte 15 %d, D1 %d\n", cnt[0], cnt[1], cnt[2], cnt[3]);
 
-    /* ---- pruebas propias */
+    /* ---- own tests */
     strcpy(cur, "propias");
     combat_mess_hook = 0;
     zinf = state_slot(2); zinf[8] = 0;
@@ -157,7 +157,7 @@ int main(void)
     check(oops(30, 1) == 0 && fsh == 0 && energy == 180, "OOPS: lo que no para el escudo sale de la energia");
     fsh = 0; energy = 20; player_dead = 0;
     check(oops(30, 1) == 1 && player_dead == 1, "OOPS: sin escudo ni energia, muerte");
-    /* ---- integracion: una Viper quieta a 40 unidades delante; el bucle de vuelo la estrella contra nosotros */
+    /* ---- integration: a still Viper 40 units ahead; the flight loop crashes it into us */
     {
         int n, f, ev = 0, gone = 0;
         u8 f0;
@@ -177,13 +177,13 @@ int main(void)
         check(!(ev & SPACE_EV_DEATH) && fsh < f0 && energy == 255, "choque: el escudo delantero absorbe 128 + energia/2");
         check(gone, "choque: la Viper explota y se quita");
         printf("integracion: choque frontal, escudo delantero %d -> %d, %d fotogramas hasta quitar la Viper\n", f0, fsh, f);
-        /* un segundo choque sin escudo: OOPS lo saca de la energia y puede morir */
+        /* a second collision without shield: OOPS takes it from energy and we may die */
         fsh = 0; energy = 60;
         ship_zinf(); inwk[6] = 40; inwk[27] = 0;
         n = ship_new(SHIPT_ANACONDA); state_slot(n)[I_AI] = 0;
         ev = space_step();
         check((ev & SPACE_EV_DEATH) && player_dead, "choque sin escudo con una Anaconda: muerte");
-        /* D1: restos hasta llenar la ranura 4 */
+        /* D1: debris until slot 4 is filled */
         ships_clear(); player_dead = 0;
         ships_death_debris();
         check(frin[4] != 0 && frin[5] == 0, "DEATH: cinco restos (ranuras 0 a 4)");

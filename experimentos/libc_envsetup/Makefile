@@ -1,15 +1,15 @@
-# Experimento: libc.a de c68 4.24f con el modulo _envsetup corregido (cuelgue en Minerva sin Toolkit II).
-#   make          -> lib/libc.a corregida (copia de orig/libc.a con _envsetup sustituido)
-#   make check    -> 1) la transcripcion fiel (envsetup_orig.asm) da un ejecutable identico al de la libc original
-#                    2) en lib/libc.a el modulo _envsetup es el corregido y el numero de modulos no cambia
-# Uso: qcc ... -L<ruta>/lib/ (la carpeta va delante de la del sistema). Un _envsetup definido en el propio
-# programa (como el de src/plat_ql.c) tiene prioridad sobre el de cualquier biblioteca.
-# Notas: as68 pone como nombre del modulo SROFF el nombre del fichero de salida tal cual (con directorio y
-# extension), y slb -r solo sustituye un modulo con el mismo nombre (si no, lo anade o no hace nada). Por eso
-# se ensambla dentro del directorio de destino a un fichero llamado "_envsetup" y despues se copia a .o.
+# Experiment: c68 4.24f libc.a with the _envsetup module fixed (hang on Minerva without Toolkit II).
+#   make          -> fixed lib/libc.a (copy of orig/libc.a with _envsetup replaced)
+#   make check    -> 1) the faithful transcription (envsetup_orig.asm) gives an executable identical to the original libc's
+#                    2) in lib/libc.a the _envsetup module is the fixed one and the number of modules does not change
+# Usage: qcc ... -L<path>/lib/ (the folder goes before the system one). An _envsetup defined in the program
+# itself (like the one in src/plat_ql.c) takes priority over that of any library.
+# Notes: as68 sets the SROFF module name to the output file name as is (with directory and
+# extension), and slb -r only replaces a module with the same name (otherwise it adds it or does nothing). That is why
+# it is assembled inside the destination directory to a file called "_envsetup" and then copied to .o.
 
-# libc.a de partida: la copia guardada en orig/ (la de /usr/local/share/qdos/lib/libc.a sin tocar), para que el
-# resultado no dependa de lo instalado. Otra: make SYSLIB=/ruta/libc.a
+# starting libc.a: the copy saved in orig/ (the untouched /usr/local/share/qdos/lib/libc.a), so that the
+# result does not depend on what is installed. Another: make SYSLIB=/path/libc.a
 SYSLIB ?= orig/libc.a
 QLINC  ?= /usr/local/share/qdos/include
 B      := build
@@ -17,12 +17,12 @@ TOP    := $(CURDIR)
 
 all: lib/libc.a
 
-# modulo corregido
+# fixed module
 $(B)/fix/_envsetup.o: envsetup.asm
 	mkdir -p $(B)/fix
 	cd $(B)/fix && as68 $(TOP)/envsetup.asm _envsetup && cp _envsetup _envsetup.o
 
-# modulo transcrito fiel (solo para la comprobacion)
+# faithfully transcribed module (only for the check)
 $(B)/orig/_envsetup.o: envsetup_orig.asm
 	mkdir -p $(B)/orig
 	cd $(B)/orig && as68 $(TOP)/envsetup_orig.asm _envsetup && cp _envsetup _envsetup.o

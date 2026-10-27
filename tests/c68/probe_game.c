@@ -21,21 +21,21 @@ int main(void)
     int i, j, g, x, y;
     u8 blk[CMDR_SIZE], f[SAVE_FILE_SIZE];
     plat_init(); txt_init();
-    /* 1. gfx: lineas en todas las direcciones (normal y XOR), rectangulos, pixeles */
+    /* 1. gfx: lines in all directions (normal and XOR), rectangles, pixels */
     gfx_clear(C_BLACK);
     for (i = 0; i < 256; i += 9) { gfx_line(128, 128, i, 0, (u8)(1 + i % 7), 0); gfx_line(128, 128, 255 - i, 255, (u8)(1 + i % 7), 1); gfx_line(128, 128, 0, i, 3, 0); gfx_line(128, 128, 255, 255 - i, 5, 1); }
     for (i = 0; i < 10; i++) gfx_rect(i * 23, i * 19, 31, 17, (u8)(i % 8));
     gfx_line(5, 200, 5, 250, 2, 0); gfx_line(10, 250, 200, 250, 6, 0); gfx_line(0, 0, 255, 255, 7, 1);
     for (i = 0; i < 40; i++) { gfx_pixel(i * 6, 100 + i, (u8)(i % 8)); gfx_xor_pixel(i * 6 + 1, 100 + i, 7); }
     hs();
-    /* 2. texto */
+    /* 2. text */
     gfx_clear(C_BLACK);
     txt_color(C_YELLOW, C_BLUE); txt_clear_rows(0, 1, C_BLUE); txt_print_at(3, 0, "HOLA ELITE QL 0123456789");
     txt_color(C_WHITE, C_BLACK); txt_print_at(0, 5, "The quick brown fox jumps over");
     txt_color(C_GREEN, TXT_TRANSPARENT); txt_print_at(4, 7, "transparente"); txt_color(C_RED, C_BLACK);
     txt_at(30, 20); txt_puts("ajuste de linea largo"); txt_putc('\b'); txt_putc('X');
     hs();
-    /* 3. universo: 8 galaxias */
+    /* 3. universe: 8 galaxies */
     for (g = 1; g <= 8; g++) {
         uni_build_galaxy(g);
         for (i = 0; i < UNI_NSYS; i++) {
@@ -54,7 +54,7 @@ int main(void)
     fin();
     for (x = 0; x < 256; x += 17) for (y = 0; y < 256; y += 19) hb((u8)uni_nearest((u8)x, (u8)y));
     fin();
-    /* 4. juego: comercio y equipo */
+    /* 4. game: trade and equipment */
     game_new();
     em_rand[0] = 1; em_rand[1] = 2; em_rand[2] = 3; em_rand[3] = 4;
     for (i = 0; i < 17; i++) { hl(trade_buy(i, (unsigned)(i % 5 + 1))); hl(cash_get()); }
@@ -69,7 +69,7 @@ int main(void)
     fin();
     cash_set(123456789UL); hl(cash_get()); cash_earn(4000000000UL); hl(cash_get()); cash_spend(77UL); hl(cash_get());
     fin();
-    /* 5. comandante y fichero */
+    /* 5. commander and file */
     game_new();
     cmdr_pack(blk); cmdr_seal(blk);
     for (i = 0; i < CMDR_SIZE; i++) hb(blk[i]);

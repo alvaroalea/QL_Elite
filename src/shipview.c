@@ -1,16 +1,16 @@
-/* Utilidades para dibujar una nave con LL9 a partir de angulos y una posicion (pantalla de titulo, demos).
-   Sin coma flotante: tabla de senos entera. */
+/* Utilities to draw a ship with LL9 from angles and a position (title screen, demos).
+   No floating point: integer sine table. */
 #include "shipview.h"
 
-#define ANG 64                                 /* pasos por vuelta */
-static const long sin64[ANG / 4 + 1] = { 0, 3212, 6393, 9512, 12540, 15447, 18205, 20788, 23170, 25330, 27246, 28899, 30274, 31357, 32138, 32610, 32768 };   /* sin(i*90/16 grados) * 32768 */ /* x 32768/... se usa en 1/32768 */
+#define ANG 64                                 /* steps per turn */
+static const long sin64[ANG / 4 + 1] = { 0, 3212, 6393, 9512, 12540, 15447, 18205, 20788, 23170, 25330, 27246, 28899, 30274, 31357, 32138, 32610, 32768 };   /* sin(i*90/16 degrees) * 32768 */ /* x 32768/... used in 1/32768 */
 
-/* seno y coseno en punto fijo (1.0 = 32768) para el angulo a (0..63). long: 32768 no cabe en el int de 16 bits de c68 */
+/* sine and cosine in fixed point (1.0 = 32768) for angle a (0..63). long: 32768 does not fit in c68's 16-bit int */
 static long isin(int a)
 {
     int q, r;
     a &= ANG - 1; q = a / (ANG / 4); r = a % (ANG / 4);
-    /* tabla de un cuarto de vuelta con 16 pasos: sin64[i] = sin(i*90/16 grados) * 32768 */
+    /* quarter-turn table with 16 steps: sin64[i] = sin(i*90/16 degrees) * 32768 */
     if (q == 0) return sin64[r] * 1;
     if (q == 1) return sin64[ANG / 4 - r];
     if (q == 2) return -sin64[r];
@@ -18,7 +18,7 @@ static long isin(int a)
 }
 static long icos(int a) { return isin(a + ANG / 4); }
 
-/* vector en formato Elite (lo, hi con signo-magnitud, 96 = 1.0) a partir de un valor en 1/32768 */
+/* vector in Elite format (lo, hi in sign-magnitude, 96 = 1.0) from a value in 1/32768 */
 static void put_vec(u8 *p, long v)
 {
     long mag = v < 0 ? -v : v;
@@ -28,13 +28,13 @@ static void put_vec(u8 *p, long v)
     p[1] = (u8)((mag >> 8) | (v < 0 ? 0x80 : 0));
 }
 
-/* matriz de orientacion: guinada ay y cabeceo ax sobre los ejes de la nave */
+/* orientation matrix: yaw ay and pitch ax on the ship's axes */
 void shipview_orient(int ay, int ax)
 {
     long cy = icos(ay), sy = isin(ay), cx = icos(ax), sx = isin(ax);
     long side[3], roof[3], nose[3], t[3];
     int i;
-    /* base inicial: side = x, roof = y, nose = z; se gira por Ry y luego por Rx (1.0 = 32768) */
+    /* initial basis: side = x, roof = y, nose = z; rotated by Ry and then by Rx (1.0 = 32768) */
     long b[3][3] = { { 32768L, 0, 0 }, { 0, 32768L, 0 }, { 0, 0, 32768L } };
     for (i = 0; i < 3; i++) {
         t[0] = (b[i][0] * cy + b[i][2] * sy) / 32768L;
@@ -52,7 +52,7 @@ void shipview_orient(int ay, int ax)
     }
 }
 
-void shipview_pos(int x, int y, int z)               /* coordenadas en unidades de 256 (hi) con signo */
+void shipview_pos(int x, int y, int z)               /* coordinates in units of 256 (hi) with sign */
 {
     inwk[I_XLO] = 0; inwk[I_XHI] = (u8)(x < 0 ? -x : x); inwk[I_XSG] = (u8)(x < 0 ? 0x80 : 0);
     inwk[I_YLO] = 0; inwk[I_YHI] = (u8)(y < 0 ? -y : y); inwk[I_YSG] = (u8)(y < 0 ? 0x80 : 0);
@@ -65,7 +65,7 @@ void shipview_draw(u8 type, int x, int y, int z, int ay, int ax, u8 *heap, u8 *s
     shipview_draw16(type, x, y, (long)z * 256L, ay, ax, heap, slot, fresh);
 }
 
-int shipview_radius(u8 type)                         /* mayor coordenada de los vertices del plano (el Cobra Mk III da ~65) */
+int shipview_radius(u8 type)                         /* largest coordinate of the blueprint's vertices (the Cobra Mk III gives ~65) */
 {
     const u8 *bp = SHIP_BP(type), *v = bp + 20;
     int i, n = bp[8], r = 0, k;
@@ -81,13 +81,13 @@ void shipview_draw16(u8 type, int x, int y, long z, int ay, int ax, u8 *heap, u8
     inwk[I_ZLO] = (u8)(z & 255);
     shipview_orient(ay, ax);
     inwk[I_NEWB] = 0;
-    /* LL9 solo borra las lineas viejas del monton si el bit 3 de INWK+31 esta puesto (lo pone al terminar de dibujar):
-       ese estado va con la nave (slot[I_STATE]); ponerlo a 0 en cada fotograma dejaba todas las lineas viejas en pantalla */
+    /* LL9 only erases the old lines of the heap if bit 3 of INWK+31 is set (it sets it when it finishes drawing):
+       that state goes with the ship (slot[I_STATE]); setting it to 0 every frame left all the old lines on screen */
     inwk[I_STATE] = fresh ? 0 : slot[I_STATE];
     ztype = type;
     zxx0 = SHIP_BP(type);
     zxx19 = heap;
-    if (fresh) zxx19[0] = 0;                         /* sin esto el monton conserva las lineas viejas y LL9 las borra (XOR) */
+    if (fresh) zxx19[0] = 0;                         /* without this the heap keeps the old lines and LL9 erases them (XOR) */
     zinf = slot;
     ship_ll9();
     slot[I_STATE] = inwk[I_STATE];

@@ -1,16 +1,16 @@
-; ql_ell.asm - elipse de punto medio y tramo horizontal en XOR escritos directamente en la pantalla del QL (modo 8), sintaxis de as68.
-; Equivalen a gfx_ellipse_xor y gfx_hline_xor de gfx.c (que prepara los datos). Cada palabra son 4 puntos: byte par = verde (bit alto de
-; cada pareja de bits), byte impar = rojo (alto) y azul (bajo); un punto se enciende con la mascara $C0, $30, $0C o $03.
-; Modo 4: las mismas rutinas valen con los codigos de color de gfx_ccode (bit 3 = segundo punto del verde, bit 0 = el del rojo: las
-; mascaras salen $FF) y ql_ellipse, con el campo 72 del bloque a 1, trabaja a los 512 puntos fisicos (8 por palabra).
-; Sin recorte de y/x por parte de ql_hline (el llamante deja x en 0..255 e y en 0..255); ql_ellipse recorta cada punto al rectangulo.
+; ql_ell.asm - midpoint ellipse and horizontal span in XOR written directly to the QL screen (mode 8), as68 syntax.
+; They are equivalent to gfx_ellipse_xor and gfx_hline_xor of gfx.c (which prepares the data). Each word is 4 dots: even byte = green (high bit of
+; each bit pair), odd byte = red (high) and blue (low); a dot is lit with the mask $C0, $30, $0C or $03.
+; Mode 4: the same routines work with the gfx_ccode colour codes (bit 3 = second green dot, bit 0 = the red one: the
+; masks come out $FF) and ql_ellipse, with field 72 of the block set to 1, works at the 512 physical dots (8 per word).
+; No y/x clipping by ql_hline (the caller leaves x in 0..255 and y in 0..255); ql_ellipse clips each dot to the rectangle.
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; void ql_ellipse(long *blk)    bloque de palabras largas (desplazamiento en bytes):
+; void ql_ellipse(long *blk)    block of long words (offset in bytes):
 ;   0 a8 (8 a^2)  4 b8 (8 b^2)  8 GB  12 RB  16 clx0  20 cly0  24 clx1  28 cly1  32 dx  36 dy  40 -  44 err  48 scr  52 2*ry
-;   56 x0  60 x1  64 y0  68 y1  72 hr (1 = puntos fisicos de modo 4)        (dx, dy, err y x0..y1 se modifican)
-; GB/RB: mascaras del byte par/impar para un punto lleno (GB = $AA si hay verde, RB = $AA si hay rojo y $55 si hay azul).
-; Registros: d1 = x0, d2 = x1, d3 = y0, d4 = y1, a0 = bloque; el punto a dibujar va en d5 (x) y d6 (y) a la subrutina e_plot.
+;   56 x0  60 x1  64 y0  68 y1  72 hr (1 = mode 4 physical dots)        (dx, dy, err and x0..y1 are modified)
+; GB/RB: masks of the even/odd byte for a full dot (GB = $AA if there is green, RB = $AA if there is red and $55 if there is blue).
+; Registers: d1 = x0, d2 = x1, d3 = y0, d4 = y1, a0 = block; the dot to draw goes in d5 (x) and d6 (y) to the e_plot subroutine.
 	.globl	_ql_ellipse
 	.text
 _ql_ellipse:
@@ -68,7 +68,7 @@ e_sx:
 e_nx:
 	cmp.l	d2,d1
 	ble	e_loop
-; cola de las elipses estrechas: si y0 - y1 < 2 ry, filas hasta y0 - y1 = 2 ry (en x0 - 1 y x1 + 1)
+; tail of the narrow ellipses: if y0 - y1 < 2 ry, rows up to y0 - y1 = 2 ry (at x0 - 1 and x1 + 1)
 	move.l	d3,d5
 	sub.l	d4,d5
 	cmp.l	52(a0),d5
@@ -114,7 +114,7 @@ e_end:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; e_plot: XOR de un punto (d5 = x, d6 = y) si esta dentro del rectangulo de recorte; destruye d0, d7, a1
+; e_plot: XOR of a dot (d5 = x, d6 = y) if it is inside the clipping rectangle; destroys d0, d7, a1
 e_plot:
 	cmp.l	16(a0),d5
 	blt	e_out
@@ -162,10 +162,10 @@ e_out:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; Subrutinas de color y de lineas rectas (en registros; las usan ql_hline, ql_vline y ql_frame)
-; s_col:   d3 = color 0..7 (o codigo de modo 4: bit 3 = segundo punto del verde)  ->  d5 = mascara del byte par (verde), d6 = mascara del byte impar (rojo/azul) de un punto lleno
-; s_hline: d1 = x0, d2 = x1 (x0 <= x1, 0..255), d0 = y (0..255), d5/d6 = mascaras, a2 = pantalla; destruye d0-d4, d7, a0
-; s_vline: d1 = x (0..255), d2 = y0, d3 = y1 (y0 <= y1, 0..255), d5/d6 = mascaras, a2 = pantalla; destruye d0-d4, d7, a0
+; Colour and straight-line subroutines (in registers; used by ql_hline, ql_vline and ql_frame)
+; s_col:   d3 = colour 0..7 (or mode 4 code: bit 3 = second green dot)  ->  d5 = even (green) byte mask, d6 = odd (red/blue) byte mask of a full dot
+; s_hline: d1 = x0, d2 = x1 (x0 <= x1, 0..255), d0 = y (0..255), d5/d6 = masks, a2 = screen; destroys d0-d4, d7, a0
+; s_vline: d1 = x (0..255), d2 = y0, d3 = y1 (y0 <= y1, 0..255), d5/d6 = masks, a2 = screen; destroys d0-d4, d7, a0
 s_col:
 	moveq	#0,d5
 	moveq	#0,d6
@@ -273,7 +273,7 @@ v_lp:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; void ql_hline(long x0, long x1, long y, long c, long scr)    x0 <= x1, 0..255; y 0..255; XOR de los puntos x0..x1 de la fila y
+; void ql_hline(long x0, long x1, long y, long c, long scr)    x0 <= x1, 0..255; y 0..255; XOR of the dots x0..x1 of row y
 	.globl	_ql_hline
 _ql_hline:
 	movem.l	d2-d7/a2-a6,-(sp)
@@ -287,7 +287,7 @@ _ql_hline:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; void ql_vline(long x, long y0, long y1, long c, long scr)    y0 <= y1, 0..255; x 0..255; XOR de los puntos (x, y0..y1)
+; void ql_vline(long x, long y0, long y1, long c, long scr)    y0 <= y1, 0..255; x 0..255; XOR of the dots (x, y0..y1)
 	.globl	_ql_vline
 _ql_vline:
 	movem.l	d2-d7/a2-a6,-(sp)
@@ -302,10 +302,10 @@ _ql_vline:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; void ql_frame(long *blk)    contorno de rectangulo en XOR, cada punto una vez, recortado; bloque de palabras largas:
-;   0 x0  4 y0  8 x1  12 y1 (aristas)   16 clx0  20 cly0  24 clx1  28 cly1 (recorte)   32 GB  36 RB  40 pantalla
-; Arriba y abajo: filas y0 e y1 (x0..x1 recortado); izquierda y derecha: columnas x0 y x1 entre y0 + 1 e y1 - 1 (recortado); la
-; fila de abajo solo si y1 != y0 y la columna derecha solo si x1 != x0.
+; void ql_frame(long *blk)    rectangle outline in XOR, each dot once, clipped; block of long words:
+;   0 x0  4 y0  8 x1  12 y1 (edges)   16 clx0  20 cly0  24 clx1  28 cly1 (clipping)   32 GB  36 RB  40 screen
+; Top and bottom: rows y0 and y1 (x0..x1 clipped); left and right: columns x0 and x1 between y0 + 1 and y1 - 1 (clipped); the
+; bottom row only if y1 != y0 and the right column only if x1 != x0.
 	.globl	_ql_frame
 _ql_frame:
 	movem.l	d2-d7/a2-a6,-(sp)
@@ -330,7 +330,7 @@ f_done:
 	movem.l	(sp)+,d2-d7/a2-a6
 	rts
 
-; f_row: d0 = y; pinta x0..x1 recortado si la fila esta dentro del recorte
+; f_row: d0 = y; paints x0..x1 clipped if the row is inside the clipping area
 f_row:
 	cmp.l	20(a3),d0
 	blt	f_rx
@@ -352,7 +352,7 @@ f_rb:
 f_rx:
 	rts
 
-; f_col: d1 = x; pinta y0 + 1 .. y1 - 1 recortado si la columna esta dentro del recorte
+; f_col: d1 = x; paints y0 + 1 .. y1 - 1 clipped if the column is inside the clipping area
 f_col:
 	cmp.l	16(a3),d1
 	blt	f_cx
@@ -377,8 +377,8 @@ f_cx:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; void ql_xpix(long x, long y, long c, long scr)    XOR de un punto (x, y), 0..255, color c (0..7)
-; Solo usa d0-d3 y a0 (guarda d2-d3): sin movem de todos los registros, para llamarla muy a menudo.
+; void ql_xpix(long x, long y, long c, long scr)    XOR of a dot (x, y), 0..255, colour c (0..7)
+; Only uses d0-d3 and a0 (saves d2-d3): no movem of all the registers, so it can be called very often.
 	.globl	_ql_xpix
 _ql_xpix:
 	movem.l	d2-d3,-(sp)
@@ -422,8 +422,8 @@ x_nb:
 	rts
 
 ; ---------------------------------------------------------------------------------------------------------------------------------
-; void ql_clearcells(long col, long row, long ncols, long nrows, long scr)    pone a negro (0) un rectangulo de celdas de texto (8 x 8
-; puntos = 4 bytes de ancho): ncols columnas desde col y nrows filas desde row; escribe palabras largas (las celdas son multiplo de 4)
+; void ql_clearcells(long col, long row, long ncols, long nrows, long scr)    sets to black (0) a rectangle of text cells (8 x 8
+; dots = 4 bytes wide): ncols columns from col and nrows rows from row; writes long words (the cells are a multiple of 4)
 	.globl	_ql_clearcells
 _ql_clearcells:
 	movem.l	d2-d4,-(sp)

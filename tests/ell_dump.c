@@ -1,6 +1,6 @@
-/* Volcado de referencia para tools/test_ellasm.py: gfx_ellipse_xor y gfx_hline_xor en C (sin ASM_LINE).
-     E cx cy rx ry c clx0 cly0 clx1 cly1      H x0 x1 y c      V x y0 y1 c      P x y c      C col row ncols nrows (pantalla llena de $FF antes)      F cx cy hw hh c clx0 cly0 clx1 cly1
-   Por cada caso escribe los bytes de pantalla no nulos ("offset:valor ..."). */
+/* Reference dump for tools/test_ellasm.py: gfx_ellipse_xor and gfx_hline_xor in C (without ASM_LINE).
+     E cx cy rx ry c clx0 cly0 clx1 cly1      H x0 x1 y c      V x y0 y1 c      P x y c      C col row ncols nrows (screen full of $FF beforehand)      F cx cy hw hh c clx0 cly0 clx1 cly1
+   For each case it writes the non-zero screen bytes ("offset:value ..."). */
 #include <stdio.h>
 #include <string.h>
 #include "platform.h"

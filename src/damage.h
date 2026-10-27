@@ -1,30 +1,30 @@
-/* Danos a nuestra nave (paso 3, segunda parte): OOPS (escudos y energia), OUCH/ou2/ou3 (perdida de carga y equipo),
-   colisiones, recogida de cargas y atraque por la ranura (bucle de vuelo partes 9 y 10: MA58..MA63, ISDK, tnpr1),
-   comprobaciones periodicas de la parte 15 (ENERGY LOW, altitud, temperatura de cabina junto al sol, recogida de
-   combustible) y la muerte (DEATH, D1/D2 con Ze y fq1). Transcripcion del 6502; verificacion en docs/PENDIENTES.md. */
+/* Damage to our ship (step 3, second part): OOPS (shields and energy), OUCH/ou2/ou3 (loss of cargo and equipment),
+   collisions, cargo scooping and docking through the slot (flight loop parts 9 and 10: MA58..MA63, ISDK, tnpr1),
+   periodic checks of part 15 (ENERGY LOW, altitude, cabin temperature near the sun, fuel
+   scooping) and death (DEATH, D1/D2 with Ze and fq1). 6502 transcription; verification in docs/PENDIENTES.md. */
 #ifndef DAMAGE_H
 #define DAMAGE_H
 #include "platform.h"
 
-/* MESS: tokens de los mensajes en vuelo que usa el original (flight.c los convierte en texto) */
-#define MESS_ENERGY_LOW 100              /* "ENERGY LOW" + pitido */
+/* MESS: tokens of the in-flight messages used by the original (flight.c turns them into text) */
+#define MESS_ENERGY_LOW 100              /* "ENERGY LOW" + beep */
 #define MESS_ECM        108              /* "E.C.M.SYSTEM" */
 #define MESS_FUEL_SCOOPS 111             /* "FUEL SCOOPS" */
 #define MESS_BOMB       113              /* "ENERGY BOMB" (114 "ENERGY UNIT", 115 "DOCKING COMPUTERS") */
 #define MESS_DOCK_ON    123              /* "DOCKING COMPUTERS ON" */
-#define MESS_SCOOP_ON   160              /* "FUEL SCOOPS ON" + pitido */
-#define MESS_GOOD       208              /* 208 + mercancia (0..16): nombre de la mercancia */
+#define MESS_SCOOP_ON   160              /* "FUEL SCOOPS ON" + beep */
+#define MESS_GOOD       208              /* 208 + commodity (0..16): commodity name */
 
-#define COL_NONE  0                      /* combat_collide: nada (o recogida, o choque sin muerte) */
-#define COL_DOCK  1                      /* entrada correcta por la ranura: DOENTRY */
+#define COL_NONE  0                      /* combat_collide: nothing (or scooping, or a collision without death) */
+#define COL_DOCK  1                      /* correct entry through the slot: DOENTRY */
 #define COL_DEATH 2                      /* DEATH */
 
-extern u8 mess_de;                       /* "de": bit 1 = anadir " DESTROYED" al mensaje (lo lee el gancho de MESS) */
-extern u8 player_dead;                   /* 1 = el original saltaria a DEATH */
+extern u8 mess_de;                       /* "de": bit 1 = append " DESTROYED" to the message (read by the MESS hook) */
+extern u8 player_dead;                   /* 1 = the original would jump to DEATH */
 
-u8   oops(u8 a, u8 c);                   /* OOPS: dano a (con el acarreo c de entrada del SBC); 1 si morimos */
-void ouch(void);                         /* OUCH: con los escudos agotados, quiza se pierde carga o equipo */
-u8  *ouch_item(u8 x);                    /* QQ20+X (0..21): mercancias 0..16, ECM, BST, BOMB, ENGY, DKCMP */
-int  combat_collide(void);               /* partes 9 y 10 para la nave de INWK (tras MVEIT y MAL3): COL_* */
-u8   damage_checks(u8 mc);               /* parte 15 (MA22/MA93): mensajes, altitud, cabina, combustible; 1 = muerte */
+u8   oops(u8 a, u8 c);                   /* OOPS: damage a (with the incoming carry c of the SBC); 1 if we die */
+void ouch(void);                         /* OUCH: with the shields exhausted, cargo or equipment may be lost */
+u8  *ouch_item(u8 x);                    /* QQ20+X (0..21): commodities 0..16, ECM, BST, BOMB, ENGY, DKCMP */
+int  combat_collide(void);               /* parts 9 and 10 for the ship in INWK (after MVEIT and MAL3): COL_* */
+u8   damage_checks(u8 mc);               /* part 15 (MA22/MA93): messages, altitude, cabin, fuel; 1 = death */
 #endif

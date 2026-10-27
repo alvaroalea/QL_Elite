@@ -1,4 +1,4 @@
-/* Backend de pruebas en PC: el buffer tiene el mismo formato que la pantalla del QL. */
+/* PC test backend: the buffer has the same format as the QL screen. */
 #include "platform.h"
 #include <stdio.h>
 #include <time.h>
@@ -10,7 +10,7 @@ void plat_flush_input(void) {}
 void plat_present(void)
 {
     FILE *f = fopen("screen.bin", "wb");
-    if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }       /* sin cabecera: tools/ql2png.py <bin> <png> [4] (el 4 = modo 4) */
+    if (f) { fwrite(buf, 1, SCR_BYTES, f); fclose(f); }       /* no header: tools/ql2png.py <bin> <png> [4] (the 4 = mode 4) */
 }
 void plat_mode(int m4)
 {

@@ -1,5 +1,5 @@
-/* Demo de teclado/joystick: muestra las 8 filas de la matriz en binario, los joysticks y los caracteres tecleados.
-   Sirve para validar en un QL real o emulador. Salir: SHIFT+ESC.  En el PC (backend host) dibuja un cuadro y termina. */
+/* Keyboard/joystick demo: shows the 8 matrix rows in binary, the joysticks and the characters typed.
+   Used to validate on a real QL or emulator. Exit: SHIFT+ESC.  On the PC (host backend) it draws a frame and ends. */
 #include "text.h"
 #include "keys.h"
 
@@ -58,6 +58,6 @@ int main(void)
 #endif
     }
     plat_shutdown();
-    plat_exit();                                  /* QL: sin "Press a key to exit" */
+    plat_exit();                                  /* QL: without "Press a key to exit" */
     return 0;
 }

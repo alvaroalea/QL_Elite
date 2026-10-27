@@ -1,5 +1,5 @@
-/* Demo: dibuja varias naves con LL9 (proyeccion, caras ocultas y recorte) usando XOR sobre la pantalla.
-   En el PC dibuja un cuadro y termina; en el QL espera una tecla. Sin coma flotante: tabla de senos entera. */
+/* Demo: draws several ships with LL9 (projection, hidden faces and clipping) using XOR on the screen.
+   On the PC it draws a frame and ends; on the QL it waits for a key. No floating point: integer sine table. */
 #include "shipview.h"
 #include "text.h"
 
@@ -22,8 +22,8 @@ int main(void)
     txt_init();
     txt_at(0, 18); txt_puts("LL9: 6 NAVES, XOR");
     plat_present();
-    plat_wait_key();                              /* QL: sin esto el runtime borra la pantalla al salir */
+    plat_wait_key();                              /* QL: without this the runtime clears the screen on exit */
     plat_shutdown();
-    plat_exit();                                  /* QL: sin "Press a key to exit" */
+    plat_exit();                                  /* QL: without "Press a key to exit" */
     return 0;
 }

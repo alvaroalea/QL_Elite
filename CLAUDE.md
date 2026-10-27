@@ -1,65 +1,65 @@
-# Elite (Apple II) → Sinclair QL — memoria del proyecto
+# Elite (Apple II) → Sinclair QL — project memory
 
-Memoria del proyecto: lo necesario para continuar el trabajo en otra sesión, cuenta o LLM. Se actualiza al final de cada paso junto con `docs/INVENTARIO.md` (vía `tools/inventory.py`) y los demás ficheros de `docs/`.
+Project memory: what is needed to continue the work in another session, account or LLM. It is updated at the end of each step together with `docs/INVENTARIO.md` (via `tools/inventory.py`) and the other files in `docs/`.
 
-La LLM actúa como experta en Sinclair QL, Apple II, C y ensamblador de 6502 y 68000.
+The LLM acts as an expert in Sinclair QL, Apple II, C and 6502 and 68000 assembly.
 
-**Detalle en `docs/`** (leer el que toque antes de trabajar en esa área):
-- `docs/HERRAMIENTAS.md` — instalar XTC68, herramientas Python de `tools/`, `c68_check`, imágenes `elite.img` (qltools) y `elite.mdv` (mdvtool), verificar contra el 6502.
-- `docs/HARDWARE_QL.md` — pantalla modos 4 y 8 (y cuándo se cambia), consola, `KEYROW`, joystick, `BEEP` por IPC, trap #3, disco y unidad del juego, `_envsetup`.
-- `docs/HALLAZGOS.md` — comportamientos y fallos del original que se reproducen (acarreos de `DORND`, `LOIN`, `MT17`, láser, daños, TACTICS...). **Consultar antes de portar o tocar una rutina.**
-- `docs/DECISIONES.md` — rutinas «no necesarias», decisiones de diseño y mejoras propias retiradas (y cómo recuperarlas).
+**Details in `docs/`** (read the relevant one before working in that area):
+- `docs/HERRAMIENTAS.md` — installing XTC68, the Python tools in `tools/`, `c68_check`, the `elite.img` (qltools) and `elite.mdv` (mdvtool) images, verifying against the 6502.
+- `docs/HARDWARE_QL.md` — screen modes 4 and 8 (and when it is switched), console, `KEYROW`, joystick, `BEEP` through the IPC, trap #3, disk and game drive, `_envsetup`.
+- `docs/HALLAZGOS.md` — behaviours and bugs of the original that are reproduced (`DORND` carries, `LOIN`, `MT17`, laser, damage, TACTICS...). **Consult before porting or touching a routine.**
+- `docs/DECISIONES.md` — "unnecessary" routines, design decisions and own improvements that were removed (and how to recover them).
 
-## 1. Resumen
+## 1. Summary
 
-- **Objetivo:** port de **Elite, versión Apple II (Firebird, 1985)** al **Sinclair QL** (68008 a 7,5 MHz, bus de 8 bits, sin FPU, ≤ 640 KB; **modo 8: 256×256, 8 colores; opcionalmente (opciones de la pausa, tecla M) título y vuelo en modo 4: 512×256, negro/rojo/verde/blanco**), en **C89** con **qcc (XTC68/c68)** y ensamblador `as68`. Versión de disco.
-- **Referencias** (solo para verificar, no son parte del proyecto): `ref/moxon-appleII` (Mark Moxon; `1-source-files/main-sources/elite-source.asm`, rutinas con cabecera `;       Name: X`, y `elite-data.asm`; **sin licencia**: el código del port es propio y no copia sus comentarios), `ref/moxon-bbc-a`, `ref/TXTELITE.C` (Text Elite 1.5). Emuladores: QPC2, uQLx, sQLux. Juego original de Ian Bell y David Braben.
-- **Estrategia:** HAL para lo que depende del hardware (no se compara con el 6502); el resto se porta a C sin verificar cada rutina, anotándola en `tools/ported.txt` (de ahí sale `docs/INVENTARIO.md`); con el juego arrancando en el QL se verifica contra el emulador de 6502; después, profiling, paso a ensamblador y mejoras.
+- **Goal:** port of **Elite, Apple II version (Firebird, 1985)** to the **Sinclair QL** (68008 at 7.5 MHz, 8-bit bus, no FPU, ≤ 640 KB; **mode 8: 256×256, 8 colours; optionally (pause options, M key) title and flight in mode 4: 512×256, black/red/green/white**), in **C89** with **qcc (XTC68/c68)** and `as68` assembly. Disk version.
+- **References** (for verification only, not part of the project): `ref/moxon-appleII` (Mark Moxon; `1-source-files/main-sources/elite-source.asm`, routines with a `;       Name: X` header, and `elite-data.asm`; **unlicensed**: the port's code is our own and does not copy his comments), `ref/moxon-bbc-a`, `ref/TXTELITE.C` (Text Elite 1.5). Emulators: QPC2, uQLx, sQLux. Original game by Ian Bell and David Braben.
+- **Strategy:** HAL for what depends on the hardware (not compared with the 6502); the rest is ported to C without verifying each routine, noting it in `tools/ported.txt` (from which `docs/INVENTARIO.md` comes); with the game running on the QL, it is verified against the 6502 emulator; afterwards, profiling, moving to assembly and improvements.
 
-## 2. Cómo trabajar
+## 2. How to work
 
-- Las herramientas usan las rutas por defecto de `ref/`; si la fuente está en otro sitio, `export ELITE_SRC=<ruta>/1-source-files/main-sources`. Sin la fuente funcionan todos los tests salvo los que comparan con el 6502 (`test_orig`, `test_trade`, `test_laser`, `test_missions`...) y `tools/inventory.py`.
-- **Línea base:** `make test_all` (y `make c68_check` si hay toolchain; con la fuente, `test_orig`, `test_trade`, `test_laser`, `test_damage`, `test_planet`, `test_equip`, `test_tactics`, `test_missions`) debe dar 0 fallos.
-- **Compilar para el QL:** `make elite` (el `Makefile` pone `PATH`/`QLINC`/`QLLIB` si existe `/tmp/qlsdk`; si no, ver `docs/HERRAMIENTAS.md`). **Probar en el QL o emulador: `make elite.img`** → `build/elite.img` (montar como `flp1_`, `LRUN flp1_boot`). Todo lo generado va a `build/`.
-- **Entrega al final de cada paso:** `elite_ql_base.tar.gz` (código + tests + docs, incluido `docs/`, sin binarios), `CLAUDE.md`, `docs/INVENTARIO.md` y `data/`. Verificar el tar desempaquetándolo en un directorio limpio y pasando los tests.
+- The tools use the default paths under `ref/`; if the source is elsewhere, `export ELITE_SRC=<path>/1-source-files/main-sources`. Without the source all the tests work except those that compare with the 6502 (`test_orig`, `test_trade`, `test_laser`, `test_missions`...) and `tools/inventory.py`.
+- **Baseline:** `make test_all` (and `make c68_check` if there is a toolchain; with the source, `test_orig`, `test_trade`, `test_laser`, `test_damage`, `test_planet`, `test_equip`, `test_tactics`, `test_missions`) must give 0 failures.
+- **Build for the QL:** `make elite` (the `Makefile` sets `PATH`/`QLINC`/`QLLIB` if `/tmp/qlsdk` exists; otherwise, see `docs/HERRAMIENTAS.md`). **Try on the QL or an emulator: `make elite.img`** → `build/elite.img` (mount as `flp1_`, `LRUN flp1_boot`). Everything generated goes to `build/`.
+- **Deliverable at the end of each step:** `elite_ql_base.tar.gz` (code + tests + docs, including `docs/`, no binaries), `CLAUDE.md`, `docs/INVENTARIO.md` and `data/`. Verify the tar by unpacking it in a clean directory and running the tests.
 
-### 2.1 Flujo para portar una rutina
+### 2.1 Flow for porting a routine
 
-1. Leer la rutina en `elite-source.asm` (`;       Name: X`; multiparte: `X (Part n of m)`). Sin comentarios: `sed -n A,Bp elite-source.asm | sed 's/;.*//' | grep -v '^\s*$'`.
-2. Escribir el C **transcribiendo el flujo** (con `goto` si hace falta, incluidos saltos al medio de rutinas y caídas de una en otra) y **modelando los acarreos** (`em_carry`, `em_rand_c`, `c`/`cc` locales). Si una instrucción usa el acarreo con que vuelve una subrutina, calcularlo (p. ej. el de `MLTU2` es siempre 0).
-3. Con `int d` y comparaciones: **signo/acarreo ANTES de truncar a `u8`** (sección 4).
-4. Añadir la línea a `tools/ported.txt` (`NOMBRE funcion_C[,otra] estado nota`; estados `verificada | transcripcion | sin-verificar | propia | parcial | no-necesaria`) y ejecutar `python3 tools/inventory.py` (regenera `docs/INVENTARIO.md`).
-5. Pruebas en `tests/` y, si procede, una **sonda c68** `tests/c68/probe_*.c` (añadirla a `tools/c68_check/run.sh`).
-6. Verificar contra el 6502 cuando se pueda (`docs/HERRAMIENTAS.md`, sección 5.3): entradas aleatorias y límite, comparar, mutar una instrucción del C y ver que falla; pasar la fila a `verificada`.
+1. Read the routine in `elite-source.asm` (`;       Name: X`; multi-part: `X (Part n of m)`). Without comments: `sed -n A,Bp elite-source.asm | sed 's/;.*//' | grep -v '^\s*$'`.
+2. Write the C **transcribing the flow** (with `goto` if needed, including jumps into the middle of routines and fall-throughs from one into another) and **modelling the carries** (`em_carry`, `em_rand_c`, local `c`/`cc`). If an instruction uses the carry a subroutine returns with, compute it (e.g. `MLTU2`'s is always 0).
+3. With `int d` and comparisons: **sign/carry BEFORE truncating to `u8`** (section 4).
+4. Add the line to `tools/ported.txt` (`NAME C_function[,other] state note`; states `verificada | transcripcion | sin-verificar | propia | parcial | no-necesaria`) and run `python3 tools/inventory.py` (regenerates `docs/INVENTARIO.md`).
+5. Tests in `tests/` and, if applicable, a **c68 probe** `tests/c68/probe_*.c` (add it to `tools/c68_check/run.sh`).
+6. Verify against the 6502 when possible (`docs/HERRAMIENTAS.md`, section 5.3): random and boundary inputs, compare, mutate an instruction of the C and see that it fails; move the row to `verificada`.
 
-## 3. Estructura del repositorio
+## 3. Repository structure
 
 ```
-Makefile        compilación y pruebas
-docs/           INVENTARIO.md (estado de las rutinas, generado por tools/inventory.py desde tools/ported.txt),
-                MODULOS_PRUEBAS.md, PLAN.md y PENDIENTES.md (históricos, no se actualizan) y el detalle técnico (ver arriba)
-asset/          ficheros externos para generar datos
-data/           distribución en el disco: elite_dash, elite_scr, boot (README.txt no se distribuye)
-build/          ejecutables e intermedios
-src/            código del juego
-tests/          test_*.c, c68/ (sondas), oracle/, shots/, vectors*.txt
-tools/          herramientas Python y c68_check
-ref/            fuentes de referencia
-tmp/            utilidades de terceros compiladas aquí si no están en local
+Makefile        build and tests
+docs/           INVENTARIO.md (routine status, generated by tools/inventory.py from tools/ported.txt),
+                MODULOS_PRUEBAS.md, PLAN.md and PENDIENTES.md (historical, not updated) and the technical detail (see above)
+asset/          external files to generate data
+data/           distribution on the disk: elite_dash, elite_scr, boot (README.txt is not distributed)
+build/          executables and intermediates
+src/            game code
+tests/          test_*.c, c68/ (probes), oracle/, shots/, vectors*.txt
+tools/          Python tools and c68_check
+ref/            reference sources
+tmp/            third-party utilities built here if not available locally
 ```
 
-## 4. Convenciones y trampas que afectan a casi todo
+## 4. Conventions and traps that affect almost everything
 
-- **C89 puro:** sin `stdint.h`, sin declaraciones mezcladas ni en `for`, sin `float`; `u8 = unsigned char`; ensamblador en ficheros `.asm` (sintaxis Sozobon: `.globl`, `.text`, comentarios `;`).
-- **`int`:** el `qcc` del `Makefile` lo compila de 32 bits, `make c68_check` de 16 (`-int=16`). No depender del tamaño: `long` para valores > 32767 (`SCR_BYTES = 32768L`) y no confiar en promociones. **El ensamblador no lee por símbolo variables `int`** (solo `u8` y punteros): los `int` se pasan como argumentos `long`.
-- `qcc` busca los `#include "..."` en el directorio actual: siempre `-Isrc`.
-- **Fallo del optimizador `-O` de c68:** en `x = (u8)d; cc = (d >= 0);` usa los flags del `move.b` y no los de `d` (naves deformadas, números mal en `dt_bprnt`). **Regla: calcular siempre el signo/acarreo ANTES de guardar el byte** (`cc = (d >= 0); x = (u8)d;`). Una sonda de c68 por cada módulo nuevo.
-- **Sondas c68:** en el PC `unsigned long` es de 64 bits; enmascarar los generadores congruenciales (`& 0xFFFFFFFFUL`) o la sonda sale distinta sin que c68 falle.
-- **IPC del QL:** si se pide al 8049 una respuesta que no manda, el QL se cuelga (`BEEP` = respuesta 1). Ver `docs/HARDWARE_QL.md`.
+- **Pure C89:** no `stdint.h`, no mixed declarations or in `for`, no `float`; `u8 = unsigned char`; assembly in `.asm` files (Sozobon syntax: `.globl`, `.text`, `;` comments).
+- **`int`:** the `Makefile`'s `qcc` compiles it as 32-bit, `make c68_check` as 16 (`-int=16`). Do not depend on the size: `long` for values > 32767 (`SCR_BYTES = 32768L`) and do not rely on promotions. **The assembler does not read `int` variables by symbol** (only `u8` and pointers): `int`s are passed as `long` arguments.
+- `qcc` looks for `#include "..."` in the current directory: always `-Isrc`.
+- **c68 `-O` optimiser bug:** in `x = (u8)d; cc = (d >= 0);` it uses the flags of the `move.b` and not those of `d` (deformed ships, wrong numbers in `dt_bprnt`). **Rule: always compute the sign/carry BEFORE storing the byte** (`cc = (d >= 0); x = (u8)d;`). One c68 probe for each new module.
+- **c68 probes:** on the PC `unsigned long` is 64-bit; mask linear congruential generators (`& 0xFFFFFFFFUL`) or the probe comes out different without c68 failing.
+- **QL IPC:** if the 8049 is asked for a reply it does not send, the QL hangs (`BEEP` = reply 1). See `docs/HARDWARE_QL.md`.
 
-### Reglas de oro
-- **Dibujo en XOR:** borrar = volver a dibujar lo mismo en el mismo orden. Si se limpia una zona sin avisar al montón de líneas (naves, sol, círculo), hay que **olvidar** esas líneas.
-- **Acarreos como parámetros:** modelarlos explícitamente; ante la duda, ver qué instrucción los consume (`ADC`/`SBC`/`ROL`/`BCS`).
-- **Una primitiva propia que sustituya a una del original debe reproducir sus efectos en las variables que otro lee después** (p. ej. `SWAP` de `LOIN`, ver `docs/HALLAZGOS.md`).
-- **Datos de naves** se extraen con script, no a mano.
-- **Entregar siempre** el tar + los `.md` al final de cada paso y comprobar el tar en un directorio limpio.
+### Golden rules
+- **XOR drawing:** erase = draw the same thing again in the same order. If an area is cleared without telling the line heap (ships, sun, circle), those lines must be **forgotten**.
+- **Carries as parameters:** model them explicitly; when in doubt, see which instruction consumes them (`ADC`/`SBC`/`ROL`/`BCS`).
+- **An own primitive that replaces one of the original must reproduce its effects on the variables someone else reads afterwards** (e.g. `LOIN`'s `SWAP`, see `docs/HALLAZGOS.md`).
+- **Ship data** is extracted with a script, not by hand.
+- **Always deliver** the tar + the `.md` files at the end of each step and check the tar in a clean directory.

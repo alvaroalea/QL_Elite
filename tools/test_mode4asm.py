@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Compara el ensamblador en MODO 4 (ql_line.asm: ql_line con _gfx_m4 = 1 y ql_line4; ql_ell.asm: ql_ellipse con hr, ql_hline, ql_vline, ql_xpix, ql_frame y
-ql_clearcells con los codigos de color de modo 4; ql_ellrows.asm: ql_ellrows4), ejecutado con tools/m68k_mini.py, con las versiones en C
-(tests/m4_dump.c, gfx_m4 = 1, sin ASM_LINE): los mismos bytes de pantalla. Uso: python3 tools/test_mode4asm.py [n]"""
+"""Compares the MODE 4 assembler (ql_line.asm: ql_line with _gfx_m4 = 1 and ql_line4; ql_ell.asm: ql_ellipse with hr, ql_hline, ql_vline, ql_xpix, ql_frame and
+ql_clearcells with the mode 4 colour codes; ql_ellrows.asm: ql_ellrows4), run with tools/m68k_mini.py, with the C versions
+(tests/m4_dump.c, gfx_m4 = 1, without ASM_LINE): the same screen bytes. Usage: python3 tools/test_mode4asm.py [n]"""
 import os, random, subprocess, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import m68k_mini
@@ -11,14 +11,14 @@ n = int(sys.argv[1]) if len(sys.argv) > 1 else 400
 SRC = '\n'.join(open(os.path.join(os.environ.get('ELITE_ASMDIR') or os.path.join(root, 'src'), f)).read() for f in ('ql_line.asm', 'ql_ell.asm', 'ql_ellrows.asm'))
 rnd = random.Random(23)
 SCR, BLK, OT, NT, M4SYM = 0x20000, 0x1D000, 0x1A000, 0x1B000, 0x1C000
-CCM4 = [0, 15, 3, 15, 12, 15, 15, 15]          # gfx_ccode en modo 4 (negro, rojo y verde tal cual, el resto blanco)
+CCM4 = [0, 15, 3, 15, 12, 15, 15, 15]          # gfx_ccode in mode 4 (black, red and green as they are, the rest white)
 GM = lambda cc: (0xAA if cc & 4 else 0) | (0x55 if cc & 8 else 0)
 RM = lambda cc: (0xAA if cc & 2 else 0) | (0x55 if cc & 1 else 0)
-HG = lambda cc: 0xFF if cc & 4 else 0          # a los 512 puntos: byte llano
+HG = lambda cc: 0xFF if cc & 4 else 0          # at the 512 dots: plain byte
 HR = lambda cc: 0xFF if cc & 2 else 0
 
 cases = []
-for i in range(n * 2):                         # lineas
+for i in range(n * 2):                         # lines
     x1, y1, x2, y2 = (rnd.randrange(256) for _ in range(4))
     k = i % 8
     if k == 0: y2 = y1
@@ -31,7 +31,7 @@ for i in range(n * 2):                         # lineas
 for c in range(8): cases.append(('L', 3, 5, 250, 200, c))
 for (a, b, c, d) in ((0, 0, 255, 255), (255, 255, 0, 0), (0, 255, 255, 0), (255, 0, 0, 255), (0, 0, 255, 0), (0, 0, 0, 255), (255, 0, 255, 255)):
     cases.append(('L', a, b, c, d, 7))
-for i in range(n):                             # elipses a los 512 puntos
+for i in range(n):                             # ellipses at the 512 dots
     rx = rnd.randrange(1, 70) if i % 3 else rnd.randrange(1, 12)
     ry = rx + rx // 5 if i % 2 else rnd.randrange(1, 90)
     cx, cy = rnd.randrange(-40, 300), rnd.randrange(-40, 200)
@@ -39,7 +39,7 @@ for i in range(n):                             # elipses a los 512 puntos
     cases.append(('E', cx, cy, rx, ry, rnd.randrange(8)) + clip)
 for rx in (1, 2, 3, 5, 60, 120, 248):
     cases.append(('E', 128, 80, rx, (6 * rx + 2) // 5, 1, 0, 0, 255, 159))
-for i in range(n):                             # tramos, columnas, puntos, celdas y rectangulos (puntos del juego de 2 puntos fisicos)
+for i in range(n):                             # spans, columns, dots, cells and rectangles (game dots of 2 physical dots)
     x0, x1 = rnd.randrange(256), rnd.randrange(256)
     if i % 5 == 0: x1 = x0
     if x0 > x1: x0, x1 = x1, x0
@@ -50,7 +50,7 @@ for i in range(n):                             # tramos, columnas, puntos, celda
     cases.append(('C', rnd.randrange(-3, 34), rnd.randrange(-3, 34), rnd.randrange(-2, 36), rnd.randrange(-2, 36)))
     hw, hh = rnd.randrange(0, 160), rnd.randrange(0, 110)
     cases.append(('F', rnd.randrange(-30, 290), rnd.randrange(-30, 200), hw, hh, rnd.randrange(8), 0, 0, 255, 159))
-for i in range(n):                             # planeta fila a fila (ocx, ocy, orx, vieja?, ncx, ncy, nrx, nueva?, c, cly1)
+for i in range(n):                             # planet row by row (ocx, ocy, orx, old?, ncx, ncy, nrx, new?, c, cly1)
     orx = 1 + rnd.randrange(248); nrx = orx if rnd.randrange(3) == 0 else 1 + rnd.randrange(248)
     if i % 4 == 0: orx, nrx = 1 + rnd.randrange(14), 1 + rnd.randrange(14)
     ocx, ocy = rnd.randrange(-120, 380), rnd.randrange(-160, 240)
@@ -84,7 +84,7 @@ for i, c in enumerate(cases):
     if full: cpu.mem[SCR:SCR + 32768] = bytes([0xFF]) * 32768
     k = c[0]
     if k == 'L':
-        push(cpu, list(c[1:]) + [SCR]); cpu.run('_ql_line')           # por el despachador (mira _gfx_m4)
+        push(cpu, list(c[1:]) + [SCR]); cpu.run('_ql_line')           # through the dispatcher (looks at _gfx_m4)
     elif k == 'E':
         cx, cy, rx, ry, col, clx0, cly0, clx1, cly1 = c[1:]
         if rx < 0: rx = -rx

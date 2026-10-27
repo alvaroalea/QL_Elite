@@ -1,34 +1,34 @@
-# QL (XTC68): make elite / make disk (imagen elite.img) / make elite.mdv (microdrive)    PC: make host_game    Pruebas: make test_all
-# Orden: 1) compilacion para el QL  2) generacion de assets  3) compilacion en el PC  4) pruebas
+# QL (XTC68): make elite / make disk (elite.img image) / make elite.mdv (microdrive)    PC: make host_game    Tests: make test_all
+# Order: 1) build for the QL  2) asset generation  3) build on the PC  4) tests
 .DEFAULT_GOAL := disk
-# Version que sale en la pantalla de titulo ("R <VERSION>"): make VERSION=0.3
+# Version shown on the title screen ("R <VERSION>"): make VERSION=0.3
 VERSION ?= pre0.3
-# Fuente de referencia (Mark Moxon): carpeta ref/moxon-appleII/ del proyecto (y ref/moxon-bbc-a/ con la version A de BBC) (ignorada por git); ELITE_SRC del entorno tiene prioridad
+# Reference source (Mark Moxon): the project's ref/moxon-appleII/ folder (and ref/moxon-bbc-a/ with BBC version A) (ignored by git); the environment's ELITE_SRC takes priority
 export ELITE_SRC ?= $(CURDIR)/ref/moxon-appleII/1-source-files/main-sources
-# Ejecutables, imagen de disco y capturas generadas van a build/
+# Executables, disk image and generated screenshots go to build/
 BUILD ?= build
-# Funciones de depuracion (SHIFT-1/2/3 compra/venta/combustible gratis, SHIFT-C/P/H en vuelo): make DEBUG= para quitarlas
+# Debug functions (SHIFT-1/2/3 free buy/sell/fuel, SHIFT-C/P/H in flight): make DEBUG= to remove them
 DEBUG ?= 1
 DBGDEF = $(if $(DEBUG),-DDEBUG)
-# Linea de Bresenham en ensamblador en el QL (src/ql_line.asm); make ASM_LINE= para usar la version en C
+# Bresenham line in assembly on the QL (src/ql_line.asm); make ASM_LINE= to use the C version
 ASM_LINE ?= 1
 ASMDEF = $(if $(ASM_LINE),-DASM_LINE)
-# LL9 en ensamblador (src/ql_ll9.asm: caras, vertices y LL51): make ASM_LL9= para usar el C
+# LL9 in assembly (src/ql_ll9.asm: faces, vertices and LL51): make ASM_LL9= to use the C
 ASM_LL9 ?= 1
 ASMDEF += $(if $(ASM_LL9),-DASM_LL9)
-# Celda de texto opaca en ensamblador (src/ql_text.asm): make ASM_TEXT= para usar el C
+# Opaque text cell in assembly (src/ql_text.asm): make ASM_TEXT= to use the C
 ASM_TEXT ?= 1
 ASMDEF += $(if $(ASM_TEXT),-DASM_TEXT)
-# Version sin sonido: snd_ipc no hace nada (ni IPC, ni ZX8302, ni ROM): make NOSOUND=1 (por defecto con sonido; era para detectar un bug al usar MT.IPCOM)
+# Version without sound: snd_ipc does nothing (no IPC, no ZX8302, no ROM): make NOSOUND=1 (sound by default; it was to detect a bug when using MT.IPCOM)
 NOSOUND ?=
-# Sin el reloj de 50 Hz (MT.LPOLL) ni el limite de fps: make NOTICK=1 (diagnostico de cuelgues; por defecto con reloj)
+# Without the 50 Hz clock (MT.LPOLL) or the fps limit: make NOTICK=1 (hang diagnosis; clock by default)
 SNDDEF = $(if $(NOSOUND),-DNOSOUND) $(if $(NOTICK),-DNOTICK)
 VERDEF = $(DBGDEF) $(SNDDEF) -DELITE_VERSION='"$(VERSION)"'
 COMMON = src/gfx.c src/text.c
 
-# ==== 1. Compilacion para el QL ===========================================================================
+# ==== 1. Build for the QL =================================================================================
 
-# Cadena de qcc (tools/install_xtc68.sh la instala en /tmp/qlsdk): si existe, se pone sola en el PATH
+# qcc toolchain (tools/install_xtc68.sh installs it in /tmp/qlsdk): if it exists, it is put on the PATH automatically
 QLSDK ?= /tmp/qlsdk
 ifneq ($(wildcard $(QLSDK)/bin/qcc),)
 export PATH := $(QLSDK)/bin:$(PATH)
@@ -36,19 +36,19 @@ export QLINC := $(QLSDK)/share/qdos/include
 export QLLIB := $(QLSDK)/share/qdos/lib
 endif
 
-# Juego completo. QL: make elite (o make disk para la imagen); PC: make host_game (para pruebas)
+# Complete game. QL: make elite (or make disk for the image); PC: make host_game (for tests)
 GAME = src/main.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c
 
-# El ejecutable QDOS "elite" (qcc anade el trailer XTcc con el dataspace; qltools lo usa para marcarlo ejecutable)
+# The QDOS executable "elite" (qcc adds the XTcc trailer with the dataspace; qltools uses it to mark it executable)
 GAME_QL = $(GAME) src/keys_ql.c src/sound_ql.c src/plat_ql.c src/ql_ipc.asm src/ql_line.asm src/ql_ell.asm src/ql_ll9.asm src/ql_lltab.asm src/ql_ellrows.asm src/ql_text.asm
 $(BUILD)/elite: $(GAME_QL) $(wildcard src/*.h) Makefile
 	mkdir -p $(BUILD)
 	qcc -O $(VERDEF) $(ASMDEF) -Isrc -I/usr/local/share/qdos/include -o $@ $(GAME_QL) -lm
 elite: $(BUILD)/elite
 
-# ---- Imagen de disco DS/DD 720 KB (elite.img) -------------------------------------------------------------
-# qltools (N. Dunbar) se compila desde las fuentes: git clone + make -C Unix, en tmp/qltools_src (no se incluye en el tar).
-# Otro qltools ya instalado:  make elite.img QLTOOLS=/ruta/qltools
+# ---- DS/DD 720 KB disk image (elite.img) ------------------------------------------------------------------
+# qltools (N. Dunbar) is built from source: git clone + make -C Unix, in tmp/qltools_src (not included in the tar).
+# Another qltools already installed:  make elite.img QLTOOLS=/path/qltools
 QLTOOLS_REPO ?= https://github.com/NormanDunbar/qltools
 QLTOOLS_DIR  ?= tmp/qltools_src
 QLTOOLS      ?= $(QLTOOLS_DIR)/Unix/qltools
@@ -61,9 +61,9 @@ $(QLTOOLS):
 
 qltools: $(QLTOOLS)
 
-# Formatea (-fdd = DS/DD 720 KB) y escribe: elite (ejecutable, con su dataspace), boot, elite_scr y elite_dash.
-# Dentro del disco los nombres son los de los ficheros sin el directorio: boot, elite, elite_scr, elite_dash.
-# Se escribe desde build/ para que en el disco el ejecutable se llame elite (qltools usa el nombre sin directorio)
+# Formats (-fdd = DS/DD 720 KB) and writes: elite (executable, with its dataspace), boot, elite_scr and elite_dash.
+# Inside the disk the names are those of the files without the directory: boot, elite, elite_scr, elite_dash.
+# It is written from build/ so that on the disk the executable is called elite (qltools uses the name without directory)
 $(BUILD)/elite.img: $(BUILD)/elite $(DISK_FILES) $(QLTOOLS)
 	rm -f $@
 	$(QLTOOLS) $@ -fdd $(DISK_LABEL)
@@ -73,12 +73,12 @@ $(BUILD)/elite.img: $(BUILD)/elite $(DISK_FILES) $(QLTOOLS)
 elite.img: $(BUILD)/elite.img
 disk: elite.img
 
-# ---- Imagen de microdrive en formato QLAY (elite.mdv) -----------------------------------------------------
-# mdvtool (T. Harbaum / xXorAa): el del PATH o, si no hay, se compila en tmp/mdvtool (necesita libzip-dev).
-# Otro mdvtool:  make elite.mdv MDVTOOL=/ruta/mdvtool
-# No esta en el objetivo por defecto: un cartucho QLAY tiene 255 sectores de 512 B (253 libres para ficheros,
-# ~126 KB; un cartucho real suele dar menos) y hoy el ejecutable ocupa ~147 KB. La regla comprueba el tamano
-# antes de llamar a mdvtool, que con una imagen llena termina con violacion de segmento.
+# ---- Microdrive image in QLAY format (elite.mdv) ----------------------------------------------------------
+# mdvtool (T. Harbaum / xXorAa): the one on the PATH or, if there is none, built in tmp/mdvtool (needs libzip-dev).
+# Another mdvtool:  make elite.mdv MDVTOOL=/path/mdvtool
+# It is not in the default target: a QLAY cartridge has 255 sectors of 512 B (253 free for files,
+# ~126 KB; a real cartridge usually gives less) and today the executable takes ~147 KB. The rule checks the size
+# before calling mdvtool, which with a full image ends with a segmentation fault.
 MDVTOOL_REPO ?= https://github.com/xxoraa/mdvtool
 MDVTOOL_DIR  ?= tmp/mdvtool
 MDVTOOL      ?= $(or $(shell command -v mdvtool 2>/dev/null),$(MDVTOOL_DIR)/mdvtool)
@@ -91,8 +91,8 @@ $(MDVTOOL_DIR)/mdvtool:
 
 mdvtool: $(MDVTOOL)
 
-# mdvtool guarda el nombre tal como se le pasa: se copian los ficheros a build/mdv/ y se importan desde alli.
-# El boot del microdrive es el del disco con dev$="mdv1_". Cada fichero lleva 64 B de cabecera QDOS.
+# mdvtool stores the name as given: the files are copied to build/mdv/ and imported from there.
+# The microdrive boot is the disk one with dev$="mdv1_". Each file carries a 64 B QDOS header.
 $(BUILD)/elite.mdv: $(BUILD)/elite $(DISK_FILES) $(MDVTOOL)
 	rm -rf $(BUILD)/mdv $@
 	mkdir -p $(BUILD)/mdv
@@ -106,8 +106,8 @@ $(BUILD)/elite.mdv: $(BUILD)/elite $(DISK_FILES) $(MDVTOOL)
 
 elite.mdv: $(BUILD)/elite.mdv
 
-# Demos para el QL (texto, teclado, sonido, ficha de sistema y proyeccion 3D).
-# -Isrc necesario: qcc busca "platform.h" en el directorio actual. "ql" es la prueba de texto.
+# Demos for the QL (text, keyboard, sound, system sheet and 3D projection).
+# -Isrc needed: qcc looks for "platform.h" in the current directory. "ql" is the text test.
 ql:
 	mkdir -p $(BUILD)
 	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/elite_ql src/test_text.c $(COMMON) src/plat_ql.c src/keys.c src/keys_ql.c src/ql_ipc.asm -lm
@@ -127,26 +127,26 @@ ql_ship:
 	mkdir -p $(BUILD)
 	qcc -O -Isrc -I/usr/local/share/qdos/include -o $(BUILD)/ship_ql src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_ql.c src/ql_ipc.asm
 
-# ==== 2. Generacion de assets =============================================================================
+# ==== 2. Asset generation =================================================================================
 
-# Cabina editable en el PC: exporta el panel a PNG (asset/cabina.png, 1024 x 112) y lo vuelve a convertir en data/elite_dash
+# Editable cockpit on the PC: exports the panel to PNG (asset/cabina.png, 1024 x 112) and converts it back into data/elite_dash
 dash_png:
 	python3 tools/png2dash.py --export data/elite_dash asset/cabina.png
 dash_from_png:
 	python3 tools/png2dash.py asset/cabina.png data/elite_dash
 
-# Fichero de fondo del panel (data/elite_dash) a partir del volcado de pantalla del Apple II (necesita ELITE_SRC)
+# Panel background file (data/elite_dash) from the Apple II screen dump (needs ELITE_SRC)
 dash_file:
 	python3 tools/gen_dashboard.py
 
-# ==== 3. Compilacion en el PC =============================================================================
+# ==== 3. Build on the PC ==================================================================================
 
-# Juego completo en el PC (pantalla en memoria)
+# Complete game on the PC (screen in memory)
 host_game:
 	mkdir -p $(BUILD)
 	gcc -std=c89 -pedantic -Wall -O2 $(VERDEF) -Isrc -o $(BUILD)/elite_host $(GAME) src/keys_host.c src/sound_host.c src/plat_host.c -lm
 
-# Demos en el PC: grafica/texto, teclado, ficha de sistema y proyeccion 3D
+# Demos on the PC: graphics/text, keyboard, system sheet and 3D projection
 host:
 	mkdir -p $(BUILD)
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o $(BUILD)/test_gfx src/test_gfx.c src/gfx.c src/plat_host.c -lm
@@ -154,18 +154,18 @@ host:
 	./$(BUILD)/test_gfx && python3 tools/ql2png.py screen.bin $(BUILD)/test.png
 	./$(BUILD)/test_text && python3 tools/ql2png.py screen.bin $(BUILD)/test_text.png
 
-# Demo de teclado: en el PC dibuja un cuadro con una pulsacion simulada; en el QL es interactiva
+# Keyboard demo: on the PC it draws a frame with a simulated key press; on the QL it is interactive
 host_demo_keys:
 	mkdir -p $(BUILD)
 	gcc -std=c89 -pedantic -Wall -O2 -DHOST_DEMO -Isrc -o $(BUILD)/demo_keys_host src/demo_keys.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/plat_host.c
 
-# Demo de ficha de sistema (datos, descripcion y mercado)
+# System sheet demo (data, description and market)
 host_demo_universe:
 	mkdir -p $(BUILD)
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o $(BUILD)/demo_universe src/demo_universe.c src/gfx.c src/text.c src/universe.c src/emath.c src/lines.c src/plat_host.c
 	./$(BUILD)/demo_universe && python3 tools/ql2png.py screen.bin $(BUILD)/demo_universe.png
 
-# Demo de proyeccion 3D: seis naves dibujadas con LL9 (XOR)
+# 3D projection demo: six ships drawn with LL9 (XOR)
 host_demo_ship:
 	mkdir -p $(BUILD)
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o $(BUILD)/demo_ship src/demo_ship.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/plat_host.c
@@ -175,15 +175,15 @@ clean:
 	rm -f tests/test_trade tests/test_laser tests/vectors_laser.txt tests/test_damage tests/vectors_damage.txt tests/test_planet tests/vectors_planet.txt tests/test_equip tests/vectors_equip.txt tests/test_tactics tests/vectors_tactics.txt tests/test_missions tests/vectors_missions.txt tests/test_univ6502 tests/vectors_univ.txt tests/test_shipview tests/vectors_trade.txt screen.bin tests/test_emath tests/test_emath2 tests/test_state tests/test_keys tests/test_sound tests/test_ll9 tests/test_save tests/test_game tests/dump_universe tests/oracle/oracle tests/shots/*.bin tests/tmp/*
 	rm -rf $(BUILD)
 
-# ==== 4. Pruebas ==========================================================================================
+# ==== 4. Tests ============================================================================================
 
 test_all: test test_keys test_sound test_universe test_save test_game test_shipview test_space test_dashpng test_bres test_lineasm test_ellipse test_nativeview test_arcs test_ellasm test_dust test_ll9asm test_ellrows test_ellrowsasm test_putsasm test_mode4asm
 
-# Compara el codigo de c68 (-int=16 -O) con el del PC bajo qemu (necesita c68, gcc-m68k-linux-gnu y qemu-user; ver tools/c68_check/run.sh)
+# Compares c68's code (-int=16 -O) with the PC's under qemu (needs c68, gcc-m68k-linux-gnu and qemu-user; see tools/c68_check/run.sh)
 c68_check:
 	tools/c68_check/run.sh
 
-# Pruebas de aritmetica: regenera tablas y vectores (referencia literal del 6502) y compara con emath.c
+# Arithmetic tests: regenerates tables and vectors (literal 6502 reference) and compares with emath.c
 test:
 	python3 tools/gen_tables.py
 	python3 tools/gen_sne.py
@@ -195,59 +195,59 @@ test:
 	./tests/test_emath2
 	$(MAKE) test_state
 
-# Estado del juego y rutinas dependientes (ship_math.c) contra la transcripcion literal del 6502
+# Game state and dependent routines (ship_math.c) against the literal 6502 transcription
 test_state:
 	python3 tools/gen_vectors3.py
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_state tests/test_state.c src/ship_math.c src/state.c src/emath.c
 	./tests/test_state
 
-# Maths (Geometry), MVT3, PLS6 y dinero contra el codigo ORIGINAL en el emulador de 6502 (mismas entradas que test_state)
+# Maths (Geometry), MVT3, PLS6 and money against the ORIGINAL code in the 6502 emulator (same inputs as test_state)
 test_geom:
 	python3 tools/gen_geom.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_state tests/test_state.c src/ship_math.c src/state.c src/emath.c
 	./tests/test_state tests/vectors_geom.txt
 
-# Drawing lines: LOIN, HLOIN y VLOIN punto a punto contra el codigo ORIGINAL en el emulador (pantalla hires del Apple II)
+# Drawing lines: LOIN, HLOIN and VLOIN point by point against the ORIGINAL code in the emulator (Apple II hires screen)
 test_lines:
 	python3 tools/gen_lines.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_lines tests/test_lines.c src/lines.c src/gfx.c src/emath.c
 	./tests/test_lines
 
-# TT15, SIGHT, NLIN2/NLIN4, BOMBEFF2 (con los DORND de SOBOMB) y DOEXP contra el codigo ORIGINAL en el emulador
+# TT15, SIGHT, NLIN2/NLIN4, BOMBEFF2 (with the DORNDs of SOBOMB) and DOEXP against the ORIGINAL code in the emulator
 test_draw:
 	python3 tools/gen_draw.py 2000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_draw tests/test_draw.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_draw
 
-# Stardust: STARS (las 4 vistas), nWq y FLIP con PIXEL2 y PIXEL reales contra el codigo ORIGINAL en el emulador
+# Stardust: STARS (the 4 views), nWq and FLIP with real PIXEL2 and PIXEL against the ORIGINAL code in the emulator
 test_stars:
 	python3 tools/gen_stars.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_stars tests/test_stars.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_stars
 
-# Charts: TT22, TT23, TT16, hm y HME2 (busqueda, con el motor de texto real) contra el codigo ORIGINAL en el emulador
+# Charts: TT22, TT23, TT16, hm and HME2 (search, with the real text engine) against the ORIGINAL code in the emulator
 test_charts:
 	python3 tools/gen_charts.py 300
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_charts tests/test_charts.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_charts
 
-# Drawing the screen: TT66/TTX66/TTX66K/BOX y CLYNS contra el codigo ORIGINAL en el emulador
+# Drawing the screen: TT66/TTX66/TTX66K/BOX and CLYNS against the ORIGINAL code in the emulator
 test_screen:
 	python3 tools/gen_screen.py 2000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_screen tests/test_screen.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_screen
 
-# Prueba de teclado/joystick con matriz simulada
+# Keyboard/joystick test with a simulated matrix
 test_keys:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_keys tests/test_keys.c src/keys.c src/keys_host.c
 	./tests/test_keys
 
-# Pruebas de sonido (bloques IPC y prioridades)
+# Sound tests (IPC blocks and priorities)
 test_sound:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_sound tests/test_sound.c src/sound.c src/sound_host.c -lm
 	./tests/test_sound
 
-# Universo: construye el oraculo desde TXTELITE.C 1.5, vuelca ambos y compara
+# Universe: builds the oracle from TXTELITE.C 1.5, dumps both and compares
 test_universe:
 	python3 tools/gen_universe_text.py
 	python3 tools/make_oracle.py
@@ -257,71 +257,71 @@ test_universe:
 	./tests/dump_universe > tests/oracle/ours.txt
 	python3 tests/compare_universe.py tests/oracle/oracle.txt tests/oracle/ours.txt
 
-# Comparacion con el codigo ORIGINAL ejecutado en un emulador de 6502 (necesita la fuente de referencia clonada:
-# git clone https://github.com/markmoxon/elite-source-code-apple-ii ref/moxon-appleII  o  export ELITE_SRC=<ruta>/1-source-files/main-sources)
+# Comparison with the ORIGINAL code run in a 6502 emulator (needs the cloned reference source:
+# git clone https://github.com/markmoxon/elite-source-code-apple-ii ref/moxon-appleII  or  export ELITE_SRC=<path>/1-source-files/main-sources)
 test_orig:
 	python3 tools/gen_ll9.py 3000
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ll9 tests/test_ll9.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c
 	./tests/test_ll9
 
-# Texto bajo el panel de vuelo: pintar encima de otro estado (vaciando solo el rectangulo que sobra) = pintar desde cero
+# Text under the flight panel: painting over another state (emptying only the leftover rectangle) = painting from scratch
 test_panel:
 	gcc -std=c89 -O2 -Isrc -o tests/test_panel tests/test_panel.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_panel
 
-# Polvo estelar (tamanos por distancia, borrado, bordes) y PIXEL original intacto
+# Stardust (sizes by distance, erasing, edges) and original PIXEL intact
 test_dust:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_dust tests/test_dust.c src/gfx.c
 	./tests/test_dust
 
-# ql_ell.asm (elipse y tramo horizontal en ensamblador) ejecutada con tools/m68k_mini.py contra gfx_ellipse_xor y gfx_hline_xor en C
+# ql_ell.asm (ellipse and horizontal span in assembly) run with tools/m68k_mini.py against gfx_ellipse_xor and gfx_hline_xor in C
 test_ellasm:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/ell_dump tests/ell_dump.c src/gfx.c
 	python3 tools/test_ellasm.py 700
 
-# Contorno de la elipse fila a fila (gfx_ell_update, sin tabla = punto medio): misma pantalla que dibujar la vieja y la nueva con gfx_ellipse_xor
+# Row-by-row ellipse outline (gfx_ell_update, no table = midpoint): same screen as drawing the old and the new with gfx_ellipse_xor
 test_ellrows:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ellrows tests/test_ellrows.c src/gfx.c src/plat_host.c -lm
 	./tests/test_ellrows
 
-# ql_text.asm (ql_puts) ejecutada con tools/m68k_mini.py contra su version en C (la formula de text.c)
+# ql_text.asm (ql_puts) run with tools/m68k_mini.py against its C version (text.c's formula)
 test_putsasm:
 	python3 tools/test_putsasm.py 2000
 
-# Modo 4 (512 x 256): ql_line4, ql_ellipse (hr), ql_ellrows4 y las rutinas de punto/tramo/rectangulo con los codigos de color de modo 4,
-# ejecutadas con tools/m68k_mini.py contra las versiones en C con gfx_m4 = 1 (tests/m4_dump.c)
+# Mode 4 (512 x 256): ql_line4, ql_ellipse (hr), ql_ellrows4 and the dot/span/rectangle routines with the mode 4 colour codes,
+# run with tools/m68k_mini.py against the C versions with gfx_m4 = 1 (tests/m4_dump.c)
 test_mode4asm:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/m4_dump tests/m4_dump.c src/gfx.c src/lines.c src/emath.c -lm
 	python3 tools/test_mode4asm.py 400
 
-# ql_ellrows.asm ejecutada con tools/m68k_mini.py contra gfx_ell_update en C
+# ql_ellrows.asm run with tools/m68k_mini.py against gfx_ell_update in C
 test_ellrowsasm:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/ellrows_dump tests/ellrows_dump.c src/gfx.c src/plat_host.c -lm
 	python3 tools/test_ellrowsasm.py 200 1
 
-# ql_ll9.asm (LL51, caras y vertices de LL9 en ensamblador) ejecutada con tools/m68k_mini.py contra ship_ll9_faces_c y ship_ll9_verts_c (naves reales, casos limite)
+# ql_ll9.asm (LL51, faces and vertices of LL9 in assembly) run with tools/m68k_mini.py against ship_ll9_faces_c and ship_ll9_verts_c (real ships, edge cases)
 test_ll9asm:
 	python3 tools/gen_lltab.py
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/ll9_dump tests/ll9_dump.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/plat_host.c -lm
 	python3 tools/test_ll9asm.py 300 1
 
-# Vista nativa de vuelo: sol por filas (invariante pantalla = tramos), planeta (salto de redibujado), anillos del tunel y borrado exacto
+# Native flight view: sun by rows (invariant screen = spans), planet (redraw jump), tunnel rings and exact erasing
 test_nativeview:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_nativeview tests/test_nativeview.c src/ships.c src/move.c src/sun.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c src/chart.c -lm
 	./tests/test_nativeview
 
-# Meridianos y crater del planeta (vista nativa): sin restos al quitar, figura estable, crater oculto
+# Meridians and crater of the planet (native view): no leftovers on removal, stable figure, hidden crater
 test_arcs:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_arcs tests/test_arcs.c src/ships.c src/move.c src/sun.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c src/chart.c -lm
 	./tests/test_arcs
 
-# Elipse de punto medio (planeta y anillos del tunel en la vista nativa): ejes, simetria sin puntos borrados por XOR, cercania a la elipse ideal, borrado exacto y recorte
+# Midpoint ellipse (planet and tunnel rings in the native view): axes, symmetry with no points erased by XOR, closeness to the ideal ellipse, exact erasing and clipping
 test_ellipse:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_ellipse tests/test_ellipse.c src/gfx.c -lm
 	./tests/test_ellipse
 
-# Linea de Bresenham del juego (extremos, simetria, borrado exacto, cercania a la recta) y su version en ensamblador (ql_line.asm)
-# ejecutada con el interprete de 68000 de tools/m68k_mini.py contra la version en C
+# Game Bresenham line (endpoints, symmetry, exact erasing, closeness to the line) and its assembly version (ql_line.asm)
+# run with the 68000 interpreter of tools/m68k_mini.py against the C version
 test_bres:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_bres tests/test_bres.c src/lines.c src/emath.c src/gfx.c -lm
 	./tests/test_bres
@@ -329,7 +329,7 @@ test_bres:
 test_lineasm: test_bres
 	python3 tools/test_lineasm.py 3000
 
-# Logica de juego y sesion guiada por guion (PC): guarda capturas en tests/shots/
+# Game logic and script-driven session (PC): saves screenshots in tests/shots/
 test_game:
 	mkdir -p tests/shots tests/tmp
 	cp data/elite_dash tests/tmp/elite_dash
@@ -342,7 +342,7 @@ test_save:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_save tests/test_save.c src/cmdr.c src/save.c src/state.c
 	./tests/test_save
 
-# Cabina editable: PNG -> elite_dash -> PNG da el mismo fichero
+# Editable cockpit: PNG -> elite_dash -> PNG gives the same file
 test_dashpng:
 	mkdir -p tests/tmp
 	python3 tools/png2dash.py --export data/elite_dash tests/tmp/cabina.png
@@ -353,7 +353,7 @@ test_shipview:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_shipview tests/test_shipview.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/plat_host.c
 	./tests/test_shipview
 
-# Comercio contra el 6502 original (tnpr, TT219, TT208, GCASH, LCASH, MCASH). Requiere ELITE_SRC (ref/, tools/README_ref.txt)
+# Trade against the original 6502 (tnpr, TT219, TT208, GCASH, LCASH, MCASH). Requires ELITE_SRC (ref/, tools/README_ref.txt)
 test_trade:
 	python3 tools/gen_trade.py 20000 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_trade tests/test_trade.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
@@ -363,31 +363,31 @@ test_space:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_space tests/test_space.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_space
 
-# Laser y danos contra el 6502 original (HITCH, ANGRY, LASLI, MA68, MLOOP, MA77/SHD, MA47, MA15, SFS1). Requiere ELITE_SRC
+# Laser and damage against the original 6502 (HITCH, ANGRY, LASLI, MA68, MLOOP, MA77/SHD, MA47, MA15, SFS1). Requires ELITE_SRC
 test_laser:
 	python3 tools/gen_laser.py 3000 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_laser tests/test_laser.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_laser
 
-# Danos a nuestra nave contra el 6502 original (OOPS, OUCH, partes 9, 10 y 15, D1 de DEATH). Requiere ELITE_SRC
+# Damage to our ship against the original 6502 (OOPS, OUCH, parts 9, 10 and 15, D1 of DEATH). Requires ELITE_SRC
 test_damage:
 	python3 tools/gen_damage.py 3000 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_damage tests/test_damage.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_damage
 
-# Planetas y soles contra el 6502 original (PLANET, SUN, CIRCLE, BLINE, WPLS2, LL145...). Requiere ELITE_SRC
+# Planets and suns against the original 6502 (PLANET, SUN, CIRCLE, BLINE, WPLS2, LL145...). Requires ELITE_SRC
 test_planet:
 	python3 tools/gen_planet.py 400 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_planet tests/test_planet.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_planet
 
-# Equipo contra el 6502 original (bomba, WARP, DOCKIT, DOKEY con ordenador de atraque, GTHG, FRS1). Requiere ELITE_SRC
+# Equipment against the original 6502 (bomb, WARP, DOCKIT, DOKEY with docking computer, GTHG, FRS1). Requires ELITE_SRC
 test_equip:
 	python3 tools/gen_equip.py 3000 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_equip tests/test_equip.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_equip
 
-# TACTICS contra el 6502 original. Requiere ELITE_SRC
+# TACTICS against the original 6502. Requires ELITE_SRC
 test_univ6502:
 	python3 tools/gen_universe.py 2000 7
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_univ6502 tests/test_univ6502.c $(filter-out src/main.c,$(GAME)) src/keys_host.c src/sound_host.c src/plat_host.c -lm
@@ -404,55 +404,55 @@ test_tactics:
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_tactics tests/test_tactics.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/space.c src/stars.c src/ships.c src/move.c src/sun.c src/chart.c src/ship3d.c src/shipdata.c src/dash.c src/game.c src/cmdr.c src/save.c src/universe.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/keys.c src/keys_host.c src/sound.c src/sound_host.c src/plat_host.c
 	./tests/test_tactics
 
-# Start and end: RESET, RES2 y DFAULT contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+# Start and end: RESET, RES2 and DFAULT against the ORIGINAL code in the 6502 emulator (needs ELITE_SRC)
 test_start:
 	python3 tools/gen_start.py 1000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_start tests/test_start.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_start
 
-# Sound: DORND gastados por cada sonido, RAND y acarreo contra el codigo ORIGINAL en el emulador (necesita ELITE_SRC)
+# Sound: DORNDs consumed by each sound, RAND and carry against the ORIGINAL code in the emulator (needs ELITE_SRC)
 test_soundorig:
 	python3 tools/gen_sound.py 300
 	gcc -std=c89 -pedantic -Wall -O2 -Isrc -o tests/test_sound_orig tests/test_sound_orig.c src/sound.c src/sound_host.c src/emath.c -lm
 	./tests/test_sound_orig
 
-# Moving: MVT1, MVS4, MVS5, MVT6 y MVEIT (con MV40, MV45, TIDY, SCAN y TACTICS registrados) contra el codigo ORIGINAL (necesita ELITE_SRC)
+# Moving: MVT1, MVS4, MVS5, MVT6 and MVEIT (with MV40, MV45, TIDY, SCAN and TACTICS logged) against the ORIGINAL code (needs ELITE_SRC)
 test_move:
 	python3 tools/gen_move.py 3000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_move tests/test_move.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_move
 
-# Equipment: EQSHP (equip_buy, equip_price) contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+# Equipment: EQSHP (equip_buy, equip_price) against the ORIGINAL code in the 6502 emulator (needs ELITE_SRC)
 test_eqshp:
 	python3 tools/gen_eqshp.py 3000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_eqshp tests/test_eqshp.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_eqshp
 
-# Keyboard: DK4 (FREEZE) y DKS3 contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+# Keyboard: DK4 (FREEZE) and DKS3 against the ORIGINAL code in the 6502 emulator (needs ELITE_SRC)
 test_dk4:
 	python3 tools/gen_keys.py 2000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_dk4 tests/test_dk4.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_dk4
 
-# Save and load: el comandante JAMESON de fabrica (NA2%) contra la fuente original (necesita ELITE_SRC)
+# Save and load: the factory JAMESON commander (NA2%) against the original source (needs ELITE_SRC)
 test_jameson:
 	python3 tools/gen_jameson.py
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_jameson tests/test_jameson.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_jameson
 
-# Dashboard: DIALS, COMPAS, MSBAR, msblob, SCAN, cntr, BUMP2 y REDU2 contra el codigo ORIGINAL (necesita ELITE_SRC)
+# Dashboard: DIALS, COMPAS, MSBAR, msblob, SCAN, cntr, BUMP2 and REDU2 against the ORIGINAL code (needs ELITE_SRC)
 test_dash:
 	python3 tools/gen_dash.py 2000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_dash tests/test_dash.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_dash
 
-# Flight: PLUT, ESCAPE, MJP y TT110 contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+# Flight: PLUT, ESCAPE, MJP and TT110 against the ORIGINAL code in the 6502 emulator (needs ELITE_SRC)
 test_flight:
 	python3 tools/gen_flight.py 1000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_flight tests/test_flight.c src/app.c src/menu.c src/chart.c src/sun.c src/dash.c src/space.c src/stars.c src/ships.c src/combat.c src/damage.c src/equip.c src/dockit.c src/tactics.c src/move.c src/flight.c src/encounters.c src/missions.c src/detok.c src/config.c src/input.c src/game.c src/cmdr.c src/save.c src/shipview.c src/ship3d.c src/shipdata.c src/ship_math.c src/state.c src/emath.c src/lines.c src/gfx.c src/text.c src/universe.c src/keys.c src/sound.c src/keys_host.c src/sound_host.c src/plat_host.c -lm
 	./tests/test_flight
 
-# Maths (Arithmetic) contra el codigo ORIGINAL en el emulador de 6502 (necesita ELITE_SRC)
+# Maths (Arithmetic) against the ORIGINAL code in the 6502 emulator (needs ELITE_SRC)
 test_arith:
 	python3 tools/gen_arith.py 2000
 	gcc -std=c89 -pedantic -O2 -Isrc -o tests/test_arith tests/test_arith.c src/emath.c

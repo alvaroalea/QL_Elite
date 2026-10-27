@@ -1,13 +1,13 @@
-; ql_text.asm - texto con papel opaco escrito directamente en la pantalla del QL (modo 8), sintaxis de as68 (XTC68).
+; ql_text.asm - text with opaque paper written directly to the QL screen (mode 8), as68 syntax (XTC68).
 ; long ql_puts(u8 *dst, const u8 *s, const unsigned short *font, const unsigned long *fm, long pp, long dd, long maxn)
-;   (todo como palabras largas, como ql_trap3)
-; Dibuja celdas de 8x8 una a continuacion de otra, mientras el caracter de s sea imprimible (32..127; el 0 final y cualquier otro valor
-; paran) y no se hayan dibujado maxn; devuelve cuantos dibujo (el llamador avanza su cursor y su cadena). Equivale al camino opaco de
-; draw_glyph (text.c): para cada una de las 8 lineas del glifo, linea = pp ^ (fm[b] & dd), escrita de una vez como palabra larga
-; (4 bytes = 8 puntos) en dst + 128 * linea; la celda siguiente esta 4 bytes mas alla. font = 96 glifos x 8 palabras, cada una el byte de la
-; fuente multiplicado por 4 (desplazamiento en bytes dentro de fm, que son 256 palabras largas: mascara de puntos de cada byte);
-; pp = color del papel en los 4 bytes; dd = tinta XOR papel.
-; Registros: a0 = destino, a1 = cadena, a2 = fuente, a3 = tabla fm, a4 = glifo, d2 = pp, d3 = dd, d4 = maxn, d5 = dibujados, d0/d1 = trabajo.
+;   (all as long words, like ql_trap3)
+; Draws 8x8 cells one after another, while the character of s is printable (32..127; the final 0 and any other value
+; stop it) and maxn have not been drawn; returns how many it drew (the caller advances its cursor and its string). Equivalent to the opaque path of
+; draw_glyph (text.c): for each of the 8 lines of the glyph, line = pp ^ (fm[b] & dd), written at once as a long word
+; (4 bytes = 8 dots) at dst + 128 * line; the next cell is 4 bytes further on. font = 96 glyphs x 8 words, each the font
+; byte multiplied by 4 (byte offset inside fm, which is 256 long words: dot mask of each byte);
+; pp = paper colour in the 4 bytes; dd = ink XOR paper.
+; Registers: a0 = destination, a1 = string, a2 = font, a3 = fm table, a4 = glyph, d2 = pp, d3 = dd, d4 = maxn, d5 = drawn, d0/d1 = work.
 	.globl	_ql_puts
 	.text
 _ql_puts:

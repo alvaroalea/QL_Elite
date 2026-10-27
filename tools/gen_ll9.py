@@ -1,5 +1,5 @@
-# Genera tests/vectors_ll9.txt ejecutando las rutinas ORIGINALES (fuente de referencia) en el emulador de 6502.
-# Requiere la fuente clonada (ELITE_SRC). El fichero generado se usa con tests/test_ll9.c.
+# Generates tests/vectors_ll9.txt by running the ORIGINAL routines (reference source) in the 6502 emulator.
+# Requires the cloned source (ELITE_SRC). The generated file is used by tests/test_ll9.c.
 import sys, random, math
 sys.path.insert(0, 'tools')
 import orig, elitesrc, gen_shipdata
@@ -18,7 +18,7 @@ SPEC = [0, 1, 2, 3, 0x7F, 0x80, 0x81, 0xFE, 0xFF]
 def B(): return random.choice(SPEC) if random.random() < 0.3 else random.randrange(256)
 
 def rotation():
-    # cuaternion aleatorio -> matriz; filas = nosev, roofv, sidev
+    # random quaternion -> matrix; rows = nosev, roofv, sidev
     q = [random.gauss(0, 1) for _ in range(4)]; n = math.sqrt(sum(v * v for v in q)); w, x, y, z = [v / n for v in q]
     m = [[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
          [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
@@ -55,12 +55,12 @@ def make_inwk():
     w[27:31] = rb(4)
     f = 0
     r = random.random()
-    if random.random() < 0.35: f |= 0x08                        # linea dibujada antes
-    if random.random() < 0.12: f |= 0x20                        # explotando
-    if random.random() < 0.10: f |= 0x40                        # disparando laser
-    if random.random() < 0.10: f |= 0x80                        # muerta
+    if random.random() < 0.35: f |= 0x08                        # line drawn before
+    if random.random() < 0.12: f |= 0x20                        # exploding
+    if random.random() < 0.10: f |= 0x40                        # firing laser
+    if random.random() < 0.10: f |= 0x80                        # dead
     w[31] = f | random.randrange(8)
-    w[32] = B(); w[33] = 0; w[34] = HEAP >> 8; w[35] = B()      # XX19 (puntero al monton) fijo
+    w[32] = B(); w[33] = 0; w[34] = HEAP >> 8; w[35] = B()      # fixed XX19 (heap pointer)
     w[36] = 0x80 if random.random() < 0.08 else random.randrange(128)
     return w
 
@@ -109,7 +109,7 @@ for _ in range(N):
           ('xx2', hx(m[A('XX2'):A('XX2') + 16])), ('ks', hx(m[0x800:0x800 + 37])), ('rand', hx(m[A('RAND'):A('RAND') + 4])),
           ('dlog', hx(dl)), ('slog', hx(sl))])
 
-# --- recorte de lineas: CLIP y CLIP2 ---
+# --- line clipping: CLIP and CLIP2 ---
 def coord():
     r = random.random()
     if r < 0.5: return random.randrange(256), random.choice([0, 0, 0, 1, 0xFF])
@@ -131,7 +131,7 @@ for _ in range(N * 2):
         cpu.run(A('CLIP')); ia = ''
     else:
         ia_v = x15[5]; cpu.a = ia_v
-        # CLIP2 espera A = XX15+5; se entra por CLIP2 con A cargado
+        # CLIP2 expects A = XX15+5; it is entered through CLIP2 with A loaded
         cpu.run(A('CLIP2'))
     emit(which, [('x15', hx(x15)), ('x12', hx(x12)), ('sw', '%02x' % sw0)],
          [('x15', hx(m[A('XX15'):A('XX15') + 6])), ('x12', hx(m[A('XX12'):A('XX12') + 6])), ('rc', '%02x' % cpu.c), ('sw', '%02x' % m[A('SWAP')])])

@@ -1,5 +1,5 @@
-/* Volcado para tools/test_ll9asm.py: casos al azar de ship_ll9_faces_c y ship_ll9_verts_c con sus entradas (variables globales y planos
-   reales de las 32 naves) y sus salidas, en texto. uso: ll9_dump N semilla */
+/* Dump for tools/test_ll9asm.py: random cases of ship_ll9_faces_c and ship_ll9_verts_c with their inputs (global variables and real
+   blueprints of the 32 ships) and their outputs, as text. usage: ll9_dump N seed */
 #include <stdio.h>
 #include <stdlib.h>
 #include "../src/ship3d.h"
@@ -15,12 +15,12 @@ static const u8 *bp_off(const u8 *bp, u8 lo, u8 hi)
     return bp + off;
 }
 
-/* ---- aristas: LL75..LL81 con el recorte y el dibujo reales (ship_clip2, ship_lsput) y las lineas registradas ---- */
+/* ---- edges: LL75..LL81 with the real clipping and drawing (ship_clip2, ship_lsput) and the lines logged ---- */
 static unsigned char lines_log[600][4]; static int nlines;
 static void rec_loin(void) { if (!(ship_dbg_skip & 2) && nlines < 600) { lines_log[nlines][0] = zx15[0]; lines_log[nlines][1] = zx15[1]; lines_log[nlines][2] = zx15[2]; lines_log[nlines][3] = zx15[3]; nlines++; } }
 static int edge_idx[80], edge_acc[80], edge_n; static unsigned char edge_xy[80][4], edge_raw[80][8];
 
-/* copia de ship_ll9_edges_c que ademas registra, por arista visible, el resultado de ship_clip2 y la linea (X1, Y1, X2, Y2) que deja */
+/* copy of ship_ll9_edges_c that also logs, per visible edge, the result of ship_clip2 and the line (X1, Y1, X2, Y2) it leaves */
 static void edges_logged(const u8 *v)
 {
     u8 a, x;
@@ -61,12 +61,12 @@ static void edges_case(const u8 *bp, int type, int mode)
     clip_h = chs[rnd() % 3];
     rbytes(xx3, 258); rbytes(zk3, 16); rbytes(heap0, 256); rbytes(zx12, 6); rbytes(zx15, 6);
     for (i = 0; i < 16; i++) if (rnd() % 5) zk3[i] = (u8)(1 + rnd() % 9);
-    if (mode == 0)                                       /* casi todo dentro de la vista */
+    if (mode == 0)                                       /* almost everything inside the view */
         for (i = 0; i + 3 < 258; i += 4) {
             if (rnd() % 10) xx3[i + 1] = 0;
             if (rnd() % 10) xx3[i + 3] = 0;
             if (rnd() % 10) xx3[i + 2] = (u8)(rnd() % clip_h);
-            else if (rnd() & 1) xx3[i + 2] = (u8)(clip_h - 2 + (int)(rnd() % 4));     /* justo en el borde (clip_h - 2 .. clip_h + 1) */
+            else if (rnd() & 1) xx3[i + 2] = (u8)(clip_h - 2 + (int)(rnd() % 4));     /* right at the edge (clip_h - 2 .. clip_h + 1) */
         }
     zlsnum2 = (u8)((rnd() % 4) ? 1 + 4 * (rnd() % 12) : 0);
     zlsnum = 1;
@@ -86,7 +86,7 @@ static void edges_case(const u8 *bp, int type, int mode)
     for (i = 0; i < edge_n; i++) printf("%02x%d%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", edge_idx[i], edge_acc[i], edge_xy[i][0], edge_xy[i][1], edge_xy[i][2], edge_xy[i][3],
                                         edge_raw[i][0], edge_raw[i][1], edge_raw[i][2], edge_raw[i][3], edge_raw[i][4], edge_raw[i][5], edge_raw[i][6], edge_raw[i][7]);
     printf("\n");
-    /* comprobacion de la propia prueba: ship_ll9_edges_c da lo mismo que la copia con registro */
+    /* check of the test itself: ship_ll9_edges_c gives the same as the logging copy */
     {
         u8 heap1[256]; int nl1 = nlines, z1 = zlsnum, x17 = zxx17, bad = 0;
         static unsigned char lines1[600][4];
@@ -112,9 +112,9 @@ int main(int argc, char **argv)
         int type = 1 + (int)(rnd() % SHIP_TYPES), mode = (int)(rnd() % 7), custom = 0;
         const u8 *bp = SHIP_BP(type), *v;
         static u8 cplan[48];
-        kind = k % 3;                                    /* 0 = caras, 1 = vertices, 2 = aristas */
+        kind = k % 3;                                    /* 0 = faces, 1 = vertices, 2 = edges */
         if (kind == 2) mode = (int)(rnd() % 2);
-        if (mode == 6 && kind == 1) {                    /* plano propio: dos vertices con coordenadas diminutas (profundidades 0..8) */
+        if (mode == 6 && kind == 1) {                    /* own blueprint: two vertices with tiny coordinates (depths 0..8) */
             int nv = 1 + (int)(rnd() % 3);
             for (i = 0; i < 48; i++) cplan[i] = 0;
             for (i = 0; i < nv; i++) {
@@ -128,16 +128,16 @@ int main(int argc, char **argv)
         zxx4 = (u8)(rnd() % 40);
         zxx17 = (u8)(rnd() % 8);
         rbytes(zxx16, 18); rbytes(zxx18, 9); rbytes(zk3, 16); rbytes(zx12, 6); rbytes(zx15, 6); rbytes(inwk, NI); rbytes(xx3, 258);
-        if (mode == 1) for (i = 0; i < 9; i++) zxx18[i] = (u8)((zxx18[i] & 0x8F) % 0x90);    /* valores pequenos: rara vez desborda */
-        if (mode == 2) for (i = 0; i < 16; i++) zk3[i] = (u8)((rnd() & 1) ? 0 : zk3[i]);       /* caras ocultas y visibles */
+        if (mode == 1) for (i = 0; i < 9; i++) zxx18[i] = (u8)((zxx18[i] & 0x8F) % 0x90);    /* small values: rarely overflows */
+        if (mode == 2) for (i = 0; i < 16; i++) zk3[i] = (u8)((rnd() & 1) ? 0 : zk3[i]);       /* hidden and visible faces */
         if (mode == 3) { for (i = 0; i < 18; i++) zxx16[i] = (u8)(zxx16[i] % 0x61 | (zxx16[i] & 0x80 ? 0x80 : 0)); inwk[7] = (u8)(rnd() % 6); inwk[8] = 0; inwk[1] &= 3; inwk[4] &= 3; }
-        if (mode == 4) {                                 /* todo diminuto: la profundidad y las posiciones caen en 0, 4, 5... (casos limite) */
+        if (mode == 4) {                                 /* everything tiny: depth and positions fall at 0, 4, 5... (edge cases) */
             for (i = 0; i < 18; i++) zxx16[i] = (u8)((rnd() % 4) | (rnd() & 0x80));
             for (i = 0; i < 9; i++) inwk[i] = (u8)(rnd() % 9);
             inwk[2] = (u8)((rnd() & 1) ? 0x80 : 0); inwk[5] = (u8)((rnd() & 1) ? 0x80 : 0); inwk[8] = (u8)((rnd() & 1) ? 0x80 : 0);
             if (rnd() & 1) { inwk[6] = (u8)(rnd() % 8); inwk[7] = 0; }
         }
-        if (mode == 5) {                                 /* matriz a cero y bytes altos de la posicion en {0, $80}: valores de 16 bits con solo el bit 15 */
+        if (mode == 5) {                                 /* matrix at zero and high position bytes in {0, $80}: 16-bit values with only bit 15 */
             for (i = 0; i < 18; i++) zxx16[i] = (u8)((rnd() & 3) ? 0 : (rnd() & 0x80));
             inwk[1] = (u8)((rnd() & 1) ? 0x80 : 0); inwk[4] = (u8)((rnd() & 1) ? 0x80 : 0); inwk[7] = (u8)((rnd() & 1) ? 0x80 : 0);
             inwk[0] = (u8)(rnd() % 3 ? 0 : rnd()); inwk[3] = (u8)(rnd() % 3 ? 0 : rnd()); inwk[6] = (u8)(rnd() % 3 ? 0 : rnd());

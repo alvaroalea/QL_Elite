@@ -1,6 +1,6 @@
-/* Dibujo de planetas y soles contra el 6502 ORIGINAL (vectores de tools/gen_planet.py): secuencias de fotogramas de PLANET
-   (PROJ, DVID3B2, SUN, CHKON, EDGES, HLOIN2, WPLS, CIRCLE, CIRCLE2, BLINE, LL145, WPLS2, WP1) con el planeta o el sol
-   cruzando los bordes de la vista; se comparan todas las lineas (LOIN ya ordenada y SWAP; HLOIN redondeada) y los montones. */
+/* Drawing of planets and suns against the ORIGINAL 6502 (vectors from tools/gen_planet.py): sequences of PLANET frames
+   (PROJ, DVID3B2, SUN, CHKON, EDGES, HLOIN2, WPLS, CIRCLE, CIRCLE2, BLINE, LL145, WPLS2, WP1) with the planet or sun
+   crossing the view edges; all the lines are compared (LOIN already sorted and SWAP; HLOIN rounded) and the heaps. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

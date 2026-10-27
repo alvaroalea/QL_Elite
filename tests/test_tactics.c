@@ -1,5 +1,5 @@
-/* TACTICS contra el 6502 ORIGINAL (vectores de tools/gen_tactics.py): IA de naves, estacion, roca, misiles, Thargons;
-   se comparan INWK, las 8 ranuras de K%, RAND, RAT/RAT2/CNT/CNT2, ECMA, escudos, energia, TALLY, mensajes y la nave hija. */
+/* TACTICS against the ORIGINAL 6502 (vectors from tools/gen_tactics.py): ship AI, station, rock, missiles, Thargons;
+   INWK, the 8 K% slots, RAND, RAT/RAT2/CNT/CNT2, ECMA, shields, energy, TALLY, messages and the child ship are compared. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -62,7 +62,7 @@ int main(void)
             nomsl = (u8)atoi(a[2]); mstg = (u8)atoi(a[3]); msar = (u8)atoi(a[4]);
             if (ky[0]) missile_unarm();
             if (ky[1]) missile_target();
-            ok = (ky[2] && !(mstg & 0x80)) == (strstr(a[7], "FRMIS") != 0);    /* M dispara FRMIS si hay blanco */
+            ok = (ky[2] && !(mstg & 0x80)) == (strstr(a[7], "FRMIS") != 0);    /* M fires FRMIS if there is a target */
             sprintf(got, "mstg %d msar %d", mstg, msar);
             check(ok && mstg == atoi(a[5]) && msar == atoi(a[6]), "teclas de misil (MA4..MA24)");
             continue;
@@ -80,7 +80,7 @@ int main(void)
         hexb(a[16], iwo, NI); hexb(a[17], slo, 8 * NI); hexb(a[18], r2, 4);
         ships_clear();
         for (i = 0; i < 8; i++) memcpy(state_slot(i), sl + i * NI, NI);
-        frin[0] = 128; frin[1] = 129; frin[2] = (u8)atoi(a[1]);   /* las hijas van a la ranura 3 */
+        frin[0] = 128; frin[1] = 129; frin[2] = (u8)atoi(a[1]);   /* the child lasers go to slot 3 */
         for (i = 0; i <= NTY; i++) many[i] = 0;
         many[SHIPT_SHUTTLE + 1] = (u8)atoi(a[5]); many[SHIPT_VIPER] = (u8)atoi(a[6]); many[SHIPT_THARGOID] = (u8)atoi(a[7]);
         sspr = (u8)atoi(a[8]); fist = (u8)atoi(a[9]); ecma = (u8)atoi(a[10]);
@@ -97,14 +97,14 @@ int main(void)
         ok = ok && t_rat == atoi(a[19]) && t_rat2 == atoi(a[20]) && t_cnt == atoi(a[21]) && t_cnt2 == atoi(a[22]) &&
              ecma == atoi(a[23]) && fsh == atoi(a[24]) && ash == atoi(a[25]) && energy == atoi(a[26]) &&
              tallyl == atoi(a[27]) && tally[0] == atoi(a[28]) && tally[1] == atoi(a[29]);
-        /* mensajes del 6502 (sin ECBLB ni LASNOISE, que en C no se registran) */
+        /* 6502 messages (without ECBLB or LASNOISE, which are not logged in C) */
         { char *p = a[30], *q = explog; explog[0] = 0;
           if (strcmp(p, "-") != 0) {
               while (*p) { char tok[32]; int l = (int)strcspn(p, ","); memcpy(tok, p, (size_t)l); tok[l] = 0;
                   if (strncmp(tok, "MESS:", 5) == 0) { if (q != explog) *q++ = ','; strcpy(q, tok); q += strlen(tok); }
                   p += l; if (*p) p++; } } }
         ok = ok && strcmp(explog, mlog) == 0;
-        /* nave hija */
+        /* child ship */
         if (strcmp(a[31], "-") == 0) ok = ok && child < 0;
         else {
             int t; char h[200]; u8 kw[NI];
@@ -121,7 +121,7 @@ int main(void)
     }
     fclose(f);
     printf("6502: TACTICS %d casos (%d con nave hija)\n", cnt, kids);
-    /* ---- integracion: una Mamba hostil y agresiva delante; el bucle de vuelo la deja atacar */
+    /* ---- integration: a hostile, aggressive Mamba ahead; the flight loop lets it attack */
     {
         int fr, n, hits = 0, shots = 0, missiles = 0, dead = 0;
         u8 f0;

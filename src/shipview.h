@@ -1,14 +1,14 @@
 #ifndef SHIPVIEW_H
 #define SHIPVIEW_H
 #include "ship3d.h"
-#define SHIPVIEW_HEAP 256                    /* tamano del monton de lineas por nave */
-#define SHIPVIEW_ANG 64                      /* angulos: 64 pasos por vuelta */
-void shipview_orient(int ay, int ax);        /* orientacion de INWK: guinada ay y cabeceo ax (0..63) */
-void shipview_pos(int x, int y, int z);      /* posicion en unidades de 256 (hi) con signo; z >= 0 */
-/* Dibuja una nave. fresh=1: monton vacio (primera vez). fresh=0: se reutiliza el monton y LL9 borra (XOR) las lineas anteriores
-   mientras dibuja las nuevas (animacion). El llamante hizo state_clear() y plat_init(). */
+#define SHIPVIEW_HEAP 256                    /* size of the per-ship line heap */
+#define SHIPVIEW_ANG 64                      /* angles: 64 steps per turn */
+void shipview_orient(int ay, int ax);        /* INWK orientation: yaw ay and pitch ax (0..63) */
+void shipview_pos(int x, int y, int z);      /* position in units of 256 (hi) with sign; z >= 0 */
+/* Draws a ship. fresh=1: empty heap (first time). fresh=0: the heap is reused and LL9 erases (XOR) the previous lines
+   while drawing the new ones (animation). The caller did state_clear() and plat_init(). */
 void shipview_draw(u8 type, int x, int y, int z, int ay, int ax, u8 *heap, u8 *slot, int fresh);
-/* Igual que shipview_draw con z en 1/256 de unidad (long): permite acercar la nave poco a poco */
+/* Same as shipview_draw with z in 1/256 of a unit (long): lets the ship approach gradually */
 void shipview_draw16(u8 type, int x, int y, long z, int ay, int ax, u8 *heap, u8 *slot, int fresh);
-int shipview_radius(u8 type);                /* tamano del plano (mayor coordenada de sus vertices) */
+int shipview_radius(u8 type);                /* size of the blueprint (largest coordinate of its vertices) */
 #endif

@@ -1,22 +1,22 @@
-; envsetup.asm - modulo _envsetup de libc.a (runtime c68 4.24f) CORREGIDO, sintaxis as68.
-; Parte de envsetup_orig.asm (transcripcion fiel, comprobada byte a byte); solo cambia e_set.
+; envsetup.asm - FIXED _envsetup module of libc.a (c68 4.24f runtime), as68 syntax.
+; Starts from envsetup_orig.asm (faithful transcription, checked byte by byte); only e_set changes.
 ;
-; Fallo del original: los punteros de Toolkit II en SV+$AC/$B0/$B4 son 0 sin Toolkit II y e_set lee la
-; cadena QDOS de la direccion 0 de la ROM. Su primera palabra hace de longitud: 3 en la ROM JS (basura
-; inofensiva), $4C02 en Minerva: qlstr_to_c copia 19458 bytes en un bufer de 50 de la pila y el programa
-; se cuelga antes de main. Ademas _setcd arma "nombre=valor" en otro bufer de 50 bytes, asi que un valor
-; de mas de 40 caracteres tambien lo desborda (nombre de hasta 8 + '=' + valor + 0).
-; Correccion en e_set: puntero no nulo, par y dentro de la RAM (entre las variables del sistema y SV_RAMT),
-; longitud de 1 a 40, y el bufer se pone a cero antes de __getcd (si la variable no cabe en 50 bytes
-; __getcd no escribe nada y se leia basura de la pila).
+; Original bug: the Toolkit II pointers at SV+$AC/$B0/$B4 are 0 without Toolkit II and e_set reads the
+; QDOS string at ROM address 0. Its first word acts as the length: 3 on the JS ROM (harmless
+; garbage), $4C02 on Minerva: qlstr_to_c copies 19458 bytes into a 50-byte stack buffer and the program
+; hangs before main. Also _setcd builds "name=value" in another 50-byte buffer, so a value
+; longer than 40 characters overflows it as well (name of up to 8 + '=' + value + 0).
+; Fix in e_set: non-null, even pointer inside RAM (between the system variables and SV_RAMT),
+; length from 1 to 40, and the buffer is zeroed before __getcd (if the variable does not fit in 50 bytes
+; __getcd writes nothing and garbage from the stack was read).
 ;
-; void _envsetup(char *env)   (lo llama Cinit antes de main con el entorno que pasa el trabajo padre)
-;  1) si env apunta a $4AFC, la lista de entorno es *(env+2); si no, busca en la tabla de nombres de
-;     SuperBASIC un procedimiento de codigo maquina (tipo 8) llamado *ENV* (extension ENV_BIN) y toma la
-;     lista de la palabra larga que sigue a su primera instruccion.
-;  2) putenv("") y putenv de cada cadena de la lista (terminada en cadena vacia).
-;  3) PROG_USE, DATA_USE y SPL_USE desde los punteros de Toolkit II en SV+$AC, $B0 y $B4 (cadenas QDOS),
-;     si no estan ya en el entorno.
+; void _envsetup(char *env)   (called by Cinit before main with the environment passed by the parent job)
+;  1) if env points to $4AFC, the environment list is *(env+2); otherwise, it looks in SuperBASIC's name table
+;     for a machine-code procedure (type 8) called *ENV* (extension ENV_BIN) and takes the
+;     list from the long word that follows its first instruction.
+;  2) putenv("") and putenv of each string in the list (terminated by an empty string).
+;  3) PROG_USE, DATA_USE and SPL_USE from the Toolkit II pointers at SV+$AC, $B0 and $B4 (QDOS strings),
+;     if they are not already in the environment.
 
 	.text
 envname:
@@ -39,7 +39,7 @@ e_bas:
 	jsr	__super
 	move.l	__sys_var,a0
 	move.l	16(a0),d0		; SV_BASIC
-	add.l	#104,d0			; + $68: variables de BASIC
+	add.l	#104,d0			; + $68: BASIC variables
 	move.l	d0,a4
 	move.l	24(a4),d0		; BV_NTBAS
 	add.l	a4,d0
@@ -140,32 +140,32 @@ e_s3:
 	unlk	a5
 	rts
 
-; e_set(char *nombre, char *cadena_qdos): si nombre no esta en el entorno, nombre=cadena
+; e_set(char *name, char *qdos_string): if name is not in the environment, name=string
 e_set:
 	link	a5,#-50
 	move.l	a2,-(a7)
 	lea	-50(a5),a2
-	clr.b	(a2)			; CORREGIDO: bufer vacio si __getcd no escribe
+	clr.b	(a2)			; FIXED: empty buffer if __getcd writes nothing
 	pea	50
 	move.l	a2,-(a7)
 	move.l	8(a5),-(a7)
 	jsr	__getcd
 	tst.b	(a2)
 	bne	e_sfin
-	move.l	12(a5),d0		; CORREGIDO: validar el puntero de Toolkit II
-	beq	e_sfin			; nulo: no hay Toolkit II
+	move.l	12(a5),d0		; FIXED: validate the Toolkit II pointer
+	beq	e_sfin			; null: there is no Toolkit II
 	btst	#0,d0
-	bne	e_sfin			; impar
+	bne	e_sfin			; odd
 	move.l	__sys_var,a0
 	cmp.l	a0,d0
-	bls	e_sfin			; por debajo de las variables del sistema (ROM, pantalla)
+	bls	e_sfin			; below the system variables (ROM, screen)
 	cmp.l	32(a0),d0		; SV_RAMT
-	bcc	e_sfin			; por encima de la RAM
+	bcc	e_sfin			; above RAM
 	move.l	d0,a0
-	move.w	(a0),d0			; longitud de la cadena QDOS
-	ble	e_sfin			; 0 o negativa
+	move.w	(a0),d0			; length of the QDOS string
+	ble	e_sfin			; 0 or negative
 	cmp.w	#40,d0
-	bgt	e_sfin			; no cabe en los bufer de 50 bytes de aqui y de __setcd
+	bgt	e_sfin			; does not fit in the 50-byte buffers here and in __setcd
 	move.l	12(a5),-(a7)
 	move.l	a2,-(a7)
 	jsr	_qlstr_to_c

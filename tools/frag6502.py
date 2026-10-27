@@ -1,6 +1,6 @@
-# Utilidades para ensamblar TRAMOS sueltos de la fuente original y ejecutarlos en el emulador (gen_laser.py, gen_damage.py).
-# build() convierte en stubs que registran (nombre, A, X, Y) todo lo que no se resuelve; si una rama no llega a un stub,
-# pone un RTS local al final. lab(nombre) = indice de la linea ".nombre"; rng(a, b) = lineas preprocesadas (IF/ELIF).
+# Utilities to assemble loose STRETCHES of the original source and run them in the emulator (gen_laser.py, gen_damage.py).
+# build() turns into stubs that log (name, A, X, Y) everything that is not resolved; if a branch does not reach a stub,
+# it puts a local RTS at the end. lab(name) = index of the line ".name"; rng(a, b) = preprocessed lines (IF/ELIF).
 import sys, re, random
 sys.path.insert(0, 'tools')
 import elitesrc, orig
@@ -9,8 +9,8 @@ from asm6502 import assemble
 FLAGS = {'_SOURCE_DISK': 1, '_IB_DISK': 0, '_4AM_CRACK': 0}
 
 def preprocess(lines):
-    """IF / ELIF / ELSE / ENDIF con las banderas de FLAGS (la disquetera de la fuente: _SOURCE_DISK)."""
-    out = []; stack = []          # cada nivel: [activo_padre, ya_tomada, activo]
+    """IF / ELIF / ELSE / ENDIF with the FLAGS flags (the source's disk drive: _SOURCE_DISK)."""
+    out = []; stack = []          # each level: [parent_active, already_taken, active]
     def ev(e):
         e = re.sub(r'\bOR\b', ' or ', e); e = re.sub(r'\bAND\b', ' and ', e); e = re.sub(r'\bNOT\b', ' not ', e)
         e = re.sub(r'[A-Za-z_][A-Za-z_0-9]*', lambda m: str(FLAGS.get(m.group(0), 0)) if m.group(0) not in ('or', 'and', 'not') else m.group(0), e)
@@ -43,7 +43,7 @@ def lab(name, start=0):
 def rng(a, b): return [re.sub(r'\s+AND\s+(?=\d)', ' & ', l) for l in preprocess(L[a:b]) if code(l) != 'SKIP 0']
 def routine(name): return preprocess(L[nl(name) - 1:nx(nl(name)) - 1])
 
-def table(name):                          # EQUB de elite-data.asm a partir de .name
+def table(name):                          # EQUB of elite-data.asm from .name
     i = [k for k, l in enumerate(D) if code(l) == '.' + name][0] + 1; out = []
     while len(out) < 32:
         t = code(D[i]); i += 1
@@ -52,8 +52,8 @@ def table(name):                          # EQUB de elite-data.asm a partir de .
     return out
 
 def build(lines, logs, presets=None):
-    """Ensambla; lo que no se resuelva pasa a ser un stub que registra (nombre, A, X, Y) y vuelve con RTS.
-    presets: simbolos que se fijan antes (p. ej. tablas de datos con su propia direccion)."""
+    """Assembles; whatever is not resolved becomes a stub that logs (name, A, X, Y) and returns with RTS.
+    presets: symbols set beforehand (e.g. data tables with their own address)."""
     stubs = []
     while True:
         S = elitesrc.parse_vars(); cpu = CPU(); cpu.log = []
@@ -66,10 +66,10 @@ def build(lines, logs, presets=None):
             return cpu, S
         except Exception as e:
             m2 = re.match(r'salto fuera de rango: B.. (\w+)$', str(e))
-            if m2 and not any(code(l) == '.' + m2.group(1) for l in lines):   # rama a algo de fuera: RTS local (sin registro)
+            if m2 and not any(code(l) == '.' + m2.group(1) for l in lines):   # branch to something outside: local RTS (no log)
                 if m2.group(1) in stubs: stubs.remove(m2.group(1))
                 lines = lines + ['.' + m2.group(1), 'RTS']; continue
-            m = re.match(r'SIN_RESOLVER (.*)', str(e)) or re.match(r"name '(\w+)' is not defined", str(e))   # EQUW a rutinas de fuera
+            m = re.match(r'SIN_RESOLVER (.*)', str(e)) or re.match(r"name '(\w+)' is not defined", str(e))   # EQUW to routines outside
             if not m: raise
             new = [x for x in m.group(1).split() if x not in stubs]
             if not new: raise

@@ -1,5 +1,5 @@
-/* Volcado para tools/test_ellrowsasm.py: casos de gfx_ell_update (version en C) con la pantalla de partida a $FF; para cada caso imprime los
-   datos, las tablas y los bytes de pantalla que cambian ("indice:valor"). uso: ellrows_dump n semilla */
+/* Dump for tools/test_ellrowsasm.py: gfx_ell_update cases (C version) with the starting screen at $FF; for each case it prints the
+   data, the tables and the screen bytes that change ("index:value"). usage: ellrows_dump n seed */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
         for (i = 0; i < 32768; i++) if (screen[i] != 0xFF) printf(" %d:%d", i, screen[i]);
         printf("\n");
     }
-    /* desplazamientos de 1 y 2 puntos del mismo planeta (centro igual o no): los casos del juego al volar */
+    /* shifts of 1 and 2 dots of the same planet (same centre or not): the game cases when flying */
     {
         static const int rxs[6] = { 7, 30, 60, 100, 150, 248 };
         static const int dxs[6] = { 0, 0, 0, 1, 2, -1 }, dys[6] = { 1, -1, 2, 0, 1, -2 };

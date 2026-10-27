@@ -1,5 +1,5 @@
-/* MVT1, MVS4, MVS5, MVT6 y MVEIT (con MV40, MV45, TIDY...) contra el codigo original en el emulador (tools/gen_move.py):
-   INWK a la salida, las llamadas a SCAN (con INWK+0..8, INWK+31 y TYPE) y a TACTICS. */
+/* MVT1, MVS4, MVS5, MVT6 and MVEIT (with MV40, MV45, TIDY...) against the original code in the emulator (tools/gen_move.py):
+   INWK on exit, the calls to SCAN (with INWK+0..8, INWK+31 and TYPE) and to TACTICS. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

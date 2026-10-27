@@ -1,4 +1,4 @@
-/* Volcado del universo con universe.c, en el mismo formato que el oraculo (TXTELITE.C 1.5). */
+/* Dump of the universe with universe.c, in the same format as the oracle (TXTELITE.C 1.5). */
 #include <stdio.h>
 #include "universe.h"
 u8 *screen;

@@ -1,6 +1,6 @@
-/* Proyeccion y dibujo de naves (LL9) con recorte de lineas y monton de lineas por nave (XOR).
-   Port de la version Apple II; sigue el flujo del 6502. Las lineas se dibujan con ship_loin_hook
-   (por defecto gfx_line en XOR sobre el area de 256x136). */
+/* Projection and drawing of ships (LL9) with line clipping and a line heap per ship (XOR).
+   Port of the Apple II version; follows the 6502 flow. Lines are drawn with ship_loin_hook
+   (by default gfx_line in XOR on the 256x136 area). */
 #ifndef SHIP3D_H
 #define SHIP3D_H
 #include "state.h"
@@ -8,31 +8,31 @@
 #include "ship_math.h"
 #include "shipdata.h"
 
-extern u8 ztype;                    /* TYPE: tipo de la nave actual (bit 7 = planeta/sol) */
-extern const u8 *zxx0;              /* XX0: plano de la nave (ver SHIP_BP) */
-extern u8 *zxx19;                   /* XX19: monton de lineas de la nave (byte 0 = bytes usados; luego 4 por linea) */
-extern u8 *zinf;                    /* INF: bloque de la nave en K% (se ponen a 0 sus bytes 28 y 30 al explotar) */
+extern u8 ztype;                    /* TYPE: type of the current ship (bit 7 = planet/sun) */
+extern const u8 *zxx0;              /* XX0: ship blueprint (see SHIP_BP) */
+extern u8 *zxx19;                   /* XX19: ship's line heap (byte 0 = bytes used; then 4 per line) */
+extern u8 *zinf;                    /* INF: ship block in K% (its bytes 28 and 30 are set to 0 on exploding) */
 extern u8 zxx4, zxx13, zxx17, zxx20, zcnt, zswap, zlsnum, zlsnum2;
 extern u8 zxx18[9];
-extern u8 xx3[258];                 /* XX3: coordenadas de pantalla de los vertices (4 bytes cada uno) */
-#define xx2 zk3                     /* XX2: caras visibles (comparte memoria con K3, como el original) */
-extern u8 ship_c_in;                /* acarreo con que se entra a LL9 (lo usa el primer DORND al explotar) */
+extern u8 xx3[258];                 /* XX3: screen coordinates of the vertices (4 bytes each) */
+#define xx2 zk3                     /* XX2: visible faces (shares memory with K3, like the original) */
+extern u8 ship_c_in;                /* carry with which LL9 is entered (used by the first DORND on exploding) */
 
-/* Ganchos: LOIN (dibuja XX15 = X1,Y1,X2,Y2), DOEXP (explosion) y PLANET (ranura de planeta/sol) */
+/* Hooks: LOIN (draws XX15 = X1,Y1,X2,Y2), DOEXP (explosion) and PLANET (planet/sun slot) */
 extern void (*ship_loin_hook)(void);
 extern void (*ship_doexp_hook)(void);
 extern void (*ship_planet_hook)(void);
 
-void ship_ll9(void);                /* dibuja (o borra) la nave de INWK */
-void ship_ll9_faces_c(const u8 *v);  /* LL86..LL88 en C (referencia de ql_ll9_faces; las pruebas las llaman) */
+void ship_ll9(void);                /* draws (or erases) the ship in INWK */
+void ship_ll9_faces_c(const u8 *v);  /* LL86..LL88 in C (reference for ql_ll9_faces; the tests call them) */
 void ship_ll9_verts_c(void);
-void ship_ll9_edges_c(const u8 *v);   /* LL75..LL81 en C (referencia de ql_ll9_edges) */        /* LL48..LL50 en C (referencia de ql_ll9_verts) */
-void ship_ll51(void);               /* XX12 = XX15 (vector) por la matriz XX16 */
-void ship_shppt(void);              /* nave lejana: un punto */
-u8   ship_clip(void);               /* recorta XX15/XX12; devuelve 1 si la linea queda fuera */
-u8   ship_clip2(u8 a);              /* entrada CLIP2 (a = XX15+5) */
-void ship_lsput(void);              /* guarda la linea en el monton y dibuja la nueva y borra la vieja */
-extern u8 ship_dbg_skip;           /* DEBUG (SHIFT-D): bit 0 = sin matematicas, bit 1 = sin dibujo */
-void ship_redraw_heap(void);        /* DEBUG: pinta dos veces las lineas del monton (coste del dibujo sin LL9) */
-void ship_lsclr(void);              /* borra las lineas del monton que quedan sin sustituir */
+void ship_ll9_edges_c(const u8 *v);   /* LL75..LL81 in C (reference for ql_ll9_edges) */        /* LL48..LL50 in C (reference for ql_ll9_verts) */
+void ship_ll51(void);               /* XX12 = XX15 (vector) by the matrix XX16 */
+void ship_shppt(void);              /* distant ship: a dot */
+u8   ship_clip(void);               /* clips XX15/XX12; returns 1 if the line ends up outside */
+u8   ship_clip2(u8 a);              /* CLIP2 entry (a = XX15+5) */
+void ship_lsput(void);              /* stores the line in the heap and draws the new one and erases the old */
+extern u8 ship_dbg_skip;           /* DEBUG (SHIFT-D): bit 0 = no maths, bit 1 = no drawing */
+void ship_redraw_heap(void);        /* DEBUG: paints the lines of the heap twice (drawing cost without LL9) */
+void ship_lsclr(void);              /* erases the lines of the heap that are left unreplaced */
 #endif

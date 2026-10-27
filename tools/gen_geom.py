@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Genera tests/vectors_geom.txt con las MISMAS operaciones y entradas que tools/gen_vectors3.py, pero con la salida del
-codigo ORIGINAL ejecutado en el emulador de 6502 (en vez de la transcripcion en Python de tools/ref6502_state.py):
+"""Generates tests/vectors_geom.txt with the SAME operations and inputs as tools/gen_vectors3.py, but with the output of the
+ORIGINAL code run in the 6502 emulator (instead of the Python transcription in tools/ref6502_state.py):
 MVT3, MAS1, MAS2, MAS3, MAS4, VCSUB, TAS1, TAS2, NORM, TAS3, TAS4, TAS6, TIS3, TIDY, SPS1, SPS2, SPS3, SPS4, PLS6, PROJ,
-LCASH, MCASH, GCASH, SCALEY, SCALEY2, SCALEX (y todo lo que usan: MULT1, MAD, ADD, SQUA, LL5, LL28, DVID4...).
-Se comprueba con tests/test_state (make test_geom). Requiere ELITE_SRC. Uso: python3 tools/gen_geom.py [n] [semilla]"""
+LCASH, MCASH, GCASH, SCALEY, SCALEY2, SCALEX (and everything they use: MULT1, MAD, ADD, SQUA, LL5, LL28, DVID4...).
+Checked with tests/test_state (make test_geom). Requires ELITE_SRC. Usage: python3 tools/gen_geom.py [n] [seed]"""
 import sys, random, re
 sys.path.insert(0, 'tools')
 from frag6502 import *
@@ -12,7 +12,7 @@ import math
 n = int(sys.argv[1]) if len(sys.argv) > 1 else 3000
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 33)
 
-# todos los bloques de la categoria Maths, en el orden de la fuente
+# all the blocks of the Maths category, in source order
 blocks = []
 for i, l in enumerate(L):
     m = re.match(r'^;\s+Name: (\S+)', l)
@@ -26,13 +26,13 @@ code_ = []
 skipped = []
 for a, b in blocks:
     bl = preprocess(L[a - 1:b - 1])
-    if any(re.match(r'^FOR\b', code(l)) for l in bl): skipped.append(re.sub(r'^;\s+Name: ', '', L[a - 1]).strip()); continue   # tablas
+    if any(re.match(r'^FOR\b', code(l)) for l in bl): skipped.append(re.sub(r'^;\s+Name: ', '', L[a - 1]).strip()); continue   # tables
     bl = [l for l in bl if code(l) != 'SKIP 0']
-    if any('PL2-1' in code(l) for l in bl):              # RTS justo antes de PL2 (fuera de Maths): uno local
+    if any('PL2-1' in code(l) for l in bl):              # RTS just before PL2 (outside Maths): a local one
         bl = [l.replace('PL2-1', 'PL2RTS') for l in bl] + ['.PL2RTS', ' RTS']
     code_ += bl
 print('tablas fuera:', skipped, file=sys.stderr)
-extra = preprocess(L[nl('MVT3') - 1:nx(nl('MVT3')) - 1]) + preprocess(L[nl('PLS6') - 1:nx(nl('PLS6')) - 1]) + routine('PL21')   # PL21: SEC; RTS (no basta un RTS local)
+extra = preprocess(L[nl('MVT3') - 1:nx(nl('MVT3')) - 1]) + preprocess(L[nl('PLS6') - 1:nx(nl('PLS6')) - 1]) + routine('PL21')   # PL21: SEC; RTS (a local RTS is not enough)
 extra = [l.replace('PL2-1', 'PL2RTSB') for l in extra if code(l) != 'SKIP 0'] + ['.PL2RTSB', ' RTS']
 code_ += extra
 code_ = [re.sub(r'\s+AND\s+(?=\d)', ' & ', l) for l in code_]
@@ -61,7 +61,7 @@ AREAS = {'inwk': ('INWK', NI), 'k': ('K', 4), 'ks': ('K%', 2 * NI), 'k3': ('K3',
 ONE = {'p': 'P', 'p1': 'P+1', 'q': 'Q', 'r': 'R', 's': 'S', 'u': 'U', 't': 'T'}
 def addr(nm): return S[nm[:-2]] + 1 if nm.endswith('+1') else S[nm]
 def run(entry, a=0, x=0, y=0, c=0, **mem):
-    """zera la pagina cero y K%, pone las entradas y ejecuta; devuelve un lector de salidas"""
+    """zeroes zero page and K%, sets the inputs and runs; returns an output reader"""
     for k in range(0, 0x100): cpu.mem[k] = 0
     for k in range(S['K%'], S['K%'] + 2 * NI): cpu.mem[k] = 0
     for k in range(S['CASH'], S['CASH'] + 4): cpu.mem[k] = 0

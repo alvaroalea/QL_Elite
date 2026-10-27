@@ -1,6 +1,6 @@
-/* Compara trade_room / trade_buy / trade_sell con el codigo ORIGINAL (tnpr, TT219, TT208, GCASH, LCASH, MCASH) ejecutado
-   en el emulador de 6502: vectores de tests/vectors_trade.txt (tools/gen_trade.py).
-   Dominio "alcanzable" (campo 1): estados que se dan jugando (bodega valida, cantidad <= existencias/bodega). */
+/* Compares trade_room / trade_buy / trade_sell with the ORIGINAL code (tnpr, TT219, TT208, GCASH, LCASH, MCASH) run
+   in the 6502 emulator: vectors from tests/vectors_trade.txt (tools/gen_trade.py).
+   "Reachable" domain (field 1): states that occur when playing (valid hold, quantity <= stock/hold). */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@ int main(void)
             memcpy(qq20, h, 17); tribble[1] = (u8)trib; crgo = (u8)crgo_;
             ok = trade_fits(g, (unsigned)qty);
             nN++;
-            if (qty != 0 && (carry == 0) != ok) badN[reach]++;     /* qty 0 nunca se compra (TT219 salta con BEQ) */
+            if (qty != 0 && (carry == 0) != ok) badN[reach]++;     /* qty 0 is never bought (TT219 jumps with BEQ) */
         } else if (line[0] == 'B') {
             char cx[4];
             sscanf(line, "B %d %d %d %d %d %39s %d %d %lu %3s %d %d %15s %39s %d", &reach, &g, &qty, &avl_, &price, hold, &trib, &crgo_, &c0, cx, &x, &y, cash2, hold2, &a);
@@ -44,11 +44,11 @@ int main(void)
             if (qty == 0) ok = TR_OK;
             {
                 int bad = 0;
-                if (x == 0 && ok != TR_OK) bad = 1;                                   /* original compro, C no */
+                if (x == 0 && ok != TR_OK) bad = 1;                                   /* the original bought, C did not */
                 if (x == 1 && y == 206 && ok != TR_NOROOM) bad = 1;
                 if (x == 1 && y == 197 && ok != TR_NOCASH) bad = 1;
                 if (cash_get() != c1 || memcmp(qq20, eh, 17) != 0 || avl[g] != a) bad = 1;
-                if (bad) { if (qty > avl_) badB_gnum++; else badB[reach]++; }     /* qty > existencias: gnum del original no lo deja pedir */
+                if (bad) { if (qty > avl_) badB_gnum++; else badB[reach]++; }     /* qty > stock: the original's gnum does not let it be requested */
             }
         } else if (line[0] == 'S') {
             sscanf(line, "S %d %d %d %d %39s %15s %15s %39s", &reach, &g, &qty, &price, hold, cashs, cash2, hold2);
@@ -62,11 +62,11 @@ int main(void)
             nS++;
             if (cash_get() != c1 || memcmp(qq20, eh, 17) != 0) {
                 unsigned long prod = (unsigned long)price * (unsigned long)qty * 4UL;
-                if (qty > h[g]) badS_unreach++;                          /* qty > bodega: gnum no lo deja pedir */
+                if (qty > h[g]) badS_unreach++;                          /* qty > hold: gnum does not let it be requested */
                 else if (c0 + prod > 0xFFFFFFFFUL) sat++;
                 else badS_noover++;
             }
-            if ((unsigned long)price * (unsigned long)qty * 4UL >= 65536UL && reach) over_cases++;   /* con TRADE_FAITHFUL tambien deben coincidir */
+            if ((unsigned long)price * (unsigned long)qty * 4UL >= 65536UL && reach) over_cases++;   /* with TRADE_FAITHFUL they must also match */
         }
     }
     fclose(f);
