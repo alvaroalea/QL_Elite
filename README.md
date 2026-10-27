@@ -1,121 +1,121 @@
 # QL_Elite
 
-[![English](https://img.shields.io/badge/Language-English-blue)](README.eng.md)
-[![Español](https://img.shields.io/badge/Language-Español-red)](README.md)
+[![English](https://img.shields.io/badge/Language-English-blue)](README.md)
+[![Español](https://img.shields.io/badge/Language-Español-red)](README.es.md)
 
+Port of **Elite (Apple II version, Firebird 1985)** to the **Sinclair QL** (68008; mode 8: 256 × 256 with 8 colours; optionally title and flight in mode 4: 512 × 256 with red, green and white, from the pause options), written in C89 with
+XTC68 (`qcc`) and a little assembler. It is a faithful port: it uses the original's 8-bit integer arithmetic, and every routine has been
+compared, whenever possible, against the original 6502 code in an emulator (status in `docs/INVENTARIO.md`).
 
-Port de **Elite (versión Apple II, Firebird 1985)** al **Sinclair QL** (68008; modo 8: 256 × 256 con 8 colores; opcionalmente título y vuelo en modo 4: 512 × 256 con rojo, verde y blanco, desde las opciones de la pausa), escrito en C89 con
-XTC68 (`qcc`) y un poco de ensamblador. Es un port fiel: usa la aritmética de enteros de 8 bits del original y cada rutina se ha
-comparado, cuando se ha podido, con el código 6502 original en un emulador (estado en `docs/INVENTARIO.md`).
+The original game is by Ian Bell and David Braben. The reference code is Mark Moxon's (`elite-source-code-apple-ii`), which is used
+only for consultation and verification; the port's code is original.
 
-El juego original es de Ian Bell y David Braben. El código de referencia es el de Mark Moxon (`elite-source-code-apple-ii`), que se
-usa solo para consultar y verificar; el código del port es propio.
+![Screenshot 1](screenshot_1.png)
+![Screenshot 2](screenshot_2.png)
 
-![Captura 1](screenshot_1.png)
-![Captura 2](screenshot_2.png)
+## How to run it on the QL (or in an emulator)
 
-## Cómo ejecutarlo en el QL (o en un emulador)
+1. Build the disk image: `make elite.img` (720 KB DS/DD disk with `elite`, `boot`, `elite_scr` and `elite_dash`).
+2. Mount `elite.img` as `flp1_` in the emulator (sQLux, QPC2, uQLx...) or copy it to a real disk, and start with
+   `LRUN flp1_boot`. To install it on another drive or directory, copy the four files and change `dev$` in `boot`; the game looks for its data on `flp1_`, `flp2_`, `win1_`, `mdv1_`, `mdv2_` (and `DATA_USE`/`PROG_USE` with Toolkit II, or the drive passed with `EXEC_W dev$&"elite";dev$`).
+3. Saved games are stored on the same drive as `elite_<name>` (disk menu, key `I` while docked).
 
-1. Generar la imagen de disco: `make elite.img` (`build/elite.img`, disco DS/DD de 720 KB con `elite`, `boot`, `elite_scr` y `elite_dash`).
-2. Montar `build/elite.img` como `flp1_` en el emulador (sQLux, QPC2, uQLx...) o copiarla a un disco real, y arrancar con
-   `LRUN flp1_boot`. Para instalarlo en otra unidad o directorio, copiar los cuatro ficheros y cambiar `dev$` en `boot`; el juego busca sus datos en `flp1_`, `flp2_`, `win1_`, `mdv1_`, `mdv2_` (y en `DATA_USE`/`PROG_USE` con Toolkit II, o en la unidad que se le pase con `EXEC_W dev$&"elite";dev$`).
-3. Las partidas se guardan en la misma unidad como `elite_<nombre>` (menú de disco, tecla `I` estando atracado).
+Without the `elite_dash` file the game draws a minimal panel and warns with "NO ELITE_DASH FILE".
 
-Sin el fichero `elite_dash` el juego dibuja un panel mínimo y avisa con «NO ELITE_DASH FILE».
+## How to build it
 
-## Cómo compilarlo
+- Dependencies: `python3` (with `Pillow` for some tools), `gcc`, `make`, `git`, `meson` and `ninja`.
+- QL compiler: `tools/install_xtc68.sh` installs XTC68 and the c68 runtime in `/tmp/qlsdk`. Then `make elite`
+  produces the QDOS executable `elite`.
+- PC version with the screen in memory: `make host_game`.
+- Tests: `make test_all` (needs nothing else). The ones that compare against the original 6502 (`make test_orig`, `test_move`, `test_dash`,
+  `test_arith`, `test_flight`...) need Moxon's source:
+  `git clone https://github.com/markmoxon/elite-source-code-apple-ii /tmp/moxon` and
+  `export ELITE_SRC=/tmp/moxon/1-source-files/main-sources`.
+- The project documentation is in `CLAUDE.md` (full project memory) and `docs/INVENTARIO.md` (status of the original's 528 routines),
+  both in Spanish.
 
-- Dependencias: `python3` (con `Pillow` para algunas herramientas), `gcc`, `make`, `git`, `meson` y `ninja`.
-- Compilador del QL: `tools/install_xtc68.sh` instala XTC68 y el runtime c68 en `/tmp/qlsdk`. Después, `make elite`
-  produce el ejecutable QDOS `build/elite`.
-- Versión de PC con la pantalla en memoria: `make host_game`.
-- Pruebas: `make test_all` (no necesita nada más). Las que comparan con el 6502 original (`make test_orig`, `test_move`, `test_dash`,
-  `test_arith`, `test_flight`...) necesitan la fuente de Moxon:
-  `git clone https://github.com/markmoxon/elite-source-code-apple-ii ref/moxon-appleII` (ruta por defecto; si está en otro sitio,
-  `export ELITE_SRC=<ruta>/1-source-files/main-sources`).
-- La documentación del proyecto está en `CLAUDE.md` (memoria completa) e `docs/INVENTARIO.md` (estado de las 528 rutinas del original).
+## Keys
 
-## Teclas
+### Title screen
 
-### Pantalla de título
-
-| Tecla | Acción |
+| Key | Action |
 |---|---|
-| `1` | Nuevo comandante (Jameson) |
-| `2` | Cargar comandante |
-| `Q` | Salir |
+| `1` | New commander (Jameson) |
+| `2` | Load commander |
+| `Q` | Quit |
 
-### Pantallas (iguales en vuelo y atracado)
+### Screens (same in flight and docked)
 
-| Tecla | Pantalla |
+| Key | Screen |
 |---|---|
-| `5` | Carta galáctica |
-| `6` | Carta de corto alcance |
-| `7` | Datos del sistema |
-| `8` | Precios del mercado |
-| `9` | Estado (Status) |
-| `0` | Inventario |
+| `5` | Galactic chart |
+| `6` | Short-range chart |
+| `7` | System data |
+| `8` | Market prices |
+| `9` | Status |
+| `0` | Inventory |
 
-`ESC` vuelve de una pantalla al estado (atracado) o a la vista del espacio (en vuelo).
+`ESC` returns from a screen to the status screen (docked) or to the space view (in flight).
 
-### En vuelo
+### In flight
 
-| Tecla | Acción |
+| Key | Action |
 |---|---|
-| Cursores | Alabeo (izquierda/derecha) y cabeceo (arriba = picar, abajo = subir) |
-| `F` / `D` | Acelerar / frenar |
-| `A` o espacio | Disparar el láser (mantener pulsado) |
-| `1` `2` `3` `4` | Vista frontal, trasera, izquierda, derecha |
-| `T` / `M` / `U` | Armar misil / disparar misil / desarmar misil |
+| Cursors | Roll (left/right) and pitch (up = dive, down = climb) |
+| `F` / `D` | Speed up / slow down |
+| `A` or space | Fire laser (hold down) |
+| `1` `2` `3` `4` | Front, rear, left, right view |
+| `T` / `M` / `U` | Arm missile / fire missile / unarm missile |
 | `E` | ECM |
-| `B` | Bomba de energía |
-| `J` | Salto dentro del sistema |
-| `H` | Hiperespacio (hace falta un sistema objetivo al alcance) |
-| `G` | Salto galáctico |
-| `C` / `P` | Encender / apagar el ordenador de atraque (si se lleva) |
-| `ESC` | Cápsula de escape (si se lleva) |
-| `=` | Pausa (muestra «PAUSED» en pantalla; `-` sigue) |
+| `B` | Energy bomb |
+| `J` | In-system jump |
+| `H` | Hyperspace (requires a target system within range) |
+| `G` | Galactic hyperdrive |
+| `C` / `P` | Docking computer on / off (if fitted) |
+| `ESC` | Escape pod (if fitted) |
+| `=` | Pause (shows "PAUSED" on screen; `-` resumes) |
 
-También se atraca entrando por la ranura de la estación.
+You can also dock by flying into the station's slot.
 
-Con el juego en **pausa** (`=`): `D` amortiguación, `A` recentrado del teclado, `X` autores y salto fallido a mano (con `TAB`
-durante el hiperespacio), `F` barras parpadeantes, `Y` eje Y del joystick, `J` ejes del joystick, `K` joystick (CTL1, cursores y
-espacio), `U` solo mayúsculas en los textos de las misiones, `T` cinta/disco, `Q` / `S` sonido apagado / encendido, `-` sigue
-jugando y `ESC` vuelve al título.
+With the game **paused** (`=`): `D` damping, `A` keyboard auto-recentre, `X` credits and manual mis-jump (with `TAB`
+during hyperspace), `F` flashing bars, `Y` joystick Y axis, `J` joystick axes, `K` joystick (CTL1, cursors and
+space), `U` upper case only in mission texts, `T` tape/disk, `Q` / `S` sound off / on, `-` resume
+playing and `ESC` back to the title.
 
-### Atracado
+### Docked
 
-| Tecla | Acción |
+| Key | Action |
 |---|---|
-| `1` | Comprar mercancías |
-| `2` | Vender mercancías |
-| `3` | Equipo (comprar equipo y láseres) |
-| `4` | No hace nada |
-| `5`–`0` | Pantallas (ver arriba) |
-| `U` | Despegar |
-| `I` | Menú de disco (guardar y cargar comandante) |
-| `H` / `G` | Avisan «DOCKED» (no se puede saltar atracado) |
+| `1` | Buy cargo |
+| `2` | Sell cargo |
+| `3` | Equipment (buy equipment and lasers) |
+| `4` | Does nothing |
+| `5`–`0` | Screens (see above) |
+| `U` | Launch |
+| `I` | Disk menu (save and load commander) |
+| `H` / `G` | Show "DOCKED" (you cannot jump while docked) |
 
-### Mercado y equipo
+### Market and equipment
 
-Cursores arriba/abajo para elegir artículo, cifras para la cantidad, `M` para el máximo, `ENTER` para confirmar y `ESC` para salir.
+Cursor up/down to choose an item, digits for the quantity, `M` for the maximum, `ENTER` to confirm and `ESC` to leave.
 
-### Cartas
+### Charts
 
-Los cursores mueven la mira; `F` busca un sistema por su nombre (solo atracado); `D` selecciona el sistema más cercano a la mira; `O`
-vuelve al sistema actual.
+The cursors move the crosshairs; `F` finds a system by name (docked only); `D` selects the system nearest to the crosshairs; `O`
+returns to the current system.
 
-### Teclado del QL
+### QL keyboard
 
-Los cursores y el espacio equivalen al joystick CTL1. En un emulador, `Mayúsculas + ESC` es la salida de emergencia. El teclado se lee
-por fila (`KEYROW`), por lo que tres teclas pulsadas en un rectángulo de la matriz pueden dar una fantasma.
+The cursors and space act as the CTL1 joystick. In an emulator, `Shift + ESC` is the emergency exit. The keyboard is read
+row by row (`KEYROW`), so three keys pressed forming a rectangle in the matrix can produce a ghost key.
 
-## Datos del juego (`data/`)
+## Game data (`data/`)
 
-- `elite_dash`: fondo del panel de instrumentos (256 × 56 en modo 8; en el vuelo se convierte a modo 4: rojo y verde se conservan, el resto sale blanco). Se puede editar en el PC: `make dash_png` lo exporta a
-  `asset/cabina.png`, se edita con los 8 colores del QL y `make dash_from_png` lo vuelve a generar. Más detalles en `data/README.txt`.
-- `boot`: programa de arranque de SuperBASIC. `elite_scr`: pantalla de carga.
+- `elite_dash`: instrument panel background (256 × 56 in mode 8; in flight it is converted to mode 4: red and green are kept, everything else becomes white). It can be edited on the PC: `make dash_png` exports it to
+  `data/cabina.png`, you edit it with the QL's 8 colours, and `make dash_from_png` regenerates it. More details in `data/README.txt`.
+- `boot`: SuperBASIC boot program. `elite_scr`: loading screen.
 
-## Créditos
+## Credits
 
-Elite: Ian Bell y David Braben. Código documentado de referencia: Mark Moxon. Port al QL: A. Alea y Claude, 2026.
+Elite: Ian Bell and David Braben. Reference documented code: Mark Moxon. QL port: A. Alea and Claude, 2026.
